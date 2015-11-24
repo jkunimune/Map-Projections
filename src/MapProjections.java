@@ -5,7 +5,8 @@ import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.math3.complex.Complex;
+import ellipticFunctions.Jacobi;
+import mfc.field.Complex;
 
 /**
  * 
@@ -16,10 +17,10 @@ import org.apache.commons.math3.complex.Complex;
  *
  */
 public class MapProjections {
-	private static final int QUINCUNCIAL = 3;
+	private static final int QUINCUNCIAL = 4;
 	private static final int EQUIRECTANGULAR = 1;
 	private static final int MERCATOR = 2;
-	private static final int POLAR = 4;
+	private static final int POLAR = 3;
 	
 	
 	
@@ -78,37 +79,13 @@ public class MapProjections {
 	/* PROJECTION METHODS: Return RGB at a given pixel based on a reference map and a unique projection method */
 	public static int quincuncial(final double lat0, final double lon0, final double orientation,
 			                      final int width, final int height, int x, int y, BufferedImage ref) { // a tessalatable square map
-		final double dx = .01;
-		
-		double phi, lambda; // the correct phi and lambda combination is the one where func goes to 0.
-		double phiMin = -Math.PI/2;
-		double phiMax = Math.PI/2;
-		double lamMin = -Math.PI;
-		double lamMax = Math.PI;
-		
-		double[] error = new double[3];
-		int i = 0;
-		do {
-			phi = (phiMax+phiMin)/2.0;
-			lambda = (lamMax+lamMin)/2.0;
-			
-			error[0] = func(phi, lambda, 2.0*x/width-1, 2.0*y/height-1);
-			error[1] = func(phi+dx, lambda, 2.0*x/width-1, 2.0*y/height-1);
-			error[2] = func(phi, lambda+dx, 2.0*x/width-1, 2.0*y/height-1);
-			
-			if (error[0] > error[1]) // phi is too small
-				phiMin = phi;
-			else // phi is too big
-				phiMax = phi;
-			if (error[0] > error[2]) // lambda is too small
-				lamMin = lambda;
-			else // lambda is too big
-				lamMax = lambda; 
-
-			i ++;
-		} while (phiMax-phiMin > Math.PI/ref.getHeight() && lamMax-lamMin > 2*Math.PI/ref.getWidth() && i < 256);
-		
-		return getColor(phi,lambda,ref);
+		Complex u = new Complex(3.7116*x/width, 3.7116*y/height-1.8558); // don't ask me where 3.7116 come from because I have no idea
+		Complex k = new Complex(Math.sqrt(0.5)); // the rest comes from some fancy complex calculus stuff
+		Complex ans = Jacobi.cn(u, k);
+		double p = 2*Math.atan(ans.abs());
+		double theta = Math.atan2(ans.getRe(), ans.getIm());
+		double lambda = p-Math.PI/2;
+		return getColor(lambda,theta,ref);
 	}
 	
 	
@@ -182,17 +159,17 @@ public class MapProjections {
 	/* PRECONDITION: -1 <= x,y <= 1 */
 	private static double func(double p, double l, double x, double y) { // a super complicated function that calculates stuff for peirce quincuncial
 		final double rt2 = Math.sqrt(2);
-		Complex X = new Complex(rt2*Math.tan(p/2)*Math.cos(l), rt2*Math.tan(p/2)*Math.sin(l));
-		Complex Z = new Complex(x,y); // the point on the map
+		Number X = new Number(rt2*Math.tan(p/2), l);
+		Number Z = new Number(x,y,true); // the point on the map
 //	    		           X*sqrt(-X^2/2 + 1)/2
-		Complex radical1 = X.multiply(X.multiply(X).divide(-2).add(1).pow(.5)).divide(2);
+		Number radical1 = X.times(X.sqrd().over(-2).plus(1)).over(2);
 //			       	     asin(X/sqrt(2))/sqrt(2)
-		Complex arcSin = X.divide(rt2).asin().divide(rt2);
+		Number arcSin = Number.asin(X.over(rt2)).over(rt2);
 //				           X*sqrt(-X^2/4 + 1)
-		Complex radical2 = X.multiply(X.multiply(X).divide(-4).add(1).pow(.5));
-//				           2*Z + pi*sqrt(2)/8
-		Complex finalBit = Z.multiply(2).subtract(Math.PI*rt2/8);
-		System.out.println("F("+X+","+Z+") = "+(radical1.subtract(arcSin).subtract(radical2).subtract(finalBit)).abs());
-		return (radical1.subtract(arcSin).subtract(radical2).subtract(finalBit)).abs();
+		Number radical2 = X.times(Number.sqrt(X.sqrd().over(-4).plus(1)));
+//				           2*Z - pi*sqrt(2)/8
+		Number finalBit = Z.times(2).minus(Math.PI*rt2/8);
+		//System.out.println("F("+X+","+Z+") = "+(radical1.subtract(arcSin).subtract(radical2).subtract(finalBit)).abs());
+		return Number.abs(radical1.minus(radical2).minus(arcSin).minus(finalBit));
 	}
 }
