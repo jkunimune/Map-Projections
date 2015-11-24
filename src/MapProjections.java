@@ -21,6 +21,9 @@ public class MapProjections {
 	private static final int EQUIRECTANGULAR = 1;
 	private static final int MERCATOR = 2;
 	private static final int POLAR = 3;
+	private static final String MAP_TYPES = "abcmsgtw";
+	private static final String[] FILE = {"altitude","blackandwhite","color","mars","satellite","milkyway",
+			"terrain","snowy"};
 	
 	
 	
@@ -29,17 +32,20 @@ public class MapProjections {
 		Scanner in = new Scanner(System.in);
 		String response;
 		
-		System.out.println("Realistic or Simplified? (r or s)");
+		System.out.println("Enter a file name, or choose a preset map style:");
+		for (int i = 0; i < FILE.length; i ++)
+			System.out.println(MAP_TYPES.charAt(i)+" --- "+FILE[i]);
 		response = in.nextLine();
 		if (response.length() == 0)
 			response = "c";
 		BufferedImage input;
-		if (response.toLowerCase().charAt(0) == 'r') // reads equirectangular from file
-			input = ImageIO.read(new File("input/realistic.jpg"));
-		else if (response.toLowerCase().charAt(0) == 's')
-			input = ImageIO.read(new File("input/simplified.jpg"));
+		final int index = MAP_TYPES.indexOf(response); // checks for presets
+		if (index >= 0) // reads equirectangular from file
+			input = ImageIO.read(new File("input/"+FILE[index]+".jpg"));
+		else if (response.indexOf(".") >= 0)
+			input = ImageIO.read(new File("input/"+response));
 		else
-			input = ImageIO.read(new File("input/color.png"));
+			input = ImageIO.read(new File("input/"+response+".jpg"));
 		
 		System.out.println("And what aspect ratio would you like? (Please enter as a decimal)");
 		response = in.nextLine();
@@ -49,7 +55,7 @@ public class MapProjections {
 		System.out.println("Pixel width?");
 		response = in.nextLine();
 		if (response.length() == 0)
-			response = "540";
+			response = "1080";
 		int w = Integer.parseInt(response);
 		BufferedImage output = new BufferedImage(w,(int)(w/x2y),BufferedImage.TYPE_INT_RGB);
 		
@@ -61,7 +67,7 @@ public class MapProjections {
 		
 		response = in.nextLine();
 		if (response.length() == 0)
-			response = "3";
+			response = Integer.toString(QUINCUNCIAL);
 		int projection = Integer.parseInt(response);
 		System.out.println("Wait...");
 		map(input,output,projection);
