@@ -21,9 +21,14 @@ public class MapProjections {
 	private static final int EQUIRECTANGULAR = 1;
 	private static final int MERCATOR = 2;
 	private static final int POLAR = 3;
-	private static final String MAP_TYPES = "abcmsgtw";
-	private static final String[] FILE = {"altitude","blackandwhite","color","mars","satellite","milkyway",
-			"terrain","snowy"};
+	private static final String MAP_TYPES = "abcmpsgtw";
+	private static final String[] FILE = {"altitude","blackandwhite","color","mars","political","satellite",
+			"milkyway","terrain","snowy"};
+	private static final String AXES = "cstmjnl";
+	private static final String[] AXIS_NAMES = {"Custom","Standard","Transverse","Center of Mass","Jerusalem","Point Nemo","Longest Straight Line"};
+	private static final double[] lats = {90,0,29.9792,31.7833,48.8767,-28.5217};
+	private static final double[] lons = {0,0,31.1344,35.216,56.6067,141.451};
+	private static final double[] thts = {0,0,-35,-35,-45,-18.5};
 	
 	
 	
@@ -31,14 +36,20 @@ public class MapProjections {
 	public static void main(String[] args) throws IOException {
 		Scanner in = new Scanner(System.in);
 		String response;
+		System.out.println("Welcome to the map configurer. You will be asked for a seiries of values. Leaving the field blank at any time will set values to default.");
 		
-		System.out.println("Enter a file name, or choose a preset map style:");
+		BufferedImage input;
+		int w;
+		double x2y;
+		double latD, lonD, thtD;
+		int projection;
+		
+		System.out.println("First, enter a file name, or choose a preset map style:");
 		for (int i = 0; i < FILE.length; i ++)
 			System.out.println(MAP_TYPES.charAt(i)+" --- "+FILE[i]);
 		response = in.nextLine();
 		if (response.length() == 0)
-			response = "c";
-		BufferedImage input;
+			response = "s";
 		final int index = MAP_TYPES.indexOf(response); // checks for presets
 		if (index >= 0) // reads equirectangular from file
 			input = ImageIO.read(new File("input/"+FILE[index]+".jpg"));
@@ -51,15 +62,45 @@ public class MapProjections {
 		response = in.nextLine();
 		if (response.length() == 0)
 			response = "1";
-		double x2y = Double.parseDouble(response);
+		x2y = Double.parseDouble(response);
 		System.out.println("Pixel width?");
 		response = in.nextLine();
 		if (response.length() == 0)
-			response = "1080";
-		int w = Integer.parseInt(response);
+			response = "540";
+		w = Integer.parseInt(response);
 		BufferedImage output = new BufferedImage(w,(int)(w/x2y),BufferedImage.TYPE_INT_RGB);
 		
-		System.out.println("Finally, pick a projection:\n");
+		System.out.println("Would you like to use a preset axis, or custom?");
+		for (int i = 0; i < AXIS_NAMES.length; i ++)
+			System.out.println(AXES.charAt(i)+" --- "+AXIS_NAMES[i]);
+		response = in.nextLine();
+		if (response.length() == 0)
+			response = "s";
+		int i = AXES.indexOf(response);
+		if (i > 0) { // if it is a preset
+			latD = lats[i-1];
+			lonD = lons[i-1];
+			thtD = thts[i-1];
+		}
+		else {
+			System.out.println("What is the latitude of your desired axis? [-90, 90]");
+			response = in.nextLine();
+			if (response.length() == 0)
+				response = "90";
+			latD = Double.parseDouble(response);
+			System.out.println("Longitude? [-180, 180]");
+			response = in.nextLine();
+			if (response.length() == 0)
+				response = "0";
+			lonD = Double.parseDouble(response);
+			System.out.println("What about your orientation? [-180, 180]");
+			response = in.nextLine();
+			if (response.length() == 0)
+				response = "0";
+			thtD = Double.parseDouble(response);
+		}
+		
+		System.out.println("Finally, pick a projection:");
 		System.out.println(EQUIRECTANGULAR+" --- Equirectangular");
 		System.out.println(MERCATOR       +" --- Mercator");
 		System.out.println(POLAR    +" --- Polar");
@@ -68,9 +109,9 @@ public class MapProjections {
 		response = in.nextLine();
 		if (response.length() == 0)
 			response = Integer.toString(QUINCUNCIAL);
-		int projection = Integer.parseInt(response);
+		projection = Integer.parseInt(response);
 		System.out.println("Wait...");
-		map(input,output,projection);
+		map(input,output,projection,latD,lonD,thtD);
 		
 		saveImage(output);
 		
@@ -91,14 +132,13 @@ public class MapProjections {
 		double p = 2*Math.atan(ans.abs());
 		double theta = Math.atan2(ans.getRe(), ans.getIm());
 		double lambda = p-Math.PI/2;
-		return getColor(lambda,theta,ref);
+		return getColor(lat0, lon0, orientation, lambda, theta, ref);
 	}
 	
 	
 	public static int equirectangular(final double lat0, final double lon0, final double orientation,
-			                          final int width, final int height, int x, int y, BufferedImage ref) { // a popular shape-preserving map
-		
-		return getColor((double)y/height*Math.PI - Math.PI/2, (double)x/width*2*Math.PI, ref);
+			                          final int width, final int height, int x, int y, BufferedImage ref) { // a basic scale
+		return getColor(lat0,lon0,orientation, (double)y/height*Math.PI - Math.PI/2, (double)x/width*2*Math.PI, ref);
 	}
 	
 	
@@ -106,7 +146,7 @@ public class MapProjections {
 		                       final int width, final int height, int x, int y, BufferedImage ref) { // a popular shape-preserving map
 		y -= height/2;
 		double phi = Math.atan(Math.sinh((double)y/width*2*Math.PI)); // latitude from 0 to pi
-		return getColor(phi, (double)x/width*2*Math.PI, ref);
+		return getColor(lat0,lon0,orientation, phi, (double)x/width*2*Math.PI, ref);
 	}
 	
 	
@@ -114,37 +154,63 @@ public class MapProjections {
 		                       final int width, final int height, int x, int y, BufferedImage ref) { // the projection used on the UN flag
 		double phi = 2*Math.PI*Math.hypot((double)x/width-.5, (double)y/height-.5) - Math.PI/2;
 		if (Math.abs(phi) < Math.PI/2)
-			return getColor(phi, Math.atan2(y-height/2.0, x-width/2.0), ref);
+			return getColor(lat0,lon0,orientation, phi, Math.atan2(y-height/2.0, -x+width/2.0), ref);
 		else
 			return 0;
 	}
+	/*END PROJECTION METHODS*/
 	
 	
-	public static int getColor(double lattitude, double longitude, BufferedImage ref) { // returns the color of any coordinate on earth
-		if (lattitude >= Math.PI/2)
-			return ref.getRGB(0, 0);
-		return ref.getRGB((int)(longitude*ref.getWidth()/(2*Math.PI) +ref.getWidth())%ref.getWidth(), (int)((lattitude*ref.getHeight()/Math.PI)+ref.getHeight()/2.0));
+	public static int getColor(final double lat0, final double lon0, final double orientation,
+			                   double lat1, double lon1, BufferedImage ref) { // returns the color of any coordinate on earth		
+		lon1 += orientation;
+		double latitude = Math.asin(Math.sin(lat0)*Math.sin(lat1) + Math.cos(lat0)*Math.cos(lon1)*Math.cos(lat1));
+		double longitude;
+		if (lat0  >= Math.PI/2)
+			longitude = lon1+Math.PI;
+		else if (lat0 <= -Math.PI/2)
+			longitude = -lon1;
+		else if (Math.sin(lon1) < 0)
+			longitude = lon0 + Math.acos(Math.sin(lat1)/Math.cos(lat0)/Math.cos(latitude)-Math.tan(lat0)*Math.tan(latitude));
+		else
+			longitude = lon0 - Math.acos(Math.sin(lat1)/Math.cos(lat0)/Math.cos(latitude)-Math.tan(lat0)*Math.tan(latitude));
+		
+		int x = (int)(longitude*ref.getWidth()/(2*Math.PI));
+		int y = (int)((latitude*ref.getHeight()/Math.PI)+ref.getHeight()/2.0);
+		
+		while (x < 0)
+			x += ref.getWidth();
+		x %= ref.getWidth();
+		if (y < 0)
+			y = 0;
+		else if (y >= ref.getHeight())
+			y = ref.getHeight()-1;
+				
+		return ref.getRGB(x, y);
 	}
 	
 	
-	public static void map(BufferedImage input, BufferedImage output, int projection) {
+	public static void map(BufferedImage input, BufferedImage output, int projection, double latD, double lonD, double thtD) {
 		final int width = output.getWidth();
 		final int height = output.getHeight();
+		final double lat0 = Math.toRadians(latD);
+		final double lon0 = Math.toRadians(lonD);
+		final double tht0 = Math.toRadians(thtD+180);
 		
 		for (int x = 0; x < output.getWidth(); x ++) {
 			for (int y = 0; y < output.getHeight(); y ++) {
 				switch (projection) {
 				case QUINCUNCIAL:
-					output.setRGB(x, y, quincuncial(0,0,0,width,height,x,y,input));
+					output.setRGB(x, y, quincuncial(lat0,lon0,tht0,width,height,x,y,input));
 					break;
 				case EQUIRECTANGULAR:
-					output.setRGB(x, y, equirectangular(0,0,0,width,height,x,y,input));
+					output.setRGB(x, y, equirectangular(lat0,lon0,tht0,width,height,x,y,input));
 					break;
 				case MERCATOR:
-					output.setRGB(x, y, mercator(0,0,0,width,height,x,y,input));
+					output.setRGB(x, y, mercator(lat0,lon0,tht0,width,height,x,y,input));
 					break;
 				case POLAR:
-					output.setRGB(x, y, polar(0,0,0,width,height,x,y,input));
+					output.setRGB(x, y, polar(lat0,lon0,tht0,width,height,x,y,input));
 					break;
 				default:
 					System.err.println("Justin, you forgot to add a projection to the switch case!");
@@ -159,23 +225,5 @@ public class MapProjections {
 			File outputFile = new File("output/myMap.jpg");
 			ImageIO.write(img, "jpg", outputFile);
 		} catch (IOException e) {}
-	}
-	
-	
-	/* PRECONDITION: -1 <= x,y <= 1 */
-	private static double func(double p, double l, double x, double y) { // a super complicated function that calculates stuff for peirce quincuncial
-		final double rt2 = Math.sqrt(2);
-		Number X = new Number(rt2*Math.tan(p/2), l);
-		Number Z = new Number(x,y,true); // the point on the map
-//	    		           X*sqrt(-X^2/2 + 1)/2
-		Number radical1 = X.times(X.sqrd().over(-2).plus(1)).over(2);
-//			       	     asin(X/sqrt(2))/sqrt(2)
-		Number arcSin = Number.asin(X.over(rt2)).over(rt2);
-//				           X*sqrt(-X^2/4 + 1)
-		Number radical2 = X.times(Number.sqrt(X.sqrd().over(-4).plus(1)));
-//				           2*Z - pi*sqrt(2)/8
-		Number finalBit = Z.times(2).minus(Math.PI*rt2/8);
-		//System.out.println("F("+X+","+Z+") = "+(radical1.subtract(arcSin).subtract(radical2).subtract(finalBit)).abs());
-		return Number.abs(radical1.minus(radical2).minus(arcSin).minus(finalBit));
 	}
 }
