@@ -1,12 +1,12 @@
 public final class Vector {
-	public static final Vector I = new Vector(1,0,0,true);
-	public static final Vector J = new Vector(0,1,0,true);
-	public static final Vector K = new Vector(0,0,1,true);
-	
-	
-	private double r; // magnitude
-	private double a; // altitude from horizontal
-	private double b; // bearing
+ public static final Vector I = new Vector(1,0,0,true);
+ public static final Vector J = new Vector(0,1,0,true);
+ public static final Vector K = new Vector(0,0,1,true);
+ 
+ 
+ private double r; // magnitude
+ private double a; // altitude from horizontal
+ private double b; // bearing
   
   
   
@@ -22,6 +22,13 @@ public final class Vector {
     a = newAlpha;
     b = newBeta;
   }
+  
+  
+  public Vector(int latD, int latM, int lonD, int lonM) { // constructs a vector of magnitude 1 given degree-minute coordinates
+    r = 1;
+    a = Math.toRadians(latD+latM/60.0);
+    b = Math.toRadians(lonD+lonM/60.0);
+  }  
   
   
   
@@ -46,12 +53,12 @@ public final class Vector {
   
   
   public final double getY() { // magnitude of the depth component
-	  return r*Math.cos(a)*Math.sin(b);
+   return r*Math.cos(a)*Math.sin(b);
   }
   
   
   public final double getZ() { // magnitude of the height component
-	  return r*Math.sin(a);
+   return r*Math.sin(a);
   }
   
   
@@ -103,7 +110,7 @@ public final class Vector {
   
   
   public final Vector hat() { // makes the magnitude 1
-	  return new Vector(1, getA(), getB());
+   return new Vector(1, getA(), getB());
   }
   
   

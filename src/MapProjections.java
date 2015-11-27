@@ -17,18 +17,29 @@ import mfc.field.Complex;
  *
  */
 public class MapProjections {
-	private static final int QUINCUNCIAL = 4;
+	private static final int QUINCUNCIAL = 10;
 	private static final int EQUIRECTANGULAR = 1;
 	private static final int MERCATOR = 2;
-	private static final int POLAR = 3;
-	private static final String MAP_TYPES = "abcmpsgtw";
-	private static final String[] FILE = {"altitude","blackandwhite","color","mars","political","satellite",
-			"milkyway","terrain","snowy"};
-	private static final String AXES = "cstmjnl";
-	private static final String[] AXIS_NAMES = {"Custom","Standard","Transverse","Center of Mass","Jerusalem","Point Nemo","Longest Straight Line"};
-	private static final double[] lats = {90,0,29.9792,31.7833,48.8767,-28.5217};
-	private static final double[] lons = {0,0,31.1344,35.216,56.6067,141.451};
-	private static final double[] thts = {0,0,-35,-35,-45,-18.5};
+	private static final int POLAR = 5;
+	private static final int GALL = 3;
+	private static final int SINUSOIDAL = 11;
+	private static final int STEREOGRAPHIC = 6;
+	private static final int ORTHOGONAL = 8;
+	private static final int LEMONS = 12;
+	private static final int EA_AZIMUTH = 7;
+	private static final int EA_CYLINDER = 4;
+	private static final int CONICAL = 9;
+	
+	private static final String MAP_TYPES = "abcempsgtwz+";
+	private static final String[] FILE = {"altitude","blackandwhite","color","empire","mars","political","satellite",
+			"milkyway","terrain","snowy","timezones","grid"};
+	
+	private static final String AXES = "cstmjnlx123";
+	private static final String[] AXIS_NAMES = {"Custom","Standard","Transverse","Center of Mass","Jerusalem",
+			"Point Nemo","Longest Line","Longest Line Transverse","Cylindrical","Conical","Quincuncial"};
+	private static final double[] lats = {90,0,29.9792,31.7833,48.8767,-28.5217,-46.4883,-35,10,59};
+	private static final double[] lons = {0,0,31.1344,35.216,56.6067,141.451,16.5305,-13.6064,-115,19};
+	private static final double[] thts = {0,0,-32,-35,-45,-18.5,137,145,150,50};
 	
 	
 	
@@ -66,7 +77,7 @@ public class MapProjections {
 		System.out.println("Pixel width?");
 		response = in.nextLine();
 		if (response.length() == 0)
-			response = "540";
+			response = "800";
 		w = Integer.parseInt(response);
 		BufferedImage output = new BufferedImage(w,(int)(w/x2y),BufferedImage.TYPE_INT_RGB);
 		
@@ -103,8 +114,16 @@ public class MapProjections {
 		System.out.println("Finally, pick a projection:");
 		System.out.println(EQUIRECTANGULAR+" --- Equirectangular");
 		System.out.println(MERCATOR       +" --- Mercator");
-		System.out.println(POLAR    +" --- Polar");
+		System.out.println(GALL           +" --- Gall Stereographic");
+		System.out.println(EA_CYLINDER    +" --- Cylindrical Equal-Area");
+		System.out.println(POLAR          +" --- Polar");
+		System.out.println(STEREOGRAPHIC  +" --- Stereographic");
+		System.out.println(EA_AZIMUTH     +" --- Azimuthal Equal-Area");
+		System.out.println(ORTHOGONAL     +" --- Orthogonal");
+		System.out.println(CONICAL        +" --- Lambert Conic");
 		System.out.println(QUINCUNCIAL    +" --- Peirce Quincuncial");
+		System.out.println(SINUSOIDAL     +" --- Sinusoidal");
+		System.out.println(LEMONS         +" --- BURN LIFE'S HOUSE DOWN");
 		
 		response = in.nextLine();
 		if (response.length() == 0)
@@ -154,7 +173,76 @@ public class MapProjections {
 		                       final int width, final int height, int x, int y, BufferedImage ref) { // the projection used on the UN flag
 		double phi = 2*Math.PI*Math.hypot((double)x/width-.5, (double)y/height-.5) - Math.PI/2;
 		if (Math.abs(phi) < Math.PI/2)
-			return getColor(lat0,lon0,orientation, phi, Math.atan2(y-height/2.0, -x+width/2.0), ref);
+			return getColor(lat0,lon0,orientation, phi, Math.atan2(width/2.0-x, height/2.0-y), ref);
+		else
+			return 0;
+	}
+	
+	
+	public static int gall(final double lat0, final double lon0, final double orientation,
+            final int width, final int height, int x, int y, BufferedImage ref) { // a compromise map, similar to mercator
+		return getColor(lat0, lon0, orientation,
+			      	    2*Math.atan((y-height/2.0) / (height/2.0)), x*2*Math.PI/width, ref);
+	}
+	
+	
+	public static int sinusoidal(final double lat0, final double lon0, final double orientation,
+            final int width, final int height, int x, int y, BufferedImage ref) { // a map shaped like a sinusoid
+		return getColor(lat0, lon0, orientation, y*Math.PI/height - Math.PI/2,
+				        Math.PI * (x-width/2.0) / (Math.sin(Math.PI*y/height)*width/2.0)+Math.PI, ref);
+	}
+	
+	
+	public static int stereographic(final double lat0, final double lon0, final double orientation,
+            final int width, final int height, int x, int y, BufferedImage ref) { // a shape-preserving infinite map
+		double radius = Math.pow(Math.pow(width, -2)+Math.pow(height, -2), -.5) / Math.PI;
+		return getColor(lat0, lon0, orientation, 2*Math.atan(Math.hypot(x-width/2, y-height/2) / radius)-Math.PI/2,
+                Math.atan2(width/2.0-x, height/2.0-y), ref);
+	}
+	
+	
+	public static int orthogonal(final double lat0, final double lon0, final double orientation,
+            final int width, final int height, int x, int y, BufferedImage ref) { // a map that mimics the view from space
+		double R = 2*Math.hypot((double)x/width-.5, (double)y/height-.5);
+		if (R <= 1)
+			return getColor(lat0, lon0, orientation, -Math.acos(R), Math.atan2(x-width/2.0,y-height/2.0), ref);
+		else
+			return 0;
+	}
+	
+	
+	public static int eaCylindrical(final double lat0, final double lon0, final double orientation,
+            final int width, final int height, int x, int y, BufferedImage ref) { // an equal area cylindrical map
+		return getColor(lat0, lon0, orientation, Math.asin((y-height/2.0) / (height/2.0)),
+                        x*2*Math.PI / width, ref);
+	}
+	
+	
+	public static int lambert(final double lat0, final double lon0, final double orientation,
+            final int width, final int height, int x, int y, BufferedImage ref) { // a conical projection
+		double radius = Math.pow(Math.pow(width, -2)+Math.pow(height, -2), -.5) / Math.PI;
+		return getColor(lat0, lon0, orientation, 4.0/3.0*(Math.atan(Math.hypot(x-width/2,y)/(radius)-1)+Math.PI/4) - Math.PI/2,
+				        2*Math.atan2(width/2.0-x, -y)-Math.PI, ref);
+	}
+	
+	
+	public static int lemons(final double lat0, final double lon0, final double orientation,
+            final int width, final int height, int x, int y, BufferedImage ref) { // a simple map that is shaped like lemons
+		int lemWdt = width/12; // the pixel width of each lemon
+		
+		if (Math.abs(x%lemWdt-lemWdt/2.0) < Math.sin(Math.PI*y/height)*lemWdt/2.0) // if it is inside a sin curve
+		      return getColor(lat0,lon0,orientation, y*Math.PI/height - Math.PI/2,
+		    		          Math.PI * (x%lemWdt-lemWdt/2.0) / (Math.sin(Math.PI*y/height)*lemWdt*6.0) + x/lemWdt*Math.PI/6, ref);
+		else
+			return 0;
+	}
+	
+	
+	public static int eaAzimuth(final double lat0, final double lon0, final double orientation,
+            final int width, final int height, int x, int y, BufferedImage ref) { // the lambert azimuthal equal area projection
+		double R = 4*Math.hypot((double)x/width-.5, (double)y/height-.5);
+		if (R <= 2)
+			return getColor(lat0, lon0, orientation, Math.asin(R*R/2-1), Math.atan2(x-width/2.0, y-height/2.0), ref);
 		else
 			return 0;
 	}
@@ -212,8 +300,32 @@ public class MapProjections {
 				case POLAR:
 					output.setRGB(x, y, polar(lat0,lon0,tht0,width,height,x,y,input));
 					break;
+				case GALL:
+					output.setRGB(x, y, gall(lat0,lon0,tht0,width,height,x,y,input));
+					break;
+				case SINUSOIDAL:
+					output.setRGB(x, y, sinusoidal(lat0,lon0,tht0,width,height,x,y,input));
+					break;
+				case STEREOGRAPHIC:
+					output.setRGB(x, y, stereographic(lat0,lon0,tht0,width,height,x,y,input));
+					break;
+				case ORTHOGONAL:
+					output.setRGB(x, y, orthogonal(lat0,lon0,tht0,width,height,x,y,input));
+					break;
+				case LEMONS:
+					output.setRGB(x, y, lemons(lat0,lon0,tht0,width,height,x,y,input));
+					break;
+				case EA_AZIMUTH:
+					output.setRGB(x, y, eaAzimuth(lat0,lon0,tht0,width,height,x,y,input));
+					break;
+				case EA_CYLINDER:
+					output.setRGB(x, y, eaCylindrical(lat0,lon0,tht0,width,height,x,y,input));
+					break;
+				case CONICAL:
+					output.setRGB(x, y, lambert(lat0,lon0,tht0,width,height,x,y,input));
+					break;
 				default:
-					System.err.println("Justin, you forgot to add a projection to the switch case!");
+					System.err.println("Justin, you forgot to add a projection to the switch case! (or you forgot a break;)");
 				}
 			}
 		}
