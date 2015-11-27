@@ -44,91 +44,123 @@ public class MapProjections {
 	
 	
 	
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 		Scanner in = new Scanner(System.in);
 		String response;
 		System.out.println("Welcome to the map configurer. You will be asked for a seiries of values. Leaving the field blank at any time will set values to default.");
 		
-		BufferedImage input;
+		BufferedImage input, output;
 		int w;
 		double x2y;
 		double latD, lonD, thtD;
 		int projection;
 		
-		System.out.println("First, enter a file name, or choose a preset map style:");
-		for (int i = 0; i < FILE.length; i ++)
-			System.out.println(MAP_TYPES.charAt(i)+" --- "+FILE[i]);
-		response = in.nextLine();
-		if (response.length() == 0)
-			response = "s";
-		final int index = MAP_TYPES.indexOf(response); // checks for presets
-		if (index >= 0) // reads equirectangular from file
-			input = ImageIO.read(new File("input/"+FILE[index]+".jpg"));
-		else if (response.indexOf(".") >= 0)
-			input = ImageIO.read(new File("input/"+response));
-		else
-			input = ImageIO.read(new File("input/"+response+".jpg"));
-		
-		System.out.println("And what aspect ratio would you like? (Please enter as a decimal)");
-		response = in.nextLine();
-		if (response.length() == 0)
-			response = "1";
-		x2y = Double.parseDouble(response);
-		System.out.println("Pixel width?");
-		response = in.nextLine();
-		if (response.length() == 0)
-			response = "800";
-		w = Integer.parseInt(response);
-		BufferedImage output = new BufferedImage(w,(int)(w/x2y),BufferedImage.TYPE_INT_RGB);
-		
-		System.out.println("Would you like to use a preset axis, or custom?");
-		for (int i = 0; i < AXIS_NAMES.length; i ++)
-			System.out.println(AXES.charAt(i)+" --- "+AXIS_NAMES[i]);
-		response = in.nextLine();
-		if (response.length() == 0)
-			response = "s";
-		int i = AXES.indexOf(response);
-		if (i > 0) { // if it is a preset
-			latD = lats[i-1];
-			lonD = lons[i-1];
-			thtD = thts[i-1];
-		}
-		else {
-			System.out.println("What is the latitude of your desired axis? [-90, 90]");
-			response = in.nextLine();
-			if (response.length() == 0)
-				response = "90";
-			latD = Double.parseDouble(response);
-			System.out.println("Longitude? [-180, 180]");
-			response = in.nextLine();
-			if (response.length() == 0)
-				response = "0";
-			lonD = Double.parseDouble(response);
-			System.out.println("What about your orientation? [-180, 180]");
-			response = in.nextLine();
-			if (response.length() == 0)
-				response = "0";
-			thtD = Double.parseDouble(response);
+		while (true) {
+			try {
+				System.out.println("First, enter a file name, or choose a preset map style:");
+				for (int i = 0; i < FILE.length; i ++)
+					System.out.println(MAP_TYPES.charAt(i)+" --- "+FILE[i]);
+				response = in.nextLine();
+				if (response.length() == 0)
+					response = "s";
+				final int index = MAP_TYPES.indexOf(response); // checks for presets
+				if (index >= 0) // reads equirectangular from file
+					input = ImageIO.read(new File("input/"+FILE[index]+".jpg"));
+				else if (response.indexOf(".") >= 0)
+					input = ImageIO.read(new File("input/"+response));
+				else
+					input = ImageIO.read(new File("input/"+response+".jpg"));
+				
+				break;
+			} catch (IOException e) {
+				System.out.println("I don't like that response. Enter something else.");
+			}
 		}
 		
-		System.out.println("Finally, pick a projection:");
-		System.out.println(EQUIRECTANGULAR+" --- Equirectangular");
-		System.out.println(MERCATOR       +" --- Mercator");
-		System.out.println(GALL           +" --- Gall Stereographic");
-		System.out.println(EA_CYLINDER    +" --- Cylindrical Equal-Area");
-		System.out.println(POLAR          +" --- Polar");
-		System.out.println(STEREOGRAPHIC  +" --- Stereographic");
-		System.out.println(EA_AZIMUTH     +" --- Azimuthal Equal-Area");
-		System.out.println(ORTHOGONAL     +" --- Orthogonal");
-		System.out.println(CONICAL        +" --- Lambert Conic");
-		System.out.println(QUINCUNCIAL    +" --- Peirce Quincuncial");
-		System.out.println(SINUSOIDAL     +" --- Sinusoidal");
-		System.out.println(LEMONS         +" --- BURN LIFE'S HOUSE DOWN");
+		while (true) {
+			try {
+				System.out.println("And what aspect ratio would you like? (Please enter as a decimal)");
+				response = in.nextLine();
+				if (response.length() == 0)
+					response = "1";
+				x2y = Double.parseDouble(response);
+				System.out.println("Pixel width? I strongly recommend at least 400.");
+				response = in.nextLine();
+				if (response.length() == 0)
+					response = "800";
+				w = Integer.parseInt(response);
+				output = new BufferedImage(w,(int)(w/x2y),BufferedImage.TYPE_INT_RGB);
+			
+				break;
+			} catch (Error e) {
+				System.out.println("I don't like that response. Enter something else.");
+			}
+		}
 		
-		response = in.nextLine();
-		if (response.length() == 0)
-			response = Integer.toString(QUINCUNCIAL);
-		projection = Integer.parseInt(response);
+		while (true) {
+			try {
+				System.out.println("Would you like to use a preset axis, or custom?");
+				for (int i = 0; i < AXIS_NAMES.length; i ++)
+					System.out.println(AXES.charAt(i)+" --- "+AXIS_NAMES[i]);
+				response = in.nextLine();
+				if (response.length() == 0)
+					response = "s";
+				int i = AXES.indexOf(response);
+				if (i > 0) { // if it is a preset
+					latD = lats[i-1];
+					lonD = lons[i-1];
+					thtD = thts[i-1];
+				}
+				else {
+					System.out.println("What is the latitude of your desired axis? [-90, 90]");
+					response = in.nextLine();
+					if (response.length() == 0)
+						response = "90";
+					latD = Double.parseDouble(response);
+					System.out.println("Longitude? [-180, 180]");
+					response = in.nextLine();
+					if (response.length() == 0)
+						response = "0";
+					lonD = Double.parseDouble(response);
+					System.out.println("What about your orientation? [-180, 180]");
+					response = in.nextLine();
+					if (response.length() == 0)
+						response = "0";
+					thtD = Double.parseDouble(response);
+				}
+				
+				break;
+			} catch (Error e) {
+				System.out.println("I don't like that. Enter something else.");
+			}
+		}
+		
+		while (true) {
+			try {
+				System.out.println("Finally, pick a projection:");
+				System.out.println(EQUIRECTANGULAR+" --- Equirectangular");
+				System.out.println(MERCATOR       +" --- Mercator");
+				System.out.println(GALL           +" --- Gall Stereographic");
+				System.out.println(EA_CYLINDER    +" --- Cylindrical Equal-Area");
+				System.out.println(POLAR          +" --- Polar");
+				System.out.println(STEREOGRAPHIC  +" --- Stereographic");
+				System.out.println(EA_AZIMUTH     +" --- Azimuthal Equal-Area");
+				System.out.println(ORTHOGONAL     +" --- Orthogonal");
+				System.out.println(CONICAL        +" --- Lambert Conic");
+				System.out.println(QUINCUNCIAL    +" --- Peirce Quincuncial");
+				System.out.println(SINUSOIDAL     +" --- Sinusoidal");
+				System.out.println(LEMONS         +" --- BURN LIFE'S HOUSE DOWN");
+				
+				response = in.nextLine();
+				if (response.length() == 0)
+					response = Integer.toString(QUINCUNCIAL);
+				projection = Integer.parseInt(response);
+				
+				break;
+			} catch (Error e) {
+				System.out.println("I don't like that response. Enter something else.");
+			}
+		}
 		System.out.println("Wait...");
 		map(input,output,projection,latD,lonD,thtD);
 		
@@ -228,7 +260,9 @@ public class MapProjections {
 	
 	public static int lemons(final double lat0, final double lon0, final double orientation,
             final int width, final int height, int x, int y, BufferedImage ref) { // a simple map that is shaped like lemons
-		int lemWdt = width/12; // the pixel width of each lemon
+		int lemWdt;
+		if (width > 12)  lemWdt= width/12; // the pixel width of each lemon
+		else             lemWdt = width;
 		
 		if (Math.abs(x%lemWdt-lemWdt/2.0) < Math.sin(Math.PI*y/height)*lemWdt/2.0) // if it is inside a sin curve
 		      return getColor(lat0,lon0,orientation, y*Math.PI/height - Math.PI/2,
