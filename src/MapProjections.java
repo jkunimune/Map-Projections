@@ -1,3 +1,4 @@
+import java.awt.Desktop;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -39,7 +40,7 @@ public class MapProjections {
 			"Point Nemo","Longest Line","Longest Line Transverse","Cylindrical","Conical","Quincuncial"};
 	private static final double[] lats = {90,0,29.9792,31.7833,48.8767,-28.5217,-46.4883,-35,10,59};
 	private static final double[] lons = {0,0,31.1344,35.216,56.6067,141.451,16.5305,-13.6064,-115,19};
-	private static final double[] thts = {0,0,-32,-35,-45,-18.5,137,145,150,50};
+	private static final double[] thts = {0,180,-32,-35,-45,-18.5,137,145,150,50};
 	
 	
 	
@@ -370,6 +371,7 @@ public class MapProjections {
 		try {
 			File outputFile = new File("output/myMap.jpg");
 			ImageIO.write(img, "jpg", outputFile);
+			Desktop.getDesktop().open(outputFile);
 		} catch (IOException e) {}
 	}
 }
