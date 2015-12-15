@@ -18,18 +18,20 @@ import mfc.field.Complex;
  *
  */
 public class MapProjections {
-	private static final int QUINCUNCIAL = 10;
+	private static final int QUINCUNCIAL = 11;
 	private static final int EQUIRECTANGULAR = 1;
 	private static final int MERCATOR = 2;
 	private static final int POLAR = 5;
 	private static final int GALL = 3;
-	private static final int SINUSOIDAL = 11;
+	private static final int SINUSOIDAL = 12;
 	private static final int STEREOGRAPHIC = 6;
 	private static final int ORTHOGONAL = 8;
-	private static final int LEMONS = 12;
+	private static final int LEMONS = 13;
 	private static final int EA_AZIMUTH = 7;
 	private static final int EA_CYLINDER = 4;
-	private static final int CONICAL = 9;
+	private static final int CONICAL = 10;
+	private static final int GNOMIC = 9;
+	private static final int QUINSHIFT = 14;
 	
 	private static final String MAP_TYPES = "abcempsgtwz+";
 	private static final String[] FILE = {"altitude","blackandwhite","color","empire","mars","political","satellite",
@@ -40,7 +42,7 @@ public class MapProjections {
 			"Point Nemo","Longest Line","Longest Line Transverse","Cylindrical","Conical","Quincuncial"};
 	private static final double[] lats = {90,0,29.9792,31.7833,48.8767,-28.5217,-46.4883,-35,10,59};
 	private static final double[] lons = {0,0,31.1344,35.216,56.6067,141.451,16.5305,-13.6064,-115,19};
-	private static final double[] thts = {0,180,-32,-35,-45,-18.5,137,145,150,50};
+	private static final double[] thts = {0,180,-32,-35,-45,71.5,137,145,150,50};
 	
 	
 	
@@ -147,10 +149,12 @@ public class MapProjections {
 				System.out.println(STEREOGRAPHIC  +" --- Stereographic");
 				System.out.println(EA_AZIMUTH     +" --- Azimuthal Equal-Area");
 				System.out.println(ORTHOGONAL     +" --- Orthogonal");
+				System.out.println(GNOMIC         +" --- Gnomic");
 				System.out.println(CONICAL        +" --- Lambert Conic");
 				System.out.println(QUINCUNCIAL    +" --- Peirce Quincuncial");
 				System.out.println(SINUSOIDAL     +" --- Sinusoidal");
 				System.out.println(LEMONS         +" --- BURN LIFE'S HOUSE DOWN");
+				System.out.println(QUINSHIFT      +" --- Shifted Quincuncial");
 				
 				response = in.nextLine();
 				if (response.length() == 0)
@@ -234,6 +238,14 @@ public class MapProjections {
 	}
 	
 	
+	public static int gnomic(final double lat0, final double lon0, final double orientation,
+            final int width, final int height, int x, int y, BufferedImage ref) { // a shape-preserving infinite map
+		double radius = Math.pow(Math.pow(width, -2)+Math.pow(height, -2), -.5) / Math.PI;
+		return getColor(lat0, lon0, orientation, Math.atan(Math.hypot(x-width/2, y-height/2) / radius)-Math.PI/2,
+                Math.atan2(width/2.0-x, height/2.0-y), ref);
+	}
+	
+	
 	public static int orthogonal(final double lat0, final double lon0, final double orientation,
             final int width, final int height, int x, int y, BufferedImage ref) { // a map that mimics the view from space
 		double R = 2*Math.hypot((double)x/width-.5, (double)y/height-.5);
@@ -280,6 +292,19 @@ public class MapProjections {
 			return getColor(lat0, lon0, orientation, Math.asin(R*R/2-1), Math.atan2(x-width/2.0, y-height/2.0), ref);
 		else
 			return 0;
+	}
+	
+	
+	public static int quinshift(final double lat0, final double lon0, final double orientation,
+            final int width, final int height, int x, int y, BufferedImage ref) { // a tessalatable rectangle map
+		Complex u = new Complex(3.7116*(0.5*y/height + 1.0*x/width),
+				                3.7116*(0.5*y/height - 1.0*x/width)); // don't ask me where 3.7116 come from because I have no idea
+		Complex k = new Complex(Math.sqrt(0.5)); // the rest comes from some fancy complex calculus stuff
+		Complex ans = Jacobi.cn(u, k);
+		double p = 2*Math.atan(ans.abs());
+		double theta = Math.atan2(ans.getRe(), ans.getIm());
+		double lambda = p-Math.PI/2;
+		return getColor(lat0, lon0, orientation, lambda, theta, ref);
 	}
 	/*END PROJECTION METHODS*/
 	
@@ -358,6 +383,12 @@ public class MapProjections {
 					break;
 				case CONICAL:
 					output.setRGB(x, y, lambert(lat0,lon0,tht0,width,height,x,y,input));
+					break;
+				case GNOMIC:
+					output.setRGB(x, y, gnomic(lat0,lon0,tht0,width,height,x,y,input));
+					break;
+				case QUINSHIFT:
+					output.setRGB(x, y, quinshift(lat0,lon0,tht0,width,height,x,y,input));
 					break;
 				default:
 					System.err.println("Justin, you forgot to add a projection to the switch case! (or you forgot a break;)");
