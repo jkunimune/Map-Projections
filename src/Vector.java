@@ -67,6 +67,11 @@ public final class Vector {
   }
   
   
+  public final double abs() { // magnitude
+	return r;
+  }
+  
+  
   public final double getA() { // altitude
     return a;
   }
@@ -106,6 +111,13 @@ public final class Vector {
     return new Vector(this.getY()*that.getZ() - this.getZ()*that.getY(),
                       this.getZ()*that.getX() - this.getX()*that.getZ(),
                       this.getX()*that.getY() - this.getY()*that.getX(), true);
+  }
+  
+  
+  public final Vector x(Vector that) { // computes x product with that
+	return new Vector(this.getY()*that.getZ() - this.getZ()*that.getY(),
+	                  this.getZ()*that.getX() - this.getX()*that.getZ(),
+	                  this.getX()*that.getY() - this.getY()*that.getX(), true);
   }
   
   

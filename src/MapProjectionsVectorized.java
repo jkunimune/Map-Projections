@@ -160,8 +160,8 @@ public class MapProjectionsVectorized {
 	public static double[] polar(final double lat0, final double lon0, final double orientation,
             double lat, double lon) { // UN flag
 		double[] output = new double[2];
-		output[0] = (lat+Math.PI/2)*1000/Math.PI * Math.cos(lon);
-		output[1] = (lat+Math.PI/2)*1000/Math.PI * Math.sin(lon);
+		output[0] = (Math.PI/2-lat)*1000/Math.PI * Math.cos(lon);
+		output[1] = (Math.PI/2-lat)*1000/Math.PI * Math.sin(lon);
 		return output;
 	}
 	/*END PROJECTION METHODS*/
@@ -264,15 +264,22 @@ public class MapProjectionsVectorized {
 	public static double[] convertCoords(double x, double y, double lat0,double lon0,double tht0) { // converts svg coordinates to lat and lon
 		final double width = 4378.125;
 		final double height = 2619.25547895;//2434.9375;
+		double latF = y*Math.PI/height + 2.533457922281304 - Math.PI; // final latitude from y
+		double lonF = x*2*Math.PI/width + 2.5849410045340258; // final longitude from x
+		Vector r0 = new Vector (1, lat0, lon0);
+		Vector rF = new Vector (1, latF, lonF);
+		Vector r0XrF = r0.cross(rF);
+		Vector r0Xk = r0.cross(Vector.K);
+		
 		double[] latLon = new double[2];
+		latLon[0] = Math.asin(r0.dot(rF)); // relative latitude
+		latLon[1] = Math.acos(r0XrF.dot(r0Xk)/(r0XrF.abs()*r0Xk.abs())); // relative longitude
 		
-		latLon[0] = -(y*Math.PI/height + 2.533457922281304 - Math.PI); // latitude from y
-		latLon[1] = x*2*Math.PI/width + 2.5849410045340258; // longitude from x
-		
-		while (latLon[1] < 0)
-			latLon[1] += 2*Math.PI;
-		while (latLon[1] > 2*Math.PI)
-			latLon[1] -= 2*Math.PI;
+		if (Double.isNaN(latLon[1]))
+			latLon[1] = 0;
+		else if (r0XrF.cross(r0Xk).dot(r0)/(r0XrF.abs()*r0Xk.abs()) > 0) // it's a plus-or-minus arccos.
+			latLon[1] = 2*Math.PI-latLon[1];
+		latLon[1] = (latLon[1]+tht0) % (2*Math.PI);
 		
 		return latLon;
 	}
