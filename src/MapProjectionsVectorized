@@ -72,7 +72,8 @@ public class MapProjections {
 				else if (response.indexOf(".") >= 0)
 					input = ImageIO.read(new File("input/"+response));
 				else
-					input = ImageIO.read(new File("input/"+response+".jpg"));				
+					input = ImageIO.read(new File("input/"+response+".jpg"));
+				
 				break;
 			} catch (IOException e) {
 				System.out.println("I don't like that response. Enter something else.");
