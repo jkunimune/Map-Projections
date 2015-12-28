@@ -1,4 +1,3 @@
-import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
@@ -7,8 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
 
-import ellipticFunctions.Jacobi;
-import mfc.field.Complex;
+import org.apache.commons.math3.complex.Complex;
 
 /**
  * 
@@ -45,6 +43,15 @@ public class MapProjectionsVectorized {
 	
 	
 	public static void main(String[] args) {
+		/*final Complex one = new Complex(1);
+		final Complex i = one.sqrt();
+		final Complex negOne = new Complex(-1);
+		final Complex rt2Over2 = new Complex(Math.sqrt(.5));
+		final Complex pi = new Complex(Math.PI);
+		System.out.println("F(pi,rt2over2) = "+F(pi,rt2Over2));
+		System.out.println("F(1,rt2over2) = "+F(one,rt2Over2));
+		System.out.println("F(rt2over2,rt2over2) = "+F(rt2Over2,rt2Over2));*/
+		
 		Scanner in = new Scanner(System.in);
 		String response;
 		System.out.println("Welcome to the map configurer. You will be asked for a seiries of values. Leaving the field blank at any time will set values to default.");
@@ -160,40 +167,26 @@ public class MapProjectionsVectorized {
 	public static double[] polar(final double lat0, final double lon0, final double orientation,
             double lat, double lon) { // UN flag
 		double[] output = new double[2];
-		output[0] = (Math.PI/2-lat)*1000/Math.PI * Math.cos(lon);
-		output[1] = (Math.PI/2-lat)*1000/Math.PI * Math.sin(lon);
+		output[0] = (lat+Math.PI/2)*1000/Math.PI * Math.cos(lon);
+		output[1] = (lat+Math.PI/2)*1000/Math.PI * Math.sin(lon);
+		return output;
+	}
+	
+	
+	public static double[] quincuncial(final double lat0, final double lon0, final double orientation,
+            double lat, double lon) { // awesomeness
+		double[] output = new double[2];
+				
+		final double wMag = Math.tan(lat/2+Math.PI/4);
+		final Complex w = new Complex(wMag*Math.cos(lon), wMag*Math.sin(lon));
+		final Complex k = new Complex(Math.sqrt(0.5));
+		Complex z = F(w.asin(),k);
+				
+		output[0] = -z.getReal()*1000;
+		output[1] = z.getImaginary()*1000;
 		return output;
 	}
 	/*END PROJECTION METHODS*/
-	
-	
-	public static int getColor(final double lat0, final double lon0, final double orientation,
-			                   double lat1, double lon1, BufferedImage ref) { // returns the color of any coordinate on earth		
-		lon1 += orientation;
-		double latitude = Math.asin(Math.sin(lat0)*Math.sin(lat1) + Math.cos(lat0)*Math.cos(lon1)*Math.cos(lat1));
-		double longitude;
-		if (lat0  >= Math.PI/2)
-			longitude = lon1+Math.PI;
-		else if (lat0 <= -Math.PI/2)
-			longitude = -lon1;
-		else if (Math.sin(lon1) < 0)
-			longitude = lon0 + Math.acos(Math.sin(lat1)/Math.cos(lat0)/Math.cos(latitude)-Math.tan(lat0)*Math.tan(latitude));
-		else
-			longitude = lon0 - Math.acos(Math.sin(lat1)/Math.cos(lat0)/Math.cos(latitude)-Math.tan(lat0)*Math.tan(latitude));
-		
-		int x = (int)(longitude*ref.getWidth()/(2*Math.PI));
-		int y = (int)((latitude*ref.getHeight()/Math.PI)+ref.getHeight()/2.0);
-		
-		while (x < 0)
-			x += ref.getWidth();
-		x %= ref.getWidth();
-		if (y < 0)
-			y = 0;
-		else if (y >= ref.getHeight())
-			y = ref.getHeight()-1;
-				
-		return ref.getRGB(x, y);
-	}
 	
 	
 	public static void parse(BufferedReader input, BufferedWriter output, int projection, double latD, double lonD, double thtD) {
@@ -254,6 +247,8 @@ public class MapProjectionsVectorized {
 				return equirectangular(lat0,lon0,tht0,lat,lon);
 			case POLAR:
 				return polar(lat0,lon0,tht0,lat,lon);
+			case QUINCUNCIAL:
+				return quincuncial(lat0,lon0,tht0,lat,lon);
 			default:
 				System.err.println("Justin, you forgot to add a projection to the switch case! (or you forgot a break;)");
 				return null;
@@ -263,24 +258,53 @@ public class MapProjectionsVectorized {
 	
 	public static double[] convertCoords(double x, double y, double lat0,double lon0,double tht0) { // converts svg coordinates to lat and lon
 		final double width = 4378.125;
-		final double height = 2619.25547895;//2434.9375;
-		double latF = y*Math.PI/height + 2.533457922281304 - Math.PI; // final latitude from y
-		double lonF = x*2*Math.PI/width + 2.5849410045340258; // final longitude from x
+		final double height = 2534.9375;//2619.25547895;//2434.9375;
+		double latF = y*Math.PI/height + 2.533457922281304 + 0.1105375192929742065/2 - Math.PI; // final latitude from y
+		double lonF = x*2*Math.PI/width + 2.5849410045340258 + 0.19198621771937625346160598453375; // final longitude from x
+		double[] latLon = new double[2];
+			
 		Vector r0 = new Vector (1, lat0, lon0);
 		Vector rF = new Vector (1, latF, lonF);
 		Vector r0XrF = r0.cross(rF);
 		Vector r0Xk = r0.cross(Vector.K);
 		
-		double[] latLon = new double[2];
 		latLon[0] = Math.asin(r0.dot(rF)); // relative latitude
-		latLon[1] = Math.acos(r0XrF.dot(r0Xk)/(r0XrF.abs()*r0Xk.abs())); // relative longitude
-		
+		if (lat0 == Math.PI/2 || lat0 == -Math.PI/2) // accounts for all the 0/0 errors at the poles
+			latLon[1] = lonF;
+		else
+			latLon[1] = Math.acos(r0XrF.dot(r0Xk)/(r0XrF.abs()*r0Xk.abs())); // relative longitude
+		 
 		if (Double.isNaN(latLon[1]))
 			latLon[1] = 0;
 		else if (r0XrF.cross(r0Xk).dot(r0)/(r0XrF.abs()*r0Xk.abs()) > 0) // it's a plus-or-minus arccos.
 			latLon[1] = 2*Math.PI-latLon[1];
-		latLon[1] = (latLon[1]+tht0) % (2*Math.PI);
+		latLon[1] = (latLon[1]+tht0+Math.PI) % (2*Math.PI);
 		
 		return latLon;
+	}
+	
+	
+	public static final Complex F(Complex phi, final Complex k) { // series solution to incomplete elliptic integral of the first kind given m = 0.5
+		final Complex K = new Complex(1.854074677301371918434);
+		Complex a = K.multiply(2/Math.PI).subtract(1);
+		Complex sum = a;
+		for (int n = 1; n <=40; n ++) {
+			a = new Complex(0);
+			
+			for (int m = n+1; m <= 50; m ++) {
+				a = a.add(k.pow(2*m).divide(m));
+			}
+			
+			double c = 1;
+			for (int i = 1; i <= n; i ++)
+				c = c * (2*i) / (2*i+1);
+			
+			if (n%2 == 0)
+				sum = sum.add(a.multiply(phi.tan().pow(2*n)).multiply(c));
+			else
+				sum = sum.subtract(a.multiply(phi.tan().pow(2*n)).multiply(c));
+		}
+		return phi.sin().add(1).divide(phi.cos()).log().multiply(K.multiply(2/Math.PI)).subtract(
+				phi.tan().divide(phi.cos()).multiply(sum));
 	}
 }
