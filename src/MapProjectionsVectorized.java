@@ -37,24 +37,27 @@ public class MapProjectionsVectorized {
 			"Point Nemo","Longest Line","Longest Line Transverse","Cylindrical","Conical","Quincuncial"};
 	private static final double[] lats = {90,0,29.9792,31.7833,48.8767,-28.5217,-46.4883,-35,10,59};
 	private static final double[] lons = {0,0,31.1344,35.216,56.6067,141.451,16.5305,-13.6064,-115,19};
-	private static final double[] thts = {0,180,-32,-35,-45,71.5,137,145,150,50};
+	private static final double[] thts = {0,180,-32,-35,-45,107,137,145,150,50};
 	
 	
 	
 	
 	public static void main(String[] args) {
-		/*final Complex one = new Complex(1);
-		final Complex i = one.sqrt();
-		final Complex negOne = new Complex(-1);
-		final Complex rt2Over2 = new Complex(Math.sqrt(.5));
-		final Complex pi = new Complex(Math.PI);
-		System.out.println("F(pi,rt2over2) = "+F(pi,rt2Over2));
-		System.out.println("F(1,rt2over2) = "+F(one,rt2Over2));
-		System.out.println("F(rt2over2,rt2over2) = "+F(rt2Over2,rt2Over2));*/
+		/*Complex one = new Complex(1);
+		Complex rt2 = new Complex(Math.sqrt(.5));
+		Complex two = new Complex(2);
+		Complex piover2 = new Complex(Math.PI/2);
+		Complex piover4 = new Complex(Math.PI/4);
+		
+		System.out.println("F(pi/4,rt2/2) = "+F(piover4,rt2));
+		System.out.println("F(1,rt2/2) = "+F(one,rt2));
+		System.out.println("F(pi/2,rt2/2) = "+F(piover2,rt2));
+		System.out.println("F(2,rt2/2) = "+F(two,rt2));
+		System.out.println("F(rt2/2,rt2/2) = "+F(rt2,rt2));*/
 		
 		Scanner in = new Scanner(System.in);
 		String response;
-		System.out.println("Welcome to the map configurer. You will be asked for a seiries of values. Leaving the field blank at any time will set values to default.");
+		System.out.println("Welcome to the map configurer. You will be asked for a series of values. Leaving the field blank at any time will set values to default.");
 		
 		BufferedReader input = null;
 		BufferedWriter output = null;
@@ -180,11 +183,40 @@ public class MapProjectionsVectorized {
 		final double wMag = Math.tan(lat/2+Math.PI/4);
 		final Complex w = new Complex(wMag*Math.cos(lon), wMag*Math.sin(lon));
 		final Complex k = new Complex(Math.sqrt(0.5));
-		Complex z = F(w.asin(),k);
+		Complex z = F(w.acos(),k);
+		if (z.isInfinite() || z.isNaN() || z.abs() > 10)
+			z = new Complex(0);
 				
 		output[0] = -z.getReal()*1000;
 		output[1] = z.getImaginary()*1000;
 		return output;
+		}
+		
+		
+	public static double[] shiftquin(final double lat0, final double lon0, final double orientation,
+            double lat, double lon) { // more awesomeness
+		double[] output = new double[2];
+				
+		if (lat >= 0) {
+			final double wMag = Math.tan(-lat/2+Math.PI/4);
+			final Complex w = new Complex(wMag*Math.cos(lon), wMag*Math.sin(lon));
+			final Complex k = new Complex(Math.sqrt(0.5));
+			Complex z = F(w.acos(),k);
+					
+			output[0] = -z.getImaginary()*1000;
+			output[1] = z.getReal()*1000;
+			return output;
+		}
+		else {
+			final double wMag = Math.tan(lat/2+Math.PI/4);
+			final Complex w = new Complex(wMag*Math.cos(lon), wMag*Math.sin(lon));
+			final Complex k = new Complex(Math.sqrt(0.5));
+			Complex z = F(w.acos(),k);
+					
+			output[0] = -z.getReal()*1000;
+			output[1] = z.getImaginary()*1000;
+			return output;
+		}
 	}
 	/*END PROJECTION METHODS*/
 	
@@ -249,6 +281,8 @@ public class MapProjectionsVectorized {
 				return polar(lat0,lon0,tht0,lat,lon);
 			case QUINCUNCIAL:
 				return quincuncial(lat0,lon0,tht0,lat,lon);
+			case QUINSHIFT:
+				return shiftquin(lat0,lon0,tht0,lat,lon);
 			default:
 				System.err.println("Justin, you forgot to add a projection to the switch case! (or you forgot a break;)");
 				return null;
@@ -259,7 +293,7 @@ public class MapProjectionsVectorized {
 	public static double[] convertCoords(double x, double y, double lat0,double lon0,double tht0) { // converts svg coordinates to lat and lon
 		final double width = 4378.125;
 		final double height = 2534.9375;//2619.25547895;//2434.9375;
-		double latF = y*Math.PI/height + 2.533457922281304 + 0.1105375192929742065/2 - Math.PI; // final latitude from y
+		double latF = y*Math.PI/height + 2.533457922281304 + 0.045 - Math.PI; // final latitude from y
 		double lonF = x*2*Math.PI/width + 2.5849410045340258 + 0.19198621771937625346160598453375; // final longitude from x
 		double[] latLon = new double[2];
 			
@@ -284,27 +318,45 @@ public class MapProjectionsVectorized {
 	}
 	
 	
-	public static final Complex F(Complex phi, final Complex k) { // series solution to incomplete elliptic integral of the first kind given m = 0.5
-		final Complex K = new Complex(1.854074677301371918434);
-		Complex a = K.multiply(2/Math.PI).subtract(1);
-		Complex sum = a;
-		for (int n = 1; n <=40; n ++) {
-			a = new Complex(0);
-			
-			for (int m = n+1; m <= 50; m ++) {
-				a = a.add(k.pow(2*m).divide(m));
-			}
-			
-			double c = 1;
-			for (int i = 1; i <= n; i ++)
-				c = c * (2*i) / (2*i+1);
-			
-			if (n%2 == 0)
-				sum = sum.add(a.multiply(phi.tan().pow(2*n)).multiply(c));
-			else
-				sum = sum.subtract(a.multiply(phi.tan().pow(2*n)).multiply(c));
+	public static final Complex F(Complex phi, final Complex k) { // series solution to incomplete elliptic integral of the first kind
+		Complex sum = new Complex(0);
+	    Complex i_n = phi;
+	    
+	    for (int n = 0; n < 100; n ++) {
+	        if (n > 0)
+	            i_n = i_n.multiply((2.0*n-1)/(2.0*n)).subtract(phi.cos().multiply(phi.sin().pow(2.0*n-1)).divide(2.0*n));
+	        sum = sum.add(i_n.multiply(Math.abs(combine(-.5,n))).multiply(k.pow(2.0*n)));
+	    }
+	    
+	    return sum;
+	}
+	
+	
+//	public static final Complex F(Complex phi, final Complex k) { // riemann solution to incomplete elliptic integral of the first kind
+//		Complex theta = new Complex(0);
+//		Complex dTheta = phi.divide(500.0);
+//		Complex area = new Complex(0);
+//		final Complex one = new Complex(1);
+//		
+//		while (theta.abs() < phi.abs()) {
+//			theta = theta.add(dTheta);
+//			area = area.add(one.subtract(k.pow(2).multiply(theta.sin().pow(2))).sqrt().multiply(dTheta));
+//		}
+//		
+//		return area;
+//	}
+	
+	
+	public static final double combine(double n, int k) {
+		double output = 1;
+		for (int i = k; i > 0; i --) {
+			output *= (n+i-k)/i;
 		}
-		return phi.sin().add(1).divide(phi.cos()).log().multiply(K.multiply(2/Math.PI)).subtract(
-				phi.tan().divide(phi.cos()).multiply(sum));
+		return output;
+	}
+	
+	
+	public static final Complex abs(Complex z) {
+		return new Complex(z.abs());
 	}
 }

@@ -1,3 +1,4 @@
+import java.awt.Canvas;
 import java.awt.Desktop;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -5,6 +6,12 @@ import java.io.IOException;
 import java.util.Scanner;
 
 import javax.imageio.ImageIO;
+import javax.swing.AbstractButton;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+import com.sun.glass.events.KeyEvent;
 
 import ellipticFunctions.Jacobi;
 import mfc.field.Complex;
@@ -51,6 +58,25 @@ public class MapProjections {
 		Scanner in = new Scanner(System.in);
 		String response;
 		System.out.println("Welcome to the map configurer. You will be asked for a seiries of values. Leaving the field blank at any time will set values to default.");
+		JFrame frame = new JFrame("Custom Map Configurer");
+		JPanel panel = new JPanel();
+		Canvas canvs = new Canvas();
+		JButton b1 = new JButton("Hi.");
+		b1.setHorizontalTextPosition(AbstractButton.CENTER);
+		b1.setMnemonic(KeyEvent.VK_S);
+		b1.setToolTipText("Begin the adventure!");
+		b1.setActionCommand("START");
+		//b1.addActionListener(this);
+		panel.add(b1);
+		panel.setLayout(null);
+	    canvs.setFocusable(true); // Sets the canvas to focussable (Necessary for a key listener).
+	    panel.add(canvs);
+	    panel.setOpaque(true);
+	    frame.setContentPane(panel);
+	    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    frame.setResizable(false);
+	    frame.setVisible(true);
+	    frame.pack();
 		
 		BufferedImage input, output;
 		int w;
