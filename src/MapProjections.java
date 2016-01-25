@@ -1,17 +1,17 @@
-import java.awt.Canvas;
 import java.awt.Desktop;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.Scanner;
-
 import javax.imageio.ImageIO;
-import javax.swing.AbstractButton;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
-
-import com.sun.glass.events.KeyEvent;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
 
 import ellipticFunctions.Jacobi;
 import mfc.field.Complex;
@@ -24,183 +24,217 @@ import mfc.field.Complex;
  * @author Justin Kunimune
  *
  */
-public class MapProjections {
-	private static final int QUINCUNCIAL = 11;
-	private static final int EQUIRECTANGULAR = 1;
-	private static final int MERCATOR = 2;
-	private static final int POLAR = 5;
-	private static final int GALL = 3;
-	private static final int SINUSOIDAL = 12;
-	private static final int STEREOGRAPHIC = 6;
-	private static final int ORTHOGONAL = 8;
-	private static final int LEMONS = 13;
-	private static final int EA_AZIMUTH = 7;
-	private static final int EA_CYLINDER = 4;
-	private static final int CONICAL = 10;
-	private static final int GNOMIC = 9;
-	private static final int QUINSHIFT = 14;
+public class MapProjections implements ActionListener {
+	private static final String[] PROJ = {"Equirectangular","Mercator","Gall","Cylindrical Equal-Area",
+			"Polar","Stereographic","Azimuthal Equal-Area","Orthogonal","Gnomic","Lambert Conical",
+			"Pierce-Quincuncial","Sinusoidal","Lemons","Shifted Quincuncial" };
+	private static final String[] TIP3 = {"A basic cylindrical map",
+											"A shape-preserving cylindrical map",
+											"A compromising cylindrical map",
+											"An area-preserving cylindrical map",
+											"A basic azimuthal map",
+											"A shape-preserving azimuthal map",
+											"An area-preserving azimuthal map",
+											"Represents earth viewed from an infinite distance",
+											"Every straight line on the map is a straight line on the sphere",
+											"A conical map (conical maps suck; don't use this one)",
+											"A conformal square map that uses complex math",
+											"An area-preserving map shaped like a sinusoid",
+											"BURN LIFE'S HOUSE DOWN!",
+											"A reorganized version of Pierce Quincuncial and actually the best map ever" };
 	
-	private static final String MAP_TYPES = "abcempsgtwz+";
-	private static final String[] FILE = {"altitude","blackandwhite","color","empire","mars","political","satellite",
-			"milkyway","terrain","snowy","timezones","grid"};
+	private static final String[] FILE = {"Satellite","Altitude","Blackandwhite","HiContrast","Terrain",
+			"NoIce","Biomes","Political","Timezones","Historic","Population","Antipode","Empire","Mars",
+			"Stars","ColorWheel","Grid","Soccer"};
+	private static final String[] TIP1 = {"A realistic rendering of the Earth",
+											"Color-coded based on altitude",
+											"Land is black; oceans are white.",
+											"Lots of snow and ice; oceans are black.",
+											"Color-coded based on terrain",
+											"Color-coded based on terrain, without ice",
+											"Color-coded based on biome",
+											"Political map with country names removed",
+											"A map of different time-zones",
+											"An old map by European explorers",
+											"Color-coded by population",
+											"If you dug straight down, where would you end up?",
+											"The British Empire at its height",
+											"A realistic rendering of Mars",
+											"The cosmos, as seen from Earth",
+											"Color-coded by latitude and longitude",
+											"Each square represents 30 degrees.",
+											"A realistic rendering of a football" };
 	
 	private static final String AXES = "cstmjnlx123";
-	private static final String[] AXIS_NAMES = {"Custom","Standard","Transverse","Center of Mass","Jerusalem",
+	private static final String[] AXIS_NAMES = {"Standard","Transverse","Center of Mass","Jerusalem",
 			"Point Nemo","Longest Line","Longest Line Transverse","Cylindrical","Conical","Quincuncial"};
+	private static final String[] TIP2 = {"The north pole (standard for most maps)",
+											"Offset from standard by 90 degrees",
+											"The center of landmass on Earth (Giza)",
+											"The city of Jerusalem",
+											"Antipode of the point farthest from land",
+											"Sets the longest sailable line as the equator",
+											"Sets the longest sailable line as the meridian",
+											"Perfect for cylindrical maps",
+											"Perfect for conical maps",
+											"Perfect for the Pierce Quincuncial projection" };
 	private static final double[] lats = {90,0,29.9792,31.7833,48.8767,-28.5217,-46.4883,-35,10,59};
 	private static final double[] lons = {0,0,31.1344,35.216,56.6067,141.451,16.5305,-13.6064,-115,19};
 	private static final double[] thts = {0,180,-32,-35,-45,71.5,137,145,150,50};
 	
 	
+	public String command = "";
+	
+	
 	
 	
 	public static void main(String[] args) {
-		Scanner in = new Scanner(System.in);
-		String response;
-		System.out.println("Welcome to the map configurer. You will be asked for a seiries of values. Leaving the field blank at any time will set values to default.");
-		JFrame frame = new JFrame("Custom Map Configurer");
-		JPanel panel = new JPanel();
-		Canvas canvs = new Canvas();
-		JButton b1 = new JButton("Hi.");
-		b1.setHorizontalTextPosition(AbstractButton.CENTER);
-		b1.setMnemonic(KeyEvent.VK_S);
-		b1.setToolTipText("Begin the adventure!");
-		b1.setActionCommand("START");
-		//b1.addActionListener(this);
-		panel.add(b1);
-		panel.setLayout(null);
-	    canvs.setFocusable(true); // Sets the canvas to focussable (Necessary for a key listener).
-	    panel.add(canvs);
-	    panel.setOpaque(true);
-	    frame.setContentPane(panel);
-	    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	    frame.setResizable(false);
-	    frame.setVisible(true);
-	    frame.pack();
-		
 		BufferedImage input, output;
 		int w;
 		double x2y;
 		double latD, lonD, thtD;
-		int projection;
+		String projection;
 		
-		while (true) {
-			try {
-				System.out.println("First, enter a file name, or choose a preset map style:");
-				for (int i = 0; i < FILE.length; i ++)
-					System.out.println(MAP_TYPES.charAt(i)+" --- "+FILE[i]);
-				response = in.nextLine();
-				if (response.length() == 0)
-					response = "s";
-				final int index = MAP_TYPES.indexOf(response); // checks for presets
-				if (index >= 0) // reads equirectangular from file
-					input = ImageIO.read(new File("input/"+FILE[index]+".jpg"));
-				else if (response.indexOf(".") >= 0)
-					input = ImageIO.read(new File("input/"+response));
-				else
-					input = ImageIO.read(new File("input/"+response+".jpg"));				
-				break;
-			} catch (IOException e) {
-				System.out.println("I don't like that response. Enter something else.");
-			}
-		}
-		
-		while (true) {
-			try {
-				System.out.println("And what aspect ratio would you like? (Please enter as a decimal)");
-				response = in.nextLine();
-				if (response.length() == 0)
-					response = "1";
-				x2y = Double.parseDouble(response);
-				System.out.println("Pixel width? I strongly recommend at least 400.");
-				response = in.nextLine();
-				if (response.length() == 0)
-					response = "800";
-				w = Integer.parseInt(response);
-				output = new BufferedImage(w,(int)(w/x2y),BufferedImage.TYPE_INT_RGB);
-			
-				break;
-			} catch (Error e) {
-				System.out.println("I don't like that response. Enter something else.");
-			}
-		}
-		
-		while (true) {
-			try {
-				System.out.println("Would you like to use a preset axis, or custom?");
-				for (int i = 0; i < AXIS_NAMES.length; i ++)
-					System.out.println(AXES.charAt(i)+" --- "+AXIS_NAMES[i]);
-				response = in.nextLine();
-				if (response.length() == 0)
-					response = "s";
-				int i = AXES.indexOf(response);
-				if (i > 0) { // if it is a preset
-					latD = lats[i-1];
-					lonD = lons[i-1];
-					thtD = thts[i-1];
-				}
-				else {
-					System.out.println("What is the latitude of your desired axis? [-90, 90]");
-					response = in.nextLine();
-					if (response.length() == 0)
-						response = "90";
-					latD = Double.parseDouble(response);
-					System.out.println("Longitude? [-180, 180]");
-					response = in.nextLine();
-					if (response.length() == 0)
-						response = "0";
-					lonD = Double.parseDouble(response);
-					System.out.println("What about your orientation? [-180, 180]");
-					response = in.nextLine();
-					if (response.length() == 0)
-						response = "0";
-					thtD = Double.parseDouble(response);
-				}
-				
-				break;
-			} catch (Error e) {
-				System.out.println("I don't like that. Enter something else.");
-			}
-		}
-		
-		while (true) {
-			try {
-				System.out.println("Finally, pick a projection:");
-				System.out.println(EQUIRECTANGULAR+" --- Equirectangular");
-				System.out.println(MERCATOR       +" --- Mercator");
-				System.out.println(GALL           +" --- Gall Stereographic");
-				System.out.println(EA_CYLINDER    +" --- Cylindrical Equal-Area");
-				System.out.println(POLAR          +" --- Polar");
-				System.out.println(STEREOGRAPHIC  +" --- Stereographic");
-				System.out.println(EA_AZIMUTH     +" --- Azimuthal Equal-Area");
-				System.out.println(ORTHOGONAL     +" --- Orthogonal");
-				System.out.println(GNOMIC         +" --- Gnomic");
-				System.out.println(CONICAL        +" --- Lambert Conic");
-				System.out.println(QUINCUNCIAL    +" --- Peirce Quincuncial");
-				System.out.println(SINUSOIDAL     +" --- Sinusoidal");
-				System.out.println(LEMONS         +" --- BURN LIFE'S HOUSE DOWN");
-				System.out.println(QUINSHIFT      +" --- Shifted Quincuncial");
-				
-				response = in.nextLine();
-				if (response.length() == 0)
-					response = Integer.toString(QUINCUNCIAL);
-				projection = Integer.parseInt(response);
-				
-				break;
-			} catch (Error e) {
-				System.out.println("I don't like that response. Enter something else.");
-			}
-		}
-		System.out.println("Wait...");
-		map(input,output,projection,latD,lonD,thtD);
-		
-		saveImage(output);
-		
-		in.close();
-		
-		System.out.println("Done!");
-	}
+		MapProjections listener = new MapProjections(); // initialization
+		JFrame frame = new JFrame("Map Configurer");
+	    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    frame.setSize(400,300);
+	    
+	    while (true) { // make as many maps as you want
 	
+			JPanel panel = new JPanel();
+			JLabel label = new JLabel("Please select a map theme."); // select map theme
+			panel.add(label);
+			JButton buttn;
+			for (int i = 0; i < FILE.length; i ++) {
+			    buttn = new JButton(FILE[i]);
+			    buttn.setToolTipText(TIP1[i]);
+			    buttn.setActionCommand(FILE[i]);
+			    buttn.addActionListener(listener);
+			    panel.add(buttn);
+			}
+		    frame.add(panel);
+		    frame.setVisible(true);
+		    
+		    while (listener.isWaiting()) {} // waits for a button to be pressed
+		    try {
+		    	input = ImageIO.read(new File("input/"+listener.command+".jpg"));
+		    } catch (IOException e) {
+		    	System.err.println("Where the heck is the image?!");
+		    	return;
+		    }
+		    listener.reset();
+		    frame.remove(panel);
+		    
+		    panel = new JPanel();
+			label = new JLabel("Pick an aspect ratio and pixel-width."); // select map dimensions
+			panel.add(label);
+			SpinnerModel ratioModel = new SpinnerNumberModel(1, .1, 10, .01);
+			JSpinner ratio = new JSpinner(ratioModel);
+			SpinnerModel widthModel = new SpinnerNumberModel(800, 400, 10000, 1);
+			JSpinner width = new JSpinner(widthModel);
+			panel.add(ratio);
+			panel.add(width);
+		    buttn = new JButton("OK");
+		    buttn.setToolTipText("Press when you are satisfied with your dimensions.");
+		    buttn.setActionCommand("OK");
+		    buttn.addActionListener(listener);
+		    panel.add(buttn);
+		    frame.add(panel);
+		    frame.setVisible(true);
+		    
+		    while (listener.isWaiting()) {} // wait for a button to be pressed
+		    w = (int)(width.getValue());
+		    x2y = (double)(ratio.getValue());
+			output = new BufferedImage(w,(int)(w/x2y),BufferedImage.TYPE_INT_RGB);
+		    listener.reset();
+		    frame.remove(panel);
+			
+		    panel = new JPanel();
+			label = new JLabel("Specify an axis (latitude, longitude, orientation),\n or choose a preset."); // select axis
+			panel.add(label);
+			SpinnerModel latModel = new SpinnerNumberModel(90, -90, 90, .1);
+			JSpinner lat = new JSpinner(latModel);
+			SpinnerModel lonModel = new SpinnerNumberModel(0, -180, 180, .1);
+			JSpinner lon = new JSpinner(lonModel);
+			SpinnerModel thtModel = new SpinnerNumberModel(0, -180, 180, .1);
+			JSpinner tht = new JSpinner(thtModel);
+			panel.add(lat);
+			panel.add(lon);
+			panel.add(tht);
+		    buttn = new JButton("Use Custom");
+		    buttn.setToolTipText("Create a custom axis from the specified coordinates.");
+		    buttn.setActionCommand("c");
+		    buttn.addActionListener(listener);
+		    panel.add(buttn);
+		    for (int i = 0; i < AXIS_NAMES.length; i ++) {
+		    	buttn = new JButton(AXIS_NAMES[i]);
+		    	buttn.setToolTipText(TIP2[i]);
+		    	buttn.setActionCommand(String.valueOf(AXES.charAt(i+1)));
+		    	buttn.addActionListener(listener);
+		    	panel.add(buttn);
+		    }
+		    frame.add(panel);
+		    frame.setVisible(true);
+		    
+		    while (listener.isWaiting()) {} // wait for a button to be pressed
+		    int n = AXES.indexOf(listener.command);
+			if (n > 0) { // if it is a preset
+				latD = lats[n-1];
+				lonD = lons[n-1];
+				thtD = thts[n-1];
+			}
+			else { // if it is custom
+				latD = (double)lat.getValue();
+				lonD = (double)lon.getValue();
+				thtD = (double)tht.getValue();
+			}
+		    listener.reset();
+		    frame.remove(panel);
+			
+		    panel = new JPanel();
+			label = new JLabel("Finally, pick a projection."); // select projection
+			panel.add(label);
+			for (int i = 0; i < PROJ.length; i ++) {
+			    buttn = new JButton(PROJ[i]);
+			    buttn.setToolTipText(TIP3[i]);
+			    buttn.setActionCommand(PROJ[i]);
+			    buttn.addActionListener(listener);
+			    panel.add(buttn);
+			}
+		    frame.add(panel);
+		    frame.setVisible(true);
+		    
+		    while (listener.isWaiting()) {} // wait for a button to be pressed
+		    projection = listener.command;
+		    frame.remove(panel);
+		    
+		    panel = new JPanel();
+			label = new JLabel("Wait..."); // select map dimensions
+			panel.add(label);
+			frame.add(panel);
+			frame.setVisible(true);
+			map(input,output,projection,latD,lonD,thtD);
+			
+			saveImage(output);
+			
+			frame.remove(panel);
+			listener.reset();
+			panel = new JPanel();
+			label = new JLabel("Done!"); // finished!
+			panel.add(label);
+			buttn = new JButton("Make Another");
+			buttn.setToolTipText("You know you want to..."); // lets you start over
+			buttn.setActionCommand("Go!");
+			buttn.addActionListener(listener);
+			panel.add(buttn);
+			frame.add(panel);
+			frame.setVisible(true);
+			while (listener.isWaiting()) {}
+			frame.remove(panel);
+			listener.reset();
+		}
+	}
 	
 	
 	
@@ -363,7 +397,7 @@ public class MapProjections {
 	}
 	
 	
-	public static void map(BufferedImage input, BufferedImage output, int projection, double latD, double lonD, double thtD) {
+	public static void map(BufferedImage input, BufferedImage output, String projection, double latD, double lonD, double thtD) {
 		final int width = output.getWidth();
 		final int height = output.getHeight();
 		final double lat0 = Math.toRadians(latD);
@@ -373,46 +407,46 @@ public class MapProjections {
 		for (int x = 0; x < output.getWidth(); x ++) {
 			for (int y = 0; y < output.getHeight(); y ++) {
 				switch (projection) {
-				case QUINCUNCIAL:
+				case "Pierce-Quincuncial":
 					output.setRGB(x, y, quincuncial(lat0,lon0,tht0,width,height,x,y,input));
 					break;
-				case EQUIRECTANGULAR:
+				case "Equirectangular":
 					output.setRGB(x, y, equirectangular(lat0,lon0,tht0,width,height,x,y,input));
 					break;
-				case MERCATOR:
+				case "Mercator":
 					output.setRGB(x, y, mercator(lat0,lon0,tht0,width,height,x,y,input));
 					break;
-				case POLAR:
+				case "Polar":
 					output.setRGB(x, y, polar(lat0,lon0,tht0,width,height,x,y,input));
 					break;
-				case GALL:
+				case "Gall":
 					output.setRGB(x, y, gall(lat0,lon0,tht0,width,height,x,y,input));
 					break;
-				case SINUSOIDAL:
+				case "Sinusoidal":
 					output.setRGB(x, y, sinusoidal(lat0,lon0,tht0,width,height,x,y,input));
 					break;
-				case STEREOGRAPHIC:
+				case "Stereographic":
 					output.setRGB(x, y, stereographic(lat0,lon0,tht0,width,height,x,y,input));
 					break;
-				case ORTHOGONAL:
+				case "Orthogonal":
 					output.setRGB(x, y, orthogonal(lat0,lon0,tht0,width,height,x,y,input));
 					break;
-				case LEMONS:
+				case "Lemons":
 					output.setRGB(x, y, lemons(lat0,lon0,tht0,width,height,x,y,input));
 					break;
-				case EA_AZIMUTH:
+				case "Azimuthal Equal-Area":
 					output.setRGB(x, y, eaAzimuth(lat0,lon0,tht0,width,height,x,y,input));
 					break;
-				case EA_CYLINDER:
+				case "Cylindrical Equal-Area":
 					output.setRGB(x, y, eaCylindrical(lat0,lon0,tht0,width,height,x,y,input));
 					break;
-				case CONICAL:
+				case "Lambert Conical":
 					output.setRGB(x, y, lambert(lat0,lon0,tht0,width,height,x,y,input));
 					break;
-				case GNOMIC:
+				case "Gnomic":
 					output.setRGB(x, y, gnomic(lat0,lon0,tht0,width,height,x,y,input));
 					break;
-				case QUINSHIFT:
+				case "Shifted Quincuncial":
 					output.setRGB(x, y, quinshift(lat0,lon0,tht0,width,height,x,y,input));
 					break;
 				default:
@@ -429,5 +463,29 @@ public class MapProjections {
 			ImageIO.write(img, "jpg", outputFile);
 			Desktop.getDesktop().open(outputFile);
 		} catch (IOException e) {}
+	}
+	
+	
+	
+	
+	
+	
+	public void actionPerformed(ActionEvent e) { // the non-static part of the program acts as a button-listener
+		command = e.getActionCommand();
+	}
+	
+	
+	public void reset() {
+		command = "";
+	}
+	
+	
+	public boolean isWaiting() {
+		if (command.isEmpty()) {
+			System.out.print(""); // this line makes the code work. I've no idea why.
+			return true;
+		}
+		else
+			return false;
 	}
 }
