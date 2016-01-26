@@ -25,9 +25,11 @@ import mfc.field.Complex;
  *
  */
 public class MapProjections implements ActionListener {
-	private static final String[] PROJ = {"Equirectangular","Mercator","Gall","Cylindrical Equal-Area",
-			"Polar","Stereographic","Azimuthal Equal-Area","Orthogonal","Gnomic","Lambert Conical",
-			"Pierce-Quincuncial","Sinusoidal","Lemons","Shifted Quincuncial" };
+	private static final String[] PROJ = {"Equirectangular","Mercator","Gall Stereographic",
+			"Cylindrical Equal-Area","Polar","Stereographic","Azimuthal Equal-Area","Orthogonal","Gnomic",
+			"Lambert Conical","Pierce Quincuncial","Sinusoidal","Lemons","Shifted Quincuncial" };
+	private static final int[] DEFW = {1400,1000,1200,1800,1100,1100,1100,1100,1100,1600,1000,1400,1400,1400};
+	private static final int[] DEFH = {700, 1000,900, 570, 1100,1100,1100,1100,1100,800, 1000,500, 700, 700 };
 	private static final String[] TIP3 = {"A basic cylindrical map",
 											"A shape-preserving cylindrical map",
 											"A compromising cylindrical map",
@@ -43,9 +45,9 @@ public class MapProjections implements ActionListener {
 											"BURN LIFE'S HOUSE DOWN!",
 											"A reorganized version of Pierce Quincuncial and actually the best map ever" };
 	
-	private static final String[] FILE = {"Satellite","Altitude","Blackandwhite","HiContrast","Terrain",
-			"NoIce","Biomes","Political","Timezones","Historic","Population","Antipode","Empire","Mars",
-			"Stars","ColorWheel","Grid","Soccer"};
+	private static final String[] FILE = {"Satellite","Altitude","Black_and_white","HiContrast","Terrain",
+			"No_Ice","Biomes","Political","Timezones","Historic","Population","Antipode","Empire","Mars",
+			"Stars","Color_Wheel","Grid","Soccer"};
 	private static final String[] TIP1 = {"A realistic rendering of the Earth",
 											"Color-coded based on altitude",
 											"Land is black; oceans are white.",
@@ -65,8 +67,7 @@ public class MapProjections implements ActionListener {
 											"Each square represents 30 degrees.",
 											"A realistic rendering of a football" };
 	
-	private static final String AXES = "cstmjnlx123";
-	private static final String[] AXIS_NAMES = {"Standard","Transverse","Center of Mass","Jerusalem",
+	private static final String[] AXES = {"Standard","Transverse","Center of Mass","Jerusalem",
 			"Point Nemo","Longest Line","Longest Line Transverse","Cylindrical","Conical","Quincuncial"};
 	private static final String[] TIP2 = {"The north pole (standard for most maps)",
 											"Offset from standard by 90 degrees",
@@ -90,10 +91,9 @@ public class MapProjections implements ActionListener {
 	
 	public static void main(String[] args) {
 		BufferedImage input, output;
-		int w;
-		double x2y;
+		int w,h;
 		double latD, lonD, thtD;
-		String projection;
+		int projection;
 		
 		MapProjections listener = new MapProjections(); // initialization
 		JFrame frame = new JFrame("Map Configurer");
@@ -104,6 +104,7 @@ public class MapProjections implements ActionListener {
 	
 			JPanel panel = new JPanel();
 			JLabel label = new JLabel("Please select a map theme."); // select map theme
+			label.setToolTipText("This is the equirectangular image the program will reference.");
 			panel.add(label);
 			JButton buttn;
 			for (int i = 0; i < FILE.length; i ++) {
@@ -115,7 +116,6 @@ public class MapProjections implements ActionListener {
 			}
 		    frame.add(panel);
 		    frame.setVisible(true);
-		    
 		    while (listener.isWaiting()) {} // waits for a button to be pressed
 		    try {
 		    	input = ImageIO.read(new File("input/"+listener.command+".jpg"));
@@ -125,16 +125,97 @@ public class MapProjections implements ActionListener {
 		    }
 		    listener.reset();
 		    frame.remove(panel);
+			
+		    panel = new JPanel();
+			label = new JLabel("Pick a projection algorithm."); // select projection
+			label.setToolTipText("How will the Earth be mapped onto a plane?");
+			panel.add(label);
+			for (int i = 0; i < PROJ.length; i ++) {
+			    buttn = new JButton(PROJ[i]);
+			    buttn.setToolTipText(TIP3[i]);
+			    buttn.setActionCommand(String.valueOf(i));
+			    buttn.addActionListener(listener);
+			    panel.add(buttn);
+			}
+		    frame.add(panel);
+		    frame.setVisible(true);
+		    while (listener.isWaiting()) {} // wait for a button to be pressed
+		    projection = Integer.parseInt(listener.command);
+		    listener.reset();
+		    frame.remove(panel);
 		    
 		    panel = new JPanel();
-			label = new JLabel("Pick an aspect ratio and pixel-width."); // select map dimensions
+			label = new JLabel("Choose an axis preset, or make a custom one."); // select axis
+			label.setToolTipText("Changing the axis effectively rotates the earth, which can produce some very unconventional maps.");
 			panel.add(label);
-			SpinnerModel ratioModel = new SpinnerNumberModel(1, .1, 10, .01);
-			JSpinner ratio = new JSpinner(ratioModel);
-			SpinnerModel widthModel = new SpinnerNumberModel(800, 400, 10000, 1);
+		    buttn = new JButton("Custom");
+		    buttn.setToolTipText("Enter coordinates to create a custom axis.");
+		    buttn.setActionCommand("-1");
+		    buttn.addActionListener(listener);
+		    panel.add(buttn);
+		    for (int i = 0; i < AXES.length; i ++) {
+		    	buttn = new JButton(AXES[i]);
+		    	buttn.setToolTipText(TIP2[i]);
+		    	buttn.setActionCommand(String.valueOf(i));
+		    	buttn.addActionListener(listener);
+		    	panel.add(buttn);
+		    }
+		    frame.add(panel);
+		    frame.setVisible(true);
+		    while (listener.isWaiting()) {} // wait for a button to be pressed
+		    int n = Integer.parseInt(listener.command);
+		    listener.reset();
+		    frame.remove(panel);
+		    
+			if (n > 0) { // if it is a preset
+				latD = lats[n];
+				lonD = lons[n];
+				thtD = thts[n];
+			}
+			else { // if it is custom
+				panel = new JPanel(); // lets you pick coordinates
+				label = new JLabel("Enter the coordinates for your custom axis (lattitude, longitude, orientation).");
+				label.setToolTipText("The coordinates you specify will probably appear in the center of the map or on the top.");
+				panel.add(label);
+				SpinnerModel latModel = new SpinnerNumberModel(0, -90, 90, .1);
+				JSpinner lat = new JSpinner(latModel);
+				lat.setToolTipText("The lattitude of your desired axis (between -90 and 90)");
+				SpinnerModel lonModel = new SpinnerNumberModel(0, -180, 180, .1);
+				JSpinner lon = new JSpinner(lonModel);
+				lon.setToolTipText("The longitude of your desired axis (between -180 and 180)");
+				SpinnerModel thtModel = new SpinnerNumberModel(0, -180, 180, .1);
+				JSpinner tht = new JSpinner(thtModel);
+				tht.setToolTipText("The orientation of your desired axis (between -180 and 180)");
+				panel.add(lat);
+				panel.add(lon);
+				panel.add(tht);
+				buttn = new JButton("Okay");
+				buttn.setToolTipText("Press when you are satisfied with your coordinates.");
+				buttn.setActionCommand("OK");
+				buttn.addActionListener(listener);
+				panel.add(buttn);
+				frame.add(panel);
+				frame.setVisible(true);
+				while (listener.isWaiting()) {} // wait for a button to be pressed
+				latD = (double)lat.getValue();
+				lonD = (double)lon.getValue();
+				thtD = (double)tht.getValue();
+				listener.reset();
+				frame.remove(panel);
+			}
+		    
+		    panel = new JPanel();
+			label = new JLabel("Finally, set the dimensions for your map (width, height)."); // select map dimensions
+			label.setToolTipText("These will be the dimensions of the JPG file in pixels.");
+			panel.add(label);
+			SpinnerModel widthModel = new SpinnerNumberModel(DEFW[projection], 400, 10000, 10);
 			JSpinner width = new JSpinner(widthModel);
-			panel.add(ratio);
+			width.setToolTipText("The width of your map in pixels");
+			SpinnerModel heightModel = new SpinnerNumberModel(DEFH[projection], 400, 10000, 10);
+			JSpinner height = new JSpinner(heightModel);
+			height.setToolTipText("The height of your map in pixels");
 			panel.add(width);
+			panel.add(height);
 		    buttn = new JButton("OK");
 		    buttn.setToolTipText("Press when you are satisfied with your dimensions.");
 		    buttn.setActionCommand("OK");
@@ -142,75 +223,15 @@ public class MapProjections implements ActionListener {
 		    panel.add(buttn);
 		    frame.add(panel);
 		    frame.setVisible(true);
-		    
 		    while (listener.isWaiting()) {} // wait for a button to be pressed
 		    w = (int)(width.getValue());
-		    x2y = (double)(ratio.getValue());
-			output = new BufferedImage(w,(int)(w/x2y),BufferedImage.TYPE_INT_RGB);
+		    h = (int)(height.getValue());
+			output = new BufferedImage(w,h,BufferedImage.TYPE_INT_RGB);
 		    listener.reset();
 		    frame.remove(panel);
-			
-		    panel = new JPanel();
-			label = new JLabel("Specify an axis (latitude, longitude, orientation),\n or choose a preset."); // select axis
-			panel.add(label);
-			SpinnerModel latModel = new SpinnerNumberModel(90, -90, 90, .1);
-			JSpinner lat = new JSpinner(latModel);
-			SpinnerModel lonModel = new SpinnerNumberModel(0, -180, 180, .1);
-			JSpinner lon = new JSpinner(lonModel);
-			SpinnerModel thtModel = new SpinnerNumberModel(0, -180, 180, .1);
-			JSpinner tht = new JSpinner(thtModel);
-			panel.add(lat);
-			panel.add(lon);
-			panel.add(tht);
-		    buttn = new JButton("Use Custom");
-		    buttn.setToolTipText("Create a custom axis from the specified coordinates.");
-		    buttn.setActionCommand("c");
-		    buttn.addActionListener(listener);
-		    panel.add(buttn);
-		    for (int i = 0; i < AXIS_NAMES.length; i ++) {
-		    	buttn = new JButton(AXIS_NAMES[i]);
-		    	buttn.setToolTipText(TIP2[i]);
-		    	buttn.setActionCommand(String.valueOf(AXES.charAt(i+1)));
-		    	buttn.addActionListener(listener);
-		    	panel.add(buttn);
-		    }
-		    frame.add(panel);
-		    frame.setVisible(true);
-		    
-		    while (listener.isWaiting()) {} // wait for a button to be pressed
-		    int n = AXES.indexOf(listener.command);
-			if (n > 0) { // if it is a preset
-				latD = lats[n-1];
-				lonD = lons[n-1];
-				thtD = thts[n-1];
-			}
-			else { // if it is custom
-				latD = (double)lat.getValue();
-				lonD = (double)lon.getValue();
-				thtD = (double)tht.getValue();
-			}
-		    listener.reset();
-		    frame.remove(panel);
-			
-		    panel = new JPanel();
-			label = new JLabel("Finally, pick a projection."); // select projection
-			panel.add(label);
-			for (int i = 0; i < PROJ.length; i ++) {
-			    buttn = new JButton(PROJ[i]);
-			    buttn.setToolTipText(TIP3[i]);
-			    buttn.setActionCommand(PROJ[i]);
-			    buttn.addActionListener(listener);
-			    panel.add(buttn);
-			}
-		    frame.add(panel);
-		    frame.setVisible(true);
-		    
-		    while (listener.isWaiting()) {} // wait for a button to be pressed
-		    projection = listener.command;
-		    frame.remove(panel);
 		    
 		    panel = new JPanel();
-			label = new JLabel("Wait..."); // select map dimensions
+			label = new JLabel("Wait...");
 			panel.add(label);
 			frame.add(panel);
 			frame.setVisible(true);
@@ -219,7 +240,6 @@ public class MapProjections implements ActionListener {
 			saveImage(output);
 			
 			frame.remove(panel);
-			listener.reset();
 			panel = new JPanel();
 			label = new JLabel("Done!"); // finished!
 			panel.add(label);
@@ -397,7 +417,7 @@ public class MapProjections implements ActionListener {
 	}
 	
 	
-	public static void map(BufferedImage input, BufferedImage output, String projection, double latD, double lonD, double thtD) {
+	public static void map(BufferedImage input, BufferedImage output, int projection, double latD, double lonD, double thtD) {
 		final int width = output.getWidth();
 		final int height = output.getHeight();
 		final double lat0 = Math.toRadians(latD);
@@ -406,8 +426,8 @@ public class MapProjections implements ActionListener {
 		
 		for (int x = 0; x < output.getWidth(); x ++) {
 			for (int y = 0; y < output.getHeight(); y ++) {
-				switch (projection) {
-				case "Pierce-Quincuncial":
+				switch (PROJ[projection]) { // methods are selected by the name of the projection
+				case "Pierce Quincuncial":
 					output.setRGB(x, y, quincuncial(lat0,lon0,tht0,width,height,x,y,input));
 					break;
 				case "Equirectangular":
@@ -419,7 +439,7 @@ public class MapProjections implements ActionListener {
 				case "Polar":
 					output.setRGB(x, y, polar(lat0,lon0,tht0,width,height,x,y,input));
 					break;
-				case "Gall":
+				case "Gall Stereographic":
 					output.setRGB(x, y, gall(lat0,lon0,tht0,width,height,x,y,input));
 					break;
 				case "Sinusoidal":
