@@ -45,12 +45,13 @@ public class MapProjections implements ActionListener {
 											"BURN LIFE'S HOUSE DOWN!",
 											"A reorganized version of Pierce Quincuncial and actually the best map ever" };
 	
-	private static final String[] FILE = {"Satellite","Altitude","Black_and_white","HiContrast","Terrain",
+	private static final String[] FILE = {"Satellite","Altitude","Sillouette","Rivers","HiContrast","Terrain",
 			"No_Ice","Biomes","Political","Timezones","Historic","Population","Antipode","Empire","Mars",
 			"Stars","Color_Wheel","Grid","Soccer"};
 	private static final String[] TIP1 = {"A realistic rendering of the Earth",
 											"Color-coded based on altitude",
 											"Land is black; oceans are white.",
+											"Land is black; rivers and oceans are white (not recomended for low-resolution maps).",
 											"Lots of snow and ice; oceans are black.",
 											"Color-coded based on terrain",
 											"Color-coded based on terrain, without ice",
@@ -167,15 +168,15 @@ public class MapProjections implements ActionListener {
 		    listener.reset();
 		    frame.remove(panel);
 		    
-			if (n > 0) { // if it is a preset
+			if (n >= 0) { // if it is a preset
 				latD = lats[n];
 				lonD = lons[n];
 				thtD = thts[n];
 			}
 			else { // if it is custom
 				panel = new JPanel(); // lets you pick coordinates
-				label = new JLabel("Enter the coordinates for your custom axis (lattitude, longitude, orientation).");
-				label.setToolTipText("The coordinates you specify will probably appear in the center of the map or on the top.");
+				label = new JLabel("<html>Enter coordinates for your axis (lattitude, longitude, orientation).</html>");
+				label.setToolTipText("The coordinates you specify will probably appear in the center or at the top of the map.");
 				panel.add(label);
 				SpinnerModel latModel = new SpinnerNumberModel(0, -90, 90, .1);
 				JSpinner lat = new JSpinner(latModel);
@@ -235,7 +236,7 @@ public class MapProjections implements ActionListener {
 			panel.add(label);
 			frame.add(panel);
 			frame.setVisible(true);
-			map(input,output,projection,latD,lonD,thtD);
+			map(input,output,projection,latD,lonD,thtD); // This is where all the math happens
 			
 			saveImage(output);
 			
@@ -248,12 +249,21 @@ public class MapProjections implements ActionListener {
 			buttn.setActionCommand("Go!");
 			buttn.addActionListener(listener);
 			panel.add(buttn);
+			buttn = new JButton("Exit");
+			buttn.setToolTipText("Please don't deactivate me!"); // lets you close the window
+			buttn.setActionCommand("X");
+			buttn.addActionListener(listener);
+			panel.add(buttn);
 			frame.add(panel);
 			frame.setVisible(true);
 			while (listener.isWaiting()) {}
+			if (listener.command.equals("X"))	break; // exits if necessary
 			frame.remove(panel);
 			listener.reset();
 		}
+	    
+	    frame.setVisible(false);
+	    frame.dispose();
 	}
 	
 	
@@ -393,15 +403,21 @@ public class MapProjections implements ActionListener {
 		lon1 += orientation;
 		double latitude = Math.asin(Math.sin(lat0)*Math.sin(lat1) + Math.cos(lat0)*Math.cos(lon1)*Math.cos(lat1));
 		double longitude;
-		if (lat0  >= Math.PI/2)
+		double innerFunc = Math.sin(lat1)/Math.cos(lat0)/Math.cos(latitude)-Math.tan(lat0)*Math.tan(latitude); // used for calculating lon
+		if (lat0  >= Math.PI/2)				// accounts for special case when lat0 = pi/2
 			longitude = lon1+Math.PI;
-		else if (lat0 <= -Math.PI/2)
+		else if (lat0 <= -Math.PI/2)		// accounts for special case when lat0 = -pi/2
 			longitude = -lon1;
+		else if (Math.abs(innerFunc) > 1) {	// accounts for special case when cos(lat) = --> 0
+			if ((lon1 == Math.PI && lat1 < -lat0) || (lon1 != Math.PI && lat1 < lat0))
+				longitude = Math.PI+lon0;
+			else
+				longitude = lon0;
+		}
 		else if (Math.sin(lon1) < 0)
 			longitude = lon0 + Math.acos(Math.sin(lat1)/Math.cos(lat0)/Math.cos(latitude)-Math.tan(lat0)*Math.tan(latitude));
 		else
 			longitude = lon0 - Math.acos(Math.sin(lat1)/Math.cos(lat0)/Math.cos(latitude)-Math.tan(lat0)*Math.tan(latitude));
-		
 		int x = (int)(longitude*ref.getWidth()/(2*Math.PI));
 		int y = (int)((latitude*ref.getHeight()/Math.PI)+ref.getHeight()/2.0);
 		
