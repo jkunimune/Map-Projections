@@ -45,9 +45,9 @@ public class MapProjections implements ActionListener {
 											"BURN LIFE'S HOUSE DOWN!",
 											"A reorganized version of Pierce Quincuncial and actually the best map ever" };
 	
-	private static final String[] FILE = {"Satellite","Altitude","Sillouette","Rivers","HiContrast","Terrain",
-			"No_Ice","Biomes","Political","Timezones","Historic","Population","Antipode","Empire","Mars",
-			"Stars","Color_Wheel","Grid","Soccer"};
+	private static final String[] FILE = {"Realistic","Altitude","Sillouette","Rivers","HiContrast","Terrain",
+			"No_Ice","Biomes","Satellite","Political","Timezones","Historic","Population","Antipode","Empire",
+			"Mars","Stars","Color_Wheel","Grid","Soccer"};
 	private static final String[] TIP1 = {"A realistic rendering of the Earth",
 											"Color-coded based on altitude",
 											"Land is black; oceans are white.",
@@ -56,6 +56,7 @@ public class MapProjections implements ActionListener {
 											"Color-coded based on terrain",
 											"Color-coded based on terrain, without ice",
 											"Color-coded based on biome",
+											"A composite satellite image of the earth",
 											"Political map with country names removed",
 											"A map of different time-zones",
 											"An old map by European explorers",
