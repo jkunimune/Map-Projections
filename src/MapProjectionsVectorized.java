@@ -17,27 +17,18 @@ import org.apache.commons.math3.complex.Complex;
  *
  */
 public class MapProjectionsVectorized {
-	private static final int QUINCUNCIAL = 11;
+	private static final int QUINCUNCIAL = 3;
 	private static final int EQUIRECTANGULAR = 1;
-	private static final int MERCATOR = 2;
-	private static final int POLAR = 5;
-	private static final int GALL = 3;
-	private static final int SINUSOIDAL = 12;
-	private static final int STEREOGRAPHIC = 6;
-	private static final int ORTHOGONAL = 8;
-	private static final int LEMONS = 13;
-	private static final int EA_AZIMUTH = 7;
-	private static final int EA_CYLINDER = 4;
-	private static final int CONICAL = 10;
-	private static final int GNOMIC = 9;
-	private static final int QUINSHIFT = 14;
+	private static final int POLAR = 2;
+	private static final int QUINSHIFT = 4;
+	private static final int WINKEL = 5;
 	
 	private static final String AXES = "cstmjnlx123";
 	private static final String[] AXIS_NAMES = {"Custom","Standard","Transverse","Center of Mass","Jerusalem",
 			"Point Nemo","Longest Line","Longest Line Transverse","Cylindrical","Conical","Quincuncial"};
 	private static final double[] lats = {90,0,29.9792,31.7833,48.8767,-28.5217,-46.4883,-35,10,59};
 	private static final double[] lons = {0,0,31.1344,35.216,56.6067,141.451,16.5305,-13.6064,-115,19};
-	private static final double[] thts = {0,180,-32,-35,-45,107,137,145,150,50};
+	private static final double[] thts = {0,180,-32,-35,-45,107,137,30,35,50};
 	
 	
 	
@@ -117,19 +108,10 @@ public class MapProjectionsVectorized {
 			try {
 				System.out.println("Finally, pick a projection:");
 				System.out.println(EQUIRECTANGULAR+" --- Equirectangular");
-				System.out.println(MERCATOR       +" --- Mercator");
-				System.out.println(GALL           +" --- Gall Stereographic");
-				System.out.println(EA_CYLINDER    +" --- Cylindrical Equal-Area");
 				System.out.println(POLAR          +" --- Polar");
-				System.out.println(STEREOGRAPHIC  +" --- Stereographic");
-				System.out.println(EA_AZIMUTH     +" --- Azimuthal Equal-Area");
-				System.out.println(ORTHOGONAL     +" --- Orthogonal");
-				System.out.println(GNOMIC         +" --- Gnomic");
-				System.out.println(CONICAL        +" --- Lambert Conic");
 				System.out.println(QUINCUNCIAL    +" --- Peirce Quincuncial");
-				System.out.println(SINUSOIDAL     +" --- Sinusoidal");
-				System.out.println(LEMONS         +" --- BURN LIFE'S HOUSE DOWN");
 				System.out.println(QUINSHIFT      +" --- Shifted Quincuncial");
+				System.out.println(WINKEL         +" --- Winkel Tripel");
 				
 				response = in.nextLine();
 				if (response.length() == 0)
@@ -158,8 +140,7 @@ public class MapProjectionsVectorized {
 	
 	
 	/* PROJECTION METHODS: Return map coordinates based on a given latitude and longitude and a projection algorithm */
-	public static double[] equirectangular(final double lat0, final double lon0, final double orientation,
-                                      double lat, double lon) { // a basic scale
+	public static double[] equirectangular(double lat, double lon) { // a basic scale
 		double[] output = new double[2];
 		output[0] = lon*2000/(2*Math.PI);
 		output[1] = lat*1000/Math.PI;
@@ -167,8 +148,7 @@ public class MapProjectionsVectorized {
 	}
 	
 	
-	public static double[] polar(final double lat0, final double lon0, final double orientation,
-            double lat, double lon) { // UN flag
+	public static double[] polar(double lat, double lon) { // UN flag
 		double[] output = new double[2];
 		output[0] = (lat+Math.PI/2)*1000/Math.PI * Math.cos(lon);
 		output[1] = (lat+Math.PI/2)*1000/Math.PI * Math.sin(lon);
@@ -176,8 +156,7 @@ public class MapProjectionsVectorized {
 	}
 	
 	
-	public static double[] quincuncial(final double lat0, final double lon0, final double orientation,
-            double lat, double lon) { // awesomeness
+	public static double[] quincuncial(double lat, double lon) { // awesomeness
 		double[] output = new double[2];
 				
 		final double wMag = Math.tan(lat/2+Math.PI/4);
@@ -193,8 +172,7 @@ public class MapProjectionsVectorized {
 		}
 		
 		
-	public static double[] shiftquin(final double lat0, final double lon0, final double orientation,
-            double lat, double lon) { // more awesomeness
+	public static double[] shiftquin(double lat, double lon) { // more awesomeness
 		double[] output = new double[2];
 				
 		if (lat >= 0) {
@@ -217,6 +195,16 @@ public class MapProjectionsVectorized {
 			output[1] = z.getImaginary()*1000;
 			return output;
 		}
+	}
+	
+	
+	public static double[] winkel_tripel(double lat, double lon) { // a popular compromise projection
+		double[] output = new double[2];
+		lon -= Math.PI;
+		double alpha = Math.acos(Math.cos(lat)*Math.cos(lon/2));
+		output[0] = 250*(lon*2/Math.PI + 2*Math.cos(lat)*Math.sin(lon/2)*alpha/Math.sin(alpha));
+		output[1] = 250*(lat + Math.sin(lat)*alpha/Math.sin(alpha));
+		return output;
 	}
 	/*END PROJECTION METHODS*/
 	
@@ -276,13 +264,15 @@ public class MapProjectionsVectorized {
 	public static double[] getNewCoords(double lat, double lon, int projection, double lat0, double lon0, double tht0) {
 		switch (projection) {
 			case EQUIRECTANGULAR:
-				return equirectangular(lat0,lon0,tht0,lat,lon);
+				return equirectangular(lat,lon);
 			case POLAR:
-				return polar(lat0,lon0,tht0,lat,lon);
+				return polar(lat,lon);
 			case QUINCUNCIAL:
-				return quincuncial(lat0,lon0,tht0,lat,lon);
+				return quincuncial(lat,lon);
 			case QUINSHIFT:
-				return shiftquin(lat0,lon0,tht0,lat,lon);
+				return shiftquin(lat,lon);
+			case WINKEL:
+				return winkel_tripel(lat,lon);
 			default:
 				System.err.println("Justin, you forgot to add a projection to the switch case! (or you forgot a break;)");
 				return null;
@@ -330,21 +320,6 @@ public class MapProjectionsVectorized {
 	    
 	    return sum;
 	}
-	
-	
-//	public static final Complex F(Complex phi, final Complex k) { // riemann solution to incomplete elliptic integral of the first kind
-//		Complex theta = new Complex(0);
-//		Complex dTheta = phi.divide(500.0);
-//		Complex area = new Complex(0);
-//		final Complex one = new Complex(1);
-//		
-//		while (theta.abs() < phi.abs()) {
-//			theta = theta.add(dTheta);
-//			area = area.add(one.subtract(k.pow(2).multiply(theta.sin().pow(2))).sqrt().multiply(dTheta));
-//		}
-//		
-//		return area;
-//	}
 	
 	
 	public static final double combine(double n, int k) {

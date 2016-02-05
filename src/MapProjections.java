@@ -27,27 +27,29 @@ import mfc.field.Complex;
 public class MapProjections implements ActionListener {
 	private static final String[] PROJ = {"Equirectangular","Mercator","Gall Stereographic",
 			"Cylindrical Equal-Area","Polar","Stereographic","Azimuthal Equal-Area","Orthogonal","Gnomic",
-			"Lambert Conical","Pierce Quincuncial","Sinusoidal","Lemons","Shifted Quincuncial" };
-	private static final int[] DEFW = {1400,1000,1200,1800,1100,1100,1100,1100,1100,1600,1000,1400,1400,1400};
-	private static final int[] DEFH = {700, 1000,900, 570, 1100,1100,1100,1100,1100,800, 1000,500, 700, 700 };
-	private static final String[] TIP3 = {"A basic cylindrical map",
-											"A shape-preserving cylindrical map",
+			"Lambert Conical","Winkel Tripel","Mollweide","Sinusoidal","Lemons","Pierce Quincuncial","Shifted Quincuncial" };
+	private static final int[] DEFW = {1400,1000,1200,1800,1100,1100,1100,1100,1100,1600,1500,1560,1400,1400,1000,1400};
+	private static final int[] DEFH = {700, 1000,900, 570, 1100,1100,1100,1100,1100,800, 1500,780 ,500, 700, 1000,700 };
+	private static final String[] TIP3 = {"An equidistant cylindrical map",
+											"A conformal cylindrical map",
 											"A compromising cylindrical map",
-											"An area-preserving cylindrical map",
-											"A basic azimuthal map",
-											"A shape-preserving azimuthal map",
-											"An area-preserving azimuthal map",
+											"An equal-area cylindrical map",
+											"An equidistant azimuthal map",
+											"A conformal azimuthal map",
+											"An equal-area azimuthal map",
 											"Represents earth viewed from an infinite distance",
 											"Every straight line on the map is a straight line on the sphere",
 											"A conical map (conical maps suck; don't use this one)",
-											"A conformal square map that uses complex math",
-											"An area-preserving map shaped like a sinusoid",
+											"The compromise map used by National Geographic",
+											"An equal-area map shaped like an elipse",
+											"An equal-area map shaped like a sinusoid",
 											"BURN LIFE'S HOUSE DOWN!",
+											"A conformal square map that uses complex math",
 											"A reorganized version of Pierce Quincuncial and actually the best map ever" };
 	
 	private static final String[] FILE = {"Realistic","Altitude","Sillouette","Rivers","HiContrast","Terrain",
 			"No_Ice","Biomes","Satellite","Political","Timezones","Historic","Population","Antipode","Empire",
-			"Mars","Stars","Color_Wheel","Grid","Soccer"};
+			"Mars","Stars","Color_Wheel","Grid","Circles","Soccer"};
 	private static final String[] TIP1 = {"A realistic rendering of the Earth",
 											"Color-coded based on altitude",
 											"Land is black; oceans are white.",
@@ -67,10 +69,12 @@ public class MapProjections implements ActionListener {
 											"The cosmos, as seen from Earth",
 											"Color-coded by latitude and longitude",
 											"Each square represents 30 degrees.",
+											"10-degree Tissot's indatrix.",
 											"A realistic rendering of a football" };
 	
 	private static final String[] AXES = {"Standard","Transverse","Center of Mass","Jerusalem",
-			"Point Nemo","Longest Line","Longest Line Transverse","Cylindrical","Conical","Quincuncial"};
+			"Point Nemo","Longest Line","Longest Line Transverse","Cylindrical","Conical","Quincuncial",
+			"Shifted"};
 	private static final String[] TIP2 = {"The north pole (standard for most maps)",
 											"Offset from standard by 90 degrees",
 											"The center of landmass on Earth (Giza)",
@@ -80,10 +84,11 @@ public class MapProjections implements ActionListener {
 											"Sets the longest sailable line as the meridian",
 											"Perfect for cylindrical maps",
 											"Perfect for conical maps",
-											"Perfect for the Pierce Quincuncial projection" };
-	private static final double[] lats = {90,0,29.9792,31.7833,48.8767,-28.5217,-46.4883,-35,10,59};
-	private static final double[] lons = {0,0,31.1344,35.216,56.6067,141.451,16.5305,-13.6064,-115,19};
-	private static final double[] thts = {0,180,-32,-35,-45,71.5,137,145,150,50};
+											"Perfect for the Pierce Quincuncial projection",
+											"Perfect for the Shifted Quincuncial projection"};
+	private static final double[] lats = {90,0,29.9792,31.7833,48.8767,-28.5217,-46.4883,-35,10,59,60};
+	private static final double[] lons = {0,0,31.1344,35.216,56.6067,141.451,16.5305,-13.6064,-115,19,-6};
+	private static final double[] thts = {0,180,-32,-35,-45,71.5,137,145,150,50,-10};
 	
 	
 	public String command = "";
@@ -396,6 +401,20 @@ public class MapProjections implements ActionListener {
 		double lambda = p-Math.PI/2;
 		return getColor(lat0, lon0, orientation, lambda, theta, ref);
 	}
+	
+	
+	public static int mollweide(final double lat0, final double lon0, final double orientation,
+            final int width, final int height, int x, int y, BufferedImage ref) {
+		double tht = Math.asin(((double)y/height-.5)*2);
+		return getColor(lat0,lon0,orientation, Math.asin((2*tht+Math.sin(2*tht))/Math.PI),
+				Math.PI+2*Math.PI*((double)x/width-.5)/Math.cos(tht), ref);
+	}
+	
+	
+	public static int winkel_tripel(final double lat0, final double lon0, final double orientation,
+            final int width, final int height, int x, int y, BufferedImage ref) {
+		return 0;
+	}
 	/*END PROJECTION METHODS*/
 	
 	
@@ -485,6 +504,12 @@ public class MapProjections implements ActionListener {
 					break;
 				case "Shifted Quincuncial":
 					output.setRGB(x, y, quinshift(lat0,lon0,tht0,width,height,x,y,input));
+					break;
+				case "Mollweide":
+					output.setRGB(x, y, mollweide(lat0,lon0,tht0,width,height,x,y,input));
+					break;
+				case "Winkel Tripel":
+					output.setRGB(x, y, winkel_tripel(lat0,lon0,tht0,width,height,x,y,input));
 					break;
 				default:
 					System.err.println("Justin, you forgot to add a projection to the switch case! (or you forgot a break;)");
