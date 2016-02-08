@@ -27,9 +27,10 @@ import mfc.field.Complex;
 public class MapProjections implements ActionListener {
 	private static final String[] PROJ = {"Equirectangular","Mercator","Gall Stereographic",
 			"Cylindrical Equal-Area","Polar","Stereographic","Azimuthal Equal-Area","Orthogonal","Gnomic",
-			"Lambert Conical","Winkel Tripel","Mollweide","Sinusoidal","Lemons","Pierce Quincuncial","Shifted Quincuncial" };
-	private static final int[] DEFW = {1400,1000,1200,1800,1100,1100,1100,1100,1100,1600,1500,1560,1400,1400,1000,1400};
-	private static final int[] DEFH = {700, 1000,900, 570, 1100,1100,1100,1100,1100,800, 1500,780 ,500, 700, 1000,700 };
+			"Lambert Conical","Winkel Tripel","Van der Grinten","Mollweide","Sinusoidal","Lemons",
+			"Pierce Quincuncial","Guyou Hemisphere-in-a-Square","Rectus Aequilibrium" };
+	private static final int[] DEFW = {1400,1000,1200,1800,1100,1100,1100,1100,1100,1600,1500,1100,1560,1400,1400,1000,1400,1000};
+	private static final int[] DEFH = {700, 1000,900, 570, 1100,1100,1100,1100,1100,800, 1500,1100,780 ,500, 700, 1000,700 ,1000};
 	private static final String[] TIP3 = {"An equidistant cylindrical map",
 											"A conformal cylindrical map",
 											"A compromising cylindrical map",
@@ -41,15 +42,17 @@ public class MapProjections implements ActionListener {
 											"Every straight line on the map is a straight line on the sphere",
 											"A conical map (conical maps suck; don't use this one)",
 											"The compromise map used by National Geographic",
+											"A circular compromise map",
 											"An equal-area map shaped like an elipse",
 											"An equal-area map shaped like a sinusoid",
 											"BURN LIFE'S HOUSE DOWN!",
 											"A conformal square map that uses complex math",
-											"A reorganized version of Pierce Quincuncial and actually the best map ever" };
+											"A reorganized version of Pierce Quincuncial and actually the best map ever",
+											"A compromise map shaped like a square" };
 	
 	private static final String[] FILE = {"Realistic","Altitude","Sillouette","Rivers","HiContrast","Terrain",
-			"No_Ice","Biomes","Satellite","Political","Timezones","Historic","Population","Antipode","Empire",
-			"Mars","Stars","Color_Wheel","Grid","Circles","Soccer"};
+			"No_Ice","Biomes","Satellite","Political","Timezones","Historic","Population","Antipode","Flights",
+			"Empire","Mars","Stars","Color_Wheel","Grid","Circles","Soccer"};
 	private static final String[] TIP1 = {"A realistic rendering of the Earth",
 											"Color-coded based on altitude",
 											"Land is black; oceans are white.",
@@ -64,6 +67,7 @@ public class MapProjections implements ActionListener {
 											"An old map by European explorers",
 											"Color-coded by population",
 											"If you dug straight down, where would you end up?",
+											"The most frequent airplane routes",
 											"The British Empire at its height",
 											"A realistic rendering of Mars",
 											"The cosmos, as seen from Earth",
@@ -73,8 +77,7 @@ public class MapProjections implements ActionListener {
 											"A realistic rendering of a football" };
 	
 	private static final String[] AXES = {"Standard","Transverse","Center of Mass","Jerusalem",
-			"Point Nemo","Longest Line","Longest Line Transverse","Cylindrical","Conical","Quincuncial",
-			"Shifted"};
+			"Point Nemo","Longest Line","Longest Line Transverse","Cylindrical","Conical","Quincuncial" };
 	private static final String[] TIP2 = {"The north pole (standard for most maps)",
 											"Offset from standard by 90 degrees",
 											"The center of landmass on Earth (Giza)",
@@ -84,11 +87,10 @@ public class MapProjections implements ActionListener {
 											"Sets the longest sailable line as the meridian",
 											"Perfect for cylindrical maps",
 											"Perfect for conical maps",
-											"Perfect for the Pierce Quincuncial projection",
-											"Perfect for the Shifted Quincuncial projection"};
-	private static final double[] lats = {90,0,29.9792,31.7833,48.8767,-28.5217,-46.4883,-35,10,59,60};
-	private static final double[] lons = {0,0,31.1344,35.216,56.6067,141.451,16.5305,-13.6064,-115,19,-6};
-	private static final double[] thts = {0,180,-32,-35,-45,71.5,137,145,150,50,-10};
+											"Perfect for the Pierce Quincuncial projection" };
+	private static final double[] lats = {90,0,29.9792,31.7833,48.8767,-28.5217,-46.4883,-35,10,60};
+	private static final double[] lons = {0,0,31.1344,35.216,56.6067,141.451,16.5305,-13.6064,-115,-6};
+	private static final double[] thts = {0,180,-32,-35,-45,71.5,137,145,150,-10};
 	
 	
 	public String command = "";
@@ -415,6 +417,53 @@ public class MapProjections implements ActionListener {
             final int width, final int height, int x, int y, BufferedImage ref) {
 		return 0;
 	}
+	
+	
+	public static int grinten(final double lat0, final double lon0, final double orientation,
+			final int width, final int height, int x, int y, BufferedImage ref) {
+		if (y == height/2) // special case 1: equator
+			return getColor(lat0,lon0,orientation, 0, 2*Math.PI*x/width, ref);
+		
+		double X = 2.0*x/width - 1;
+		double Y = 2.0*y/height - 1;
+		
+		if (x == width/2) // special case 3: meridian
+			return getColor(lat0,lon0,orientation, Math.PI/2*Math.sin(2*Math.atan(Y)), Math.PI, ref);
+		
+		double c1 = -Math.abs(Y)*(1 + X*X + Y*Y);
+		double c2 = c1 - 2*Y*Y + X*X;
+		double c3 = -2*c1 + 1 + 2*Y*Y + Math.pow(X*X+Y*Y, 2);
+		double d = Y*Y/c3 + 1/27.0*(2*Math.pow(c2/c3, 3) - 9*c1*c2/(c3*c3));
+		double a1 = 1/c3*(c1-c2*c2/(3*c3));
+		double m1 = 2*Math.sqrt(-a1/3);
+		double tht1 = Math.acos(3*d/(a1*m1))/3;
+		
+		return getColor(lat0,lon0,orientation, Math.signum(Y)*Math.PI*(-m1*Math.cos(tht1+Math.PI/3)-c2/(3*c3)),
+				Math.PI*(X*X + Y*Y - 1 + Math.sqrt(1 + 2*(X*X-Y*Y)+Math.pow(X*X+Y*Y, 2)))/(2*X) + Math.PI, ref);
+	}
+	
+	
+	public static int custom1(final double lat0, final double lon0, final double orientation,
+			final int width, final int height, int x, int y, BufferedImage ref) { // a tessalatable square map
+		final double xp = 2.0*x/width;
+		final double yp = 2.0*y/height-1;
+		final double a = .1; // this is arbitrary, but should be between 0 and .2
+		double X = xp;
+		double Y = yp; // these must be set with Newton's method (I think)
+		
+		for (int i = 0; i < 1; i ++) { // honestly I can't tell the difference between 1 and 10 iterations, so my equation might be somehow linear
+			X = X - (a*Math.sin(Math.PI*X)*Math.pow(Math.cos(Math.PI*yp),5)-X+xp)/(a*Math.PI*Math.cos(Math.PI*X)*Math.pow(Math.cos(Math.PI*yp),5)-1);
+			Y = Y - (a*Math.sin(Math.PI*Y)*Math.pow(Math.cos(Math.PI*xp),5)-Y+yp)/(a*Math.PI*Math.cos(Math.PI*Y)*Math.pow(Math.cos(Math.PI*xp),5)-1);
+		}
+		
+		Complex u = new Complex(1.8558*X, 1.8558*Y); // don't ask me where 3.7116 come from because I have no idea
+		Complex k = new Complex(Math.sqrt(0.5)); // the rest comes from some fancy complex calculus stuff
+		Complex ans = Jacobi.cn(u, k);
+		double p = 2*Math.atan(ans.abs());
+		double theta = Math.atan2(ans.getRe(), ans.getIm());
+		double lambda = p-Math.PI/2;
+		return getColor(lat0, lon0, orientation, lambda, theta, ref);
+	}
 	/*END PROJECTION METHODS*/
 	
 	
@@ -502,7 +551,7 @@ public class MapProjections implements ActionListener {
 				case "Gnomic":
 					output.setRGB(x, y, gnomic(lat0,lon0,tht0,width,height,x,y,input));
 					break;
-				case "Shifted Quincuncial":
+				case "Guyou Hemisphere-in-a-Square":
 					output.setRGB(x, y, quinshift(lat0,lon0,tht0,width,height,x,y,input));
 					break;
 				case "Mollweide":
@@ -510,6 +559,12 @@ public class MapProjections implements ActionListener {
 					break;
 				case "Winkel Tripel":
 					output.setRGB(x, y, winkel_tripel(lat0,lon0,tht0,width,height,x,y,input));
+					break;
+				case "Van der Grinten":
+					output.setRGB(x, y, grinten(lat0,lon0,tht0,width,height,x,y,input));
+					break;
+				case "Rectus Aequilibrium":
+					output.setRGB(x, y, custom1(lat0,lon0,tht0,width,height,x,y,input));
 					break;
 				default:
 					System.err.println("Justin, you forgot to add a projection to the switch case! (or you forgot a break;)");
