@@ -27,10 +27,10 @@ import mfc.field.Complex;
 public class MapProjections implements ActionListener {
 	private static final String[] PROJ = {"Equirectangular","Mercator","Gall Stereographic",
 			"Cylindrical Equal-Area","Polar","Stereographic","Azimuthal Equal-Area","Orthogonal","Gnomic",
-			"Lambert Conical","Winkel Tripel","Van der Grinten","Mollweide","Sinusoidal","Lemons",
+			"Lambert Conical","Winkel Tripel","Van der Grinten","Mollweide","Hammer","Sinusoidal","Lemons",
 			"Pierce Quincuncial","Guyou Hemisphere-in-a-Square","Rectus Aequilibrium" };
-	private static final int[] DEFW = {1400,1000,1200,1800,1100,1100,1100,1100,1100,1600,1500,1100,1560,1400,1400,1000,1400,1000};
-	private static final int[] DEFH = {700, 1000,900, 570, 1100,1100,1100,1100,1100,800, 1500,1100,780 ,500, 700, 1000,700 ,1000};
+	private static final int[] DEFW = {1400,1000,1200,1800,1100,1100,1100,1100,1100,1600,1500,1100,1560,1560,1400,1400,1000,1400,1000};
+	private static final int[] DEFH = {700, 1000,900, 570, 1100,1100,1100,1100,1100,800, 1500,1100,780 ,780, 500, 700, 1000,700 ,1000};
 	private static final String[] TIP3 = {"An equidistant cylindrical map",
 											"A conformal cylindrical map",
 											"A compromising cylindrical map",
@@ -43,6 +43,7 @@ public class MapProjections implements ActionListener {
 											"A conical map (conical maps suck; don't use this one)",
 											"The compromise map used by National Geographic",
 											"A circular compromise map",
+											"An equal-area map shaped like an elipse",
 											"An equal-area map shaped like an elipse",
 											"An equal-area map shaped like a sinusoid",
 											"BURN LIFE'S HOUSE DOWN!",
@@ -157,18 +158,23 @@ public class MapProjections implements ActionListener {
 			label = new JLabel("Choose an axis preset, or make a custom one."); // select axis
 			label.setToolTipText("Changing the axis effectively rotates the earth, which can produce some very unconventional maps.");
 			panel.add(label);
-		    buttn = new JButton("Custom");
+		    buttn = new JButton("Custom"); // custom button
 		    buttn.setToolTipText("Enter coordinates to create a custom axis.");
-		    buttn.setActionCommand("-1");
+		    buttn.setActionCommand("-2");
 		    buttn.addActionListener(listener);
 		    panel.add(buttn);
-		    for (int i = 0; i < AXES.length; i ++) {
+		    for (int i = 0; i < AXES.length; i ++) { // all the other buttons
 		    	buttn = new JButton(AXES[i]);
 		    	buttn.setToolTipText(TIP2[i]);
 		    	buttn.setActionCommand(String.valueOf(i));
 		    	buttn.addActionListener(listener);
 		    	panel.add(buttn);
 		    }
+		    buttn = new JButton("Random"); // random button
+		    buttn.setToolTipText("An axis will be chosen at random.");
+		    buttn.setActionCommand("-1");
+		    buttn.addActionListener(listener);
+		    panel.add(buttn);
 		    frame.add(panel);
 		    frame.setVisible(true);
 		    while (listener.isWaiting()) {} // wait for a button to be pressed
@@ -180,6 +186,11 @@ public class MapProjections implements ActionListener {
 				latD = lats[n];
 				lonD = lons[n];
 				thtD = thts[n];
+			}
+			else if (n == -1) {
+				latD = Math.toDegrees(Math.asin(Math.random()*2-1));
+				lonD = Math.random()*360;
+				thtD = Math.random()*360;
 			}
 			else { // if it is custom
 				panel = new JPanel(); // lets you pick coordinates
@@ -464,6 +475,37 @@ public class MapProjections implements ActionListener {
 		double lambda = p-Math.PI/2;
 		return getColor(lat0, lon0, orientation, lambda, theta, ref);
 	}
+	
+	
+	public static int custom2(final double lat0, final double lon0, final double orientation,
+			final int width, final int height, int x, int y, BufferedImage ref) { // a tessalatable square map
+		final double X = Math.PI*x/width-Math.PI/2;
+		final double Y = Math.PI*y/height-Math.PI/2;
+		final double a = .1; // this is arbitrary, but should be between 0 and .2
+		double mx = 1 + a*Math.sqrt(1-Y*Y);
+		double my = 1 + a*Math.sqrt(1-X*X);
+		if (Double.isNaN(mx))	mx = 1;
+		if (Double.isNaN(my))	my = 1;
+		double xp = Math.asin(Math.sin(X*mx)/mx);
+		double yp = Math.asin(Math.sin(Y*my)/my);
+		
+		Complex u = new Complex(1.18*(xp+Math.PI/2), 1.18*(yp));
+		Complex k = new Complex(Math.sqrt(0.5)); // the rest comes from some fancy complex calculus stuff
+		Complex ans = Jacobi.cn(u, k);
+		double p = 2*Math.atan(ans.abs());
+		double theta = Math.atan2(ans.getRe(), ans.getIm());
+		double lambda = p-Math.PI/2;
+		return getColor(lat0, lon0, orientation, lambda, theta, ref);
+	}
+	
+	
+	public static int hammer(final double lat0, final double lon0, final double orientation,
+			final int width, final int height, int x, int y, BufferedImage ref) { // similar to Mollweide, but moves distortion from the poles to the edges
+		final double X = 4*Math.sqrt(2)*x/width-2*Math.sqrt(2);
+		final double Y = 2*Math.sqrt(2)*y/height-Math.sqrt(2);
+		final double z = Math.sqrt(1 - Math.pow(X/4,2) - Math.pow(Y/2,2));
+		return getColor(lat0, lon0, orientation, Math.asin(z*Y), Math.PI+2*Math.atan(.5*z*X/(2*z*z-1)), ref);
+	}
 	/*END PROJECTION METHODS*/
 	
 	
@@ -564,7 +606,10 @@ public class MapProjections implements ActionListener {
 					output.setRGB(x, y, grinten(lat0,lon0,tht0,width,height,x,y,input));
 					break;
 				case "Rectus Aequilibrium":
-					output.setRGB(x, y, custom1(lat0,lon0,tht0,width,height,x,y,input));
+					output.setRGB(x, y, custom2(lat0,lon0,tht0,width,height,x,y,input));
+					break;
+				case "Hammer":
+					output.setRGB(x, y, hammer(lat0,lon0,tht0,width,height,x,y,input));
 					break;
 				default:
 					System.err.println("Justin, you forgot to add a projection to the switch case! (or you forgot a break;)");
