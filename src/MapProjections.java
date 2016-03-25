@@ -28,9 +28,9 @@ public class MapProjections implements ActionListener {
 	private static final String[] PROJ = {"Equirectangular","Mercator","Gall Stereographic",
 			"Cylindrical Equal-Area","Polar","Stereographic","Azimuthal Equal-Area","Orthogonal","Gnomic",
 			"Lambert Conical","Winkel Tripel","Van der Grinten","Mollweide","Hammer","Sinusoidal","Lemons",
-			"Pierce Quincuncial","Guyou Hemisphere-in-a-Square","Rectus Aequilibrium" };
-	private static final int[] DEFW = {1400,1000,1200,1800,1100,1100,1100,1100,1100,1600,1500,1100,1560,1560,1400,1400,1000,1400,1000};
-	private static final int[] DEFH = {700, 1000,900, 570, 1100,1100,1100,1100,1100,800, 1500,1100,780 ,780, 500, 700, 1000,700 ,1000};
+			"Pierce Quincuncial","Magnifier","Guyou Hemisphere-in-a-Square","Rectus Aequilibrium" };
+	private static final int[] DEFW = {1400,1000,1200,1800,1100,1100,1100,1100,1100,1600,1500,1100,1560,1560,1400,1400,1000,1100,1400,1000};
+	private static final int[] DEFH = {700, 1000,900, 570, 1100,1100,1100,1100,1100,800, 1500,1100,780 ,780, 500, 700, 1000,1100,700 ,1000};
 	private static final String[] TIP3 = {"An equidistant cylindrical map",
 											"A conformal cylindrical map",
 											"A compromising cylindrical map",
@@ -48,6 +48,7 @@ public class MapProjections implements ActionListener {
 											"An equal-area map shaped like a sinusoid",
 											"BURN LIFE'S HOUSE DOWN!",
 											"A conformal square map that uses complex math",
+											"A novelty map that swells the center to disproportionate scale",
 											"A reorganized version of Pierce Quincuncial and actually the best map ever",
 											"A compromise map shaped like a square" };
 	
@@ -228,10 +229,10 @@ public class MapProjections implements ActionListener {
 			label = new JLabel("Finally, set the dimensions for your map (width, height)."); // select map dimensions
 			label.setToolTipText("These will be the dimensions of the JPG file in pixels.");
 			panel.add(label);
-			SpinnerModel widthModel = new SpinnerNumberModel(DEFW[projection], 400, 10000, 10);
+			SpinnerModel widthModel = new SpinnerNumberModel(DEFW[projection], 400, 20000, 10);
 			JSpinner width = new JSpinner(widthModel);
 			width.setToolTipText("The width of your map in pixels");
-			SpinnerModel heightModel = new SpinnerNumberModel(DEFH[projection], 400, 10000, 10);
+			SpinnerModel heightModel = new SpinnerNumberModel(DEFH[projection], 400, 20000, 10);
 			JSpinner height = new JSpinner(heightModel);
 			height.setToolTipText("The height of your map in pixels");
 			panel.add(width);
@@ -426,7 +427,15 @@ public class MapProjections implements ActionListener {
 	
 	public static int winkel_tripel(final double lat0, final double lon0, final double orientation,
             final int width, final int height, int x, int y, BufferedImage ref) {
-		return 0;
+		double phi = 0;
+		double lam = 0;
+		for (int i = 0; i < 1; i ++) {
+			phi = phi - (wtX(phi,lam)-x)/wtXbyPhi(phi,lam);
+			lam = lam - (wtX(phi,lam)-x)/wtXbyLam(phi,lam);
+			phi = phi - (wtY(phi,lam)-y)/wtYbyPhi(phi,lam);
+			lam = lam - (wtY(phi,lam)-y)/wtYbyLam(phi,lam);
+		}
+		return getColor(lat0,lon0,orientation, phi, lam, ref);
 	}
 	
 	
@@ -499,6 +508,16 @@ public class MapProjections implements ActionListener {
 	}
 	
 	
+	public static int magnus(final double lat0, final double lon0, final double orientation,
+			final int width, final int height, int x, int y, BufferedImage ref) { // a novelty map that magnifies the center profusely
+		double r = 2*Math.hypot((double)x/width-.5, (double)y/height-.5);
+		if (r <= 1)
+			return getColor(lat0, lon0, orientation, Math.PI/2*(r*r*r*1.8+r*.2-1), Math.atan2(x-width/2.0, y-height/2.0), ref);
+		else
+			return 0;
+	}
+	
+	
 	public static int hammer(final double lat0, final double lon0, final double orientation,
 			final int width, final int height, int x, int y, BufferedImage ref) { // similar to Mollweide, but moves distortion from the poles to the edges
 		final double X = 4*Math.sqrt(2)*x/width-2*Math.sqrt(2);
@@ -515,9 +534,9 @@ public class MapProjections implements ActionListener {
 		double latitude = Math.asin(Math.sin(lat0)*Math.sin(lat1) + Math.cos(lat0)*Math.cos(lon1)*Math.cos(lat1));
 		double longitude;
 		double innerFunc = Math.sin(lat1)/Math.cos(lat0)/Math.cos(latitude)-Math.tan(lat0)*Math.tan(latitude); // used for calculating lon
-		if (lat0  >= Math.PI/2)				// accounts for special case when lat0 = pi/2
+		if (lat0  == Math.PI/2)				// accounts for special case when lat0 = pi/2
 			longitude = lon1+Math.PI;
-		else if (lat0 <= -Math.PI/2)		// accounts for special case when lat0 = -pi/2
+		else if (lat0 == -Math.PI/2)		// accounts for special case when lat0 = -pi/2
 			longitude = -lon1;
 		else if (Math.abs(innerFunc) > 1) {	// accounts for special case when cos(lat) = --> 0
 			if ((lon1 == Math.PI && lat1 < -lat0) || (lon1 != Math.PI && lat1 < lat0))
@@ -611,6 +630,9 @@ public class MapProjections implements ActionListener {
 				case "Hammer":
 					output.setRGB(x, y, hammer(lat0,lon0,tht0,width,height,x,y,input));
 					break;
+				case "Magnifier":
+					output.setRGB(x, y, magnus(lat0,lon0,tht0,width,height,x,y,input));
+					break;
 				default:
 					System.err.println("Justin, you forgot to add a projection to the switch case! (or you forgot a break;)");
 				}
@@ -625,6 +647,45 @@ public class MapProjections implements ActionListener {
 			ImageIO.write(img, "jpg", outputFile);
 			Desktop.getDesktop().open(outputFile);
 		} catch (IOException e) {}
+	}
+	
+	
+	public static final double wtX(double phi, double lam) {
+		return 2/Math.PI*lam + 2*Math.cos(phi)*Math.sin(lam/2)*csccalpha(phi,lam);
+	}
+	
+	public static final double wtXbyPhi(double phi, double lam) {
+		return -2*Math.sin(phi)*Math.sin(lam/2)*csccalpha(phi,lam) + 2*Math.cos(phi)*Math.sin(lam/2)*csccalphaByPhi(phi,lam);
+	}
+	
+	public static final double wtXbyLam(double phi, double lam) {
+		return 2/Math.PI + Math.cos(phi)*Math.cos(lam/2)*csccalpha(phi,lam) + 2*Math.cos(phi)*Math.sin(lam/2)*csccalphaByLam(phi,lam);
+	}
+	
+	public static final double wtY(double phi, double lam) {
+		return phi + Math.sin(phi)*csccalpha(phi,lam);
+	}
+	
+	public static final double wtYbyPhi(double phi, double lam) {
+		return 1 + Math.cos(phi)*csccalpha(phi,lam) + Math.sin(phi)*csccalphaByPhi(phi,lam);
+	}
+	
+	public static final double wtYbyLam(double phi, double lam) {
+		return Math.sin(phi)*csccalphaByLam(phi,lam);
+	}
+	
+	public static final double csccalpha(double phi, double lam) {
+		return Math.acos(Math.cos(phi)*Math.cos(lam/2))/Math.sqrt(1-Math.pow(Math.cos(phi),2)*Math.pow(Math.cos(lam/2),2));
+	}
+	
+	public static final double csccalphaByPhi(double phi, double lam) {
+		return (Math.sin(phi)*Math.cos(lam/2) - Math.acos(Math.cos(phi)*Math.cos(lam/2))*Math.pow(Math.cos(lam/2),2)*Math.sin(phi)*Math.cos(phi)*Math.pow(1-Math.pow(Math.cos(phi),2)*Math.pow(Math.cos(lam/2),2),-1.5))
+				/ (1 - Math.pow(Math.cos(phi),2)*Math.pow(Math.cos(lam/2),2));
+	}
+	
+	public static final double csccalphaByLam(double phi, double lam) {
+		return (Math.sin(lam/2)*Math.cos(phi) - Math.acos(Math.cos(lam/2)*Math.cos(phi))*Math.pow(Math.cos(phi),2)*Math.sin(lam/2)*Math.cos(lam/2)*Math.pow(1-Math.pow(Math.cos(lam/2),2)*Math.pow(Math.cos(phi),2),-1.5))
+				/ (2 - 2*Math.pow(Math.cos(phi),2)*Math.pow(Math.cos(lam/2),2));
 	}
 	
 	
