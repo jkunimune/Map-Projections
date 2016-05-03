@@ -1,0 +1,6 @@
+{
+  "name": "Map Projections: Challenging Pierceptions",
+  "tagline": "A class to create custom maps of the Earth's surface.",
+  "body": "# Map-Projections\r\nA class to create custom maps of the Earth's surface.\r\nSimply run MapConfigurer.jar, select your parameters with the GUI, and a custom world map of your design will be created! There are thousands of combinations of color-schemes, projections, and axes.\r\nIncludes Mercator, Lambert, Orthogonal, Peirce-Quincuncial, and More!\r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
