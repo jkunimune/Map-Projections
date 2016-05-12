@@ -26,7 +26,7 @@ import mfc.field.Complex;
  */
 public class MapProjections implements ActionListener {
 	private static final String[] PROJ = {"Equirectangular","Mercator","Gall Stereographic",
-			"Cylindrical Equal-Area","Polar","Stereographic","Azimuthal Equal-Area","Orthogonal","Gnomic",
+			"Cylindrical Equal-Area","Polar","Stereographic","Azimuthal Equal-Area","Orthographic","Gnomonic",
 			"Lambert Conical","Winkel Tripel","Van der Grinten","Mollweide","Hammer","Sinusoidal","Lemons",
 			"Pierce Quincuncial","Magnifier","Guyou Hemisphere-in-a-Square","Rectus Aequilibrium" };
 	private static final int[] DEFW = {1400,1000,1200,1800,1100,1100,1100,1100,1100,1600,1500,1100,1560,1560,1400,1400,1000,1100,1400,1000};
@@ -54,7 +54,7 @@ public class MapProjections implements ActionListener {
 	
 	private static final String[] FILE = {"Realistic","Altitude","Sillouette","Rivers","HiContrast","Terrain",
 			"No_Ice","Biomes","Satellite","Political","Timezones","Historic","Population","Antipode","Flights",
-			"Empire","Mars","Stars","Color_Wheel","Grid","Circles","Soccer"};
+			"Empire","Mars","Stars","Panorama","Color_Wheel","Grid","Circles","Soccer"};
 	private static final String[] TIP1 = {"A realistic rendering of the Earth",
 											"Color-coded based on altitude",
 											"Land is black; oceans are white.",
@@ -73,6 +73,7 @@ public class MapProjections implements ActionListener {
 											"The British Empire at its height",
 											"A realistic rendering of Mars",
 											"The cosmos, as seen from Earth",
+											"A 360-degree view of London",
 											"Color-coded by latitude and longitude",
 											"Each square represents 30 degrees.",
 											"10-degree Tissot's indatrix.",
@@ -92,7 +93,7 @@ public class MapProjections implements ActionListener {
 											"Perfect for the Pierce Quincuncial projection" };
 	private static final double[] lats = {90,0,29.9792,31.7833,48.8767,-28.5217,-46.4883,-35,10,60};
 	private static final double[] lons = {0,0,31.1344,35.216,56.6067,141.451,16.5305,-13.6064,-115,-6};
-	private static final double[] thts = {0,180,-32,-35,-45,71.5,137,145,150,-10};
+	private static final double[] thts = {0,0,-32,-35,-45,71.5,137,145,150,-10};
 	
 	
 	public String command = "";
@@ -347,7 +348,7 @@ public class MapProjections implements ActionListener {
 	}
 	
 	
-	public static int gnomic(final double lat0, final double lon0, final double orientation,
+	public static int gnomonic(final double lat0, final double lon0, final double orientation,
             final int width, final int height, int x, int y, BufferedImage ref) { // a shape-preserving infinite map
 		double radius = Math.pow(Math.pow(width, -2)+Math.pow(height, -2), -.5) / Math.PI;
 		return getColor(lat0, lon0, orientation, Math.atan(Math.hypot(x-width/2, y-height/2) / radius)-Math.PI/2,
@@ -359,7 +360,7 @@ public class MapProjections implements ActionListener {
             final int width, final int height, int x, int y, BufferedImage ref) { // a map that mimics the view from space
 		double R = 2*Math.hypot((double)x/width-.5, (double)y/height-.5);
 		if (R <= 1)
-			return getColor(lat0, lon0, orientation, -Math.acos(R), Math.atan2(x-width/2.0,y-height/2.0), ref);
+			return getColor(lat0, lon0, orientation, -Math.acos(R), Math.PI+Math.atan2(x-width/2.0,y-height/2.0), ref);
 		else
 			return 0;
 	}
@@ -427,13 +428,21 @@ public class MapProjections implements ActionListener {
 	
 	public static int winkel_tripel(final double lat0, final double lon0, final double orientation,
             final int width, final int height, int x, int y, BufferedImage ref) {
-		double phi = 0;
-		double lam = 0;
+		double phi = (double)y/height*Math.PI - Math.PI/2;
+		double lam = (double)x/width*2*Math.PI;	// I used equirectangular for my initial guess
+		double xf = 4.0*x/width - 2.0;
+		double yf = 4.0*y/height - 2.0;
+		
 		for (int i = 0; i < 1; i ++) {
-			phi = phi - (wtX(phi,lam)-x)/wtXbyPhi(phi,lam);
-			lam = lam - (wtX(phi,lam)-x)/wtXbyLam(phi,lam);
-			phi = phi - (wtY(phi,lam)-y)/wtYbyPhi(phi,lam);
-			lam = lam - (wtY(phi,lam)-y)/wtYbyLam(phi,lam);
+			final double X = WinkelTripel.X(phi, lam);
+			final double Y = WinkelTripel.Y(phi, lam);
+			final double dXdP = WinkelTripel.dXdphi(phi, lam);
+			final double dYdP = WinkelTripel.dYdphi(phi, lam);
+			final double dXdL = WinkelTripel.dXdlam(phi, lam);
+			final double dYdL = WinkelTripel.dYdlam(phi, lam);
+			
+			phi = phi + (dYdL*(xf-X) - dXdL*(yf-Y))/(dYdL*dXdP - dXdL*dYdP);
+			lam = lam + (dYdP*(xf-X) - dXdP*(yf-Y))/(dYdP*dXdL - dXdP*dYdL);
 		}
 		return getColor(lat0,lon0,orientation, phi, lam, ref);
 	}
@@ -594,7 +603,7 @@ public class MapProjections implements ActionListener {
 				case "Stereographic":
 					output.setRGB(x, y, stereographic(lat0,lon0,tht0,width,height,x,y,input));
 					break;
-				case "Orthogonal":
+				case "Orthographic":
 					output.setRGB(x, y, orthogonal(lat0,lon0,tht0,width,height,x,y,input));
 					break;
 				case "Lemons":
@@ -609,8 +618,8 @@ public class MapProjections implements ActionListener {
 				case "Lambert Conical":
 					output.setRGB(x, y, lambert(lat0,lon0,tht0,width,height,x,y,input));
 					break;
-				case "Gnomic":
-					output.setRGB(x, y, gnomic(lat0,lon0,tht0,width,height,x,y,input));
+				case "Gnomonic":
+					output.setRGB(x, y, gnomonic(lat0,lon0,tht0,width,height,x,y,input));
 					break;
 				case "Guyou Hemisphere-in-a-Square":
 					output.setRGB(x, y, quinshift(lat0,lon0,tht0,width,height,x,y,input));
@@ -648,47 +657,6 @@ public class MapProjections implements ActionListener {
 			Desktop.getDesktop().open(outputFile);
 		} catch (IOException e) {}
 	}
-	
-	
-	public static final double wtX(double phi, double lam) {
-		return 2/Math.PI*lam + 2*Math.cos(phi)*Math.sin(lam/2)*csccalpha(phi,lam);
-	}
-	
-	public static final double wtXbyPhi(double phi, double lam) {
-		return -2*Math.sin(phi)*Math.sin(lam/2)*csccalpha(phi,lam) + 2*Math.cos(phi)*Math.sin(lam/2)*csccalphaByPhi(phi,lam);
-	}
-	
-	public static final double wtXbyLam(double phi, double lam) {
-		return 2/Math.PI + Math.cos(phi)*Math.cos(lam/2)*csccalpha(phi,lam) + 2*Math.cos(phi)*Math.sin(lam/2)*csccalphaByLam(phi,lam);
-	}
-	
-	public static final double wtY(double phi, double lam) {
-		return phi + Math.sin(phi)*csccalpha(phi,lam);
-	}
-	
-	public static final double wtYbyPhi(double phi, double lam) {
-		return 1 + Math.cos(phi)*csccalpha(phi,lam) + Math.sin(phi)*csccalphaByPhi(phi,lam);
-	}
-	
-	public static final double wtYbyLam(double phi, double lam) {
-		return Math.sin(phi)*csccalphaByLam(phi,lam);
-	}
-	
-	public static final double csccalpha(double phi, double lam) {
-		return Math.acos(Math.cos(phi)*Math.cos(lam/2))/Math.sqrt(1-Math.pow(Math.cos(phi),2)*Math.pow(Math.cos(lam/2),2));
-	}
-	
-	public static final double csccalphaByPhi(double phi, double lam) {
-		return (Math.sin(phi)*Math.cos(lam/2) - Math.acos(Math.cos(phi)*Math.cos(lam/2))*Math.pow(Math.cos(lam/2),2)*Math.sin(phi)*Math.cos(phi)*Math.pow(1-Math.pow(Math.cos(phi),2)*Math.pow(Math.cos(lam/2),2),-1.5))
-				/ (1 - Math.pow(Math.cos(phi),2)*Math.pow(Math.cos(lam/2),2));
-	}
-	
-	public static final double csccalphaByLam(double phi, double lam) {
-		return (Math.sin(lam/2)*Math.cos(phi) - Math.acos(Math.cos(lam/2)*Math.cos(phi))*Math.pow(Math.cos(phi),2)*Math.sin(lam/2)*Math.cos(lam/2)*Math.pow(1-Math.pow(Math.cos(lam/2),2)*Math.pow(Math.cos(phi),2),-1.5))
-				/ (2 - 2*Math.pow(Math.cos(phi),2)*Math.pow(Math.cos(lam/2),2));
-	}
-	
-	
 	
 	
 	
