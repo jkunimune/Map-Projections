@@ -29,8 +29,8 @@ public class MapProjections implements ActionListener {
 			"Cylindrical Equal-Area","Polar","Stereographic","Azimuthal Equal-Area","Orthographic","Gnomonic",
 			"Lambert Conical","Winkel Tripel","Van der Grinten","Mollweide","Hammer","Sinusoidal","Lemons",
 			"Pierce Quincuncial","Magnifier","Guyou Hemisphere-in-a-Square","Rectus Aequilibrium" };
-	private static final int[] DEFW = {1400,1000,1200,1800,1100,1100,1100,1100,1100,1600,1500,1100,1560,1560,1400,1400,1000,1100,1400,1000};
-	private static final int[] DEFH = {700, 1000,900, 570, 1100,1100,1100,1100,1100,800, 1500,1100,780 ,780, 500, 700, 1000,1100,700 ,1000};
+	private static final int[] DEFW = {1400,1000,1200,1800,1100,1100,1100,1100,1100,1600,1400,1100,1560,1560,1400,1400,1000,1100,1400,1000};
+	private static final int[] DEFH = {700, 1000,900, 570, 1100,1100,1100,1100,1100,800, 700,1100,780 ,780, 500, 700, 1000,1100,700 ,1000};
 	private static final String[] TIP3 = {"An equidistant cylindrical map",
 											"A conformal cylindrical map",
 											"A compromising cylindrical map",
@@ -40,8 +40,8 @@ public class MapProjections implements ActionListener {
 											"An equal-area azimuthal map",
 											"Represents earth viewed from an infinite distance",
 											"Every straight line on the map is a straight line on the sphere",
-											"A conical map (conical maps suck; don't use this one)",
-											"The compromise map used by National Geographic",
+											"A conformal conical map",
+											"The compromise map used by National Geographic (caution: very slow)",
 											"A circular compromise map",
 											"An equal-area map shaped like an elipse",
 											"An equal-area map shaped like an elipse",
@@ -91,9 +91,9 @@ public class MapProjections implements ActionListener {
 											"Perfect for cylindrical maps",
 											"Perfect for conical maps",
 											"Perfect for the Pierce Quincuncial projection" };
-	private static final double[] lats = {90,0,29.9792,31.7833,48.8767,-28.5217,-46.4883,-35,10,60};
-	private static final double[] lons = {0,0,31.1344,35.216,56.6067,141.451,16.5305,-13.6064,-115,-6};
-	private static final double[] thts = {0,0,-32,-35,-45,71.5,137,145,150,-10};
+	private static final double[] lats = {90,0,29.9792,31.7833,48.8767,-28.5217,-46.4883,-35,-10,60};
+	private static final double[] lons = {0,0,31.1344,35.216,56.6067,141.451,16.5305,-13.6064,65,-6};
+	private static final double[] thts = {0,0,-32,-35,-45,71.5,137,145,-150,-10};
 	
 	
 	public String command = "";
@@ -126,6 +126,11 @@ public class MapProjections implements ActionListener {
 			    buttn.addActionListener(listener);
 			    panel.add(buttn);
 			}
+			buttn = new JButton("Random"); // random button
+		    buttn.setToolTipText("A theme will be chosen at random.");
+		    buttn.setActionCommand(FILE[(int)(Math.random()*FILE.length)]);
+		    buttn.addActionListener(listener);
+		    panel.add(buttn);
 		    frame.add(panel);
 		    frame.setVisible(true);
 		    while (listener.isWaiting()) {} // waits for a button to be pressed
@@ -230,10 +235,10 @@ public class MapProjections implements ActionListener {
 			label = new JLabel("Finally, set the dimensions for your map (width, height)."); // select map dimensions
 			label.setToolTipText("These will be the dimensions of the JPG file in pixels.");
 			panel.add(label);
-			SpinnerModel widthModel = new SpinnerNumberModel(DEFW[projection], 400, 20000, 10);
+			SpinnerModel widthModel = new SpinnerNumberModel(DEFW[projection], 1, 20000, 10);
 			JSpinner width = new JSpinner(widthModel);
 			width.setToolTipText("The width of your map in pixels");
-			SpinnerModel heightModel = new SpinnerNumberModel(DEFH[projection], 400, 20000, 10);
+			SpinnerModel heightModel = new SpinnerNumberModel(DEFH[projection], 1, 20000, 10);
 			JSpinner height = new JSpinner(heightModel);
 			height.setToolTipText("The height of your map in pixels");
 			panel.add(width);
@@ -375,8 +380,8 @@ public class MapProjections implements ActionListener {
 	
 	public static int lambert(final double lat0, final double lon0, final double orientation,
             final int width, final int height, int x, int y, BufferedImage ref) { // a conical projection
-		double radius = Math.pow(Math.pow(width, -2)+Math.pow(height, -2), -.5) / Math.PI;
-		return getColor(lat0, lon0, orientation, 4.0/3.0*(Math.atan(Math.hypot(x-width/2,y)/(radius)-1)+Math.PI/4) - Math.PI/2,
+		double radius = Math.hypot(width, height)/Math.PI;
+		return getColor(lat0, lon0, orientation, 2*Math.atan(Math.pow(Math.hypot(x-width/2.0, y)/radius, 2))-Math.PI/2,
 				        2*Math.atan2(width/2.0-x, -y)-Math.PI, ref);
 	}
 	
@@ -429,11 +434,11 @@ public class MapProjections implements ActionListener {
 	public static int winkel_tripel(final double lat0, final double lon0, final double orientation,
             final int width, final int height, int x, int y, BufferedImage ref) {
 		double phi = (double)y/height*Math.PI - Math.PI/2;
-		double lam = (double)x/width*2*Math.PI;	// I used equirectangular for my initial guess
-		double xf = 4.0*x/width - 2.0;
-		double yf = 4.0*y/height - 2.0;
+		double lam = (double)x/width*2*Math.PI - Math.PI;	// I used equirectangular for my initial guess
+		double xf = 3*Math.PI*x/width - 1.5*Math.PI;
+		double yf = 2*Math.PI*y/height - Math.PI;
 		
-		for (int i = 0; i < 1; i ++) {
+		for (int i = 0; i < 5; i ++) {
 			final double X = WinkelTripel.X(phi, lam);
 			final double Y = WinkelTripel.Y(phi, lam);
 			final double dXdP = WinkelTripel.dXdphi(phi, lam);
@@ -441,10 +446,10 @@ public class MapProjections implements ActionListener {
 			final double dXdL = WinkelTripel.dXdlam(phi, lam);
 			final double dYdL = WinkelTripel.dYdlam(phi, lam);
 			
-			phi = phi + (dYdL*(xf-X) - dXdL*(yf-Y))/(dYdL*dXdP - dXdL*dYdP);
-			lam = lam + (dYdP*(xf-X) - dXdP*(yf-Y))/(dYdP*dXdL - dXdP*dYdL);
+			phi -= (dYdL*(X-xf)-dXdL*(Y-yf))/(dXdP*dYdL-dXdL*dYdP);
+			lam -= (dXdP*(Y-yf)-dYdP*(X-xf))/(dXdP*dYdL-dXdL*dYdP);
 		}
-		return getColor(lat0,lon0,orientation, phi, lam, ref);
+		return getColor(lat0,lon0,orientation, phi, lam+Math.PI, ref);
 	}
 	
 	
