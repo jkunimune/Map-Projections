@@ -26,15 +26,16 @@ import mfc.field.Complex;
  */
 public class MapProjections implements ActionListener {
 	private static final String[] PROJ = {"Equirectangular","Mercator","Gall Stereographic",
-			"Cylindrical Equal-Area","Polar","Stereographic","Azimuthal Equal-Area","Orthographic","Gnomonic",
+			"Cylindrical Equal-Area","Two-Point Equidistant","Polar","Stereographic","Azimuthal Equal-Area","Orthographic","Gnomonic",
 			"Lambert Conical","Winkel Tripel","Van der Grinten","Mollweide","Hammer","Sinusoidal","Lemons",
 			"Pierce Quincuncial","Magnifier","Guyou Hemisphere-in-a-Square","Rectus Aequilibrium" };
-	private static final int[] DEFW = {1400,1000,1200,1800,1100,1100,1100,1100,1100,1600,1400,1100,1560,1560,1400,1400,1000,1100,1400,1000};
-	private static final int[] DEFH = {700, 1000,900, 570, 1100,1100,1100,1100,1100,800, 700,1100,780 ,780, 500, 700, 1000,1100,700 ,1000};
+	private static final int[] DEFW = {1400,1000,1200,1800,1180,1100,1100,1100,1100,1100,1600,1230,1100,1560,1560,1400,1400,1000,1100,1400,1000};
+	private static final int[] DEFH = {700, 1000,900, 570, 840, 1100,1100,1100,1100,1100,800, 750, 1100,780 ,780, 500, 700, 1000,1100,700 ,1000};
 	private static final String[] TIP3 = {"An equidistant cylindrical map",
 											"A conformal cylindrical map",
 											"A compromising cylindrical map",
 											"An equal-area cylindrical map",
+											"All distances are correct relative to two foci",
 											"An equidistant azimuthal map",
 											"A conformal azimuthal map",
 											"An equal-area azimuthal map",
@@ -109,10 +110,10 @@ public class MapProjections implements ActionListener {
 		
 		MapProjections listener = new MapProjections(); // initialization
 		JFrame frame = new JFrame("Map Configurer");
-	    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	    frame.setSize(400,300);
-	    
-	    while (true) { // make as many maps as you want
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setSize(400,300);
+		
+		while (true) { // make as many maps as you want
 	
 			JPanel panel = new JPanel();
 			JLabel label = new JLabel("Please select a map theme."); // select map theme
@@ -120,75 +121,75 @@ public class MapProjections implements ActionListener {
 			panel.add(label);
 			JButton buttn;
 			for (int i = 0; i < FILE.length; i ++) {
-			    buttn = new JButton(FILE[i]);
-			    buttn.setToolTipText(TIP1[i]);
-			    buttn.setActionCommand(FILE[i]);
-			    buttn.addActionListener(listener);
-			    panel.add(buttn);
+				buttn = new JButton(FILE[i]);
+				buttn.setToolTipText(TIP1[i]);
+				buttn.setActionCommand(FILE[i]);
+				buttn.addActionListener(listener);
+				panel.add(buttn);
 			}
 			buttn = new JButton("Random"); // random button
-		    buttn.setToolTipText("A theme will be chosen at random.");
-		    buttn.setActionCommand(FILE[(int)(Math.random()*FILE.length)]);
-		    buttn.addActionListener(listener);
-		    panel.add(buttn);
-		    frame.add(panel);
-		    frame.setVisible(true);
-		    while (listener.isWaiting()) {} // waits for a button to be pressed
-		    try {
-		    	input = ImageIO.read(new File("input/"+listener.command+".jpg"));
-		    } catch (IOException e) {
-		    	System.err.println("Where the heck is the image?!");
-		    	return;
-		    }
-		    listener.reset();
-		    frame.remove(panel);
+			buttn.setToolTipText("A theme will be chosen at random.");
+			buttn.setActionCommand(FILE[(int)(Math.random()*FILE.length)]);
+			buttn.addActionListener(listener);
+			panel.add(buttn);
+			frame.add(panel);
+			frame.setVisible(true);
+			while (listener.isWaiting()) {} // waits for a button to be pressed
+			try {
+				input = ImageIO.read(new File("input/"+listener.command+".jpg"));
+			} catch (IOException e) {
+				System.err.println("Where the heck is the image?!");
+				return;
+			}
+			listener.reset();
+			frame.remove(panel);
 			
-		    panel = new JPanel();
+			panel = new JPanel();
 			label = new JLabel("Pick a projection algorithm."); // select projection
 			label.setToolTipText("How will the Earth be mapped onto a plane?");
 			panel.add(label);
 			for (int i = 0; i < PROJ.length; i ++) {
-			    buttn = new JButton(PROJ[i]);
-			    buttn.setToolTipText(TIP3[i]);
-			    buttn.setActionCommand(String.valueOf(i));
-			    buttn.addActionListener(listener);
-			    panel.add(buttn);
+				buttn = new JButton(PROJ[i]);
+				buttn.setToolTipText(TIP3[i]);
+				buttn.setActionCommand(String.valueOf(i));
+				buttn.addActionListener(listener);
+				panel.add(buttn);
 			}
-		    frame.add(panel);
-		    frame.setVisible(true);
-		    while (listener.isWaiting()) {} // wait for a button to be pressed
-		    projection = Integer.parseInt(listener.command);
-		    listener.reset();
-		    frame.remove(panel);
-		    
-		    panel = new JPanel();
+			frame.add(panel);
+			frame.setVisible(true);
+			while (listener.isWaiting()) {} // wait for a button to be pressed
+			projection = Integer.parseInt(listener.command);
+			listener.reset();
+			frame.remove(panel);
+			
+			panel = new JPanel();
 			label = new JLabel("Choose an axis preset, or make a custom one."); // select axis
 			label.setToolTipText("Changing the axis effectively rotates the earth, which can produce some very unconventional maps.");
 			panel.add(label);
-		    buttn = new JButton("Custom"); // custom button
-		    buttn.setToolTipText("Enter coordinates to create a custom axis.");
-		    buttn.setActionCommand("-2");
-		    buttn.addActionListener(listener);
-		    panel.add(buttn);
-		    for (int i = 0; i < AXES.length; i ++) { // all the other buttons
-		    	buttn = new JButton(AXES[i]);
-		    	buttn.setToolTipText(TIP2[i]);
-		    	buttn.setActionCommand(String.valueOf(i));
-		    	buttn.addActionListener(listener);
-		    	panel.add(buttn);
-		    }
-		    buttn = new JButton("Random"); // random button
-		    buttn.setToolTipText("An axis will be chosen at random.");
-		    buttn.setActionCommand("-1");
-		    buttn.addActionListener(listener);
-		    panel.add(buttn);
-		    frame.add(panel);
-		    frame.setVisible(true);
-		    while (listener.isWaiting()) {} // wait for a button to be pressed
-		    int n = Integer.parseInt(listener.command);
-		    listener.reset();
-		    frame.remove(panel);
-		    
+			buttn = new JButton("Custom"); // custom button
+			buttn.setToolTipText("Enter coordinates to create a custom axis.");
+			buttn.setActionCommand("-2");
+			buttn.addActionListener(listener);
+			panel.add(buttn);
+			for (int i = 0; i < AXES.length; i ++) { // all the other buttons
+				buttn = new JButton(AXES[i]);
+				buttn.setToolTipText(TIP2[i]);
+				buttn.setActionCommand(String.valueOf(i));
+				buttn.addActionListener(listener);
+				panel.add(buttn);
+			}
+			buttn = new JButton("Random"); // random button
+			buttn.setToolTipText("An axis will be chosen at random.");
+			buttn.setActionCommand("-1");
+			buttn.addActionListener(listener);
+			panel.add(buttn);
+			frame.add(panel);
+			frame.setVisible(true);
+			while (listener.isWaiting()) {} // wait for a button to be pressed
+			int n = Integer.parseInt(listener.command);
+			listener.reset();
+			frame.remove(panel);
+			
 			if (n >= 0) { // if it is a preset
 				latD = lats[n];
 				lonD = lons[n];
@@ -230,8 +231,8 @@ public class MapProjections implements ActionListener {
 				listener.reset();
 				frame.remove(panel);
 			}
-		    
-		    panel = new JPanel();
+			
+			panel = new JPanel();
 			label = new JLabel("Finally, set the dimensions for your map (width, height)."); // select map dimensions
 			label.setToolTipText("These will be the dimensions of the JPG file in pixels.");
 			panel.add(label);
@@ -243,21 +244,21 @@ public class MapProjections implements ActionListener {
 			height.setToolTipText("The height of your map in pixels");
 			panel.add(width);
 			panel.add(height);
-		    buttn = new JButton("OK");
-		    buttn.setToolTipText("Press when you are satisfied with your dimensions.");
-		    buttn.setActionCommand("OK");
-		    buttn.addActionListener(listener);
-		    panel.add(buttn);
-		    frame.add(panel);
-		    frame.setVisible(true);
-		    while (listener.isWaiting()) {} // wait for a button to be pressed
-		    w = (int)(width.getValue());
-		    h = (int)(height.getValue());
+			buttn = new JButton("OK");
+			buttn.setToolTipText("Press when you are satisfied with your dimensions.");
+			buttn.setActionCommand("OK");
+			buttn.addActionListener(listener);
+			panel.add(buttn);
+			frame.add(panel);
+			frame.setVisible(true);
+			while (listener.isWaiting()) {} // wait for a button to be pressed
+			w = (int)(width.getValue());
+			h = (int)(height.getValue());
 			output = new BufferedImage(w,h,BufferedImage.TYPE_INT_RGB);
-		    listener.reset();
-		    frame.remove(panel);
-		    
-		    panel = new JPanel();
+			listener.reset();
+			frame.remove(panel);
+			
+			panel = new JPanel();
 			label = new JLabel("Wait...");
 			panel.add(label);
 			frame.add(panel);
@@ -287,9 +288,9 @@ public class MapProjections implements ActionListener {
 			frame.remove(panel);
 			listener.reset();
 		}
-	    
-	    frame.setVisible(false);
-	    frame.dispose();
+		
+		frame.setVisible(false);
+		frame.dispose();
 	}
 	
 	
@@ -433,12 +434,15 @@ public class MapProjections implements ActionListener {
 	
 	public static int winkel_tripel(final double lat0, final double lon0, final double orientation,
             final int width, final int height, int x, int y, BufferedImage ref) {
+		final double tolerance = 0.001;
+		
 		double phi = (double)y/height*Math.PI - Math.PI/2;
 		double lam = (double)x/width*2*Math.PI - Math.PI;	// I used equirectangular for my initial guess
-		double xf = 3*Math.PI*x/width - 1.5*Math.PI;
+		double xf = 2*(2+Math.PI)*x/width - (2+Math.PI);
 		double yf = 2*Math.PI*y/height - Math.PI;
+		double error = Math.PI;
 		
-		for (int i = 0; i < 5; i ++) {
+		for (int i = 0; i < 100 && error > tolerance; i ++) {
 			final double X = WinkelTripel.X(phi, lam);
 			final double Y = WinkelTripel.Y(phi, lam);
 			final double dXdP = WinkelTripel.dXdphi(phi, lam);
@@ -448,8 +452,13 @@ public class MapProjections implements ActionListener {
 			
 			phi -= (dYdL*(X-xf)-dXdL*(Y-yf))/(dXdP*dYdL-dXdL*dYdP);
 			lam -= (dXdP*(Y-yf)-dYdP*(X-xf))/(dXdP*dYdL-dXdL*dYdP);
+			
+			error = Math.hypot(X-xf, Y-yf);
 		}
-		return getColor(lat0,lon0,orientation, phi, lam+Math.PI, ref);
+		if (error >= tolerance)	// if it aborted due to timeout
+			return 0;
+		else			// if it aborted due to convergence
+			return getColor(lat0,lon0,orientation, phi, lam+Math.PI, ref);
 	}
 	
 	
@@ -533,6 +542,15 @@ public class MapProjections implements ActionListener {
 	
 	
 	public static int hammer(final double lat0, final double lon0, final double orientation,
+			final int width, final int height, int x, int y, BufferedImage ref) { // similar to Mollweide, but moves distortion from the poles to the edges
+		final double X = 4*Math.sqrt(2)*x/width-2*Math.sqrt(2);
+		final double Y = 2*Math.sqrt(2)*y/height-Math.sqrt(2);
+		final double z = Math.sqrt(1 - Math.pow(X/4,2) - Math.pow(Y/2,2));
+		return getColor(lat0, lon0, orientation, Math.asin(z*Y), Math.PI+2*Math.atan(.5*z*X/(2*z*z-1)), ref);
+	}
+	
+	
+	public static int elliptical(final double lat0, final double lon0, final double orientation,
 			final int width, final int height, int x, int y, BufferedImage ref) { // similar to Mollweide, but moves distortion from the poles to the edges
 		final double X = 4*Math.sqrt(2)*x/width-2*Math.sqrt(2);
 		final double Y = 2*Math.sqrt(2)*y/height-Math.sqrt(2);
@@ -647,6 +665,8 @@ public class MapProjections implements ActionListener {
 				case "Magnifier":
 					output.setRGB(x, y, magnus(lat0,lon0,tht0,width,height,x,y,input));
 					break;
+				case "Two-Point Equidistant":
+					output.setRGB(x, y, elliptical(lat0,lon0,tht0,width,height,x,y,input));
 				default:
 					System.err.println("Justin, you forgot to add a projection to the switch case! (or you forgot a break;)");
 				}
