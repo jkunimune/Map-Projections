@@ -19,10 +19,11 @@ public class WormholeSimulator {
 		int i = 0;
 		double dist = (d0-r)/speed + l/speed + (df-r)/speed;
 		
-		BufferedImage[] input = new BufferedImage[2];
+		BufferedImage[] input = new BufferedImage[3];
 		try {
 	    	input[0] = ImageIO.read(new File("wormhole/input0.jpg"));
 	    	input[1] = ImageIO.read(new File("wormhole/input1.jpg"));
+	    	input[2] = ImageIO.read(new File("wormhole/input2.jpg"));
 	    } catch (IOException e) {
 	    	System.err.println("Where the heck is the image?!");
 	    	return;
@@ -60,8 +61,8 @@ public class WormholeSimulator {
 
 	private static void setPixel(BufferedImage output, int x, int y, double r, double l, double rs, double d,
 								 int w, int h, int pos, BufferedImage[] input) {
-		double phi = Math.atan2(2.0*x/w-1.0, 2.0*y/h-1.0);				// directional angle
-		double thtI = Math.atan(Math.hypot(x-w/2.0, y-h/2.0)/Math.hypot(w, h)*2);	// azimuthal angle of incidence
+		double phi = 2*Math.PI*x/w;				// directional angle
+		double thtI = Math.PI*y/h;	// azimuthal angle of incidence
 		double thtR;					// azimuthal angle of... refraction? reflection? rewormholation?
 		int ndx;
 		
