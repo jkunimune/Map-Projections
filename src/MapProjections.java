@@ -184,21 +184,20 @@ public class MapProjections extends Application {
 		
 		saver = new FileChooser();
 		saver.setInitialDirectory(new File("output"));
-		saver.setInitialFileName("myMap.jpg");
+		saver.setInitialFileName("myMap.png");
 		saver.setTitle("Save Map");
 		saver.getExtensionFilters().addAll(
-				new FileChooser.ExtensionFilter("All Images", "*.*"),
-				new FileChooser.ExtensionFilter("JPG", "*.jpg"),
 				new FileChooser.ExtensionFilter("PNG", "*.png"));
 		
 		final Button saveMap = new Button("Save Map...");
 		saveMap.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
 				final File f = saver.showSaveDialog(stage);
+				if (f == null)	return;
 				try {
 					ImageIO.write(
 							SwingFXUtils.fromFXImage(output.getImage(),null),
-							"jpg", f);
+							"png", f);
 				} catch (IOException e) {}
 			}
 		});
@@ -228,8 +227,8 @@ public class MapProjections extends Application {
 			}
 		}
 	}
-
-
+	
+	
 	public Image map(String projName,
 			double latD, double lonD, double thtD) {
 		int p = 0;
@@ -237,8 +236,8 @@ public class MapProjections extends Application {
 			if (PROJ_ARR[i].equals(projName))
 				p = i;
 		
-		outputWidth = (int)(1000*Math.sqrt(DEFA[p]));
-		outputHeight = (int)(1000/Math.sqrt(DEFA[p]));
+		outputWidth = (int)(600*Math.sqrt(DEFA[p]));
+		outputHeight = (int)(600/Math.sqrt(DEFA[p]));
 		
 		WritableImage img = new WritableImage(outputWidth, outputHeight);
 		
@@ -418,13 +417,8 @@ public class MapProjections extends Application {
 	private static int mollweide(final double[] pole, double x, double y,
 			int[] refDims, Image ref) {
 		double tht = Math.asin(y);
-		try {
-			return getColor(pole, Math.asin((2*tht + Math.sin(2*tht)) / Math.PI),
-					Math.PI * x / Math.cos(tht), refDims, ref);
-		} catch (Exception e) {
-			System.err.println(e);
-			return 0;
-		}
+		return getColor(pole, Math.asin((2*tht + Math.sin(2*tht)) / Math.PI),
+				Math.PI * x / Math.cos(tht), refDims, ref);
 	}
 	
 	private static int winkel_tripel(final double[] pole, double x, double y,
@@ -526,12 +520,10 @@ public class MapProjections extends Application {
 		else
 			longitude = lon0 - Math
 					.acos(Math.sin(lat1) / Math.cos(lat0) / Math.cos(latitude) - Math.tan(lat0) * Math.tan(latitude));
-		double x = longitude * refDims[0] / (2*Math.PI);
+		double x = longitude / (2*Math.PI);
 		double y = latitude * refDims[1] / Math.PI + refDims[1]/2.0;
 		
-		while (x < 0)
-			x += refDims[0];
-		x %= refDims[0];
+		x = (x - Math.floor(x)) * refDims[0];
 		if (y < 0)
 			y = 0;
 		else if (y >= refDims[1])
