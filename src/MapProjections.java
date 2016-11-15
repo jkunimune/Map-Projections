@@ -46,11 +46,11 @@ public class MapProjections extends Application {
 	
 	
 	private static final String[] PROJ_ARR = { "Equirectangular", "Mercator", "Gall Stereographic",
-			"Cylindrical Equal-Area", "Polar", "Stereographic", "Azimuthal Equal-Area",
-			"Orthographic", "Gnomonic", "Lambert Conical", "Winkel Tripel", "Van der Grinten", "Mollweide", "Hammer",
-			"Sinusoidal", "Lemons", "Pierce Quincuncial", "Guyou Hemisphere-in-a-Square", "Magnifier" };
+			"Cylindrical Equal-Area", "Polar", "Stereographic", "Azimuthal Equal-Area", "Orthographic", "Gnomonic",
+			"Lambert Conical", "Winkel Tripel", "Van der Grinten", "Mollweide", "Hammer", "Sinusoidal", "Lemons",
+			"Pierce Quincuncial", "Guyou Hemisphere-in-a-Square", "AuthaGraph", "Magnifier", "Experimental" };
 	private static final double[] DEFA = { 2, 1, 4/3.0, 2, 1, 1, 1, 1, 1, 2, Math.PI/2, 1, 2, 2,
-			2, 2, 1, 2, 1 };
+			2, 2, 1, 2, 4.0/Math.sqrt(3), 1, 1 };
 	private static final String[] DESC = { "An equidistant cylindrical map", "A conformal cylindrical map",
 			"A compromising cylindrical map", "An equal-area cylindrical map", "An equidistant azimuthal map",
 			"A conformal azimuthal map", "An equal-area azimuthal map",
@@ -61,13 +61,15 @@ public class MapProjections extends Application {
 			"An equal-area map shaped like a sinusoid", "BURN LIFE'S HOUSE DOWN!",
 			"A conformal square map that uses complex math",
 			"A reorganized version of Pierce Quincuncial and actually the best map ever",
-			"A novelty map that swells the center to disproportionate scale" };
+			"An almost-equal-area map based on a tetrahedron.",
+			"A novelty map that swells the center to disproportionate scale",
+			"What happens when you apply a complex differentiable function to a stereographic projection?" };
 	
 	private static final String[] AXES = { "Standard", "Transverse", "Center of Mass", "Jerusalem", "Point Nemo",
-			"Longest Line", "Longest Line Transverse", "Cylindrical", "Conical", "Quincuncial" };
-	private static final double[] DEF_LATS = { 90, 0, 29.9792, 31.7833, 48.8767, -28.5217, -46.4883, -35, -10, 60 };
-	private static final double[] DEF_LONS = { 0, 0, 31.1344, 35.216, 56.6067, 141.451, 16.5305, -13.6064, 65, -6 };
-	private static final double[] DEF_THTS = { 0, 0, -32, -35, -45, 71.5, 137, 145, -150, -10 };
+			"Longest Line", "Longest Line Transverse", "Cylindrical", "Conical", "Quincuncial", "Random" };
+	private static final double[] DEF_LATS = { 90, 0, 29.9792, 31.7833, 48.8767, -28.5217, -46.4883, -35, -10, 60, Double.NaN };
+	private static final double[] DEF_LONS = { 0, 0, 31.1344, 35.216, 56.6067, 141.451, 16.5305, -13.6064, 65, -6, Double.NaN };
+	private static final double[] DEF_THTS = { 0, 0, -32, -35, -45, 71.5, 137, 145, -150, -10, Double.NaN };
 	
 	
 	private FileChooser inputChooser, saver;
@@ -136,7 +138,7 @@ public class MapProjections extends Application {
 			}
 		});
 		projectionChooser.setPrefWidth(200);
-		projectionChooser.setValue("Equirectangular");
+		projectionChooser.setValue("Mercator");
 		layout.getChildren().add(new HBox(3, lbl, projectionChooser));
 		
 		projectionDesc = new Text("Please choose a projection.");
@@ -178,7 +180,6 @@ public class MapProjections extends Application {
 		});
 		update.setTooltip(new Tooltip(
 				"Update the current map with your parameters."));
-		update.setDisable(true);
 		update.setDefaultButton(true);
 		layout.getChildren().add(update);
 		
@@ -209,6 +210,14 @@ public class MapProjections extends Application {
 		output.setFitHeight(IMG_WIDTH);
 		output.setPreserveRatio(true);
 		
+		try {
+			input = new Image("file:input/basic.jpg");
+			inputLabel.setText("basic.jpg");
+			update.getOnAction().handle(null);
+		} catch (IllegalArgumentException e) {
+			update.setDisable(true);
+		}
+		
 		final HBox gui = new HBox(layout, output);
 		gui.setAlignment(Pos.CENTER);
 		StackPane.setMargin(gui, new Insets(10));
@@ -218,6 +227,12 @@ public class MapProjections extends Application {
 	
 	
 	private void setAxisByPreset(String preset) {
+		if (preset.equals("Random")) {
+			latSlider.setValue(Math.toDegrees(Math.asin(Math.random()*2-1)));
+			lonSlider.setValue(Math.random()*360-180);
+			thtSlider.setValue(Math.random()*360-180);
+			return;
+		}
 		for (int i = 0; i < AXES.length; i ++) {
 			if (AXES[i].equals(preset)) {
 				latSlider.setValue(DEF_LATS[i]);
@@ -297,6 +312,10 @@ public class MapProjections extends Application {
 			return magnus(pole, X, Y, refDims, input);
 		else if (p.equals("Hammer"))
 			return hammer(pole, X, Y, refDims, input);
+		else if (p.equals("AuthaGraph"))
+			return authagraph(pole, X, Y, refDims, input);
+		else if (p.equals("Experimental"))
+			return experiment(pole, X, Y, refDims, input);
 		else
 			throw new IllegalArgumentException(p);
 	}
@@ -304,9 +323,20 @@ public class MapProjections extends Application {
 	
 	private static int quincuncial(final double[] pole, double x, double y,
 			int[] refDims, Image ref) { // a tessalatable square map
-		Complex u = new Complex(1.8558 * (x+1), 1.8558 * y); // don't ask me where 3.7116 comes from
+		Complex u = new Complex(1.854 * (x+1), 1.854 * y); // 1.854 is approx K(sqrt(1/2)
 		Complex k = new Complex(Math.sqrt(0.5)); // the rest comes from some fancy complex calculus
 		Complex ans = Jacobi.cn(u, k);
+		double p = 2 * Math.atan(ans.abs());
+		double theta = Math.atan2(ans.getRe(), ans.getIm()) + Math.PI;
+		double lambda = p - Math.PI / 2;
+		return getColor(pole, lambda, theta, refDims, ref);
+	}
+	
+	
+	private static int experiment(final double[] pole, double x, double y,
+			int[] refDims, Image ref) { // just some random complex plane stuff
+		Complex z = new Complex(x*3, y*3);
+		Complex ans = z.neg().exp().minus(1).neg().invert();
 		double p = 2 * Math.atan(ans.abs());
 		double theta = Math.atan2(ans.getRe(), ans.getIm()) + Math.PI;
 		double lambda = p - Math.PI / 2;
@@ -324,7 +354,7 @@ public class MapProjections extends Application {
 		return getColor(pole, phi, x*Math.PI, refDims, ref);
 	}
 	
-	private int polar(final double[] pole, double x, double y,
+	private static int polar(final double[] pole, double x, double y,
 			int[] refDims, Image ref) { // the projection used on the UN flag
 		double phi = Math.PI * Math.hypot(x, y) - Math.PI/2;
 		if (Math.abs(phi) < Math.PI/2)
@@ -333,12 +363,12 @@ public class MapProjections extends Application {
 			return 0;
 	}
 	
-	private int gall(final double[] pole, double x, double y,
+	private static int gall(final double[] pole, double x, double y,
 			int[] refDims, Image ref) { // a compromise map, similar to mercator
 		return getColor(pole, 2*Math.atan(y), x*Math.PI, refDims, ref);
 	}
 	
-	private int sinusoidal(final double[] pole, double x, double y,
+	private static int sinusoidal(final double[] pole, double x, double y,
 			int[] refDims, Image ref) { // a map shaped like a sinusoid
 		return getColor(pole, y*Math.PI/2,
 				x*Math.PI / Math.cos(y*Math.PI/2), refDims, ref);
@@ -494,20 +524,82 @@ public class MapProjections extends Application {
 	}
 	
 	
-	public static int getColor(final double[] pole, double lat1, double lon1,
+	private static int authagraph(final double[] pole, double x, double y,
+			int[] refDims, Image ref) { // a modern Japanese almost-equal-area map
+		final double[] faceCenter = new double[3];
+		final double localX, localY;
+		if (y+1 > 4*x && y+1 > -4*x) {
+			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
+			faceCenter[1] = Math.PI;
+			faceCenter[2] = 0;
+			localX = 2*x;
+			localY = y-1/3.0;
+		}
+		else if (y+1 > 4*(x+1)) {
+			faceCenter[0] = -Math.PI/2;
+			faceCenter[1] = 0;
+			faceCenter[2] = 0;
+			localX = 2*(x+1);
+			localY = y-1/3.0;
+		}
+		else if (y+1 > -4*(x-1)) {
+			faceCenter[0] = -Math.PI/2;
+			faceCenter[1] = 0;
+			faceCenter[2] = 0;
+			localX = 2*(x-1);
+			localY = y-1/3.0;
+		}
+		else if (x < 0) {
+			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
+			faceCenter[1] = Math.PI/3;
+			faceCenter[2] = Math.PI/3;
+			localX = 2*(x+0.5);
+			localY = y+1/3.0;
+		}
+		else {
+			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
+			faceCenter[1] =5*Math.PI/3;
+			faceCenter[2] = -Math.PI/3;
+			localX = 2*(x-0.5);
+			localY = y+1/3.0;
+		}
+		
+		double[] newPole = obliquify(pole, faceCenter);
+		return gnomonic(newPole, localX, localY, refDims, ref);
+	}
+	
+	
+	public static int getColor(final double[] pole, double lat, double lon,
 			int[] refDims, Image input) { // returns the color of any coordinate on earth
+		final double[] coords = {lat, lon};
+		final double[] convCoords = obliquify(pole, coords);
+		double x = convCoords[1] / (2*Math.PI);
+		double y = convCoords[0] * refDims[1] / Math.PI + refDims[1]/2.0;
+		
+		x = (x - Math.floor(x)) * refDims[0];
+		if (y < 0)
+			y = 0;
+		else if (y >= refDims[1])
+			y = refDims[1] - 1;
+		
+		return input.getPixelReader().getArgb((int)x, (int)y);
+	}
+	
+	
+	public static final double[] obliquify(double[] pole, double[] coords) {
 		final double lat0 = pole[0];
 		final double lon0 = pole[1];
 		final double tht0 = pole[2];
+		double lat1 = coords[0];
+		double lon1 = coords[1];
 		lon1 += tht0;
 		double latitude = Math.asin(Math.sin(lat0) * Math.sin(lat1) + Math.cos(lat0) * Math.cos(lon1) * Math.cos(lat1));
 		double longitude;
-		double innerFunc = Math.sin(lat1) / Math.cos(lat0) / Math.cos(latitude) - Math.tan(lat0) * Math.tan(latitude); // used
+		double innerFunc = Math.sin(lat1) / Math.cos(lat0) / Math.cos(latitude) - Math.tan(lat0) * Math.tan(latitude);
 		if (lat0 == Math.PI / 2) // accounts for special case when lat0 = pi/2
-			longitude = lon1 + Math.PI;
-		else if (lat0 == -Math.PI / 2) // accounts for special case when lat0 =
-										// -pi/2
-			longitude = -lon1;
+			longitude = lon1+lon0 + Math.PI;
+		else if (lat0 == -Math.PI / 2) // accounts for special case when lat0 = -pi/2
+			longitude = -lon1+lon0;
 		else if (Math.abs(innerFunc) > 1) { // accounts for special case when
 											// cos(lat) = --> 0
 			if ((lon1 == Math.PI && lat1 < -lat0) || (lon1 != Math.PI && lat1 < lat0))
@@ -518,17 +610,12 @@ public class MapProjections extends Application {
 			longitude = lon0 + Math
 					.acos(Math.sin(lat1) / Math.cos(lat0) / Math.cos(latitude) - Math.tan(lat0) * Math.tan(latitude));
 		else
-			longitude = lon0 - Math
-					.acos(Math.sin(lat1) / Math.cos(lat0) / Math.cos(latitude) - Math.tan(lat0) * Math.tan(latitude));
-		double x = longitude / (2*Math.PI);
-		double y = latitude * refDims[1] / Math.PI + refDims[1]/2.0;
+			longitude = lon0 - Math.acos(Math.sin(lat1) / Math.cos(lat0) / Math.cos(latitude) - Math.tan(lat0) * Math.tan(latitude));
+		double orientation = (Math.cos(lat0)*Math.sin(lat0)-Math.tan(latitude)*Math.sin(lat1)+Math.tan(latitude)*Math.sin(latitude)*Math.sin(lat0))/Math.cos(lat1);
 		
-		x = (x - Math.floor(x)) * refDims[0];
-		if (y < 0)
-			y = 0;
-		else if (y >= refDims[1])
-			y = refDims[1] - 1;
-		
-		return input.getPixelReader().getArgb((int)x, (int)y);
+		double[] output = {latitude, longitude, orientation};
+		if (coords.length >= 3)
+			output[2] += coords[2];	// carry forward some information if necessary
+		return output;
 	}
 }
