@@ -18,6 +18,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Slider;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -57,7 +58,7 @@ public class MapProjections extends Application {
 			"Represents earth viewed from an infinite distance",
 			"Every straight line on the map is a straight line on the sphere", "A conformal conical map",
 			"The compromise map used by National Geographic (caution: very slow)", "A circular compromise map",
-			"An equal-area map shaped like an elipse", "An equal-area map shaped like an elipse",
+			"An equal-area map shaped like an ellipse", "An equal-area map shaped like an elipse",
 			"An equal-area map shaped like a sinusoid", "BURN LIFE'S HOUSE DOWN!",
 			"A conformal square map that uses complex math",
 			"A reorganized version of Pierce Quincuncial and actually the best map ever",
@@ -66,10 +67,10 @@ public class MapProjections extends Application {
 			"What happens when you apply a complex differentiable function to a stereographic projection?" };
 	
 	private static final String[] AXES = { "Standard", "Transverse", "Center of Mass", "Jerusalem", "Point Nemo",
-			"Longest Line", "Longest Line Transverse", "Cylindrical", "Conical", "Quincuncial", "Random" };
-	private static final double[] DEF_LATS = { 90, 0, 29.9792, 31.7833, 48.8767, -28.5217, -46.4883, -35, -10, 60, Double.NaN };
-	private static final double[] DEF_LONS = { 0, 0, 31.1344, 35.216, 56.6067, 141.451, 16.5305, -13.6064, 65, -6, Double.NaN };
-	private static final double[] DEF_THTS = { 0, 0, -32, -35, -45, 71.5, 137, 145, -150, -10, Double.NaN };
+			"Longest Line", "Longest Line Transverse", "Cylindrical", "Conical", "Quincuncial", "Antipode", "Random" };
+	private static final double[] DEF_LATS = { 90, 0, 29.9792, 31.7833, 48.8767, -28.5217, -46.4883, -35, -10, 60 };
+	private static final double[] DEF_LONS = { 0, 0, 31.1344, 35.216, 56.6067, 141.451, 16.5305, -13.6064, 65, -6 };
+	private static final double[] DEF_THTS = { 0, 0, -32, -35, -45, 161.5, 137, 145, -150, -10 };
 	
 	
 	private FileChooser inputChooser, saver;
@@ -138,14 +139,14 @@ public class MapProjections extends Application {
 			}
 		});
 		projectionChooser.setPrefWidth(200);
-		projectionChooser.setValue("Mercator");
+		projectionChooser.setValue(PROJ_ARR[1]);
 		layout.getChildren().add(new HBox(3, lbl, projectionChooser));
 		
-		projectionDesc = new Text("Please choose a projection.");
+		projectionDesc = new Text(DESC[1]);
 		projectionDesc.setWrappingWidth(CONT_WIDTH);
 		layout.getChildren().add(projectionDesc);
 		
-		final MenuButton defAxes = new MenuButton("Axis Presets");
+		final MenuButton defAxes = new MenuButton("Aspect Presets");
 		for (String preset: AXES) {
 			MenuItem m = new MenuItem(preset);
 			m.setOnAction(new EventHandler<ActionEvent>() {
@@ -156,12 +157,16 @@ public class MapProjections extends Application {
 			defAxes.getItems().add(m);
 		}
 		defAxes.setTooltip(new Tooltip(
-				"Set the axis sliders based on a preset"));
+				"Set the aspect sliders based on a preset"));
 		layout.getChildren().add(defAxes);
 		
 		latSlider = new Slider(-90, 90, 90);
 		lonSlider = new Slider(-180,180,0);
 		thtSlider = new Slider(-180,180,0);
+		Tooltip aspTlTp = new Tooltip("Change the aspect of the map");
+		latSlider.setTooltip(aspTlTp);
+		lonSlider.setTooltip(aspTlTp);
+		thtSlider.setTooltip(aspTlTp);
 		
 		GridPane grid = new GridPane();
 		grid.addRow(0, new Text("Latitude:"), latSlider);
@@ -227,6 +232,12 @@ public class MapProjections extends Application {
 	
 	
 	private void setAxisByPreset(String preset) {
+		if (preset.equals("Antipode")) {
+			latSlider.setValue(-latSlider.getValue());
+			lonSlider.setValue((lonSlider.getValue()+360)%360-180);
+			thtSlider.setValue(-thtSlider.getValue());
+			return;
+		}
 		if (preset.equals("Random")) {
 			latSlider.setValue(Math.toDegrees(Math.asin(Math.random()*2-1)));
 			lonSlider.setValue(Math.random()*360-180);
@@ -273,7 +284,7 @@ public class MapProjections extends Application {
 		final int[] refDims = {(int)width, (int)height};
 		final String p = projectionChooser.getValue();
 		final double X = 2.0*x/outputWidth-1;
-		final double Y = 2.0*y/outputHeight-1;
+		final double Y = 1-2.0*y/outputHeight;
 		if (p.equals("Pierce Quincuncial"))
 			return quincuncial(pole, X, Y, refDims, input);
 		else if (p.equals("Equirectangular"))
@@ -327,8 +338,8 @@ public class MapProjections extends Application {
 		Complex k = new Complex(Math.sqrt(0.5)); // the rest comes from some fancy complex calculus
 		Complex ans = Jacobi.cn(u, k);
 		double p = 2 * Math.atan(ans.abs());
-		double theta = Math.atan2(ans.getRe(), ans.getIm()) + Math.PI;
-		double lambda = p - Math.PI / 2;
+		double theta = Math.atan2(ans.getIm(), ans.getRe()) - Math.PI/2;
+		double lambda = Math.PI/2 - p;
 		return getColor(pole, lambda, theta, refDims, ref);
 	}
 	
@@ -336,15 +347,15 @@ public class MapProjections extends Application {
 	private static int experiment(final double[] pole, double x, double y,
 			int[] refDims, Image ref) { // just some random complex plane stuff
 		Complex z = new Complex(x*3, y*3);
-		Complex ans = z.neg().exp().minus(1).neg().invert();
+		Complex ans = z;
 		double p = 2 * Math.atan(ans.abs());
-		double theta = Math.atan2(ans.getRe(), ans.getIm()) + Math.PI;
-		double lambda = p - Math.PI / 2;
+		double theta = Math.atan2(ans.getIm(), ans.getRe()) + Math.PI/2;
+		double lambda = Math.PI/2 - p;
 		return getColor(pole, lambda, theta, refDims, ref);
 	}
 	
 	private static int equirectangular(final double[] pole, double x, double y,
-			int[] refDims, Image ref) { // a basic scale
+			int[] refDims, Image ref) { // a linear scale
 		return getColor(pole, y*Math.PI/2, x*Math.PI, refDims, ref);
 	}
 	
@@ -356,9 +367,10 @@ public class MapProjections extends Application {
 	
 	private static int polar(final double[] pole, double x, double y,
 			int[] refDims, Image ref) { // the projection used on the UN flag
-		double phi = Math.PI * Math.hypot(x, y) - Math.PI/2;
+		double phi = Math.PI/2 - Math.PI * Math.hypot(x, y);
 		if (Math.abs(phi) < Math.PI/2)
-			return getColor(pole, phi, Math.atan2(x, y), refDims, ref);
+			return getColor(pole, phi, Math.atan2(y, x) + Math.PI/2,
+					refDims, ref);
 		else
 			return 0;
 	}
@@ -376,21 +388,21 @@ public class MapProjections extends Application {
 	
 	private static int stereographic(final double[] pole, double x, double y,
 			int[] refDims, Image ref) { // a shape-preserving infinite map
-		return getColor(pole, 2*Math.atan(2*Math.hypot(x, y)) - Math.PI/2,
-				Math.atan2(x, y), refDims, ref);
+		return getColor(pole, Math.PI/2 - 2*Math.atan(2*Math.hypot(x, y)),
+				Math.atan2(y, x) + Math.PI/2, refDims, ref);
 	}
 	
 	private static int gnomonic(final double[] pole, double x, double y,
 			int[] refDims, Image ref) { // map where straight lines are straight
-		return getColor(pole, Math.atan(2*Math.hypot(x, y)) - Math.PI/2,
-				Math.atan2(x, y), refDims, ref);
+		return getColor(pole, Math.PI/2 - Math.atan(2*Math.hypot(x, y)),
+				Math.atan2(y, x) + Math.PI/2, refDims, ref);
 	}
 	
 	private static int orthographic(final double[] pole, double x, double y,
 			int[] refDims, Image ref) { // a map that mimics the view from space
 		double R = Math.hypot(x, y);
 		if (R <= 1)
-			return getColor(pole, -Math.acos(R), Math.atan2(x, y),
+			return getColor(pole, Math.acos(R), Math.atan2(y, x) + Math.PI/2,
 					refDims, ref);
 		else
 			return 0;
@@ -403,10 +415,10 @@ public class MapProjections extends Application {
 	
 	private static int lambert(final double[] pole, double x, double y,
 			int[] refDims, Image ref) { // a conical projection
-		y = (y+1)/2;
+		y = (y-1)/2;
 		return getColor(pole,
-				2*Math.atan(Math.pow(1.5*Math.hypot(x, y), 2)) - Math.PI/2,
-				2*Math.atan2(x, y), refDims, ref);
+				Math.PI/2 - 2*Math.atan(Math.pow(1.5*Math.hypot(x, y), 2)),
+				2*(Math.atan2(y, x) + Math.PI/2), refDims, ref);
 	}
 	
 	private static int lemons(final double[] pole, double x, double y,
@@ -427,8 +439,8 @@ public class MapProjections extends Application {
 			final int[] refDims, Image ref) { // the lambert azimuthal equal area projection
 		double R = Math.hypot(x, y);
 		if (R <= 1)
-			return getColor(pole, Math.asin(2*R*R - 1), Math.atan2(x, y),
-					refDims, ref);
+			return getColor(pole, Math.asin(1 - 2*R*R),
+					Math.atan2(y, x) + Math.PI/2, refDims, ref);
 		else
 			return 0;
 	}
@@ -439,8 +451,8 @@ public class MapProjections extends Application {
 		Complex k = new Complex(Math.sqrt(0.5)); // the rest comes from some fancy complex calculus
 		Complex ans = Jacobi.cn(u, k);
 		double p = 2 * Math.atan(ans.abs());
-		double theta = Math.atan2(ans.getRe(), ans.getIm());
-		double lambda = p - Math.PI / 2;
+		double theta = Math.atan2(ans.getIm(), ans.getRe());
+		double lambda = Math.PI/2 - p;
 		return getColor(pole, lambda, theta, refDims, ref);
 	}
 	
@@ -508,8 +520,8 @@ public class MapProjections extends Application {
 			int[] refDims, Image ref) { // a novelty map that magnifies the center profusely
 		double R = Math.hypot(x, y);
 		if (R <= 1)
-			return getColor(pole, Math.PI/2 * (R*R*R*1.8 + R*.2 - 1),
-					Math.atan2(x, y), refDims, ref);
+			return getColor(pole, Math.PI/2 * (1 - R*.2 - R*R*R*1.8),
+					Math.atan2(y, x) + Math.PI/2, refDims, ref);
 		else
 			return 0;
 	}
@@ -529,43 +541,46 @@ public class MapProjections extends Application {
 		final double[] faceCenter = new double[3];
 		final double localX, localY;
 		if (y+1 > 4*x && y+1 > -4*x) {
-			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
-			faceCenter[1] = Math.PI;
+			//faceCenter[0] = Math.asin(Math.sqrt(8)/3)-Math.PI/2;
+			faceCenter[0] = -1;
+			faceCenter[1] = 0;
 			faceCenter[2] = 0;
 			localX = 2*x;
 			localY = y-1/3.0;
 		}
 		else if (y+1 > 4*(x+1)) {
-			faceCenter[0] = -Math.PI/2;
+			faceCenter[0] = Math.PI/2;
 			faceCenter[1] = 0;
 			faceCenter[2] = 0;
 			localX = 2*(x+1);
 			localY = y-1/3.0;
 		}
 		else if (y+1 > -4*(x-1)) {
-			faceCenter[0] = -Math.PI/2;
+			faceCenter[0] = Math.PI/2;
 			faceCenter[1] = 0;
 			faceCenter[2] = 0;
 			localX = 2*(x-1);
 			localY = y-1/3.0;
 		}
 		else if (x < 0) {
-			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
-			faceCenter[1] = Math.PI/3;
+			faceCenter[0] = Math.asin(Math.sqrt(8)/3)-Math.PI/2;
+			faceCenter[1] = 4*Math.PI/3;
 			faceCenter[2] = Math.PI/3;
 			localX = 2*(x+0.5);
 			localY = y+1/3.0;
 		}
 		else {
-			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
-			faceCenter[1] =5*Math.PI/3;
+			faceCenter[0] = Math.asin(Math.sqrt(8)/3)-Math.PI/2;
+			faceCenter[1] =2*Math.PI/3;
 			faceCenter[2] = -Math.PI/3;
 			localX = 2*(x-0.5);
 			localY = y+1/3.0;
 		}
 		
 		double[] newPole = obliquify(pole, faceCenter);
-		return gnomonic(newPole, localX, localY, refDims, ref);
+		return getColor(newPole,
+				Math.PI/2 - Math.atan(2.35*Math.hypot(localX, localY)),
+				Math.atan2(localY, localX) + Math.PI/2, refDims, ref);
 	}
 	
 	
@@ -573,8 +588,8 @@ public class MapProjections extends Application {
 			int[] refDims, Image input) { // returns the color of any coordinate on earth
 		final double[] coords = {lat, lon};
 		final double[] convCoords = obliquify(pole, coords);
-		double x = convCoords[1] / (2*Math.PI);
-		double y = convCoords[0] * refDims[1] / Math.PI + refDims[1]/2.0;
+		double x = convCoords[1]/(2*Math.PI) + refDims[0]/2.0;
+		double y = refDims[1]/2.0 - convCoords[0]*refDims[1]/Math.PI;
 		
 		x = (x - Math.floor(x)) * refDims[0];
 		if (y < 0)
@@ -593,29 +608,32 @@ public class MapProjections extends Application {
 		double lat1 = coords[0];
 		double lon1 = coords[1];
 		lon1 += tht0;
-		double latitude = Math.asin(Math.sin(lat0) * Math.sin(lat1) + Math.cos(lat0) * Math.cos(lon1) * Math.cos(lat1));
-		double longitude;
-		double innerFunc = Math.sin(lat1) / Math.cos(lat0) / Math.cos(latitude) - Math.tan(lat0) * Math.tan(latitude);
+		double latf = Math.asin(Math.sin(lat0)*Math.sin(lat1) - Math.cos(lat0)*Math.cos(lon1)*Math.cos(lat1));
+		double lonf;
+		double innerFunc = Math.sin(lat1)/Math.cos(lat0)/Math.cos(latf) - Math.tan(lat0)*Math.tan(latf);
 		if (lat0 == Math.PI / 2) // accounts for special case when lat0 = pi/2
-			longitude = lon1+lon0 + Math.PI;
+			lonf = lon1+lon0+Math.PI;
 		else if (lat0 == -Math.PI / 2) // accounts for special case when lat0 = -pi/2
-			longitude = -lon1+lon0;
-		else if (Math.abs(innerFunc) > 1) { // accounts for special case when
-											// cos(lat) = --> 0
-			if ((lon1 == Math.PI && lat1 < -lat0) || (lon1 != Math.PI && lat1 < lat0))
-				longitude = Math.PI + lon0;
+			lonf = -lon1+lon0;
+		else if (Math.abs(innerFunc) > 1) { // accounts for special case when cos(lat1) = --> 0
+			if ((lon1 == 0 && lat1 < -lat0) || (lon1 != 0 && lat1 < lat0))
+				lonf = lon0;
 			else
-				longitude = lon0;
-		} else if (Math.sin(lon1) < 0)
-			longitude = lon0 + Math
-					.acos(Math.sin(lat1) / Math.cos(lat0) / Math.cos(latitude) - Math.tan(lat0) * Math.tan(latitude));
+				lonf = lon0 + Math.PI;
+		} else if (Math.sin(lon1) > 0)
+			lonf = Math.PI + lon0 +
+					Math.acos(Math.sin(lat1) / Math.cos(lat0)/Math.cos(latf) - Math.tan(lat0)*Math.tan(latf));
 		else
-			longitude = lon0 - Math.acos(Math.sin(lat1) / Math.cos(lat0) / Math.cos(latitude) - Math.tan(lat0) * Math.tan(latitude));
-		double orientation = (Math.cos(lat0)*Math.sin(lat0)-Math.tan(latitude)*Math.sin(lat1)+Math.tan(latitude)*Math.sin(latitude)*Math.sin(lat0))/Math.cos(lat1);
+			lonf = Math.PI + lon0 -
+					Math.acos(Math.sin(lat1)/Math.cos(lat0)/Math.cos(latf) - Math.tan(lat0)*Math.tan(latf));
 		
-		double[] output = {latitude, longitude, orientation};
+		double P = Math.sin(lat0)*Math.cos(latf)-Math.cos(lat0)*Math.sin(latf)*Math.cos(lonf-lon0);
+		double thtf = Math.acos(P/Math.cos(lat1));
+		thtf = 0;
 		if (coords.length >= 3)
-			output[2] += coords[2];	// carry forward some information if necessary
+			thtf += coords[2];
+		
+		double[] output = {latf, lonf, thtf};
 		return output;
 	}
 }
