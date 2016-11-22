@@ -390,11 +390,9 @@ public class MapProjections extends Application {
 			lonf = lon0 -
 					Math.acos(innerFunc);
 		
-		double P = Math.sin(lat0)*Math.cos(latf)-Math.cos(lat0)*Math.sin(latf)*Math.cos(lonf-lon0);
-		double thtf = Math.acos(P/Math.cos(lat1));
-		thtf = 0;
-		if (coords.length >= 3)
-			thtf += coords[2];
+		double thtf = 0;
+		if (pole.length >= 3)
+			thtf += pole[2];
 		
 		double[] output = {latf, lonf, thtf};
 		return output;
@@ -584,40 +582,39 @@ public class MapProjections extends Application {
 		final double[] faceCenter = new double[3];
 		final double localX, localY;
 		if (y-1 < 4*x && y-1 < -4*x) {
-			//faceCenter[0] = Math.asin(Math.sqrt(8)/3)-Math.PI/2;
-			faceCenter[0] = 0.7;
+			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
 			faceCenter[1] = 0;
 			faceCenter[2] = 0;
 			localX = 2*x;
-			localY = y-1/3.0;
+			localY = y+1/3.0;
 		}
 		else if (y-1 < -4*(x+1)) {
-			faceCenter[0] = Math.PI/2;
+			faceCenter[0] = -Math.PI/2;
 			faceCenter[1] = 0;
-			faceCenter[2] = 0;
+			faceCenter[2] = Math.PI;
 			localX = 2*(x+1);
-			localY = y-1/3.0;
+			localY = y+1/3.0;
 		}
 		else if (y-1 < 4*(x-1)) {
-			faceCenter[0] = Math.PI/2;
+			faceCenter[0] = -Math.PI/2;
 			faceCenter[1] = 0;
-			faceCenter[2] = 0;
+			faceCenter[2] = Math.PI;
 			localX = 2*(x-1);
-			localY = y-1/3.0;
+			localY = y+1/3.0;
 		}
 		else if (x < 0) {
-			faceCenter[0] = Math.asin(Math.sqrt(8)/3)-Math.PI/2;
+			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
 			faceCenter[1] = 4*Math.PI/3;
 			faceCenter[2] = Math.PI/3;
 			localX = 2*(x+0.5);
-			localY = y+1/3.0;
+			localY = y-1/3.0;
 		}
 		else {
-			faceCenter[0] = Math.asin(Math.sqrt(8)/3)-Math.PI/2;
+			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
 			faceCenter[1] =2*Math.PI/3;
 			faceCenter[2] = -Math.PI/3;
 			localX = 2*(x-0.5);
-			localY = y+1/3.0;
+			localY = y-1/3.0;
 		}
 		
 		double[] triCoords = {
