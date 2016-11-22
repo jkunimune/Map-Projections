@@ -17,8 +17,8 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Separator;
 import javafx.scene.control.Slider;
-import javafx.scene.control.Spinner;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -37,8 +37,8 @@ import mfc.field.Complex;
  */
 
 /**
+ * An application to make raster oblique aspects of map projections
  * @author Justin Kunimune
- *
  */
 public class MapProjections extends Application {
 
@@ -125,6 +125,8 @@ public class MapProjections extends Application {
 				"Choose the image to determine your map's color scheme"));
 		layout.getChildren().add(changeInput);
 		
+		layout.getChildren().add(new Separator());
+		
 		lbl = new Label("Projection:");
 		ObservableList<String> items = FXCollections.observableArrayList(PROJ_ARR);
 		projectionChooser = new ComboBox<String>(items);
@@ -145,6 +147,8 @@ public class MapProjections extends Application {
 		projectionDesc = new Text(DESC[1]);
 		projectionDesc.setWrappingWidth(CONT_WIDTH);
 		layout.getChildren().add(projectionDesc);
+		
+		layout.getChildren().add(new Separator());
 		
 		final MenuButton defAxes = new MenuButton("Aspect Presets");
 		for (String preset: AXES) {
@@ -173,6 +177,8 @@ public class MapProjections extends Application {
 		grid.addRow(1, new Text("Longitude:"), lonSlider);
 		grid.addRow(2, new Text("Orientation:"), thtSlider);
 		layout.getChildren().add(grid);
+		
+		layout.getChildren().add(new Separator());
 		
 		update = new Button("Update Map");
 		update.setOnAction(new EventHandler<ActionEvent>() {
@@ -225,6 +231,7 @@ public class MapProjections extends Application {
 		
 		final HBox gui = new HBox(layout, output);
 		gui.setAlignment(Pos.CENTER);
+		gui.setSpacing(10);
 		StackPane.setMargin(gui, new Insets(10));
 		stage.setScene(new Scene(new StackPane(gui)));
 		stage.show();
@@ -285,186 +292,226 @@ public class MapProjections extends Application {
 		final String p = projectionChooser.getValue();
 		final double X = 2.0*x/outputWidth-1;
 		final double Y = 1-2.0*y/outputHeight;
+		
+		double[] coords;
 		if (p.equals("Pierce Quincuncial"))
-			return quincuncial(pole, X, Y, refDims, input);
+			coords = quincuncial(X, Y);
 		else if (p.equals("Equirectangular"))
-			return equirectangular(pole, X, Y, refDims, input);
+			coords = equirectangular(X, Y);
 		else if (p.equals("Mercator"))
-			return mercator(pole, X, Y, refDims, input);
+			coords = mercator(X, Y);
 		else if (p.equals("Polar"))
-			return polar(pole, X, Y, refDims, input);
+			coords = polar(X, Y);
 		else if (p.equals("Gall Stereographic"))
-			return gall(pole, X, Y, refDims, input);
+			coords = gall(X, Y);
 		else if (p.equals("Sinusoidal"))
-			return sinusoidal(pole, X, Y, refDims, input);
+			coords = sinusoidal(X, Y);
 		else if (p.equals("Stereographic"))
-			return stereographic(pole, X, Y, refDims, input);
+			coords = stereographic(X, Y);
 		else if (p.equals("Gnomonic"))
-			return gnomonic(pole, X, Y, refDims, input);
+			coords = gnomonic(X, Y);
 		else if (p.equals("Orthographic"))
-			return orthographic(pole, X, Y, refDims, input);
+			coords = orthographic(X, Y);
 		else if (p.equals("Cylindrical Equal-Area"))
-			return eaCylindrical(pole, X, Y, refDims, input);
+			coords = eaCylindrical(X, Y);
 		else if (p.equals("Lambert Conical"))
-			return lambert(pole, X, Y, refDims, input);
+			coords = lambert(X, Y);
 		else if (p.equals("Lemons"))
-			return lemons(pole, X, Y, refDims, input);
+			coords = lemons(X, Y);
 		else if (p.equals("Azimuthal Equal-Area"))
-			return eaAzimuth(pole, X, Y, refDims, input);
+			coords = eaAzimuth(X, Y);
 		else if (p.equals("Guyou Hemisphere-in-a-Square"))
-			return quinshift(pole, X, Y, refDims, input);
+			coords = quinshift(X, Y);
 		else if (p.equals("Mollweide"))
-			return mollweide(pole, X, Y, refDims, input);
+			coords = mollweide(X, Y);
 		else if (p.equals("Winkel Tripel"))
-			return winkel_tripel(pole, X, Y, refDims, input);
+			coords = winkel_tripel(X, Y);
 		else if (p.equals("Van der Grinten"))
-			return grinten(pole, X, Y, refDims, input);
+			coords = grinten(X, Y);
 		else if (p.equals("Magnifier"))
-			return magnus(pole, X, Y, refDims, input);
+			coords = magnus(X, Y);
 		else if (p.equals("Hammer"))
-			return hammer(pole, X, Y, refDims, input);
+			coords = hammer(X, Y);
 		else if (p.equals("AuthaGraph"))
-			return authagraph(pole, X, Y, refDims, input);
+			coords = authagraph(X, Y);
 		else if (p.equals("Experimental"))
-			return experiment(pole, X, Y, refDims, input);
+			coords = experiment(X, Y);
 		else
 			throw new IllegalArgumentException(p);
+		
+		if (coords != null)
+			return getColor(pole, coords, refDims, input);
+		else
+			return 0;
 	}
 	
 	
-	private static int quincuncial(final double[] pole, double x, double y,
-			int[] refDims, Image ref) { // a tessalatable square map
+	public static int getColor(final double[] pole, double[] coords,
+			int[] refDims, Image input) { // returns the color of any coordinate on earth
+		final double[] convCoords = obliquify(pole, coords);
+		
+		double x = 1/2.0 + convCoords[1]/(2*Math.PI);
+		x = (x - Math.floor(x)) * refDims[0];
+		
+		double y = refDims[1]/2.0 - convCoords[0]*refDims[1]/(Math.PI);
+		if (y < 0)
+			y = 0;
+		else if (y >= refDims[1])
+			y = refDims[1] - 1;
+		
+		return input.getPixelReader().getArgb((int)x, (int)y);
+	}
+	
+	
+	public static final double[] obliquify(double[] pole, double[] coords) {
+		final double lat0 = pole[0];
+		final double lon0 = pole[1];
+		final double tht0 = pole[2];
+		double lat1 = coords[0];
+		double lon1 = coords[1];
+		lon1 += tht0;
+		double latf = Math.asin(Math.sin(lat0)*Math.sin(lat1) - Math.cos(lat0)*Math.cos(lon1)*Math.cos(lat1));
+		double lonf;
+		double innerFunc = Math.sin(lat1)/Math.cos(lat0)/Math.cos(latf) - Math.tan(lat0)*Math.tan(latf);
+		if (lat0 == Math.PI / 2) // accounts for special case when lat0 = pi/2
+			lonf = lon1+lon0;
+		else if (lat0 == -Math.PI / 2) // accounts for special case when lat0 = -pi/2
+			lonf = -lon1+lon0 + Math.PI;
+		else if (Math.abs(innerFunc) > 1) { // accounts for special case when cos(lat1) = --> 0
+			if ((lon1 == 0 && lat1 < -lat0) || (lon1 != 0 && lat1 < lat0))
+				lonf = lon0 + Math.PI;
+			else
+				lonf = lon0;
+		}
+		else if (Math.sin(lon1) > 0)
+			lonf = lon0 +
+					Math.acos(innerFunc);
+		else
+			lonf = lon0 -
+					Math.acos(innerFunc);
+		
+		double P = Math.sin(lat0)*Math.cos(latf)-Math.cos(lat0)*Math.sin(latf)*Math.cos(lonf-lon0);
+		double thtf = Math.acos(P/Math.cos(lat1));
+		thtf = 0;
+		if (coords.length >= 3)
+			thtf += coords[2];
+		
+		double[] output = {latf, lonf, thtf};
+		return output;
+	}
+	
+	
+	private static double[] quincuncial(double x, double y) { // a tessalatable square map
 		Complex u = new Complex(1.854 * (x+1), 1.854 * y); // 1.854 is approx K(sqrt(1/2)
 		Complex k = new Complex(Math.sqrt(0.5)); // the rest comes from some fancy complex calculus
 		Complex ans = Jacobi.cn(u, k);
 		double p = 2 * Math.atan(ans.abs());
 		double theta = Math.atan2(ans.getIm(), ans.getRe()) - Math.PI/2;
 		double lambda = Math.PI/2 - p;
-		return getColor(pole, lambda, theta, refDims, ref);
+		return new double[] {lambda, theta};
 	}
 	
-	
-	private static int experiment(final double[] pole, double x, double y,
-			int[] refDims, Image ref) { // just some random complex plane stuff
+	private static double[] experiment(double x, double y) { // just some random complex plane stuff
 		Complex z = new Complex(x*3, y*3);
 		Complex ans = z;
 		double p = 2 * Math.atan(ans.abs());
 		double theta = Math.atan2(ans.getIm(), ans.getRe()) + Math.PI/2;
 		double lambda = Math.PI/2 - p;
-		return getColor(pole, lambda, theta, refDims, ref);
+		return new double[] {lambda, theta};
 	}
 	
-	private static int equirectangular(final double[] pole, double x, double y,
-			int[] refDims, Image ref) { // a linear scale
-		return getColor(pole, y*Math.PI/2, x*Math.PI, refDims, ref);
+	private static double[] equirectangular(double x, double y) { // a linear scale
+		return new double[] {y*Math.PI/2, x*Math.PI};
 	}
 	
-	private static int mercator(final double[] pole, double x, double y,
-			int[] refDims, Image ref) { // a popular shape-preserving map
+	private static double[] mercator(double x, double y) { // a popular shape-preserving map
 		double phi = Math.atan(Math.sinh(y*Math.PI));
-		return getColor(pole, phi, x*Math.PI, refDims, ref);
+		return new double[] {phi, x*Math.PI};
 	}
 	
-	private static int polar(final double[] pole, double x, double y,
-			int[] refDims, Image ref) { // the projection used on the UN flag
+	private static double[] polar(double x, double y) { // the projection used on the UN flag
 		double phi = Math.PI/2 - Math.PI * Math.hypot(x, y);
-		if (Math.abs(phi) < Math.PI/2)
-			return getColor(pole, phi, Math.atan2(y, x) + Math.PI/2,
-					refDims, ref);
+		if (phi > -Math.PI/2)
+			return new double[] {phi, Math.atan2(y, x) + Math.PI/2};
 		else
-			return 0;
+			return null;
 	}
 	
-	private static int gall(final double[] pole, double x, double y,
-			int[] refDims, Image ref) { // a compromise map, similar to mercator
-		return getColor(pole, 2*Math.atan(y), x*Math.PI, refDims, ref);
+	private static double[] gall(double x, double y) { // a compromise map, similar to mercator
+		return new double[] {2*Math.atan(y), x*Math.PI};
 	}
 	
-	private static int sinusoidal(final double[] pole, double x, double y,
-			int[] refDims, Image ref) { // a map shaped like a sinusoid
-		return getColor(pole, y*Math.PI/2,
-				x*Math.PI / Math.cos(y*Math.PI/2), refDims, ref);
+	private static double[] sinusoidal(double x, double y) { // a map shaped like a sinusoid
+		return new double[] {y*Math.PI/2, x*Math.PI / Math.cos(y*Math.PI/2)};
 	}
 	
-	private static int stereographic(final double[] pole, double x, double y,
-			int[] refDims, Image ref) { // a shape-preserving infinite map
-		return getColor(pole, Math.PI/2 - 2*Math.atan(2*Math.hypot(x, y)),
-				Math.atan2(y, x) + Math.PI/2, refDims, ref);
+	private static double[] stereographic(double x, double y) { // a shape-preserving infinite map
+		return new double[] {Math.PI/2 - 2*Math.atan(2*Math.hypot(x, y)),
+				Math.atan2(y, x) + Math.PI/2};
 	}
 	
-	private static int gnomonic(final double[] pole, double x, double y,
-			int[] refDims, Image ref) { // map where straight lines are straight
-		return getColor(pole, Math.PI/2 - Math.atan(2*Math.hypot(x, y)),
-				Math.atan2(y, x) + Math.PI/2, refDims, ref);
+	private static double[] gnomonic(double x, double y) { // map where straight lines are straight
+		return new double[] {Math.PI/2 - Math.atan(2*Math.hypot(x, y)),
+				Math.atan2(y, x) + Math.PI/2};
 	}
 	
-	private static int orthographic(final double[] pole, double x, double y,
-			int[] refDims, Image ref) { // a map that mimics the view from space
+	private static double[] orthographic(double x, double y) { // a map that mimics the view from space
 		double R = Math.hypot(x, y);
 		if (R <= 1)
-			return getColor(pole, Math.acos(R), Math.atan2(y, x) + Math.PI/2,
-					refDims, ref);
+			return new double[] {Math.acos(R), Math.atan2(y, x) + Math.PI/2};
 		else
-			return 0;
+			return null;
 	}
 	
-	private static int eaCylindrical(final double[] pole, double x, double y,
-			int[] refDims, Image ref) { // an equal-area cylindrical map
-		return getColor(pole, Math.asin(y), x*Math.PI, refDims, ref);
+	private static double[] eaCylindrical(double x, double y) { // an equal-area cylindrical map
+		return new double[] {Math.asin(y), x*Math.PI};
 	}
 	
-	private static int lambert(final double[] pole, double x, double y,
-			int[] refDims, Image ref) { // a conical projection
+	private static double[] lambert(double x, double y) { // a conical projection
 		y = (y-1)/2;
-		return getColor(pole,
+		return new double[] {
 				Math.PI/2 - 2*Math.atan(Math.pow(1.5*Math.hypot(x, y), 2)),
-				2*(Math.atan2(y, x) + Math.PI/2), refDims, ref);
+				2*(Math.atan2(y, x) + Math.PI/2)};
 	}
 	
-	private static int lemons(final double[] pole, double x, double y,
-			int[] refDims, Image ref) { // a simple map that is shaped like lemons
+	private static double[] lemons(double x, double y) { // a simple map that is shaped like lemons
 		x = x+2;
 		final double lemWdt = 1/6.0;
 		
 		if (Math.abs(x % lemWdt - lemWdt / 2.0) < Math.cos(y*Math.PI/2) * lemWdt/2.0) // if it is in
-			return getColor(pole, y*Math.PI/2,	// a sine curve
+			return new double[] {y*Math.PI/2,	// a sine curve
 					Math.PI * (x%lemWdt - lemWdt/2.0) / (Math.cos(y*Math.PI/2))
-							+ (int)(x/lemWdt) * Math.PI/6,
-					refDims, ref);
+							+ (int)(x/lemWdt) * Math.PI/6};
 		else
-			return 0;
+			return null;
 	}
 	
-	private static int eaAzimuth(final double[] pole, double x, double y,
-			final int[] refDims, Image ref) { // the lambert azimuthal equal area projection
+	private static double[] eaAzimuth(double x, double y) { // the lambert azimuthal equal area projection
 		double R = Math.hypot(x, y);
 		if (R <= 1)
-			return getColor(pole, Math.asin(1 - 2*R*R),
-					Math.atan2(y, x) + Math.PI/2, refDims, ref);
+			return new double[] {Math.asin(1-2*R*R), Math.atan2(y,x)+Math.PI/2};
 		else
-			return 0;
+			return null;
 	}
 	
-	private static int quinshift(final double[] pole, double x, double y,
-			final int[] refDims, Image ref) { // a tessalatable rectangle map
+	private static double[] quinshift(double x, double y) { // a tessalatable rectangle map
 		Complex u = new Complex(1.8558*(x - y/2 - 0.5), 1.8558*(x + y/2 + 0.5)); // don't ask me where 3.7116 comes from
 		Complex k = new Complex(Math.sqrt(0.5)); // the rest comes from some fancy complex calculus
 		Complex ans = Jacobi.cn(u, k);
 		double p = 2 * Math.atan(ans.abs());
 		double theta = Math.atan2(ans.getIm(), ans.getRe());
 		double lambda = Math.PI/2 - p;
-		return getColor(pole, lambda, theta, refDims, ref);
+		return new double[] {lambda, theta};
 	}
 	
-	private static int mollweide(final double[] pole, double x, double y,
-			int[] refDims, Image ref) {
+	private static double[] mollweide(double x, double y) {
 		double tht = Math.asin(y);
-		return getColor(pole, Math.asin((2*tht + Math.sin(2*tht)) / Math.PI),
-				Math.PI * x / Math.cos(tht), refDims, ref);
+		return new double[] {
+				Math.asin((2*tht + Math.sin(2*tht)) / Math.PI),
+				Math.PI * x / Math.cos(tht)};
 	}
 	
-	private static int winkel_tripel(final double[] pole, double x, double y,
-			int[] refDims, Image ref) {
+	private static double[] winkel_tripel(double x, double y) {
 		final double tolerance = 0.001;
 		
 		double phi = y * Math.PI/2;
@@ -487,19 +534,17 @@ public class MapProjections extends Application {
 			error = Math.hypot(X - xf, Y - yf);
 		}
 		if (error >= tolerance) // if it aborted due to timeout
-			return 0;
+			return null;
 		else // if it aborted due to convergence
-			return getColor(pole, phi, lam + Math.PI, refDims, ref);
+			return new double[] {phi, lam + Math.PI};
 	}
 	
-	private static int grinten(final double[] pole, double x, double y,
-			int[] refDims, Image ref) {
+	private static double[] grinten(double x, double y) {
 		if (y == 0) // special case 1: equator
-			return getColor(pole, 0, x*Math.PI, refDims, ref);
+			return new double[] {0, x*Math.PI};
 		
 		if (x == 0) // special case 3: meridian
-			return getColor(pole, Math.PI/2 * Math.sin(2*Math.atan(y)),
-					0, refDims, ref);
+			return new double[] {Math.PI/2 * Math.sin(2*Math.atan(y)), 0};
 		
 		double c1 = -Math.abs(y) * (1 + x*x + y*y);
 		double c2 = c1 - 2*y*y + x*x;
@@ -509,53 +554,51 @@ public class MapProjections extends Application {
 		double m1 = 2 * Math.sqrt(-a1 / 3);
 		double tht1 = Math.acos(3*d / (a1 * m1)) / 3;
 		
-		return getColor(pole,
+		return new double[] {
 				Math.signum(y) * Math.PI * (-m1 * Math.cos(tht1 + Math.PI/3) - c2 / (3*c3)),
 				Math.PI*(x*x + y*y - 1 + Math.sqrt(1 + 2*(x*x - y*y) + Math.pow(x*x + y*y, 2)))
-						/ (2*x),
-				refDims, ref);
+						/ (2*x)};
 	}
 	
-	private static int magnus(final double[] pole, double x, double y,
-			int[] refDims, Image ref) { // a novelty map that magnifies the center profusely
+	private static double[] magnus(double x, double y) { // a novelty map that magnifies the center profusely
 		double R = Math.hypot(x, y);
 		if (R <= 1)
-			return getColor(pole, Math.PI/2 * (1 - R*.2 - R*R*R*1.8),
-					Math.atan2(y, x) + Math.PI/2, refDims, ref);
+			return new double[] {
+					Math.PI/2 * (1 - R*.2 - R*R*R*1.8),
+					Math.atan2(y, x) + Math.PI/2};
 		else
-			return 0;
+			return null;
 	}
 	
-	private static int hammer(final double[] pole, double x, double y,
-			int[] refDims, Image ref) { // similar to Mollweide, but moves distortion from the poles to the edges
+	private static double[] hammer(double x, double y) { // similar to Mollweide, but moves distortion from the poles to the edges
 		final double X = x * Math.sqrt(8);
 		final double Y = y * Math.sqrt(2);
 		final double z = Math.sqrt(1 - Math.pow(X/4, 2) - Math.pow(Y/2, 2));
-		return getColor(pole, Math.asin(z * Y),
-				2*Math.atan(0.5*z*X / (2*z*z - 1)), refDims, ref);
+		return new double[] {
+				Math.asin(z * Y),
+				2*Math.atan(0.5*z*X / (2*z*z - 1))};
 	}
 	
 	
-	private static int authagraph(final double[] pole, double x, double y,
-			int[] refDims, Image ref) { // a modern Japanese almost-equal-area map
+	private static double[] authagraph(double x, double y) { // a modern Japanese almost-equal-area map
 		final double[] faceCenter = new double[3];
 		final double localX, localY;
-		if (y+1 > 4*x && y+1 > -4*x) {
+		if (y-1 < 4*x && y-1 < -4*x) {
 			//faceCenter[0] = Math.asin(Math.sqrt(8)/3)-Math.PI/2;
-			faceCenter[0] = -1;
+			faceCenter[0] = 0.7;
 			faceCenter[1] = 0;
 			faceCenter[2] = 0;
 			localX = 2*x;
 			localY = y-1/3.0;
 		}
-		else if (y+1 > 4*(x+1)) {
+		else if (y-1 < -4*(x+1)) {
 			faceCenter[0] = Math.PI/2;
 			faceCenter[1] = 0;
 			faceCenter[2] = 0;
 			localX = 2*(x+1);
 			localY = y-1/3.0;
 		}
-		else if (y+1 > -4*(x-1)) {
+		else if (y-1 < 4*(x-1)) {
 			faceCenter[0] = Math.PI/2;
 			faceCenter[1] = 0;
 			faceCenter[2] = 0;
@@ -577,63 +620,9 @@ public class MapProjections extends Application {
 			localY = y+1/3.0;
 		}
 		
-		double[] newPole = obliquify(pole, faceCenter);
-		return getColor(newPole,
+		double[] triCoords = {
 				Math.PI/2 - Math.atan(2.35*Math.hypot(localX, localY)),
-				Math.atan2(localY, localX) + Math.PI/2, refDims, ref);
-	}
-	
-	
-	public static int getColor(final double[] pole, double lat, double lon,
-			int[] refDims, Image input) { // returns the color of any coordinate on earth
-		final double[] coords = {lat, lon};
-		final double[] convCoords = obliquify(pole, coords);
-		double x = convCoords[1]/(2*Math.PI) + refDims[0]/2.0;
-		double y = refDims[1]/2.0 - convCoords[0]*refDims[1]/Math.PI;
-		
-		x = (x - Math.floor(x)) * refDims[0];
-		if (y < 0)
-			y = 0;
-		else if (y >= refDims[1])
-			y = refDims[1] - 1;
-		
-		return input.getPixelReader().getArgb((int)x, (int)y);
-	}
-	
-	
-	public static final double[] obliquify(double[] pole, double[] coords) {
-		final double lat0 = pole[0];
-		final double lon0 = pole[1];
-		final double tht0 = pole[2];
-		double lat1 = coords[0];
-		double lon1 = coords[1];
-		lon1 += tht0;
-		double latf = Math.asin(Math.sin(lat0)*Math.sin(lat1) - Math.cos(lat0)*Math.cos(lon1)*Math.cos(lat1));
-		double lonf;
-		double innerFunc = Math.sin(lat1)/Math.cos(lat0)/Math.cos(latf) - Math.tan(lat0)*Math.tan(latf);
-		if (lat0 == Math.PI / 2) // accounts for special case when lat0 = pi/2
-			lonf = lon1+lon0+Math.PI;
-		else if (lat0 == -Math.PI / 2) // accounts for special case when lat0 = -pi/2
-			lonf = -lon1+lon0;
-		else if (Math.abs(innerFunc) > 1) { // accounts for special case when cos(lat1) = --> 0
-			if ((lon1 == 0 && lat1 < -lat0) || (lon1 != 0 && lat1 < lat0))
-				lonf = lon0;
-			else
-				lonf = lon0 + Math.PI;
-		} else if (Math.sin(lon1) > 0)
-			lonf = Math.PI + lon0 +
-					Math.acos(Math.sin(lat1) / Math.cos(lat0)/Math.cos(latf) - Math.tan(lat0)*Math.tan(latf));
-		else
-			lonf = Math.PI + lon0 -
-					Math.acos(Math.sin(lat1)/Math.cos(lat0)/Math.cos(latf) - Math.tan(lat0)*Math.tan(latf));
-		
-		double P = Math.sin(lat0)*Math.cos(latf)-Math.cos(lat0)*Math.sin(latf)*Math.cos(lonf-lon0);
-		double thtf = Math.acos(P/Math.cos(lat1));
-		thtf = 0;
-		if (coords.length >= 3)
-			thtf += coords[2];
-		
-		double[] output = {latf, lonf, thtf};
-		return output;
+				Math.atan2(localY, localX) + Math.PI/2};
+		return obliquify(faceCenter, triCoords);
 	}
 }
