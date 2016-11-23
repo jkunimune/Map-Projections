@@ -49,9 +49,9 @@ public class MapProjections extends Application {
 	private static final String[] PROJ_ARR = { "Equirectangular", "Mercator", "Gall Stereographic",
 			"Cylindrical Equal-Area", "Polar", "Stereographic", "Azimuthal Equal-Area", "Orthographic", "Gnomonic",
 			"Lambert Conical", "Winkel Tripel", "Van der Grinten", "Mollweide", "Hammer", "Sinusoidal", "Lemons",
-			"Pierce Quincuncial", "Guyou Hemisphere-in-a-Square", "AuthaGraph", "Magnifier", "Experimental" };
+			"Pierce Quincuncial", "Guyou Hemisphere-in-a-Square", "AuthaGraph", "TetraGraph", "Magnifier", "Experimental" };
 	private static final double[] DEFA = { 2, 1, 4/3.0, 2, 1, 1, 1, 1, 1, 2, Math.PI/2, 1, 2, 2,
-			2, 2, 1, 2, 4.0/Math.sqrt(3), 1, 1 };
+			2, 2, 1, 2, 4.0/Math.sqrt(3), Math.sqrt(3), 1, 1 };
 	private static final String[] DESC = { "An equidistant cylindrical map", "A conformal cylindrical map",
 			"A compromising cylindrical map", "An equal-area cylindrical map", "An equidistant azimuthal map",
 			"A conformal azimuthal map", "An equal-area azimuthal map",
@@ -63,6 +63,7 @@ public class MapProjections extends Application {
 			"A conformal square map that uses complex math",
 			"A reorganized version of Pierce Quincuncial and actually the best map ever",
 			"An almost-equal-area map based on a tetrahedron.",
+			"A compromising knockoff of the AuthaGraph projection",
 			"A novelty map that swells the center to disproportionate scale",
 			"What happens when you apply a complex differentiable function to a stereographic projection?" };
 	
@@ -334,6 +335,8 @@ public class MapProjections extends Application {
 			coords = hammer(X, Y);
 		else if (p.equals("AuthaGraph"))
 			coords = authagraph(X, Y);
+		else if (p.equals("TetraGraph"))
+			coords = tetragraph(X, Y);
 		else if (p.equals("Experimental"))
 			coords = experiment(X, Y);
 		else
@@ -577,49 +580,120 @@ public class MapProjections extends Application {
 				2*Math.atan(0.5*z*X / (2*z*z - 1))};
 	}
 	
-	
 	private static double[] authagraph(double x, double y) { // a modern Japanese almost-equal-area map
 		final double[] faceCenter = new double[3];
-		final double localX, localY;
+		final double rot, localX, localY;
 		if (y-1 < 4*x && y-1 < -4*x) {
 			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
 			faceCenter[1] = 0;
-			faceCenter[2] = 0;
-			localX = 2*x;
+			rot = 0;
+			localX = 4/Math.sqrt(3)*x;
 			localY = y+1/3.0;
 		}
 		else if (y-1 < -4*(x+1)) {
 			faceCenter[0] = -Math.PI/2;
-			faceCenter[1] = 0;
-			faceCenter[2] = Math.PI;
-			localX = 2*(x+1);
+			faceCenter[1] = Math.PI;
+			rot = 0;
+			localX = 4/Math.sqrt(3)*(x+1);
 			localY = y+1/3.0;
 		}
 		else if (y-1 < 4*(x-1)) {
 			faceCenter[0] = -Math.PI/2;
-			faceCenter[1] = 0;
-			faceCenter[2] = Math.PI;
-			localX = 2*(x-1);
+			faceCenter[1] = Math.PI;
+			rot = 0;
+			localX = 4/Math.sqrt(3)*(x-1);
 			localY = y+1/3.0;
 		}
 		else if (x < 0) {
 			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
 			faceCenter[1] = 4*Math.PI/3;
-			faceCenter[2] = Math.PI/3;
-			localX = 2*(x+0.5);
+			rot = Math.PI/3;
+			localX = 4/Math.sqrt(3)*(x+0.5);
 			localY = y-1/3.0;
 		}
 		else {
 			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
-			faceCenter[1] =2*Math.PI/3;
-			faceCenter[2] = -Math.PI/3;
-			localX = 2*(x-0.5);
+			faceCenter[1] = 2*Math.PI/3;
+			rot = -Math.PI/3;
+			localX = 4/Math.sqrt(3)*(x-0.5);
 			localY = y-1/3.0;
 		}
+		faceCenter[2] = 0;
+		
+		// TODO: remove these once I have my math down
+		final double t = Math.atan2(localY, localX) + rot;
+		final double t0 = Math.floor((t+Math.PI/2)/(2*Math.PI/3)+0.5)*(2*Math.PI/3) - Math.PI/2;
+		final double dt = t-t0;
+		final double z = Math.hypot(localX, localY)*Math.cos(dt);
+		final double g = Math.sqrt(2)*z;
+		final double l = dt;
+		final double p = Math.atan(Math.tan(g)/Math.cos(l));
 		
 		double[] triCoords = {
-				Math.PI/2 - Math.atan(2.35*Math.hypot(localX, localY)),
-				Math.atan2(localY, localX) + Math.PI/2};
+				Math.PI/2 - p,
+				Math.PI/2 + t0 + l};
+		return obliquify(faceCenter, triCoords);
+	}
+	
+	private static double[] tetragraph(double x, double y) { // a tetrahedral compromise
+		final double[] faceCenter = new double[3];
+		final double rot, localX, localY;
+		if (y < x-1) {
+			faceCenter[0] = -Math.PI/2;
+			faceCenter[1] = 0;
+			rot = -Math.PI/2;
+			localX = Math.sqrt(3)*(x-2/3.0);
+			localY = y+1;
+		}
+		else if (y < -x-1) {
+			faceCenter[0] = -Math.PI/2;
+			faceCenter[1] = 0;
+			rot = Math.PI/2;
+			localX = Math.sqrt(3)*(x+2/3.0);
+			localY = y+1;
+		}
+		else if (y > -x+1) {
+			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
+			faceCenter[1] = Math.PI;
+			rot = -Math.PI/2;
+			localX = Math.sqrt(3)*(x-2/3.0);
+			localY = y-1;
+		}
+		else if (y > x+1) {
+			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
+			faceCenter[1] = Math.PI;
+			rot = Math.PI/2;
+			localX = Math.sqrt(3)*(x+2/3.0);
+			localY = y-1;
+		}
+		else if (x < 0) {
+			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
+			faceCenter[1] = -Math.PI/3;
+			rot = Math.PI/6;
+			localX = Math.sqrt(3)*(x+1/3.0);
+			localY = y;
+		}
+		else {
+			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
+			faceCenter[1] = Math.PI/3;
+			rot = -Math.PI/6;
+			localX = Math.sqrt(3)*(x-1/3.0);
+			localY = y;
+		}
+		faceCenter[2] = 0;
+		
+		// TODO: remove these once I have my math down
+		final double t = Math.atan2(localY, localX) + rot;
+		final double t0 = Math.floor((t+Math.PI/2)/(2*Math.PI/3)+0.5)*(2*Math.PI/3) - Math.PI/2;
+		final double dt = t-t0;
+		final double z = Math.hypot(localX, localY)*Math.cos(dt);
+		final double g = 1.675*z;
+		final double l = dt;
+		final double p = Math.atan(Math.tan(g)/Math.cos(l));
+		
+		double[] triCoords = {
+				Math.PI/2 - p,
+				Math.PI/2 + t0 + l};
 		return obliquify(faceCenter, triCoords);
 	}
 }
