@@ -76,6 +76,7 @@ public class MapProjections extends Application {
 	
 	private FileChooser inputChooser, saver;
 	private Text inputLabel;
+	private Button changeInput;
 	private ComboBox<String> projectionChooser;
 	private Text projectionDesc;
 	private Slider latSlider, lonSlider, thtSlider;
@@ -112,14 +113,10 @@ public class MapProjections extends Application {
 				new FileChooser.ExtensionFilter("JPG", "*.jpg"),
 				new FileChooser.ExtensionFilter("PNG", "*.png"));
 		
-		final Button changeInput = new Button("Choose input...");
+		changeInput = new Button("Choose input...");
 		changeInput.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
-				final File f = inputChooser.showOpenDialog(stage);
-				if (f == null)	return;
-				input = new Image("file:"+f.getAbsolutePath());
-				inputLabel.setText(f.getName());
-				update.setDisable(false);
+				setInput(stage);
 			}
 		});
 		changeInput.setTooltip(new Tooltip(
@@ -184,10 +181,7 @@ public class MapProjections extends Application {
 		update = new Button("Update Map");
 		update.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
-				output.setImage(map(projectionChooser.getValue(),
-						latSlider.getValue(),
-						lonSlider.getValue(),
-						thtSlider.getValue()));
+				updateMap();
 			}
 		});
 		update.setTooltip(new Tooltip(
@@ -239,6 +233,18 @@ public class MapProjections extends Application {
 	}
 	
 	
+	private void setInput(Stage stage) {
+		changeInput.setDisable(true);
+		update.setDisable(true);
+		final File f = inputChooser.showOpenDialog(stage);
+		if (f == null)	return;
+		input = new Image("file:"+f.getAbsolutePath());
+		inputLabel.setText(f.getName());
+		changeInput.setDisable(false);
+		update.setDisable(false);
+	}
+	
+	
 	private void setAxisByPreset(String preset) {
 		if (preset.equals("Antipode")) {
 			latSlider.setValue(-latSlider.getValue());
@@ -260,6 +266,16 @@ public class MapProjections extends Application {
 				break;
 			}
 		}
+	}
+	
+	
+	private void updateMap() {
+		update.setDisable(true);
+		output.setImage(map(projectionChooser.getValue(),
+				latSlider.getValue(),
+				lonSlider.getValue(),
+				thtSlider.getValue()));
+		update.setDisable(false);
 	}
 	
 	
@@ -414,7 +430,7 @@ public class MapProjections extends Application {
 	
 	private static double[] experiment(double x, double y) { // just some random complex plane stuff
 		Complex z = new Complex(x*3, y*3);
-		Complex ans = z;
+		Complex ans = z.sin();
 		double p = 2 * Math.atan(ans.abs());
 		double theta = Math.atan2(ans.getIm(), ans.getRe()) + Math.PI/2;
 		double lambda = Math.PI/2 - p;
@@ -479,7 +495,7 @@ public class MapProjections extends Application {
 		x = x+2;
 		final double lemWdt = 1/6.0;
 		
-		if (Math.abs(x % lemWdt - lemWdt / 2.0) < Math.cos(y*Math.PI/2) * lemWdt/2.0) // if it is in
+		if (Math.abs(x % lemWdt - lemWdt / 2.0) <= Math.cos(y*Math.PI/2) * lemWdt/2.0) // if it is in
 			return new double[] {y*Math.PI/2,	// a sine curve
 					Math.PI * (x%lemWdt - lemWdt/2.0) / (Math.cos(y*Math.PI/2))
 							+ (int)(x/lemWdt) * Math.PI/6};
@@ -624,13 +640,13 @@ public class MapProjections extends Application {
 		final double t = Math.atan2(localY, localX) + rot;
 		final double t0 = Math.floor((t+Math.PI/2)/(2*Math.PI/3)+0.5)*(2*Math.PI/3) - Math.PI/2;
 		final double dt = t-t0;
-		final double z = Math.hypot(localX, localY)*Math.cos(dt);
-		final double g = Math.sqrt(2)*z;
+		final double z = 2.49*Math.hypot(localX, localY)*Math.cos(dt);
+		
+		final double g = 0.03575*z*z*z + 0.0219*z*z + 0.4441*z;
 		final double l = dt;
-		final double p = Math.atan(Math.tan(g)/Math.cos(l));
 		
 		double[] triCoords = {
-				Math.PI/2 - p,
+				Math.PI/2 - Math.atan(Math.tan(g)/Math.cos(l)),
 				Math.PI/2 + t0 + l};
 		return obliquify(faceCenter, triCoords);
 	}
@@ -682,18 +698,19 @@ public class MapProjections extends Application {
 		}
 		faceCenter[2] = 0;
 		
-		// TODO: remove these once I have my math down
 		final double t = Math.atan2(localY, localX) + rot;
 		final double t0 = Math.floor((t+Math.PI/2)/(2*Math.PI/3)+0.5)*(2*Math.PI/3) - Math.PI/2;
 		final double dt = t-t0;
-		final double z = Math.hypot(localX, localY)*Math.cos(dt);
-		final double g = 1.675*z;
-		final double l = dt;
-		final double p = Math.atan(Math.tan(g)/Math.cos(l));
 		
 		double[] triCoords = {
-				Math.PI/2 - p,
-				Math.PI/2 + t0 + l};
+				Math.PI/2 - Math.atan(Math.tan(1.67*Math.hypot(localX, localY)*Math.cos(dt))/Math.cos(dt)),
+				Math.PI/2 + t0 + dt};
 		return obliquify(faceCenter, triCoords);
+	}
+	
+	
+	
+	public static final double asinh(double x) {
+		return Math.log(x+Math.sqrt(1+x*x));
 	}
 }
