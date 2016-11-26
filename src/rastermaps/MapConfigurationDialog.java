@@ -45,13 +45,24 @@ public class MapConfigurationDialog extends Dialog<Image> {
 		this.widthBox.setMaxWidth(Double.MAX_VALUE);
 		
 		this.widthBox.getEditor().textProperty().addListener((ov, pv, nv) -> {	// link the Spinners
-			widthBox.increment(0);	// forces the spinner to commit its value
+			try {
+				widthBox.increment(0);	// forces the spinner to commit its value
+			} catch (NumberFormatException e) {
+				widthBox.getEditor().textProperty().set(pv);
+				widthBox.increment(0);
+			}
 			int prefHeight = (int)Math.ceil(widthBox.getValue()*defaultRatio);
 			if (maintainRatio.isSelected() && heightBox.getValue() != prefHeight)
 				heightBox.getValueFactory().setValue(prefHeight);
 		});
+		
 		this.heightBox.getEditor().textProperty().addListener((ov, pv, nv) -> {
-			heightBox.increment(0);	// forces the spinner to commit its value
+			try {
+				widthBox.increment(0);	// forces the spinner to commit its value
+			} catch (NumberFormatException e) {
+				widthBox.getEditor().textProperty().set(pv);
+				widthBox.increment(0);
+			}
 			int prefWidth = (int)Math.floor(heightBox.getValue()/defaultRatio);
 			if (maintainRatio.isSelected() && widthBox.getValue() != prefWidth)
 				widthBox.getValueFactory().setValue(prefWidth);
@@ -78,7 +89,7 @@ public class MapConfigurationDialog extends Dialog<Image> {
 			ButtonData bData = btn == null ? null : btn.getButtonData();
 			if (bData == ButtonData.OK_DONE)
 				return parent.map(
-						widthBox.getValue(),
+						widthBox.getValue(),	// TODO: progress bar
 						heightBox.getValue(),
 						getSmoothing());
 			else

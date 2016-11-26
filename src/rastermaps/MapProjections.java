@@ -30,6 +30,7 @@ import javafx.scene.image.PixelReader;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -140,7 +141,7 @@ public class MapProjections extends Application {
 				}
 			}
 		});
-		projectionChooser.setPrefWidth(200);
+		projectionChooser.setPrefWidth(210);
 		projectionChooser.setValue(PROJ_ARR[1]);
 		layout.getChildren().add(new HBox(3, lbl, projectionChooser));
 		
@@ -176,6 +177,10 @@ public class MapProjections extends Application {
 		grid.addRow(0, new Text("Latitude:"), latSlider);
 		grid.addRow(1, new Text("Longitude:"), lonSlider);
 		grid.addRow(2, new Text("Orientation:"), thtSlider);
+		GridPane.setHgrow(latSlider, Priority.ALWAYS);
+		GridPane.setHgrow(lonSlider, Priority.ALWAYS);
+		GridPane.setHgrow(thtSlider, Priority.ALWAYS);
+		//GridPane.setFillWidth(latSlider, Boolean.valueOf(true));
 		layout.getChildren().add(grid);
 		
 		layout.getChildren().add(new Separator());
@@ -189,7 +194,6 @@ public class MapProjections extends Application {
 		update.setTooltip(new Tooltip(
 				"Update the current map with your parameters."));
 		update.setDefaultButton(true);
-		layout.getChildren().add(update);
 		
 		saver = new FileChooser();
 		saver.setInitialDirectory(new File("output"));
@@ -205,7 +209,10 @@ public class MapProjections extends Application {
 			}
 		});
 		saveMap.setTooltip(new Tooltip("Save the map with current settings."));
-		layout.getChildren().add(saveMap);
+		
+		HBox box = new HBox(5, update, saveMap);
+		box.setAlignment(Pos.CENTER);
+		layout.getChildren().add(box);
 		
 		output = new ImageView();
 		output.setFitWidth(IMG_WIDTH);
