@@ -1,3 +1,4 @@
+package util;
 
 public final class WinkelTripel {
 	public static final double X(double phi, double lam) {

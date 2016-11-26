@@ -1,11 +1,14 @@
+package rastermaps;
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 import javax.imageio.ImageIO;
 
 import ellipticFunctions.Jacobi;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -14,6 +17,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
@@ -22,6 +26,7 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.PixelReader;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -31,13 +36,11 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import mfc.field.Complex;
-
-/**
- * 
- */
+import util.WinkelTripel;
 
 /**
  * An application to make raster oblique aspects of map projections
+ * 
  * @author Justin Kunimune
  */
 public class MapProjections extends Application {
@@ -82,7 +85,6 @@ public class MapProjections extends Application {
 	private Slider latSlider, lonSlider, thtSlider;
 	private Button update;
 	private Image input;
-	private int outputWidth, outputHeight;
 	private ImageView output;
 	
 	
@@ -199,16 +201,10 @@ public class MapProjections extends Application {
 		final Button saveMap = new Button("Save Map...");
 		saveMap.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
-				final File f = saver.showSaveDialog(stage);
-				if (f == null)	return;
-				try {
-					ImageIO.write(
-							SwingFXUtils.fromFXImage(output.getImage(),null),
-							"png", f);
-				} catch (IOException e) {}
+				saveMap(stage);
 			}
 		});
-		saveMap.setTooltip(new Tooltip("Save your new custom map!"));
+		saveMap.setTooltip(new Tooltip("Save the map with current settings."));
 		layout.getChildren().add(saveMap);
 		
 		output = new ImageView();
@@ -237,9 +233,10 @@ public class MapProjections extends Application {
 		changeInput.setDisable(true);
 		update.setDisable(true);
 		final File f = inputChooser.showOpenDialog(stage);
-		if (f == null)	return;
-		input = new Image("file:"+f.getAbsolutePath());
-		inputLabel.setText(f.getName());
+		if (f != null) {
+			input = new Image("file:"+f.getAbsolutePath());
+			inputLabel.setText(f.getName());
+		}
 		changeInput.setDisable(false);
 		update.setDisable(false);
 	}
@@ -271,44 +268,82 @@ public class MapProjections extends Application {
 	
 	private void updateMap() {
 		update.setDisable(true);
-		output.setImage(map(projectionChooser.getValue(),
-				latSlider.getValue(),
-				lonSlider.getValue(),
-				thtSlider.getValue()));
-		update.setDisable(false);
+		new Thread(new Task<Void>() {
+			protected Void call() {
+				output.setImage(map());
+				update.setDisable(false);
+				return null;
+			}
+		}).start();
 	}
 	
 	
-	public Image map(String projName,
-			double latD, double lonD, double thtD) {
+	private void saveMap(Stage stage) {
 		int p = 0;
-		for (int i = 0; i < PROJ_ARR.length; i ++)
-			if (PROJ_ARR[i].equals(projName))
-				p = i;
+		while (p < PROJ_ARR.length &&
+				!PROJ_ARR[p].equals(projectionChooser.getValue()))
+			p ++;
+		Dialog<Image> dialog = new MapConfigurationDialog(DEFA[p], this);
 		
-		outputWidth = (int)(600*Math.sqrt(DEFA[p]));
-		outputHeight = (int)(600/Math.sqrt(DEFA[p]));
+		Optional<Image> result = dialog.showAndWait();
+		Image finalMap;
+		if (result.isPresent())
+			finalMap = result.get();
+		else
+			return;
+		
+		final File f = saver.showSaveDialog(stage);
+		if (f == null)	return;
+		try {
+			ImageIO.write(
+					SwingFXUtils.fromFXImage(finalMap,null),
+					"png", f);
+		} catch (IOException e) {}
+	}
+	
+	
+	public Image map() {
+		int p = 0;
+		while (p < PROJ_ARR.length &&
+				!PROJ_ARR[p].equals(projectionChooser.getValue()))
+			p ++;
+		return map(IMG_WIDTH, (int)(IMG_WIDTH/DEFA[p]), 1);
+	}
+	
+	
+	public Image map(int outputWidth, int outputHeight, int smoothing) {
+		final String proj = projectionChooser.getValue();
+		final double[] pole = {Math.toRadians(latSlider.getValue()),
+							Math.toRadians(lonSlider.getValue()),
+							Math.toRadians(thtSlider.getValue())};
+		final PixelReader ref = input.getPixelReader();
+		final int[] refDims = {(int)input.getWidth(), (int)input.getHeight()};
+		final int[] outDims = {outputWidth, outputHeight};
 		
 		WritableImage img = new WritableImage(outputWidth, outputHeight);
 		
-		for (int x = 0; x < outputWidth; x ++)
-			for (int y = 0; y < outputHeight; y ++)
-				img.getPixelWriter().setArgb(x, y, getArgb(x, y));
+		for (int x = 0; x < outputWidth; x ++) {
+			for (int y = 0; y < outputHeight; y ++) {
+				int[] colors = new int[smoothing*smoothing];
+				int i = 0;
+				for (double dx = 0; dx < 1; dx += 1.0/smoothing) {
+					for (double dy = 0; dy < 1; dy += 1.0/smoothing) {
+						colors[i] = getArgb(x+dx, y+dy,
+								proj,pole,ref,refDims,outDims);
+						i ++;
+					}
+				}
+				img.getPixelWriter().setArgb(x, y, blend(colors));
+			}
+		}
 		return img;
 	}
 	
 	
-	public int getArgb(int x, int y) {
-		final double lat0 = Math.toRadians(latSlider.getValue());
-		final double lon0 = Math.toRadians(lonSlider.getValue());
-		final double tht0 = Math.toRadians(thtSlider.getValue());
-		final double pole[] = {lat0, lon0, tht0};
-		final double width = input.getWidth();
-		final double height = input.getHeight();
-		final int[] refDims = {(int)width, (int)height};
-		final String p = projectionChooser.getValue();
-		final double X = 2.0*x/outputWidth-1;
-		final double Y = 1-2.0*y/outputHeight;
+	public static int getArgb(double x, double y, String p, double[] pole,
+			PixelReader ref, int[] refDims, int[] outDims) {
+		final double X = 2.0*x/outDims[0]-1;
+		final double Y = 1-2.0*y/outDims[1];
 		
 		double[] coords;
 		if (p.equals("Pierce Quincuncial"))
@@ -359,26 +394,24 @@ public class MapProjections extends Application {
 			throw new IllegalArgumentException(p);
 		
 		if (coords != null)
-			return getColor(pole, coords, refDims, input);
+			return getColorAt(obliquify(pole, coords), ref, refDims);
 		else
 			return 0;
 	}
 	
 	
-	public static int getColor(final double[] pole, double[] coords,
-			int[] refDims, Image input) { // returns the color of any coordinate on earth
-		final double[] convCoords = obliquify(pole, coords);
-		
-		double x = 1/2.0 + convCoords[1]/(2*Math.PI);
+	public static int getColorAt(double[] coords,
+			PixelReader ref, int[] refDims) { // returns the color of any coordinate on earth
+		double x = 1/2.0 + coords[1]/(2*Math.PI);
 		x = (x - Math.floor(x)) * refDims[0];
 		
-		double y = refDims[1]/2.0 - convCoords[0]*refDims[1]/(Math.PI);
+		double y = refDims[1]/2.0 - coords[0]*refDims[1]/(Math.PI);
 		if (y < 0)
 			y = 0;
 		else if (y >= refDims[1])
 			y = refDims[1] - 1;
 		
-		return input.getPixelReader().getArgb((int)x, (int)y);
+		return ref.getArgb((int)x, (int)y);
 	}
 	
 	
@@ -636,18 +669,16 @@ public class MapProjections extends Application {
 		}
 		faceCenter[2] = 0;
 		
-		// TODO: remove these once I have my math down
 		final double t = Math.atan2(localY, localX) + rot;
 		final double t0 = Math.floor((t+Math.PI/2)/(2*Math.PI/3)+0.5)*(2*Math.PI/3) - Math.PI/2;
 		final double dt = t-t0;
 		final double z = 2.49*Math.hypot(localX, localY)*Math.cos(dt);
 		
 		final double g = 0.03575*z*z*z + 0.0219*z*z + 0.4441*z;
-		final double l = dt;
 		
 		double[] triCoords = {
-				Math.PI/2 - Math.atan(Math.tan(g)/Math.cos(l)),
-				Math.PI/2 + t0 + l};
+				Math.PI/2 - Math.atan(Math.tan(g)/Math.cos(dt)),
+				Math.PI/2 + t0 + dt};
 		return obliquify(faceCenter, triCoords);
 	}
 	
@@ -708,6 +739,25 @@ public class MapProjections extends Application {
 		return obliquify(faceCenter, triCoords);
 	}
 	
+	
+	
+	public static final int blend(int[] colors) {
+		int a_tot = 0;
+		int r_tot = 0;
+		int g_tot = 0;
+		int b_tot = 0;
+		for (int argb: colors) {
+			double a = ((argb >> 24) & 0xFF);
+			a_tot += a;
+			r_tot += a*((argb >> 16) & 0xFF);
+			g_tot += a*((argb >> 8) & 0xFF);
+			b_tot += a*((argb >> 0) & 0xFF);
+		}
+		if (a_tot == 0)	return 0;
+		else
+			return (a_tot/colors.length<<24) +
+					(r_tot/a_tot<<16) + (g_tot/a_tot<<8) + (b_tot/a_tot);
+	}
 	
 	
 	public static final double asinh(double x) {

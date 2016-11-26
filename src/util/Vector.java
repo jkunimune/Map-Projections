@@ -1,3 +1,4 @@
+package util;
 public final class Vector {
  public static final Vector I = new Vector(1,0,0,true);
  public static final Vector J = new Vector(0,1,0,true);

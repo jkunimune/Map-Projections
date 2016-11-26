@@ -1,3 +1,4 @@
+package vectormaps;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
@@ -7,6 +8,8 @@ import java.io.IOException;
 import java.util.Scanner;
 
 import org.apache.commons.math3.complex.Complex;
+
+import util.Vector;
 
 /**
  * 
