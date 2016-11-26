@@ -53,7 +53,7 @@ public class MapProjections extends Application {
 	private static final String[] PROJ_ARR = { "Equirectangular", "Mercator", "Gall Stereographic",
 			"Cylindrical Equal-Area", "Polar", "Stereographic", "Azimuthal Equal-Area", "Orthographic", "Gnomonic",
 			"Lambert Conical", "Winkel Tripel", "Van der Grinten", "Mollweide", "Hammer", "Sinusoidal", "Lemons",
-			"Pierce Quincuncial", "Guyou Hemisphere-in-a-Square", "AuthaGraph", "TetraGraph", "Magnifier", "Experimental" };
+			"Pierce Quincuncial", "Guyou", "AuthaGraph", "TetraGraph", "Magnifier", "Experimental" };
 	private static final double[] DEFA = { 2, 1, 4/3.0, 2, 1, 1, 1, 1, 1, 2, Math.PI/2, 1, 2, 2,
 			2, 2, 1, 2, 4.0/Math.sqrt(3), Math.sqrt(3), 1, 1 };
 	private static final String[] DESC = { "An equidistant cylindrical map", "A conformal cylindrical map",
@@ -78,6 +78,7 @@ public class MapProjections extends Application {
 	private static final double[] DEF_THTS = { 0, 0, -32, -35, -45, 161.5, 137, 145, -150, -10 };
 	
 	
+	private Stage stage;
 	private FileChooser inputChooser, saver;
 	private Text inputLabel;
 	private Button changeInput;
@@ -96,7 +97,8 @@ public class MapProjections extends Application {
 	
 	
 	@Override
-	public void start(Stage stage) {
+	public void start(Stage primaryStage) {
+		stage = primaryStage;
 		stage.setTitle("Map Designer");
 		
 		final VBox layout = new VBox();
@@ -119,7 +121,7 @@ public class MapProjections extends Application {
 		changeInput = new Button("Choose input...");
 		changeInput.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
-				setInput(stage);
+				setInput();
 			}
 		});
 		changeInput.setTooltip(new Tooltip(
@@ -197,15 +199,16 @@ public class MapProjections extends Application {
 		
 		saver = new FileChooser();
 		saver.setInitialDirectory(new File("output"));
-		saver.setInitialFileName("myMap.png");
+		saver.setInitialFileName("myMap.jpg");
 		saver.setTitle("Save Map");
 		saver.getExtensionFilters().addAll(
+				new FileChooser.ExtensionFilter("JPG", "*.jpg"),
 				new FileChooser.ExtensionFilter("PNG", "*.png"));
 		
 		final Button saveMap = new Button("Save Map...");
 		saveMap.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
-				saveMap(stage);
+				startFinalizingMap();
 			}
 		});
 		saveMap.setTooltip(new Tooltip("Save the map with current settings."));
@@ -236,7 +239,7 @@ public class MapProjections extends Application {
 	}
 	
 	
-	private void setInput(Stage stage) {
+	private void setInput() {
 		changeInput.setDisable(true);
 		update.setDisable(true);
 		final File f = inputChooser.showOpenDialog(stage);
@@ -285,25 +288,27 @@ public class MapProjections extends Application {
 	}
 	
 	
-	private void saveMap(Stage stage) {
+	private void startFinalizingMap() {
 		int p = 0;
 		while (p < PROJ_ARR.length &&
 				!PROJ_ARR[p].equals(projectionChooser.getValue()))
 			p ++;
-		Dialog<Image> dialog = new MapConfigurationDialog(DEFA[p], this);
 		
-		Optional<Image> result = dialog.showAndWait();
-		Image finalMap;
-		if (result.isPresent())
-			finalMap = result.get();
-		else
-			return;
+		Dialog<Thread> dialog = new MapConfigurationDialog(DEFA[p], this);
+		Optional<Thread> mapMaker = dialog.showAndWait();
+		if (mapMaker.isPresent())	mapMaker.get().start();
+		else						return;
+	}
+	
+	
+	public void saveImage(Image img, ProgressBarDialog pBar) {	// call from the main thread!
+		pBar.close();
 		
 		final File f = saver.showSaveDialog(stage);
 		if (f == null)	return;
 		try {
 			ImageIO.write(
-					SwingFXUtils.fromFXImage(finalMap,null),
+					SwingFXUtils.fromFXImage(img,null),
 					"png", f);
 		} catch (IOException e) {}
 	}
@@ -319,6 +324,12 @@ public class MapProjections extends Application {
 	
 	
 	public Image map(int outputWidth, int outputHeight, int smoothing) {
+		return map(outputWidth,outputHeight,smoothing, null);
+	}
+	
+	
+	public Image map(int outputWidth, int outputHeight, int smoothing,
+			ProgressBarDialog pbar) {
 		final String proj = projectionChooser.getValue();
 		final double[] pole = {Math.toRadians(latSlider.getValue()),
 							Math.toRadians(lonSlider.getValue()),
@@ -342,7 +353,9 @@ public class MapProjections extends Application {
 				}
 				img.getPixelWriter().setArgb(x, y, blend(colors));
 			}
+			if (pbar != null)	pbar.setProgress((x+1.0)/outputWidth);
 		}
+		
 		return img;
 	}
 	
@@ -379,7 +392,7 @@ public class MapProjections extends Application {
 			coords = lemons(X, Y);
 		else if (p.equals("Azimuthal Equal-Area"))
 			coords = eaAzimuth(X, Y);
-		else if (p.equals("Guyou Hemisphere-in-a-Square"))
+		else if (p.equals("Guyou"))
 			coords = quinshift(X, Y);
 		else if (p.equals("Mollweide"))
 			coords = mollweide(X, Y);

@@ -1,4 +1,5 @@
 package rastermaps;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -14,7 +15,7 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 
-public class MapConfigurationDialog extends Dialog<Image> {
+public class MapConfigurationDialog extends Dialog<Thread> {
 
 	public final double DEF_SIZE = 1000;
 	
@@ -40,30 +41,32 @@ public class MapConfigurationDialog extends Dialog<Image> {
 		this.widthBox.setMaxWidth(Double.MAX_VALUE);
 		
 		this.heightBox = new Spinner<Integer>(1,50000,
-				10*(int)Math.round(DEF_SIZE/Math.sqrt(defaultRatio)/10));
+				10*(int)Math.round(this.widthBox.getValue()/defaultRatio/10));
 		this.heightBox.setEditable(true);
 		this.widthBox.setMaxWidth(Double.MAX_VALUE);
 		
 		this.widthBox.getEditor().textProperty().addListener((ov, pv, nv) -> {	// link the Spinners
+			if (widthBox.getEditor().textProperty().isEmpty().get())	return;
 			try {
 				widthBox.increment(0);	// forces the spinner to commit its value
 			} catch (NumberFormatException e) {
 				widthBox.getEditor().textProperty().set(pv);
 				widthBox.increment(0);
 			}
-			int prefHeight = (int)Math.ceil(widthBox.getValue()*defaultRatio);
+			int prefHeight = (int)Math.floor(widthBox.getValue()/defaultRatio);
 			if (maintainRatio.isSelected() && heightBox.getValue() != prefHeight)
 				heightBox.getValueFactory().setValue(prefHeight);
 		});
 		
 		this.heightBox.getEditor().textProperty().addListener((ov, pv, nv) -> {
+			if (heightBox.getEditor().textProperty().isEmpty().get())	return;
 			try {
-				widthBox.increment(0);	// forces the spinner to commit its value
+				heightBox.increment(0);	// forces the spinner to commit its value
 			} catch (NumberFormatException e) {
-				widthBox.getEditor().textProperty().set(pv);
-				widthBox.increment(0);
+				heightBox.getEditor().textProperty().set(pv);
+				heightBox.increment(0);
 			}
-			int prefWidth = (int)Math.floor(heightBox.getValue()/defaultRatio);
+			int prefWidth = (int)Math.ceil(heightBox.getValue()*defaultRatio);
 			if (maintainRatio.isSelected() && widthBox.getValue() != prefWidth)
 				widthBox.getValueFactory().setValue(prefWidth);
 		});
@@ -87,11 +90,19 @@ public class MapConfigurationDialog extends Dialog<Image> {
 		
 		this.setResultConverter((btn) -> {	// set the return value
 			ButtonData bData = btn == null ? null : btn.getButtonData();
-			if (bData == ButtonData.OK_DONE)
-				return parent.map(
-						widthBox.getValue(),	// TODO: progress bar
-						heightBox.getValue(),
-						getSmoothing());
+			if (bData == ButtonData.OK_DONE) {
+				ProgressBarDialog pBar = new ProgressBarDialog();
+				pBar.show();
+				
+				return new Thread(() -> {
+					Image map = parent.map(
+							widthBox.getValue(),
+							heightBox.getValue(),
+							getSmoothing(),
+							pBar);
+					Platform.runLater(() -> parent.saveImage(map, pBar));
+				});
+			}
 			else
 				return null;
 		});
