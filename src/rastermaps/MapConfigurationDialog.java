@@ -53,7 +53,7 @@ public class MapConfigurationDialog extends Dialog<Thread> {
 				widthBox.getEditor().textProperty().set(pv);
 				widthBox.increment(0);
 			}
-			int prefHeight = (int)Math.floor(widthBox.getValue()/defaultRatio);
+			int prefHeight = (int)Math.floor(widthBox.getValue()/defaultRatio);	// XXX: what if we play with these floors and ceils
 			if (maintainRatio.isSelected() && heightBox.getValue() != prefHeight)
 				heightBox.getValueFactory().setValue(prefHeight);
 		});

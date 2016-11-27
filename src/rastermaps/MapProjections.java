@@ -28,6 +28,10 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelReader;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -48,6 +52,10 @@ public class MapProjections extends Application {
 
 	private static final int CONT_WIDTH = 300;
 	private static final int IMG_WIDTH = 500;
+	
+	
+	private static final KeyCombination ctrlO = new KeyCodeCombination(KeyCode.O, KeyCodeCombination.CONTROL_DOWN);
+	private static final KeyCombination ctrlS = new KeyCodeCombination(KeyCode.S, KeyCodeCombination.CONTROL_DOWN);
 	
 	
 	private static final String[] PROJ_ARR = { "Equirectangular", "Mercator", "Gall Stereographic",
@@ -86,6 +94,7 @@ public class MapProjections extends Application {
 	private Text projectionDesc;
 	private Slider latSlider, lonSlider, thtSlider;
 	private Button update;
+	private Button saveMap;
 	private Image input;
 	private ImageView output;
 	
@@ -126,6 +135,11 @@ public class MapProjections extends Application {
 		});
 		changeInput.setTooltip(new Tooltip(
 				"Choose the image to determine your map's color scheme"));
+		stage.addEventHandler(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {	// ctrl-O opens
+			public void handle(KeyEvent event) {
+				if (ctrlO.match(event))	changeInput.fire();
+			}
+		});
 		layout.getChildren().add(changeInput);
 		
 		layout.getChildren().add(new Separator());
@@ -205,13 +219,18 @@ public class MapProjections extends Application {
 				new FileChooser.ExtensionFilter("JPG", "*.jpg"),
 				new FileChooser.ExtensionFilter("PNG", "*.png"));
 		
-		final Button saveMap = new Button("Save Map...");
+		saveMap = new Button("Save Map...");
 		saveMap.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
 				startFinalizingMap();
 			}
 		});
 		saveMap.setTooltip(new Tooltip("Save the map with current settings."));
+		stage.addEventHandler(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {	// ctrl-S saves
+			public void handle(KeyEvent event) {
+				if (ctrlS.match(event))	saveMap.fire();
+			}
+		});
 		
 		HBox box = new HBox(5, update, saveMap);
 		box.setAlignment(Pos.CENTER);
@@ -240,15 +259,21 @@ public class MapProjections extends Application {
 	
 	
 	private void setInput() {
-		changeInput.setDisable(true);
-		update.setDisable(true);
 		final File f = inputChooser.showOpenDialog(stage);
 		if (f != null) {
-			input = new Image("file:"+f.getAbsolutePath());
-			inputLabel.setText(f.getName());
+			new Thread(() -> {
+				changeInput.setDisable(true);
+				update.setDisable(true);
+				saveMap.setDisable(true);
+				
+				input = new Image("file:"+f.getAbsolutePath());
+				inputLabel.setText(f.getName());
+				
+				changeInput.setDisable(false);
+				update.setDisable(false);
+				saveMap.setDisable(false);
+			}).start();
 		}
-		changeInput.setDisable(false);
-		update.setDisable(false);
 	}
 	
 	
@@ -305,12 +330,15 @@ public class MapProjections extends Application {
 		pBar.close();
 		
 		final File f = saver.showSaveDialog(stage);
-		if (f == null)	return;
-		try {
-			ImageIO.write(
-					SwingFXUtils.fromFXImage(img,null),
-					"png", f);
-		} catch (IOException e) {}
+		if (f != null) {
+			new Thread(() -> {
+				try {
+					saveMap.setDisable(true);
+					ImageIO.write(SwingFXUtils.fromFXImage(img,null), "png", f);
+					saveMap.setDisable(false);
+				} catch (IOException e) {}
+			}).start();
+		}
 	}
 	
 	
@@ -754,7 +782,7 @@ public class MapProjections extends Application {
 		final double dt = t-t0;
 		
 		double[] triCoords = {
-				Math.PI/2 - Math.atan(Math.tan(1.67*Math.hypot(localX, localY)*Math.cos(dt))/Math.cos(dt)),
+				Math.PI/2 - Math.atan(Math.tan(1.654*Math.hypot(localX, localY)*Math.cos(dt))/Math.cos(dt)),
 				Math.PI/2 + t0 + dt};
 		return obliquify(faceCenter, triCoords);
 	}
