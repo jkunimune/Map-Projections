@@ -584,32 +584,39 @@ public class MapProjections extends Application {
 	
 	
 	private static double[] quincuncial(double lat, double lon) { // a tessalatable square map
-		double[] output = new double[2];
-		
-		final double wMag = Math.tan(lat/2+Math.PI/4);
-		final Complex w = new Complex(wMag*Math.cos(lon), wMag*Math.sin(lon));
+		final double alat = Math.abs(lat);
+		final double wMag = Math.tan(Math.PI/4-alat/2);
+		final Complex w = new Complex(wMag*Math.sin(lon), -wMag*Math.cos(lon));
 		final Complex k = new Complex(Math.sqrt(0.5));
-		Complex z = F(w.acos(),k);
-		if (z.isInfinite() || z.isNaN() || z.abs() > 10)
+		Complex z = F(w.acos(),k).multiply(Math.PI/1.854).subtract(Math.PI).negate();
+		if (z.isInfinite() || z.isNaN())
 			z = new Complex(0);
-				
-		output[0] = -z.getReal();
-		output[1] = z.getImaginary();
-		return output;
+		
+		double x = z.getReal();
+		double y = z.getImaginary();
+		
+		if (lat < 0) {
+			if (x >= 0 && y >= 0)
+				z = new Complex(Math.PI-y, Math.PI-x);
+			else if (x >= 0 && y < 0)
+				z = new Complex(Math.PI+y, -Math.PI+x);
+			else if (y >= 0)
+				z = new Complex(-Math.PI+y, Math.PI+x);
+			else
+				z = new Complex(-Math.PI-y, -Math.PI-x);
+		}
+		
+		return new double[] {z.getReal(), z.getImaginary()};
 	}
 	
 	private static double[] experiment(double lat, double lon) { // just some random complex plane stuff
-		double[] output = new double[2];
-		
-		final double p = Math.tan(lat/2+Math.PI/4);
-		final Complex w = new Complex(p*Math.cos(lon), p*Math.sin(lon));
-		Complex z = w;
-		if (z.isInfinite() || z.isNaN() || z.abs() > 10)
+		final double wMag = Math.tan(Math.PI/4-lat/2);
+		final Complex w = new Complex(wMag*Math.sin(lon), -wMag*Math.cos(lon));
+		Complex z = w.asin();
+		if (z.isInfinite() || z.isNaN())
 			z = new Complex(0);
 				
-		output[0] = -z.getReal();
-		output[1] = z.getImaginary();
-		return output;
+		return new double[] {z.getReal(), z.getImaginary()};
 	}
 	
 	private static double[] equirectangular(double lat, double lon) { // a linear scale
@@ -665,28 +672,19 @@ public class MapProjections extends Application {
 	}
 	
 	private static double[] quinshift(double lat, double lon) { // a tessalatable rectangle map
-		double[] output = new double[2];
+		final double alat = Math.abs(lat);
+		final double wMag = Math.tan(Math.PI/4-alat/2);
+		final Complex w = new Complex(wMag*Math.sin(lon), -wMag*Math.cos(lon));
+		final Complex k = new Complex(Math.sqrt(0.5));
+		Complex z = F(w.acos(),k).multiply(new Complex(Math.PI/3.708,Math.PI/3.708))
+				.subtract(new Complex(0,Math.PI/2));
+		if (z.isInfinite() || z.isNaN())
+			z = new Complex(0);
 		
-		if (lat >= 0) {
-			final double wMag = Math.tan(-lat/2+Math.PI/4);
-			final Complex w = new Complex(wMag*Math.cos(lon), wMag*Math.sin(lon));
-			final Complex k = new Complex(Math.sqrt(0.5));
-			Complex z = F(w.acos(),k);
-					
-			output[0] = -z.getImaginary()*1000;
-			output[1] = z.getReal()*1000;
-			return output;
-		}
-		else {
-			final double wMag = Math.tan(lat/2+Math.PI/4);
-			final Complex w = new Complex(wMag*Math.cos(lon), wMag*Math.sin(lon));
-			final Complex k = new Complex(Math.sqrt(0.5));
-			Complex z = F(w.acos(),k);
-					
-			output[0] = -z.getReal();
-			output[1] = z.getImaginary();
-			return output;
-		}
+		if (lat < 0)
+			z = z.conjugate().negate();
+		
+		return new double[] {z.getReal(), z.getImaginary()};
 	}
 	
 	private static double[] mollweide(double lat, double lon) {
@@ -695,8 +693,8 @@ public class MapProjections extends Application {
 			tht -= (2*tht+Math.sin(2*tht)-Math.PI*Math.sin(lat))/
 					(2+2*Math.cos(2*tht));
 		return new double[] {
-				3.2/Math.PI*lon*Math.cos(tht),
-				1.6*Math.sin(tht)};
+				lon*Math.cos(tht),
+				Math.PI/2*Math.sin(tht)};
 	}
 	
 	private static double[] winkel_tripel(double lat, double lon) {
@@ -730,15 +728,15 @@ public class MapProjections extends Application {
 	
 	private static double[] hammer(double lat, double lon) { // similar to Mollweide, but moves distortion from the poles to the edges
 		return new double[] {
-				3.2*Math.cos(lat)*Math.sin(lon/2)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2)),
-				1.6*Math.sin(lat)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2))};
+				Math.PI*Math.cos(lat)*Math.sin(lon/2)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2)),
+				Math.PI/2*Math.sin(lat)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2))};
 	}
 	
-	private static double[] aitoff(double lat, double lon) { // similar to Mollweide, but moves distortion from the poles to the edges
+	private static double[] aitoff(double lat, double lon) { // similar to Mollweide, but not
 		final double a = Math.acos(Math.cos(lat)*Math.cos(lon/2));
 		return new double[] {
-				6.4/Math.PI*Math.cos(lat)*Math.sin(lon/2)*a/Math.sin(a),
-				3.2/Math.PI*Math.sin(lat)*a/Math.sin(a)};
+				2*Math.cos(lat)*Math.sin(lon/2)*a/Math.sin(a),
+				Math.sin(lat)*a/Math.sin(a)};
 	}
 	
 	
