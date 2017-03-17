@@ -44,6 +44,7 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import rastermaps.ProgressBarDialog;
+import util.Vector;
 import util.WinkelTripel;
 
 /**
@@ -84,7 +85,7 @@ public class MapProjections extends Application {
 	private static final double[] DEF_LATS = { 90, 0, 29.9792, 31.7833, 48.8767, -28.5217, -46.4883, -35, -10, 60 };
 	private static final double[] DEF_LONS = { 0, 0, 31.1344, 35.216, 56.6067, 141.451, 16.5305, -13.6064, 65, -6 };
 	private static final double[] DEF_THTS = { 0, 0, -32, -35, -45, 161.5, 137, 145, -150, -10 };
-	private static final int DEF_MAX_VTX = 1000;
+	private static final int DEF_MAX_VTX = 10000;
 	
 	
 	private Stage stage;
@@ -294,17 +295,22 @@ public class MapProjections extends Application {
 		System.out.println("loading "+filename);
 		input = new ArrayList<List<double[]>>();
 		format = new ArrayList<String>();
+		minX = minY = Integer.MAX_VALUE;
+		maxX = maxY = Integer.MIN_VALUE;
+		numVtx = 0;
+		
 		BufferedReader in = new BufferedReader(new FileReader(filename));
 		String formatStuff = "";
 		int c = in.read();
 		
 		do {
 			formatStuff += (char)c;
-			if (formatStuff.length() >= 4 &&
-					formatStuff.substring(formatStuff.length()-4).equals("d=\"M")) {
+			if (formatStuff.length() >= 8 &&
+					formatStuff.substring(formatStuff.length()-8).equals("path d=\"")) {
 				format.add(formatStuff);
 				formatStuff = "";
 				List<double[]> currentShape = new ArrayList<double[]>();
+				c = in.read();
 				do {//TODO:figure out where to call readLine (probs at the end of loops)
 					if (c == 'Z') {
 						input.add(currentShape);
@@ -325,15 +331,16 @@ public class MapProjections extends Application {
 							num += (char) c;
 						double y = Double.parseDouble(num);
 						if (y < minY)	minY = y;
-						if (y > maxY)	maxX = y;
+						if (y > maxY)	maxY = y;
 						currentShape.add(new double[] {x, y});
+						numVtx ++;
 					}
 					else if (c == ' ' || c == ',' || c == '\n' ||
 							c == 'M' || c == 'L' || c == 'B') {
 						c = in.read();
 					} //XXX This is jank; I should spiff it up once it works
 					else {
-						System.err.print("I don't know how to interpret "+(char)c);
+						System.err.println("I don't know how to interpret "+(char)c);
 						c = in.read();
 					}
 				} while (c != '"');
@@ -403,18 +410,17 @@ public class MapProjections extends Application {
 	
 	private void drawImage(List<List<double[]>> img, Canvas c) {
 		GraphicsContext g = c.getGraphicsContext2D();
-		/*for (List<double[]> closedCurve: img) {
-			double[] p0 = null;
-			for (int i = 0; i <= closedCurve.size(); i ++) {
-				double[] p1 = closedCurve.get(i%closedCurve.size());
-				if (p0 != null) {
-					g.lineTo(p1[0], p1[1]);
-				}
-				p0 = p1;
+		g.clearRect(0, 0, c.getWidth(), c.getHeight());
+		for (List<double[]> closedCurve: img) {
+			g.beginPath();
+			for (int i = 0; i < closedCurve.size(); i ++) {
+				double[] p = closedCurve.get(i);
+				if (i == 0)	g.moveTo(p[0], p[1]);
+				else		g.lineTo(p[0], p[1]);
 			}
-		}*/
-		g.appendSVGPath("M 50 50 L 150 50 L 100 150 z");
-		g.stroke();
+			g.closePath();
+			g.stroke();
+		}
 	}
 
 
@@ -461,9 +467,12 @@ public class MapProjections extends Application {
 			
 			List<double[]> curve1 = new ArrayList<double[]>(curve0.size()/step);
 			for (int j = 0; j < curve0.size(); j += step) {
-				double[] coords = convCoords(curve0.get(j));
-				curve1.add(project(obliquify(pole, coords), proj));
+				double[] radCoords = convCoordsToMathy(curve0.get(j));
+				//System.out.println("Coast at "+radCoords[0]+","+radCoords[1]);
+				double[] plnCoords = project(obliquify(pole, radCoords), proj);
+				curve1.add(convCoordsToImg(plnCoords));
 			}
+			//System.out.println();
 			output.add(curve1);
 			
 			if (pbar != null) {
@@ -526,9 +535,9 @@ public class MapProjections extends Application {
 	}
 	
 	
-	private double[] convCoords(double[] coords) { // changes svg coordinates to radians
-		final double NORTHMOST = 1.460;
-		final double SOUTHMOST = -1.475;
+	private double[] convCoordsToMathy(double[] coords) { // changes svg coordinates to radians
+		final double NORTHMOST = 1.459095;
+		final double SOUTHMOST = -1.4868809;
 		final double EASTMOST = -Math.PI;
 		final double WESTMOST = Math.PI;
 		return new double[] {linMap(coords[1], minY,maxY, SOUTHMOST,NORTHMOST),
@@ -536,39 +545,41 @@ public class MapProjections extends Application {
 	}
 	
 	
+	private double[] convCoordsToImg(double[] coords) { // changes [-1,1] coordinates to image coordinates
+		return new double[] {linMap(coords[0], -Math.PI,Math.PI, 0,IMG_WIDTH),
+				linMap(coords[1], -Math.PI,Math.PI, IMG_WIDTH,0)};
+	}
+	
+	
 	private static final double[] obliquify(double[] pole, double[] coords) {
 		final double lat0 = pole[0];
 		final double lon0 = pole[1];
 		final double tht0 = pole[2];
-		double lat1 = coords[0];
-		double lon1 = coords[1];
-		lon1 += tht0;
-		double latf = Math.asin(Math.sin(lat0)*Math.sin(lat1) - Math.cos(lat0)*Math.cos(lon1)*Math.cos(lat1));
-		double lonf;
-		double innerFunc = Math.sin(lat1)/Math.cos(lat0)/Math.cos(latf) - Math.tan(lat0)*Math.tan(latf);
-		if (lat0 == Math.PI / 2) // accounts for special case when lat0 = pi/2
-			lonf = lon1+lon0;
-		else if (lat0 == -Math.PI / 2) // accounts for special case when lat0 = -pi/2
-			lonf = -lon1+lon0 + Math.PI;
-		else if (Math.abs(innerFunc) > 1) { // accounts for special case when cos(lat1) = --> 0
-			if ((lon1 == 0 && lat1 < -lat0) || (lon1 != 0 && lat1 < lat0))
-				lonf = lon0 + Math.PI;
-			else
-				lonf = lon0;
+		double latF = coords[0];
+		double lonF = coords[1];
+		Vector r0 = new Vector (1, lat0, lon0);
+		Vector rF = new Vector (1, latF, lonF);
+		Vector r0XrF = r0.cross(rF);
+		Vector r0Xk = r0.cross(Vector.K);
+		
+		double lat1 = Math.asin(r0.dot(rF)); // relative latitude
+		double lon1;
+		if (lat0 == Math.PI/2) // accounts for all the 0/0 errors at the poles
+			lon1 = lonF-lon0;
+		else if (lat0 == -Math.PI/2)
+			lon1 = lon0-lonF+Math.PI;
+		else {
+			lon1 = Math.acos(r0XrF.dot(r0Xk)/(r0XrF.abs()*r0Xk.abs()))-Math.PI; // relative longitude
+			if (Double.isNaN(lon1))
+				lon1 = 0;
+			else if (r0XrF.cross(r0Xk).dot(r0)/(r0XrF.abs()*r0Xk.abs()) > 0) // it's a plus-or-minus arccos.
+				lon1 = 2*Math.PI-lon1;
 		}
-		else if (Math.sin(lon1) > 0)
-			lonf = lon0 +
-					Math.acos(innerFunc);
-		else
-			lonf = lon0 -
-					Math.acos(innerFunc);
+		lon1 = lon1-tht0;
+		lon1 = mod(lon1+Math.PI, 2*Math.PI) - Math.PI;
 		
-		double thtf = 0;
-		if (pole.length >= 3)
-			thtf += pole[2];
-		
-		double[] output = {latf, lonf, thtf};
-		return output;
+		return new double[] {lat1, lon1};
+		//return coords;
 	}
 	
 	
@@ -606,16 +617,16 @@ public class MapProjections extends Application {
 	}
 	
 	private static double[] mercator(double lat, double lon) { // a popular shape-preserving map
-		return new double[] {lon, Math.sinh(Math.tan(lat))};
+		return new double[] {lon, Math.log(Math.tan(Math.PI/4+lat/2))};
 	}
 	
 	private static double[] polar(double lat, double lon) { // the projection used on the UN flag
 		final double r = Math.PI/2 - lat;
-		return new double[] {r*Math.cos(lon), r*Math.sin(lon)};
+		return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
 	}
 	
 	private static double[] gall(double lat, double lon) { // a compromise map, similar to mercator
-		return new double[] {lon, Math.tan(lat/2)};
+		return new double[] {lon, Math.tan(lat/2)*(1+Math.sqrt(2))};
 	}
 	
 	private static double[] sinusoidal(double lat, double lon) { // a map shaped like a sinusoid
@@ -623,32 +634,34 @@ public class MapProjections extends Application {
 	}
 	
 	private static double[] stereographic(double lat, double lon) { // a shape-preserving infinite map
-		final double r = 1/Math.tan(lat/2 + Math.PI/4);
-		return new double[] {r*Math.cos(lon), r*Math.sin(lon)};
+		final double r = 1.5/(Math.tan(lat/2 + Math.PI/4));
+		return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
 	}
 	
 	private static double[] gnomonic(double lat, double lon) { // map where straight lines are straight
-		final double r = Math.tan(Math.PI/4 - lat);
-		return new double[] {r*Math.cos(lon), r*Math.sin(lon)};
+		if (lat <= 0)	lat = 10e-5;
+		final double r = Math.tan(Math.PI/2 - lat);
+		return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
 	}
 	
 	private static double[] orthographic(double lat, double lon) { // a map that mimics the view from space
-		final double r = Math.cos(lat);
-		return new double[] {r*Math.cos(lon), r*Math.sin(lon)};
+		if (lat < 0)	lat = 0;
+		final double r = Math.PI*Math.cos(lat);
+		return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
 	}
 	
 	private static double[] eaCylindrical(double lat, double lon) { // an equal-area cylindrical map
-		return new double[] {lon, Math.sin(lat)};
+		return new double[] {lon, Math.sin(lat)*Math.PI/2};
 	}
 	
 	private static double[] lambert(double lat, double lon) { // a conical projection
-		final double r = 1/Math.pow(Math.tan(lat/2 + Math.PI/4), 2);
-		return new double[] {r*Math.cos(2*lon), r*Math.sin(2*lon)};
+		final double r = 3*Math.sqrt(Math.tan(Math.PI/4-lat/2));
+		return new double[] {r*Math.sin(lon/2), Math.PI-r*Math.cos(lon/2)};
 	}
 	
 	private static double[] eaAzimuth(double lat, double lon) { // the lambert azimuthal equal area projection
-		final double r = Math.cos(lat/2);
-		return new double[] {r*Math.cos(lon), r*Math.sin(lon)};
+		final double r = Math.PI*Math.cos((Math.PI/2+lat)/2);
+		return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
 	}
 	
 	private static double[] quinshift(double lat, double lon) { // a tessalatable rectangle map
@@ -682,12 +695,12 @@ public class MapProjections extends Application {
 			tht -= (2*tht+Math.sin(2*tht)-Math.PI*Math.sin(lat))/
 					(2+2*Math.cos(2*tht));
 		return new double[] {
-				2/Math.PI*lon*Math.cos(tht),
-				Math.sin(tht)};
+				3.2/Math.PI*lon*Math.cos(tht),
+				1.6*Math.sin(tht)};
 	}
 	
 	private static double[] winkel_tripel(double lat, double lon) {
-		return new double[] {WinkelTripel.X(lat,lon), WinkelTripel.Y(lat,lon)};
+		return new double[] {WinkelTripel.X(lat,lon)/1.65, WinkelTripel.Y(lat,lon)/1.65};
 	}
 	
 	private static double[] grinten(double lat, double lon) {
@@ -704,27 +717,28 @@ public class MapProjections extends Application {
 		final double Q = A*A + G;
 		
 		return new double[] {
-				Math.signum(lon)*(A*(G-P*P)+Math.sqrt(A*A*(G-P*P)*(G-P*P)-(P*P+A*A)*(G*G-P*P)))/(P*P+A*A),
-				Math.signum(lat)*(P*Q-A*Math.sqrt((A*A+1)*(P*P+A*A)-Q*Q))/(P*P+A*A)};
+				Math.PI*Math.signum(lon)*(A*(G-P*P)+Math.sqrt(A*A*(G-P*P)*(G-P*P)-(P*P+A*A)*(G*G-P*P)))/(P*P+A*A),
+				Math.PI*Math.signum(lat)*(P*Q-A*Math.sqrt((A*A+1)*(P*P+A*A)-Q*Q))/(P*P+A*A)};
 	}
 	
 	private static double[] magnus(double lat, double lon) { // a novelty map that magnifies the center profusely
-		final double p = .5 - lat/Math.PI;
-		final double r = 0.7 + 0.3*p - Math.pow(1-p,5);
-		return new double[] {r*Math.cos(lon), r*Math.sin(lon)};
+		final double p = 1/2.0+lat/Math.PI;
+		final double fp = 1 - 0.1*p - 0.9*Math.pow(p,7);
+		final double r = Math.PI*fp;
+		return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
 	}
 	
 	private static double[] hammer(double lat, double lon) { // similar to Mollweide, but moves distortion from the poles to the edges
 		return new double[] {
-				2*Math.cos(lat)*Math.sin(lon/2)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2)),
-				Math.sin(lat)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2))};
+				3.2*Math.cos(lat)*Math.sin(lon/2)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2)),
+				1.6*Math.sin(lat)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2))};
 	}
 	
 	private static double[] aitoff(double lat, double lon) { // similar to Mollweide, but moves distortion from the poles to the edges
 		final double a = Math.acos(Math.cos(lat)*Math.cos(lon/2));
 		return new double[] {
-				2*Math.cos(lat)*Math.sin(lon/2)*a/Math.sin(a),
-				Math.sin(lat)*a/Math.sin(a)};
+				6.4/Math.PI*Math.cos(lat)*Math.sin(lon/2)*a/Math.sin(a),
+				3.2/Math.PI*Math.sin(lat)*a/Math.sin(a)};
 	}
 	
 	
@@ -787,26 +801,7 @@ public class MapProjections extends Application {
 	
 	
 	
-	public static final int blend(int[] colors) {
-		int a_tot = 0;
-		int r_tot = 0;
-		int g_tot = 0;
-		int b_tot = 0;
-		for (int argb: colors) {
-			double a = ((argb >> 24) & 0xFF);
-			a_tot += a;
-			r_tot += a*((argb >> 16) & 0xFF);
-			g_tot += a*((argb >> 8) & 0xFF);
-			b_tot += a*((argb >> 0) & 0xFF);
-		}
-		if (a_tot == 0)	return 0;
-		else
-			return (a_tot/colors.length<<24) +
-					(r_tot/a_tot<<16) + (g_tot/a_tot<<8) + (b_tot/a_tot);
-	}
-	
-	
-	public static final Complex F(Complex phi, final Complex k) { // series solution to incomplete elliptic integral of the first kind
+	private static final Complex F(Complex phi, final Complex k) { // series solution to incomplete elliptic integral of the first kind
 		Complex sum = new Complex(0);
 		Complex i_n = phi;
 		
@@ -821,7 +816,7 @@ public class MapProjections extends Application {
 	}
 	
 	
-	public static final double combine(double n, int k) {
+	private static final double combine(double n, int k) {
 		double output = 1;
 		for (int i = k; i > 0; i --) {
 			output *= (n+i-k)/i;
@@ -830,12 +825,17 @@ public class MapProjections extends Application {
 	}
 	
 	
-	public static final double linMap(double x, double a0, double a1, double b0, double b1) {
+	private static final double linMap(double x, double a0, double a1, double b0, double b1) {
 		return (x-a0)*(b1-b0)/(a1-a0) + b0;
 	}
 	
 	
-	public static final boolean isDigit(char c) {
+	private static final boolean isDigit(char c) {
 		return c >= '-' && c <= '9';
+	}
+	
+	
+	private static final double mod(double x, double y) {
+		return x - Math.floor(x/y)*y;
 	}
 }
