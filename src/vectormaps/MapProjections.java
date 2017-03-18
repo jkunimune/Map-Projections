@@ -12,6 +12,8 @@ import org.apache.commons.math3.complex.Complex;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -71,7 +73,7 @@ public class MapProjections extends Application {
 			"A conformal azimuthal map", "An equal-area azimuthal map",
 			"Represents earth viewed from an infinite distance",
 			"Every straight line on the map is a straight line on the sphere", "A conformal conical map",
-			"The compromise map used by National Geographic (caution: very slow)", "A circular compromise map",
+			"The compromise map used by National Geographic", "A circular compromise map",
 			"An equal-area map shaped like an ellipse", "An equal-area map shaped like an elipse",
 			"An equal-area map shaped like an elipse", "An equal-area map shaped like a sinusoid",
 			"A conformal square map that uses complex math",
@@ -82,10 +84,10 @@ public class MapProjections extends Application {
 	
 	private static final String[] AXES = { "Standard", "Transverse", "Center of Mass", "Jerusalem", "Point Nemo",
 			"Longest Line", "Longest Line Transverse", "Cylindrical", "Conical", "Quincuncial", "Antipode", "Random" };
-	private static final double[] DEF_LATS = { 90, 0, 29.9792, 31.7833, 48.8767, -28.5217, -46.4883, -35, -10, 60 };
-	private static final double[] DEF_LONS = { 0, 0, 31.1344, 35.216, 56.6067, 141.451, 16.5305, -13.6064, 65, -6 };
-	private static final double[] DEF_THTS = { 0, 0, -32, -35, -45, 161.5, 137, 145, -150, -10 };
-	private static final int DEF_MAX_VTX = 10000;
+	private static final double[][] DEF_ASPECTS = { { 90, 0, 29.9792, 31.7833, 48.8767, -28.5217, -46.4883, -35, -10, 60 },
+													{ 0, 0, 31.1344, 35.216, 56.6067, 141.451, 16.5305, -13.6064, 65, -6 },
+													{ 0, 0, -32, -35, -45, 161.5, 137, 145, -150, -10 } };
+	private static final int DEF_MAX_VTX = 5000;
 	
 	
 	private Stage stage;
@@ -94,8 +96,7 @@ public class MapProjections extends Application {
 	private Button changeInput;
 	private ComboBox<String> projectionChooser;
 	private Text projectionDesc;
-	private Slider latSlider, lonSlider, thtSlider;
-	private Button update;
+	private Slider[] aspectSliders;
 	private Button saveMap;
 	private List<String> format;
 	private List<List<double[]>> input;
@@ -134,6 +135,7 @@ public class MapProjections extends Application {
 		changeInput.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
 				chooseInput();
+				updateMap();
 			}
 		});
 		changeInput.setTooltip(new Tooltip(
@@ -158,6 +160,7 @@ public class MapProjections extends Application {
 						break;
 					}
 				}
+				updateMap();
 			}
 		});
 		projectionChooser.setPrefWidth(210);
@@ -176,6 +179,7 @@ public class MapProjections extends Application {
 			m.setOnAction(new EventHandler<ActionEvent>() {
 				public void handle(ActionEvent event) {
 					setAxisByPreset(((MenuItem) event.getSource()).getText());
+					updateMap();
 				}
 			});
 			defAxes.getItems().add(m);
@@ -184,35 +188,41 @@ public class MapProjections extends Application {
 				"Set the aspect sliders based on a preset"));
 		layout.getChildren().add(defAxes);
 		
-		latSlider = new Slider(-90, 90, 90);
-		lonSlider = new Slider(-180,180,0);
-		thtSlider = new Slider(-180,180,0);
-		Tooltip aspTlTp = new Tooltip("Change the aspect of the map");
-		latSlider.setTooltip(aspTlTp);
-		lonSlider.setTooltip(aspTlTp);
-		thtSlider.setTooltip(aspTlTp);
+		aspectSliders = new Slider[] {
+				new Slider(-90, 90, 90),
+				new Slider(-180,180,0),
+				new Slider(-180,180,0)
+		};
+		
+		
+		
+		/*latSlider.valueProperty().addListener(new ChangeListener<Number>() {
+			public void changed(ObservableValue<? extends Number> ov, Number old_val, Number new_val) {
+				System.out.println(new_val.doubleValue());
+			}
+		});*/
 		
 		GridPane grid = new GridPane();
-		grid.addRow(0, new Text("Latitude:"), latSlider);
-		grid.addRow(1, new Text("Longitude:"), lonSlider);
-		grid.addRow(2, new Text("Orientation:"), thtSlider);
-		GridPane.setHgrow(latSlider, Priority.ALWAYS);
-		GridPane.setHgrow(lonSlider, Priority.ALWAYS);
-		GridPane.setHgrow(thtSlider, Priority.ALWAYS);
-		//GridPane.setFillWidth(latSlider, Boolean.valueOf(true));
+		grid.addRow(0, new Text("Latitude:"), aspectSliders[0]);
+		grid.addRow(1, new Text("Longitude:"), aspectSliders[1]);
+		grid.addRow(2, new Text("Orientation:"), aspectSliders[2]);
+		for (Slider s: aspectSliders) {
+			GridPane.setHgrow(s, Priority.ALWAYS);
+			s.setTooltip(new Tooltip("Change the aspect of the map"));
+			s.valueChangingProperty().addListener(new ChangeListener<Boolean>() {
+				public void changed(ObservableValue<? extends Boolean> observable, Boolean then, Boolean now) {
+					if (!now)	updateMap();
+				}
+			});
+			/*s.valueProperty().addListener(new ChangeListener<Number>() {
+				public void changed(ObservableValue<? extends Number> observable, Number old, Number now) {
+					updateMap(true);
+				}
+			});*/ // Java doesn't like this; it can't handle that many threads
+		}
 		layout.getChildren().add(grid);
 		
 		layout.getChildren().add(new Separator());
-		
-		update = new Button("Update Map");
-		update.setOnAction(new EventHandler<ActionEvent>() {
-			public void handle(ActionEvent event) {
-				updateMap();
-			}
-		});
-		update.setTooltip(new Tooltip(
-				"Update the current map with your parameters."));
-		update.setDefaultButton(true);
 		
 		saver = new FileChooser();
 		saver.setInitialDirectory(new File("output"));
@@ -234,7 +244,7 @@ public class MapProjections extends Application {
 			}
 		});
 		
-		HBox box = new HBox(5, update, saveMap);
+		HBox box = new HBox(5, saveMap);
 		box.setAlignment(Pos.CENTER);
 		layout.getChildren().add(box);
 		
@@ -245,7 +255,7 @@ public class MapProjections extends Application {
 		
 		new Thread(() -> {
 			setInput("basic.svg", "input/basic.svg");
-			update.fire();
+			updateMap();
 		}).start();
 		
 		final HBox gui = new HBox(layout, viewer);
@@ -269,7 +279,6 @@ public class MapProjections extends Application {
 	
 	private void setInput(String name, String filename) {
 		changeInput.setDisable(true);
-		update.setDisable(true);
 		saveMap.setDisable(true);
 		
 		try {
@@ -286,13 +295,11 @@ public class MapProjections extends Application {
 		}
 		
 		changeInput.setDisable(false);
-		update.setDisable(false);
 		saveMap.setDisable(false);
 	}
 	
 	
 	private List<List<double[]>> loadSVG(String filename) throws IOException { // this method is just awful.
-		System.out.println("loading "+filename);
 		input = new ArrayList<List<double[]>>();
 		format = new ArrayList<String>();
 		minX = minY = Integer.MAX_VALUE;
@@ -352,29 +359,27 @@ public class MapProjections extends Application {
 		
 		format.add(formatStuff);
 		in.close();
-		System.out.println("loaded.");
 		return input;
 	}
 	
 	
 	private void setAxisByPreset(String preset) {
 		if (preset.equals("Antipode")) {
-			latSlider.setValue(-latSlider.getValue());
-			lonSlider.setValue((lonSlider.getValue()+360)%360-180);
-			thtSlider.setValue(-thtSlider.getValue());
+			for (Slider s: aspectSliders)
+				s.setValue(-s.getValue());
+			aspectSliders[1].setValue((-aspectSliders[1].getValue()+360)%360-180);
 			return;
 		}
 		if (preset.equals("Random")) {
-			latSlider.setValue(Math.toDegrees(Math.asin(Math.random()*2-1)));
-			lonSlider.setValue(Math.random()*360-180);
-			thtSlider.setValue(Math.random()*360-180);
+			aspectSliders[0].setValue(Math.toDegrees(Math.asin(Math.random()*2-1)));
+			aspectSliders[1].setValue(Math.random()*360-180);
+			aspectSliders[2].setValue(Math.random()*360-180);
 			return;
 		}
 		for (int i = 0; i < AXES.length; i ++) {
 			if (AXES[i].equals(preset)) {
-				latSlider.setValue(DEF_LATS[i]);
-				lonSlider.setValue(DEF_LONS[i]);
-				thtSlider.setValue(DEF_THTS[i]);
+				for (int j = 0; j < 3; j ++)
+					aspectSliders[j].setValue(DEF_ASPECTS[j][i]);
 				break;
 			}
 		}
@@ -382,11 +387,13 @@ public class MapProjections extends Application {
 	
 	
 	private void updateMap() {
-		update.setDisable(true);
+		updateMap(false);
+	}
+	
+	private void updateMap(boolean fast) {
 		new Thread(new Task<Void>() {
 			protected Void call() {
-				drawImage(map(), viewer);
-				update.setDisable(false);
+				drawImage(map(fast), viewer);
 				return null;
 			}
 		}).start();
@@ -449,15 +456,20 @@ public class MapProjections extends Application {
 	}
 	
 	
-	private List<List<double[]>> map() {
-		return map(DEF_MAX_VTX, null);
+	private List<List<double[]>> map(boolean fast) {
+		if (fast)
+			return map(DEF_MAX_VTX/10, null);
+		else
+			return map(DEF_MAX_VTX, null);
 	}
 	
-	private List<List<double[]>> map(int maxVtx, ProgressBarDialog pbar) {
+	private List<List<double[]>> map(int maxVtx,
+			ProgressBarDialog pbar) {
 		final String proj = projectionChooser.getValue();
-		final double[] pole = {Math.toRadians(latSlider.getValue()),
-							Math.toRadians(lonSlider.getValue()),
-							Math.toRadians(thtSlider.getValue())};
+		final double[] pole = new double[3];
+		for (int i = 0; i < 3; i ++)
+			pole[i] = Math.toRadians(aspectSliders[i].getValue());
+		
 		int step = maxVtx==0 ? 1 : numVtx/maxVtx+1;
 		List<List<double[]>> output = new LinkedList<List<double[]>>();
 		
