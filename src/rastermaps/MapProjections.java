@@ -619,31 +619,36 @@ public class MapProjections extends Application {
 	}
 	
 	private static double[] winkel_tripel(double x, double y) {
-		final double tolerance = 0.001;
 		
-		double phi = y * Math.PI/2;
-		double lam = x * Math.PI; // I used equirectangular for my initial guess
-		double xf = x * (2 + Math.PI);
-		double yf = y * Math.PI;
+		
+		final double tolerance = 10e-2;
+		
+		double X = x * (1 + Math.PI/2);
+		double Y = y * Math.PI/2;
+		if ((x<0) == (y<0))	Y = -Y; // this makes it converge faster for some reason
+		double phi = Y;
+		double lam = X; // I used equirectangular for my initial guess
 		double error = Math.PI;
 		
-		for (int i = 0; i < 100 && error > tolerance; i++) {
-			final double X = WinkelTripel.X(phi, lam);
-			final double Y = WinkelTripel.Y(phi, lam);
-			final double dXdP = WinkelTripel.dXdphi(phi, lam);
-			final double dYdP = WinkelTripel.dYdphi(phi, lam);
-			final double dXdL = WinkelTripel.dXdlam(phi, lam);
-			final double dYdL = WinkelTripel.dYdlam(phi, lam);
+		for (int i = 0; i < 6 && error > tolerance; i++) {
+			final double f1 = WinkelTripel.f1pX(phi, lam) - X;
+			final double f2 = WinkelTripel.f2pY(phi, lam) - Y;
+			final double df1dP = WinkelTripel.df2dphi(phi, lam);
+			final double df1dL = WinkelTripel.df1dlam(phi, lam);
+			final double df2dP = WinkelTripel.df2dphi(phi, lam);
+			final double df2dL = WinkelTripel.df2dlam(phi, lam);
 			
-			phi -= (dYdL*(X - xf) - dXdL*(Y - yf)) / (dXdP*dYdL - dXdL*dYdP);
-			lam -= (dXdP*(Y - yf) - dYdP*(X - xf)) / (dXdP*dYdL - dXdL*dYdP);
+			phi -= (f1*df2dL - f2*df1dL) / (df1dP*df2dL - df2dP*df1dL);
+			lam -= (f2*df1dP - f1*df2dP) / (df1dP*df2dL - df2dP*df1dL);
 			
-			error = Math.hypot(X - xf, Y - yf);
+			error = Math.hypot(f1, f2);
 		}
-		if (error >= tolerance) // if it aborted due to timeout
+		if ((x<0) == (y<0))	phi = -phi;
+		
+		if (error > tolerance) // if it aborted due to timeout
 			return null;
 		else // if it aborted due to convergence
-			return new double[] {phi, lam + Math.PI};
+			return new double[] {phi, lam};
 	}
 	
 	private static double[] grinten(double x, double y) {

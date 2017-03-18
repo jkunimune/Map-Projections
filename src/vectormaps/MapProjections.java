@@ -693,7 +693,7 @@ public class MapProjections extends Application {
 	}
 	
 	private static double[] winkel_tripel(double lat, double lon) {
-		return new double[] {WinkelTripel.X(lat,lon)/1.65, WinkelTripel.Y(lat,lon)/1.65};
+		return new double[] {WinkelTripel.f1pX(lat,lon)*1.21, WinkelTripel.f2pY(lat,lon)*1.21};
 	}
 	
 	private static double[] grinten(double lat, double lon) {

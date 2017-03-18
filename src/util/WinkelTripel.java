@@ -1,65 +1,50 @@
 package util;
 
 public final class WinkelTripel {
-	public static final double X(double phi, double lam) {
-		return 2/Math.PI*lam + 2*Math.cos(phi)*Math.sin(lam/2)/sinca(phi,lam);
+	private static final double COS_PHI0 = 2/Math.PI;
+	
+	
+	public static final double f1pX(double phi, double lam) {
+		final double d = D(phi,lam);
+		final double c = C(phi,lam);
+		return (2*d/Math.sqrt(c)*Math.cos(phi)*Math.sin(lam/2) + lam*COS_PHI0)/2.0;
 	}
 	
-	public static final double Y(double phi, double lam) {
-		return phi + Math.sin(phi)/sinca(phi,lam);
+	public static final double f2pY(double phi, double lam) {
+		final double d = D(phi,lam);
+		final double c = C(phi,lam);
+		return (d/Math.sqrt(c)*Math.sin(phi) + phi)/2.0;
 	}
 	
-	public static final double dXdphi(double phi, double lam) {
-		final double s = sinca(phi,lam);
-		final double dsdP = dsincadphi(phi,lam);
-		return (2*Math.sin(phi)*Math.sin(lam/2)*s - 2*Math.cos(phi)*Math.sin(lam/2)*dsdP)/(s*s);
+	public static final double df1dphi(double phi, double lam) {
+		final double d = D(phi,lam);
+		final double c = C(phi,lam);
+		return Math.sin(lam)*Math.sin(2*phi)/(4*c) - d/Math.pow(c,1.5)*Math.sin(phi)*Math.sin(lam/2);
 	}
 	
-	public static final double dXdlam(double phi, double lam) {
-		final double s = sinca(phi,lam);
-		final double dsdL = dsincadlam(phi,lam);
-		return 2/Math.PI + (Math.cos(phi)*Math.cos(lam/2)*s - 2*Math.cos(phi)*Math.sin(lam/2)*dsdL)/(s*s);
+	public static final double df1dlam(double phi, double lam) {
+		final double d = D(phi,lam);
+		final double c = C(phi,lam);
+		return (Math.pow(Math.cos(phi)*Math.sin(lam/2), 2)/c + d/Math.pow(c,1.5)*Math.cos(phi)*Math.cos(lam/2)*Math.pow(Math.sin(phi),2) + COS_PHI0)/2.0;
 	}
 	
-	public static final double dYdphi(double phi, double lam) {
-		final double s = sinca(phi,lam);
-		final double dsdP = dsincadphi(phi,lam);
-		return 1 + (Math.cos(phi)*s-Math.sin(phi)*dsdP)/(s*s);
+	public static final double df2dphi(double phi, double lam) {
+		final double d = D(phi,lam);
+		final double c = C(phi,lam);
+		return (Math.pow(Math.sin(phi),2)*Math.cos(lam/2)/c + d/Math.pow(c,1.5)*(1-Math.pow(Math.cos(lam/2),2))*Math.cos(phi) + 1)/2.0;
 	}
 	
-	public static final double dYdlam(double phi, double lam) {
-		final double s = sinca(phi,lam);
-		final double dsdL = dsincadlam(phi,lam);
-		return -Math.sin(phi)*dsdL/(s*s);
+	public static final double df2dlam(double phi, double lam) {
+		final double d = D(phi,lam);
+		final double c = C(phi,lam);
+		return (Math.sin(2*phi)*Math.sin(lam/2)/c - d/Math.pow(c,1.5)*Math.sin(phi)*Math.pow(Math.cos(phi),2)*Math.sin(lam))/8.0;
 	}
 	
-	public static final double a(double phi, double lam) {
+	private static final double D(double phi, double lam) {
 		return Math.acos(Math.cos(phi)*Math.cos(lam/2));
 	}
 	
-	public static final double b(double phi, double lam) {
-		return Math.sqrt(1-Math.pow(Math.cos(phi)*Math.cos(lam/2), 2));
-	}
-	
-	public static final double sinca(double phi, double lam) {
-		return b(phi,lam)/a(phi,lam);
-	}
-	
-	public static final double dsincadphi(double phi, double lam) {
-		final double alpha = a(phi,lam);
-		return (Math.cos(alpha)*alpha-Math.sin(alpha))/(alpha*alpha)*dadphi(phi,lam);
-	}
-	
-	public static final double dsincadlam(double phi, double lam) {
-		final double alpha = a(phi,lam);
-		return (Math.cos(alpha)*alpha-Math.sin(alpha))/(alpha*alpha)*dadlam(phi,lam);
-	}
-	
-	public static final double dadphi(double phi, double lam) {
-		return -Math.sin(phi)*Math.cos(lam/2)/b(phi,lam);
-	}
-	
-	public static final double dadlam(double phi, double lam) {
-		return -Math.cos(phi)*Math.sin(lam/2)/(2*b(phi,lam));
+	private static final double C(double phi, double lam) {
+		return 1 - Math.pow(Math.cos(phi)*Math.cos(lam/2), 2);
 	}
 }
