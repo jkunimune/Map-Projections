@@ -27,6 +27,8 @@ public class MapConfigurationDialog extends Dialog<Thread> {
 	private final ComboBox<String> smoothBox;
 	private final MapProjections parent;
 	
+	private boolean realEdit; // is a real edit happening, or is it just me?
+	
 	public MapConfigurationDialog(double defAsp, MapProjections mp) {
 		this.defaultRatio = defAsp;
 		this.parent = mp;
@@ -35,12 +37,12 @@ public class MapConfigurationDialog extends Dialog<Thread> {
 		this.maintainRatio = new CheckBox("Maintain aspect ratio");	// instantiate the components
 		this.maintainRatio.setSelected(true);
 		
-		this.widthBox = new Spinner<Integer>(1,50000,
+		this.widthBox = new Spinner<Integer>(1,12000,
 				10*(int)Math.round(DEF_SIZE*Math.sqrt(defaultRatio)/10));
 		this.widthBox.setEditable(true);
 		this.widthBox.setMaxWidth(Double.MAX_VALUE);
 		
-		this.heightBox = new Spinner<Integer>(1,50000,
+		this.heightBox = new Spinner<Integer>(1,12000,
 				10*(int)Math.round(this.widthBox.getValue()/defaultRatio/10));
 		this.heightBox.setEditable(true);
 		this.widthBox.setMaxWidth(Double.MAX_VALUE);
@@ -53,9 +55,14 @@ public class MapConfigurationDialog extends Dialog<Thread> {
 				widthBox.getEditor().textProperty().set(pv);
 				widthBox.increment(0);
 			}
-			int prefHeight = (int)Math.floor(widthBox.getValue()/defaultRatio);	// XXX: what if we play with these floors and ceils
-			if (maintainRatio.isSelected() && heightBox.getValue() != prefHeight)
-				heightBox.getValueFactory().setValue(prefHeight);
+			if (realEdit) {
+				realEdit = false;
+				if (maintainRatio.isSelected()) {
+					int prefHeight = (int)Math.floor(widthBox.getValue()/defaultRatio);
+					heightBox.getValueFactory().setValue(prefHeight);
+				}
+				realEdit = true;
+			}
 		});
 		
 		this.heightBox.getEditor().textProperty().addListener((ov, pv, nv) -> {
@@ -66,9 +73,15 @@ public class MapConfigurationDialog extends Dialog<Thread> {
 				heightBox.getEditor().textProperty().set(pv);
 				heightBox.increment(0);
 			}
-			int prefWidth = (int)Math.ceil(heightBox.getValue()*defaultRatio);
-			if (maintainRatio.isSelected() && widthBox.getValue() != prefWidth)
-				widthBox.getValueFactory().setValue(prefWidth);
+			if (realEdit) {
+				realEdit = false;
+				
+				if (maintainRatio.isSelected()) {
+					int prefWidth = (int)Math.ceil(heightBox.getValue()*defaultRatio);
+					widthBox.getValueFactory().setValue(prefWidth);
+				}
+				realEdit = true;
+			}
 		});
 		
 		ObservableList<String> items = FXCollections.observableArrayList(
@@ -106,6 +119,8 @@ public class MapConfigurationDialog extends Dialog<Thread> {
 			else
 				return null;
 		});
+		
+		realEdit = true;
 	}
 	
 	

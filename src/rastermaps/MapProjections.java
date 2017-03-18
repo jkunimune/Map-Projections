@@ -15,6 +15,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
@@ -274,8 +275,9 @@ public class MapProjections extends Application {
 			input = new Image("file:"+filename);
 			inputLabel.setText(name);
 		} catch (IllegalArgumentException e) {
-			inputLabel.setText("Error loading "+name+"! It may be corrupt or nonexistent."); //TODO: Better error handling?
-			System.err.println(e);
+			final Alert alert = new Alert(Alert.AlertType.ERROR);
+			alert.setHeaderText("File not found!");
+			alert.setContentText("Couldn't find "+filename+".");
 		}
 		
 		changeInput.setDisable(false);

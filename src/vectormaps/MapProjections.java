@@ -194,14 +194,6 @@ public class MapProjections extends Application {
 				new Slider(-180,180,0)
 		};
 		
-		
-		
-		/*latSlider.valueProperty().addListener(new ChangeListener<Number>() {
-			public void changed(ObservableValue<? extends Number> ov, Number old_val, Number new_val) {
-				System.out.println(new_val.doubleValue());
-			}
-		});*/
-		
 		GridPane grid = new GridPane();
 		grid.addRow(0, new Text("Latitude:"), aspectSliders[0]);
 		grid.addRow(1, new Text("Longitude:"), aspectSliders[1]);
@@ -249,9 +241,6 @@ public class MapProjections extends Application {
 		layout.getChildren().add(box);
 		
 		viewer = new Canvas(IMG_WIDTH, IMG_WIDTH);
-		//viewer.setFitWidth(IMG_WIDTH);
-		//viewer.setFitHeight(IMG_WIDTH);
-		//viewer.setPreserveRatio(true);
 		
 		new Thread(() -> {
 			setInput("basic.svg", "input/basic.svg");
@@ -285,11 +274,11 @@ public class MapProjections extends Application {
 			input = loadSVG(filename);
 			inputLabel.setText(name);
 		} catch (IllegalArgumentException e) {
-			final Alert alert = new Alert(Alert.AlertType.ERROR);//TODO: move this code to raster
+			final Alert alert = new Alert(Alert.AlertType.ERROR);
 			alert.setHeaderText("Unreadable file!");
 			alert.setContentText("We couldn't read "+filename+". It may be corrupt or an unreadable format.");
 		} catch (IOException e) {
-			final Alert alert = new Alert(Alert.AlertType.ERROR);//TODO: move this code to raster
+			final Alert alert = new Alert(Alert.AlertType.ERROR);
 			alert.setHeaderText("File not found!");
 			alert.setContentText("Couldn't find "+filename+".");
 		}
@@ -318,14 +307,13 @@ public class MapProjections extends Application {
 				formatStuff = "";
 				List<double[]> currentShape = new ArrayList<double[]>();
 				c = in.read();
-				do {//TODO:figure out where to call readLine (probs at the end of loops)
+				do {
 					if (c == 'Z') {
 						input.add(currentShape);
 						currentShape = new ArrayList<double[]>();
 						format.add("");
-						c = in.read();
 					}
-					else if (isDigit((char) c)) {
+					if (isDigit((char) c)) {
 						String num = Character.toString((char)c);
 						while (isDigit((char) (c = in.read())))
 							num += (char) c;
@@ -342,12 +330,7 @@ public class MapProjections extends Application {
 						currentShape.add(new double[] {x, y});
 						numVtx ++;
 					}
-					else if (c == ' ' || c == ',' || c == '\n' ||
-							c == 'M' || c == 'L' || c == 'B') {
-						c = in.read();
-					} //XXX This is jank; I should spiff it up once it works
 					else {
-						System.err.println("I don't know how to interpret "+(char)c);
 						c = in.read();
 					}
 				} while (c != '"');
