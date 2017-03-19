@@ -37,8 +37,12 @@
 <a id="map-projections" class="anchor" href="#map-projections" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Math</h1>
 
 <p>This program makes use of some pretty cool math, if I do say so myself. Most of the equations came straight from Wikipedia, except for the ones where I had to find the inverses myself, and the oblique map projection equation, which I could not find anywhere and had to derive myself.</p>
-<p><img src="http://latex.codecogs.com/svg.latex?\Lambda=\mathrm{arcsin}\left[\mathrm{sin}\lambda_P\,\mathrm{sin}\lambda_1+\mathrm{cos}\lambda_P\,\mathrm{cos}\lambda_1\,\mathrm{cos}\left(\theta_1-\theta_0\right)\right]" border="0"/></p>
-<p><img src="http://latex.codecogs.com/svg.latex?\Theta=\theta_P\pm\mathrm{arccos}\left(\frac{\mathrm{sin}\lambda_1}{\mathrm{cos}\lambda_P\,\mathrm{cos}\Lambda}-\mathrm{tan}\lambda_P\,\mathrm{tan}\Lambda\right)" border="0"/></p>
+<p><img src="http://latex.codecogs.com/svg.latex?\Lambda=\arcsin\left[\sin\lambda_P\,\sin\lambda_1+\mathrm{cos}\lambda_P\,\cos\lambda_1\,\cos\left(\theta_1-\theta_0\right)\right]" border="0"/></p>
+<p><img src="http://latex.codecogs.com/svg.latex?\Theta=\theta_P\pm\arccos\left(\frac{\sin\lambda_1}{\cos\lambda_P\,\cos\Lambda}-\tan\lambda_P\,\tan\Lambda\right)" border="0"/></p>
+<p>I guess I should also mention the Tetragraph equations, since I invented that one myself, and the equations are therefore not on Wikipedia. It's a tetrahedral projection that projects the faces with some simple polar transformations:</p>
+<p><img src="http://latex.codecogs.com/svg.latex?R=\arctan(\cot\phi\cos\lambda_\mathrm{M})\sec\lambda_\mathrm{M}" border="0"/></p>
+<p><img src="http://latex.codecogs.com/svg.latex?\Theta=\lambda" border="0"/></p>
+<p><img src="http://latex.codecogs.com/svg.latex?\lambda_\mathrm{M}=\lambda-\mathrm{floor}\left(\frac{\lambda+\frac{\pi}{3}}{\frac{2\pi}{3}}\right)*\frac{2\pi}{3}-\frac{\pi}{3}" border="0"/></p>
         </section>
 
         <footer>
