@@ -135,7 +135,6 @@ public class MapProjections extends Application {
 		changeInput.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
 				chooseInput();
-				updateMap();
 			}
 		});
 		changeInput.setTooltip(new Tooltip(
@@ -261,6 +260,7 @@ public class MapProjections extends Application {
 		if (f != null) {
 			new Thread(() -> {
 				setInput(f.getName(), f.getAbsolutePath());
+				updateMap();
 			}).start();
 		}
 	}
@@ -424,8 +424,10 @@ public class MapProjections extends Application {
 			for (int i = 0; i < curves.size(); i ++) {
 				out.write(format.get(i));
 				String curveCode = "M";
-				for (double[] p: curves.get(i))
+				for (double[] r: curves.get(i)) {
+					final double[] p = convCoordsToSVG(r);
 					curveCode += p[0]+" "+p[1]+"L";
+				}
 				out.write(curveCode.substring(0,curveCode.length()-2)+"Z");
 				pBar.setProgress((double)i/curves.size());
 			}
@@ -544,6 +546,12 @@ public class MapProjections extends Application {
 	private double[] convCoordsToImg(double[] coords) { // changes [-1,1] coordinates to image coordinates
 		return new double[] {linMap(coords[0], -Math.PI,Math.PI, 0,IMG_WIDTH),
 				linMap(coords[1], -Math.PI,Math.PI, IMG_WIDTH,0)};
+	}
+	
+	
+	private double[] convCoordsToSVG(double[] coords) { // changes [-1,1] coordinates to image coordinates
+		return new double[] {linMap(coords[0], 0,IMG_WIDTH, -100,100),
+				linMap(coords[1], IMG_WIDTH,0, -100,100)};
 	}
 	
 	
