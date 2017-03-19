@@ -417,6 +417,7 @@ public class MapProjections extends Application {
 	private void saveToSVG(List<List<double[]>> curves, ProgressBarDialog pBar) {	// call from the main thread!
 		pBar.close();
 		final File f = saver.showSaveDialog(stage);
+		if (f == null)	return;
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(f));
 			
@@ -521,8 +522,8 @@ public class MapProjections extends Application {
 			return aitoff(lat, lon);
 		else if (p.equals("Hammer"))
 			return hammer(lat, lon);
-		//else if (p.equals("TetraGraph"))
-		//	return tetragraph(lat, lon);
+		else if (p.equals("TetraGraph"))
+			return tetragraph(lat, lon);
 		else if (p.equals("Experimental"))
 			return experiment(lat, lon);
 		else
@@ -735,62 +736,52 @@ public class MapProjections extends Application {
 	}
 	
 	
-	/*private static double[] tetragraph(double lat, double lon) { // a tetrahedral compromise
-		final double[] faceCenter = new double[3];
-		final double rot, localX, localY;
-		if (y < x-1) {
-			faceCenter[0] = -Math.PI/2;
-			faceCenter[1] = 0;
-			rot = -Math.PI/2;
-			localX = Math.sqrt(3)*(x-2/3.0);
-			localY = y+1;
+	private static double[] tetragraph(double lat, double lon) { // a tetrahedral compromise
+		final double[][] centrums = {{-Math.PI/2, 0, Math.PI/3},
+									{Math.asin(1/3.0), Math.PI, Math.PI/3},
+									{Math.asin(1/3.0), Math.PI/3, Math.PI/3},
+									{Math.asin(1/3.0), -Math.PI/3, -Math.PI/3}};
+		double latR = Double.NaN;
+		double lonR = Double.NaN;
+		byte poleIdx = -1;
+		for (byte i = 0; i < 4; i ++) {
+			final double[] relCoords = obliquify(centrums[i],
+					new double[] {lat,lon});
+			if (Double.isNaN(latR) || relCoords[0] > latR) {
+				latR = relCoords[0]; // pick the centrum that maxes out your latitude
+				lonR = relCoords[1];
+				poleIdx = i;
+			}
 		}
-		else if (y < -x-1) {
-			faceCenter[0] = -Math.PI/2;
-			faceCenter[1] = 0;
-			rot = Math.PI/2;
-			localX = Math.sqrt(3)*(x+2/3.0);
-			localY = y+1;
-		}
-		else if (y > -x+1) {
-			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
-			faceCenter[1] = Math.PI;
-			rot = -Math.PI/2;
-			localX = Math.sqrt(3)*(x-2/3.0);
-			localY = y-1;
-		}
-		else if (y > x+1) {
-			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
-			faceCenter[1] = Math.PI;
-			rot = Math.PI/2;
-			localX = Math.sqrt(3)*(x+2/3.0);
-			localY = y-1;
-		}
-		else if (x < 0) {
-			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
-			faceCenter[1] = -Math.PI/3;
-			rot = Math.PI/6;
-			localX = Math.sqrt(3)*(x+1/3.0);
-			localY = y;
-		}
-		else {
-			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
-			faceCenter[1] = Math.PI/3;
-			rot = -Math.PI/6;
-			localX = Math.sqrt(3)*(x-1/3.0);
-			localY = y;
-		}
-		faceCenter[2] = 0;
 		
-		final double t = Math.atan2(localY, localX) + rot;
-		final double t0 = Math.floor((t+Math.PI/2)/(2*Math.PI/3)+0.5)*(2*Math.PI/3) - Math.PI/2;
-		final double dt = t-t0;
+		double tht = lonR - Math.floor(lonR/(2*Math.PI/3))*(2*Math.PI/3) - Math.PI/3;
+		double r = 1.1*Math.atan(1/Math.tan(latR)*Math.cos(tht))/Math.cos(tht);
 		
-		double[] triCoords = {
-				Math.PI/2 - Math.atan(Math.tan(1.654*Math.hypot(localX, localY)*Math.cos(dt))/Math.cos(dt)),
-				Math.PI/2 + t0 + dt};
-		return obliquify(faceCenter, triCoords);
-	}*/
+		switch (poleIdx) {
+		case 0:
+			if (Math.sin(lon) < 0)
+				return new double[]
+						{-2*Math.PI/3 + r*Math.sin(lonR-Math.PI/6), -Math.PI/Math.sqrt(3) - r*Math.cos(lonR-Math.PI/6)}; // lower left
+			else
+				return new double[]
+						{2*Math.PI/3 - r*Math.sin(lonR-Math.PI/6), -Math.PI/Math.sqrt(3) + r*Math.cos(lonR-Math.PI/6)}; // lower right
+		case 1:
+			if (Math.sin(lon) < 0)
+				return new double[]
+						{-2*Math.PI/3 + r*Math.sin(lonR-Math.PI/6), Math.PI/Math.sqrt(3) - r*Math.cos(lonR-Math.PI/6)}; // upper left
+			else
+				return new double[]
+						{2*Math.PI/3 - r*Math.sin(lonR-Math.PI/6), Math.PI/Math.sqrt(3) + r*Math.cos(lonR-Math.PI/6)}; // upper right
+		case 2:
+			return new double[]
+					{Math.PI/3 + r*Math.cos(lonR), r*Math.sin(lonR)}; // right
+		case 3:
+			return new double[]
+					{-Math.PI/3 - r*Math.cos(lonR), -r*Math.sin(lonR)}; // left
+		default:
+			return null;
+		}
+	}
 	
 	
 	
