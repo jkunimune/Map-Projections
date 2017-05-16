@@ -45,7 +45,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import rastermaps.ProgressBarDialog;
+import util.ProgressBarDialog;
 import util.Vector;
 import util.WinkelTripel;
 
@@ -65,7 +65,7 @@ public class MapProjections extends Application {
 	
 	
 	private static final String[] PROJ_ARR = { "Equirectangular", "Mercator", "Gall Stereographic",
-			"Cylindrical Equal-Area", "Polar", "Stereographic", "Azimuthal Equal-Area", "Orthographic", "Gnomonic",
+			"Hobo-Dyer", "Polar", "Stereographic", "Azimuthal Equal-Area", "Orthographic", "Gnomonic",
 			"Lambert Conical", "Winkel Tripel", "Van der Grinten", "Mollweide", "Aitoff", "Hammer", "Sinusoidal",
 			"Pierce Quincuncial", "Guyou", "TetraGraph", "Magnifier", "Experimental" };
 	private static final String[] DESC = { "An equidistant cylindrical map", "A conformal cylindrical map",
@@ -483,7 +483,7 @@ public class MapProjections extends Application {
 	}
 	
 	
-	private static double[] project(double[] latLon, String p) {
+	public static double[] project(double[] latLon, String p) {
 		double lat = latLon[0];
 		double lon = latLon[1];
 		if (p.equals("Pierce Quincuncial"))
@@ -504,7 +504,7 @@ public class MapProjections extends Application {
 			return gnomonic(lat, lon);
 		else if (p.equals("Orthographic"))
 			return orthographic(lat, lon);
-		else if (p.equals("Cylindrical Equal-Area"))
+		else if (p.equals("Hobo-Dyer"))
 			return eaCylindrical(lat, lon);
 		else if (p.equals("Lambert Conical"))
 			return lambert(lat, lon);
@@ -662,7 +662,7 @@ public class MapProjections extends Application {
 	}
 	
 	private static double[] eaCylindrical(double lat, double lon) { // an equal-area cylindrical map
-		return new double[] {lon, Math.sin(lat)*Math.PI/2};
+		return new double[] {lon, Math.sin(lat)*Math.PI/1.977};
 	}
 	
 	private static double[] lambert(double lat, double lon) { // a conical projection

@@ -42,6 +42,7 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import mfc.field.Complex;
+import util.ProgressBarDialog;
 import util.WinkelTripel;
 
 /**
@@ -60,10 +61,10 @@ public class MapProjections extends Application {
 	
 	
 	private static final String[] PROJ_ARR = { "Equirectangular", "Mercator", "Gall Stereographic",
-			"Cylindrical Equal-Area", "Polar", "Stereographic", "Azimuthal Equal-Area", "Orthographic", "Gnomonic",
-			"Lambert Conical", "Winkel Tripel", "Van der Grinten", "Mollweide", "Hammer", "Sinusoidal", "Lemons",
+			"Hobo-Dyer", "Polar", "Stereographic", "Azimuthal Equal-Area", "Orthographic", "Gnomonic",
+			"Conformal Conic", "Winkel Tripel", "Van der Grinten", "Mollweide", "Hammer", "Sinusoidal", "Lemons",
 			"Pierce Quincuncial", "Guyou", "AuthaGraph", "TetraGraph", "Magnifier", "Experimental" };
-	private static final double[] DEFA = { 2, 1, 4/3.0, 2, 1, 1, 1, 1, 1, 2, Math.PI/2, 1, 2, 2,
+	private static final double[] DEFA = { 2, 1, 4/3.0, 1.977, 1, 1, 1, 1, 1, 2, Math.PI/2, 1, 2, 2,
 			2, 2, 1, 2, 4.0/Math.sqrt(3), Math.sqrt(3), 1, 1 };
 	private static final String[] DESC = { "An equidistant cylindrical map", "A conformal cylindrical map",
 			"A compromising cylindrical map", "An equal-area cylindrical map", "An equidistant azimuthal map",
@@ -81,7 +82,7 @@ public class MapProjections extends Application {
 			"What happens when you apply a complex differentiable function to a stereographic projection?" };
 	
 	private static final String[] AXES = { "Standard", "Transverse", "Center of Mass", "Jerusalem", "Point Nemo",
-			"Longest Line", "Longest Line Transverse", "Cylindrical", "Conical", "Quincuncial", "Antipode", "Random" };
+			"Longest Line", "Longest Line Transverse", "Cylindrical", "Conic", "Quincuncial", "Antipode", "Random" };
 	private static final double[] DEF_LATS = { 90, 0, 29.9792, 31.7833, 48.8767, -28.5217, -46.4883, -35, -10, 60 };
 	private static final double[] DEF_LONS = { 0, 0, 31.1344, 35.216, 56.6067, 141.451, 16.5305, -13.6064, 65, -6 };
 	private static final double[] DEF_THTS = { 0, 0, -32, -35, -45, 161.5, 137, 145, -150, -10 };
@@ -94,14 +95,13 @@ public class MapProjections extends Application {
 	private ComboBox<String> projectionChooser;
 	private Text projectionDesc;
 	private Slider latSlider, lonSlider, thtSlider;
-	private Button update;
-	private Button saveMap;
+	private Button update, saveMap;
 	private Image input;
 	private ImageView output;
 	
 	
 	
-	public static void main(String[] args) {
+	public static final void main(String[] args) {
 		launch(args);
 	}
 	
@@ -158,7 +158,6 @@ public class MapProjections extends Application {
 				}
 			}
 		});
-		projectionChooser.setPrefWidth(210);
 		projectionChooser.setValue(PROJ_ARR[1]);
 		layout.getChildren().add(new HBox(3, lbl, projectionChooser));
 		
@@ -390,70 +389,74 @@ public class MapProjections extends Application {
 				}
 				img.getPixelWriter().setArgb(x, y, blend(colors));
 			}
-			if (pbar != null)	pbar.setProgress((x+1.0)/outputWidth);
+			if (pbar != null)	pbar.setProgress(img.getProgress());
 		}
 		
 		return img;
 	}
 	
 	
-	public static int getArgb(double x, double y, String p, double[] pole,
+	public static int getArgb(double x, double y, String proj, double[] pole,
 			PixelReader ref, int[] refDims, int[] outDims) {
-		final double X = 2.0*x/outDims[0]-1;
-		final double Y = 1-2.0*y/outDims[1];
-		
-		double[] coords;
-		if (p.equals("Pierce Quincuncial"))
-			coords = quincuncial(X, Y);
-		else if (p.equals("Equirectangular"))
-			coords = equirectangular(X, Y);
-		else if (p.equals("Mercator"))
-			coords = mercator(X, Y);
-		else if (p.equals("Polar"))
-			coords = polar(X, Y);
-		else if (p.equals("Gall Stereographic"))
-			coords = gall(X, Y);
-		else if (p.equals("Sinusoidal"))
-			coords = sinusoidal(X, Y);
-		else if (p.equals("Stereographic"))
-			coords = stereographic(X, Y);
-		else if (p.equals("Gnomonic"))
-			coords = gnomonic(X, Y);
-		else if (p.equals("Orthographic"))
-			coords = orthographic(X, Y);
-		else if (p.equals("Cylindrical Equal-Area"))
-			coords = eaCylindrical(X, Y);
-		else if (p.equals("Lambert Conical"))
-			coords = lambert(X, Y);
-		else if (p.equals("Lemons"))
-			coords = lemons(X, Y);
-		else if (p.equals("Azimuthal Equal-Area"))
-			coords = eaAzimuth(X, Y);
-		else if (p.equals("Guyou"))
-			coords = quinshift(X, Y);
-		else if (p.equals("Mollweide"))
-			coords = mollweide(X, Y);
-		else if (p.equals("Winkel Tripel"))
-			coords = winkel_tripel(X, Y);
-		else if (p.equals("Van der Grinten"))
-			coords = grinten(X, Y);
-		else if (p.equals("Magnifier"))
-			coords = magnus(X, Y);
-		else if (p.equals("Hammer"))
-			coords = hammer(X, Y);
-		else if (p.equals("AuthaGraph"))
-			coords = authagraph(X, Y);
-		else if (p.equals("TetraGraph"))
-			coords = tetragraph(X, Y);
-		else if (p.equals("Experimental"))
-			coords = experiment(X, Y);
-		else
-			throw new IllegalArgumentException(p);
+		double[] coords = project(x, y, proj, outDims);
 		
 		if (coords != null)
 			return getColorAt(obliquify(pole, coords), ref, refDims);
 		else
 			return 0;
+	}
+	
+	
+	public static double[] project(double x, double y, String p, int[] dims) { //apply a map projection
+		final double X = 2.0*x/dims[0]-1;
+		final double Y = 1-2.0*y/dims[1];
+		
+		if (p.equals("Pierce Quincuncial"))
+			return quincuncial(X, Y);
+		else if (p.equals("Equirectangular"))
+			return equirectangular(X, Y);
+		else if (p.equals("Mercator"))
+			return mercator(X, Y);
+		else if (p.equals("Polar"))
+			return polar(X, Y);
+		else if (p.equals("Gall Stereographic"))
+			return gall(X, Y);
+		else if (p.equals("Sinusoidal"))
+			return sinusoidal(X, Y);
+		else if (p.equals("Stereographic"))
+			return stereographic(X, Y);
+		else if (p.equals("Gnomonic"))
+			return gnomonic(X, Y);
+		else if (p.equals("Orthographic"))
+			return orthographic(X, Y);
+		else if (p.equals("Hobo-Dyer"))
+			return eaCylindrical(X, Y);
+		else if (p.equals("Conformal Conic"))
+			return lambert(X, Y);
+		else if (p.equals("Lemons"))
+			return lemons(X, Y);
+		else if (p.equals("Azimuthal Equal-Area"))
+			return eaAzimuth(X, Y);
+		else if (p.equals("Guyou"))
+			return quinshift(X, Y);
+		else if (p.equals("Mollweide"))
+			return mollweide(X, Y);
+		else if (p.equals("Winkel Tripel"))
+			return winkel_tripel(X, Y);
+		else if (p.equals("Van der Grinten"))
+			return grinten(X, Y);
+		else if (p.equals("Magnifier"))
+			return magnus(X, Y);
+		else if (p.equals("Hammer"))
+			return hammer(X, Y);
+		else if (p.equals("AuthaGraph"))
+			return authagraph(X, Y);
+		else if (p.equals("TetraGraph"))
+			return tetragraph(X, Y);
+		else if (p.equals("Experimental"))
+			return experiment(X, Y);
+		else
+			throw new IllegalArgumentException(p);
 	}
 	
 	

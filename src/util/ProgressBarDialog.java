@@ -1,4 +1,4 @@
-package vectormaps;
+package util;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;

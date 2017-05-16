@@ -14,6 +14,7 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+import util.ProgressBarDialog;
 
 public class MapConfigurationDialog extends Dialog<Thread> {
 
