@@ -389,7 +389,7 @@ public class MapProjections extends Application {
 				}
 				img.getPixelWriter().setArgb(x, y, blend(colors));
 			}
-			if (pbar != null)	pbar.setProgress(img.getProgress());
+			if (pbar != null)	pbar.setProgress((double)(x+1)/outputWidth);
 		}
 		
 		return img;

@@ -88,14 +88,12 @@ public class MapAnalyzer extends Application {
 	@Override
 	public void start(Stage primaryStage) {
 		stage = primaryStage;
-		stage.setTitle("Map Designer");
+		stage.setTitle("Map Analyzer");
 		
 		final VBox layout = new VBox();
 		layout.setSpacing(5);
 		layout.setAlignment(Pos.CENTER);
 		layout.setPrefWidth(CONT_WIDTH);
-		
-		layout.getChildren().add(new Separator());
 		
 		Label lbl = new Label("Projection:");
 		ObservableList<String> items = FXCollections.observableArrayList(PROJ_ARR);
@@ -117,8 +115,6 @@ public class MapAnalyzer extends Application {
 		projectionDesc.setWrappingWidth(CONT_WIDTH);
 		layout.getChildren().add(projectionDesc);
 		
-		layout.getChildren().add(new Separator());
-		
 		calculate = new Button("Calculate");
 		calculate.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
@@ -132,19 +128,19 @@ public class MapAnalyzer extends Application {
 		saver = new FileChooser();
 		saver.setInitialDirectory(new File("output"));
 		saver.setInitialFileName("myMap.jpg");
-		saver.setTitle("Save Map");
+		saver.setTitle("Save Image");
 		saver.getExtensionFilters().addAll(
 				new FileChooser.ExtensionFilter("JPG", "*.jpg"),
 				new FileChooser.ExtensionFilter("PNG", "*.png"));
 		
-		saveMap = new Button("Save Map...");
+		saveMap = new Button("Save Image...");
 		saveMap.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
 				startFinalizingMap();
 			}
 		});
-		saveMap.setTooltip(new Tooltip("Save the map with current settings."));
-		stage.addEventHandler(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {	// ctrl-S saves
+		saveMap.setTooltip(new Tooltip("Save the distortion graphic."));
+		stage.addEventHandler(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {	//ctrl-S saves
 			public void handle(KeyEvent event) {
 				if (ctrlS.match(event))	saveMap.fire();
 			}
@@ -206,7 +202,15 @@ public class MapAnalyzer extends Application {
 	}
 	
 	
-	private double[][][] calculateDistortion(int size) { //generate a matrix of distortion values
+	private double[][][] calculateDistortion(int size) {
+		return calculateDistortion(size, null);
+	}
+	
+	
+	private double[][][] calculateDistortion(int size, ProgressBarDialog pBar) { //generate a matrix of distortion values
+		if (pBar != null)
+			pBar.setProgress(0);
+		
 		final String proj = projectionChooser.getValue();
 		int projIdx = 0;
 		for (int i = 0; i < PROJ_ARR.length; i ++) {
@@ -242,15 +246,22 @@ public class MapAnalyzer extends Application {
 				final double s1ps2 = Math.hypot((p1[0]-p0[0])+(p2[1]-p0[1]), (p1[1]-p0[1])-(p2[0]-p0[0]));
 				final double s1ms2 = Math.hypot((p1[0]-p0[0])-(p2[1]-p0[1]), (p1[1]-p0[1])+(p2[0]-p0[0]));
 				final double factor = Math.abs((s1ps2+s1ms2)/(s1ps2-s1ms2)); //there's some linear algebra behind this formula. Don't worry about it.
-				output[1][y][x] = Math.abs(Math.log(factor));
+				if (factor <= 1)
+					output[1][y][x] = 1 - factor; //the first matrix is the shape (angular) distortion
+				else
+					output[1][y][x] = 1 - 1/factor;
 			}
+			if (pBar != null)
+				pBar.setProgress((double)(y+1)/output[0].length);
 		}
 		
 		final double avgScale = average(scales);
 		for (int y = 0; y < output[0].length; y ++)
 			for (int x = 0; x < output[0][y].length; x ++)
-				output[0][y][x] = Math.log(scales[y][x]/avgScale);
+				output[0][y][x] = Math.log(scales[y][x]/avgScale); //the zeroth matrix is the size (area) distortion
 		
+		if (pBar != null)
+			pBar.setProgress(-1);
 		return output;
 	}
 	
@@ -264,29 +275,24 @@ public class MapAnalyzer extends Application {
 		ProgressBarDialog pBar = new ProgressBarDialog();
 		pBar.show();
 		new Thread(() -> {
-			final double[][][] distortion = calculateDistortion(1000);
-			Image graphic = makeGraphic(distortion, pBar);
+			final double[][][] distortion = calculateDistortion(1000, pBar);
+			Image graphic = makeGraphic(distortion);
 			Platform.runLater(() -> saveImage(graphic, pBar));
 		}).start();
 	}
 	
 	
 	private Image makeGraphic(double[][][] distortion) {
-		return makeGraphic(distortion, null);
-	}
-	
-	
-	private Image makeGraphic(double[][][] distortion, ProgressBarDialog pBar) {
-		if (pBar != null)
-			pBar.setProgress(0);
-		
 		WritableImage output = new WritableImage(distortion[0][0].length, distortion[0].length);
 		PixelWriter writer = output.getPixelWriter();
 		for (int y = 0; y < distortion[0].length; y ++) {
 			for (int x = 0; x < distortion[0][y].length; x ++) {
 				final double sizeDistort = distortion[0][y][x];
 				final double shapeDistort = distortion[1][y][x];
-				int r = (int)Math.max(0,Math.min(255,shapeDistort*100)); //red is proportional to shape distortion
+				int r = 0;
+				if (Double.isFinite(shapeDistort))
+					r = (int)(256*shapeDistort); //red is proportional to shape distortion
+				
 				int g = 0, b = 0;
 				if (Double.isFinite(sizeDistort)) {
 					if (sizeDistort < 0)
@@ -294,14 +300,11 @@ public class MapAnalyzer extends Application {
 					else
 						b = (int)Math.max(0,Math.min(255, sizeDistort*75)); //blue is proportional to dilation
 				}
+				
 				final int argb = ((((((0xFF)<<8)+r)<<8)+g)<<8)+b;
 				writer.setArgb(x, y, argb);
 			}
-			if (pBar != null)
-				pBar.setProgress(output.getProgress());
 		}
-				
-		
 		return output;
 	}
 	
