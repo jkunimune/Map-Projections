@@ -506,7 +506,7 @@ public class MapProjections extends Application {
 			return orthographic(lat, lon);
 		else if (p.equals("Hobo-Dyer"))
 			return eaCylindrical(lat, lon);
-		else if (p.equals("Lambert Conical"))
+		else if (p.equals("Conformal Conic"))
 			return lambert(lat, lon);
 		else if (p.equals("Azimuthal Equal-Area"))
 			return eaAzimuth(lat, lon);

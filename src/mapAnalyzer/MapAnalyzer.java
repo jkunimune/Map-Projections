@@ -51,10 +51,10 @@ public class MapAnalyzer extends Application {
 	
 	private static final String[] PROJ_ARR = { "Equirectangular", "Mercator", "Gall Stereographic",
 			"Hobo-Dyer", "Polar", "Stereographic", "Azimuthal Equal-Area", "Orthographic", "Gnomonic",
-			"Conformal Conic", "Winkel Tripel", "Van der Grinten", "Mollweide", "Hammer", "Sinusoidal", "Lemons",
-			"Pierce Quincuncial", "Guyou", "AuthaGraph", "TetraGraph", "Magnifier", "Experimental" };
+			"Conformal Conic", "Winkel Tripel", "Van der Grinten", "Mollweide", "Hammer", "Sinusoidal",
+			"Pierce Quincuncial", "Guyou", "TetraGraph", "Magnifier", "Experimental" };
 	private static final double[] DEFA = { 2, 1, 4/3.0, 1.977, 1, 1, 1, 1, 1, 2, Math.PI/2, 1, 2, 2,
-			2, 2, 1, 2, 4.0/Math.sqrt(3), Math.sqrt(3), 1, 1 };
+			2, 1, 2, 4.0/Math.sqrt(3), 1, 1 };
 	private static final String[] DESC = { "An equidistant cylindrical map", "A conformal cylindrical map",
 			"A compromising cylindrical map", "An equal-area cylindrical map", "An equidistant azimuthal map",
 			"A conformal azimuthal map", "An equal-area azimuthal map",
@@ -62,10 +62,9 @@ public class MapAnalyzer extends Application {
 			"Every straight line on the map is a straight line on the sphere", "A conformal conical map",
 			"The compromise map used by National Geographic (caution: very slow)", "A circular compromise map",
 			"An equal-area map shaped like an ellipse", "An equal-area map shaped like an elipse",
-			"An equal-area map shaped like a sinusoid", "BURN LIFE'S HOUSE DOWN!",
+			"An equal-area map shaped like a sinusoid",
 			"A conformal square map that uses complex math",
 			"A reorganized version of Pierce Quincuncial and actually the best map ever",
-			"An almost-equal-area map based on a tetrahedron.",
 			"A compromising knockoff of the AuthaGraph projection",
 			"A novelty map that swells the center to disproportionate scale",
 			"What happens when you apply a complex differentiable function to a stereographic projection?" };
@@ -224,16 +223,26 @@ public class MapAnalyzer extends Application {
 		for (int y = 0; y < output[0].length; y ++) {
 			for (int x = 0; x < output[0][y].length; x ++) {
 				final double[] s0 = rastermaps.MapProjections.project(x, y, proj, dims); //s0 is this point on the sphere
-				final double[] s1 = { s0[0]+dx, s0[1] }; //consider a point slightly to the north
-				final double[] s2 = { s0[0], s0[1]+dx/Math.cos(s0[0]) }; //and slightly to the east
+				if (s0 == null) {
+					scales[y][x] = Double.NaN;
+					output[1][y][x] = Double.NaN;
+					continue;
+				}
+				final double[] s1 = { s0[0], s0[1]+dx/Math.cos(s0[0]) }; //consider a point slightly to the east
+				final double[] s2 = { s0[0]+dx, s0[1] }; //and slightly to the north
 				final double[] p0 = vectormaps.MapProjections.project(s0, proj);
 				final double[] p1 = vectormaps.MapProjections.project(s1, proj);
 				final double[] p2 = vectormaps.MapProjections.project(s2, proj);
+				
 				scales[y][x] = Math.abs(
-						(p1[0]-p0[0])*(p2[1]-p0[1]) - (p1[1]-p0[1])*(p2[0]-p0[0]));
-				if (scales[y][x] >= 1) //if the scale is huge
+						(p1[0]-p0[0])*(p2[1]-p0[1]) - (p1[1]-p0[1])*(p2[0]-p0[0]))/(dx*dx);
+				if (scales[y][x] >= 1e6 || scales[y][x] < 1e-6) //if the scale is crazy
 					scales[y][x] = Double.NaN; //just don't worry about it
-				output[1][y][x] = 0; //TODO: this
+				
+				final double s1ps2 = Math.hypot((p1[0]-p0[0])+(p2[1]-p0[1]), (p1[1]-p0[1])-(p2[0]-p0[0]));
+				final double s1ms2 = Math.hypot((p1[0]-p0[0])-(p2[1]-p0[1]), (p1[1]-p0[1])+(p2[0]-p0[0]));
+				final double factor = Math.abs((s1ps2+s1ms2)/(s1ps2-s1ms2)); //there's some linear algebra behind this formula. Don't worry about it.
+				output[1][y][x] = Math.abs(Math.log(factor));
 			}
 		}
 		
@@ -277,13 +286,13 @@ public class MapAnalyzer extends Application {
 			for (int x = 0; x < distortion[0][y].length; x ++) {
 				final double sizeDistort = distortion[0][y][x];
 				final double shapeDistort = distortion[1][y][x];
-				int r = (int)Math.max(0,Math.min(255,shapeDistort*32)); //red is proportional to shape distortion
+				int r = (int)Math.max(0,Math.min(255,shapeDistort*100)); //red is proportional to shape distortion
 				int g = 0, b = 0;
 				if (Double.isFinite(sizeDistort)) {
 					if (sizeDistort < 0)
-						g = (int)Math.max(0,Math.min(255,-sizeDistort*64)); //green is proportional to contraction
+						g = (int)Math.max(0,Math.min(255,-sizeDistort*75)); //green is proportional to contraction
 					else
-						b = (int)Math.max(0,Math.min(255, sizeDistort*64)); //blue is proportional to dilation
+						b = (int)Math.max(0,Math.min(255, sizeDistort*75)); //blue is proportional to dilation
 				}
 				final int argb = ((((((0xFF)<<8)+r)<<8)+g)<<8)+b;
 				writer.setArgb(x, y, argb);
@@ -317,7 +326,7 @@ public class MapAnalyzer extends Application {
 		double s = 0, n = 0;
 		for (double[] row: distortion) {
 			for (double x: row) {
-				if (Double.isFinite(x)) { //ignore NaN values in the average
+				if (Double.isFinite(x) && x > .02 && x < 50) { //ignore NaN values in the average
 					s += x;
 					n += 1;
 				}
