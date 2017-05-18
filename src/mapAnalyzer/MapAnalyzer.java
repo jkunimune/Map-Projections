@@ -54,13 +54,13 @@ public class MapAnalyzer extends Application {
 			"Conformal Conic", "Winkel Tripel", "Van der Grinten", "Mollweide", "Hammer", "Sinusoidal",
 			"Pierce Quincuncial", "Guyou", "TetraGraph", "Magnifier", "Experimental" };
 	private static final double[] DEFA = { 2, 1, 4/3.0, 1.977, 1, 1, 1, 1, 1, 2, Math.PI/2, 1, 2, 2,
-			2, 1, 2, 4.0/Math.sqrt(3), 1, 1 };
+			2, 1, 2, Math.sqrt(3), 1, 1 };
 	private static final String[] DESC = { "An equidistant cylindrical map", "A conformal cylindrical map",
 			"A compromising cylindrical map", "An equal-area cylindrical map", "An equidistant azimuthal map",
 			"A conformal azimuthal map", "An equal-area azimuthal map",
 			"Represents earth viewed from an infinite distance",
 			"Every straight line on the map is a straight line on the sphere", "A conformal conical map",
-			"The compromise map used by National Geographic (caution: very slow)", "A circular compromise map",
+			"The compromise map used by National Geographic", "A circular compromise map",
 			"An equal-area map shaped like an ellipse", "An equal-area map shaped like an elipse",
 			"An equal-area map shaped like a sinusoid",
 			"A conformal square map that uses complex math",
@@ -154,9 +154,11 @@ public class MapAnalyzer extends Application {
 		
 		avgSizeDistort = new Label("Average size distortion: ");
 		avgShapeDistort = new Label("Average shape distortion: ");
+		lbl = new Label("Blue areas are dilated, red areas are compressed, and black areas are skewed.");
+		lbl.setWrapText(true);
 		
-		VBox bxo = new VBox(3, avgSizeDistort, avgShapeDistort);
-		bxo.setAlignment(Pos.CENTER);
+		VBox bxo = new VBox(3, avgSizeDistort, avgShapeDistort, lbl);
+		bxo.setAlignment(Pos.CENTER_LEFT);
 		layout.getChildren().add(bxo);
 		
 		output = new ImageView();
@@ -220,7 +222,7 @@ public class MapAnalyzer extends Application {
 			}
 		}
 		
-		final double dx = 1e-4;
+		final double dx = 1e-5;
 		final int[] dims = {size, (int)(size/DEFA[projIdx])};
 		double[][][] output = new double[2][dims[1]][dims[0]]; //the distortion matrix
 		double[][] scales = new double[dims[1]][dims[0]]; //an intermediate matrix for size distortion
@@ -229,7 +231,7 @@ public class MapAnalyzer extends Application {
 				final double[] s0 = rastermaps.MapProjections.project(x, y, proj, dims); //s0 is this point on the sphere
 				if (s0 == null) {
 					scales[y][x] = Double.NaN;
-					output[1][y][x] = Double.NaN;
+					output[1][y][x] = Double.NaN; //NaN means no map here
 					continue;
 				}
 				final double[] s1 = { s0[0], s0[1]+dx/Math.cos(s0[0]) }; //consider a point slightly to the east
@@ -241,7 +243,7 @@ public class MapAnalyzer extends Application {
 				scales[y][x] = Math.abs(
 						(p1[0]-p0[0])*(p2[1]-p0[1]) - (p1[1]-p0[1])*(p2[0]-p0[0]))/(dx*dx);
 				if (scales[y][x] >= 1e6 || scales[y][x] < 1e-6) //if the scale is crazy
-					scales[y][x] = Double.NaN; //just don't worry about it
+					scales[y][x] = Double.POSITIVE_INFINITY; //just don't worry about it
 				
 				final double s1ps2 = Math.hypot((p1[0]-p0[0])+(p2[1]-p0[1]), (p1[1]-p0[1])-(p2[0]-p0[0]));
 				final double s1ms2 = Math.hypot((p1[0]-p0[0])-(p2[1]-p0[1]), (p1[1]-p0[1])+(p2[0]-p0[0]));
@@ -260,8 +262,6 @@ public class MapAnalyzer extends Application {
 			for (int x = 0; x < output[0][y].length; x ++)
 				output[0][y][x] = Math.log(scales[y][x]/avgScale); //the zeroth matrix is the size (area) distortion
 		
-		if (pBar != null)
-			pBar.setProgress(-1);
 		return output;
 	}
 	
@@ -289,16 +289,21 @@ public class MapAnalyzer extends Application {
 			for (int x = 0; x < distortion[0][y].length; x ++) {
 				final double sizeDistort = distortion[0][y][x];
 				final double shapeDistort = distortion[1][y][x];
-				int r = 0;
-				if (Double.isFinite(shapeDistort))
-					r = (int)(256*shapeDistort); //red is proportional to shape distortion
+				if (Double.isNaN(sizeDistort) || Double.isNaN(shapeDistort)) {
+					writer.setArgb(x, y, 0);
+					continue;
+				}
 				
-				int g = 0, b = 0;
-				if (Double.isFinite(sizeDistort)) {
-					if (sizeDistort < 0)
-						g = (int)Math.max(0,Math.min(255,-sizeDistort*75)); //green is proportional to contraction
-					else
-						b = (int)Math.max(0,Math.min(255, sizeDistort*75)); //blue is proportional to dilation
+				final int r, g, b;
+				if (sizeDistort < 0) { //if compressing
+					r = (int)(256*(1-shapeDistort));
+					g = (int)(256*(1-shapeDistort)*(1-Math.min(1, -sizeDistort/3)));
+					b = g;
+				}
+				else { //if dilating
+					r = (int)(256*(1-shapeDistort)*(1-Math.min(1, sizeDistort/3)));
+					g = r;
+					b = (int)(256*(1-shapeDistort));
 				}
 				
 				final int argb = ((((((0xFF)<<8)+r)<<8)+g)<<8)+b;

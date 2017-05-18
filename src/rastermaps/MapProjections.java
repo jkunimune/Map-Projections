@@ -71,7 +71,7 @@ public class MapProjections extends Application {
 			"A conformal azimuthal map", "An equal-area azimuthal map",
 			"Represents earth viewed from an infinite distance",
 			"Every straight line on the map is a straight line on the sphere", "A conformal conical map",
-			"The compromise map used by National Geographic (caution: very slow)", "A circular compromise map",
+			"The compromise map used by National Geographic", "A circular compromise map",
 			"An equal-area map shaped like an ellipse", "An equal-area map shaped like an elipse",
 			"An equal-area map shaped like a sinusoid", "BURN LIFE'S HOUSE DOWN!",
 			"A conformal square map that uses complex math",
@@ -124,8 +124,7 @@ public class MapProjections extends Application {
 		inputChooser.setInitialDirectory(new File("input"));
 		inputChooser.setTitle("Choose an input map");
 		inputChooser.getExtensionFilters().addAll(
-				new FileChooser.ExtensionFilter("All Images", "*.*"),
-				new FileChooser.ExtensionFilter("JPG", "*.jpg"),
+				new FileChooser.ExtensionFilter("JPG", "*.jpg; *.jpeg; *.jpe; *.jfif"),
 				new FileChooser.ExtensionFilter("PNG", "*.png"));
 		
 		changeInput = new Button("Choose input...");
