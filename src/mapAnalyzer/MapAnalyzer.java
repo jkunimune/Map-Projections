@@ -54,18 +54,18 @@ public class MapAnalyzer extends Application {
 	
 	private static final String[] PROJ_ARR = { "Equirectangular", "Mercator", "Gall Stereographic",
 			"Hobo-Dyer", "Polar", "Stereographic", "Azimuthal Equal-Area", "Orthographic", "Gnomonic",
-			"Conformal Conic", "Winkel Tripel", "Van der Grinten", "Mollweide", "Hammer", "Sinusoidal",
+			"Equidistant Conic", "Conformal Conic", "Albers", "Winkel Tripel", "Van der Grinten", "Mollweide", "Hammer", "Sinusoidal",
 			"Pierce Quincuncial", "Guyou", "TetraGraph", "Magnifier", "Experimental" };
-	private static final double[] DEFA = { 2, 1, 4/3.0, 1.977, 1, 1, 1, 1, 1, 2, Math.PI/2, 1, 2, 2,
-			2, 1, 2, Math.sqrt(3), 1, 1 };
+	private static final double[] DEFA = { 2, 1, 4/3.0, 1.977, 1, 1, 1, 1, 1,
+			2, 2, 2, Math.PI/2, 1, 2, 2, 2, 1, 2, Math.sqrt(3), 1, 1 };
 	private static final String[] DESC = { "An equidistant cylindrical map", "A conformal cylindrical map",
 			"A compromising cylindrical map", "An equal-area cylindrical map", "An equidistant azimuthal map",
 			"A conformal azimuthal map", "An equal-area azimuthal map",
 			"Represents earth viewed from an infinite distance",
-			"Every straight line on the map is a straight line on the sphere", "A conformal conical map",
-			"The compromise map used by National Geographic", "A circular compromise map",
-			"An equal-area map shaped like an ellipse", "An equal-area map shaped like an elipse",
-			"An equal-area map shaped like a sinusoid",
+			"Every straight line on the map is a straight line on the sphere", "An equidistant conic map",
+			"A conformal conic map", "An equal-area conic map", "The compromise map used by National Geographic",
+			"A circular compromise map", "An equal-area map shaped like an ellipse",
+			"An equal-area map shaped like an ellipse", "An equal-area map shaped like a sinusoid",
 			"A conformal square map that uses complex math",
 			"A reorganized version of Pierce Quincuncial and actually the best map ever",
 			"A compromising knockoff of the AuthaGraph projection",
@@ -222,8 +222,8 @@ public class MapAnalyzer extends Application {
 			Platform.runLater(() -> saveImage(graphic, pBar));
 		}).start();
 	}
-
-
+	
+	
 	public void saveImage(Image img, ProgressBarDialog pBar) { // call from the main thread!
 		pBar.close();
 		
@@ -363,8 +363,8 @@ public class MapAnalyzer extends Application {
 		}
 		return output;
 	}
-
-
+	
+	
 	private final double average(double[][] values) { //get the average
 		double s = 0, n = 0;
 		for (double[] row: values) {

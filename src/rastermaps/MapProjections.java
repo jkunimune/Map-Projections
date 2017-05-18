@@ -60,24 +60,26 @@ public class MapProjections extends Application {
 	private static final KeyCombination ctrlS = new KeyCodeCombination(KeyCode.S, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	private static final String[] PROJ_ARR = { "Equirectangular", "Mercator", "Gall Stereographic",
-			"Hobo-Dyer", "Polar", "Stereographic", "Azimuthal Equal-Area", "Orthographic", "Gnomonic",
-			"Conformal Conic", "Winkel Tripel", "Van der Grinten", "Mollweide", "Hammer", "Sinusoidal", "Lemons",
-			"Pierce Quincuncial", "Guyou", "AuthaGraph", "TetraGraph", "Magnifier", "Experimental" };
-	private static final double[] DEFA = { 2, 1, 4/3.0, 1.977, 1, 1, 1, 1, 1, 2, Math.PI/2, 1, 2, 2,
-			2, 2, 1, 2, 4.0/Math.sqrt(3), Math.sqrt(3), 1, 1 };
+	private static final String[] PROJ_ARR = { "Equirectangular", "Mercator",
+			"Gall Stereographic", "Hobo-Dyer", "Polar", "Stereographic",
+			"Azimuthal Equal-Area", "Orthographic", "Gnomonic",
+			"Equidistant Conic", "Conformal Conic", "Albers", "Winkel Tripel",
+			"Van der Grinten", "Mollweide", "Hammer", "Sinusoidal", "Lemons",
+			"Pierce Quincuncial", "Guyou", "AuthaGraph", "TetraGraph",
+			"Magnifier", "Experimental" };
+	private static final double[] DEFA = { 2, 1, 4 / 3.0, 1.977, 1, 1, 1, 1, 1, 2, 2, 2, Math.PI / 2, 1, 2, 2, 2, 2,
+			1, 2, 4.0 / Math.sqrt(3), Math.sqrt(3), 1, 1 };
 	private static final String[] DESC = { "An equidistant cylindrical map", "A conformal cylindrical map",
 			"A compromising cylindrical map", "An equal-area cylindrical map", "An equidistant azimuthal map",
 			"A conformal azimuthal map", "An equal-area azimuthal map",
 			"Represents earth viewed from an infinite distance",
-			"Every straight line on the map is a straight line on the sphere", "A conformal conical map",
-			"The compromise map used by National Geographic", "A circular compromise map",
-			"An equal-area map shaped like an ellipse", "An equal-area map shaped like an elipse",
-			"An equal-area map shaped like a sinusoid", "BURN LIFE'S HOUSE DOWN!",
-			"A conformal square map that uses complex math",
+			"Every straight line on the map is a straight line on the sphere", "An equidistant conic map",
+			"A conformal conic map", "An equal-area conic map", "The compromise map used by National Geographic",
+			"A circular compromise map", "An equal-area map shaped like an ellipse",
+			"An equal-area map shaped like an ellipse", "An equal-area map shaped like a sinusoid",
+			"BURN LIFE'S HOUSE DOWN!", "A conformal square map that uses complex math",
 			"A reorganized version of Pierce Quincuncial and actually the best map ever",
-			"An almost-equal-area map based on a tetrahedron.",
-			"A compromising knockoff of the AuthaGraph projection",
+			"An almost-equal-area map based on a tetrahedron.", "A compromising knockoff of the AuthaGraph projection",
 			"A novelty map that swells the center to disproportionate scale",
 			"What happens when you apply a complex differentiable function to a stereographic projection?" };
 	
@@ -454,6 +456,10 @@ public class MapProjections extends Application {
 			return tetragraph(X, Y);
 		else if (p.equals("Experimental"))
 			return experiment(X, Y);
+		else if (p.equals("Equidistant Conic"))
+			return edConic(X, Y);
+		else if (p.equals("Albers"))
+			return albers(X, Y);
 		else
 			throw new IllegalArgumentException(p);
 	}
@@ -801,6 +807,26 @@ public class MapProjections extends Application {
 				Math.PI/2 - Math.atan(Math.tan(1.654*Math.hypot(localX, localY)*Math.cos(dt))/Math.cos(dt)),
 				Math.PI/2 + t0 + dt};
 		return obliquify(faceCenter, triCoords);
+	}
+	
+	
+	private static double[] edConic(double x, double y) {
+		y = (y-1)/2;
+		final double r = Math.hypot(x, y);
+		if (r < 0.2 || r > 1)	return null;
+		return new double[] {
+				3*Math.PI/4 - 5*Math.PI/4*r,
+				2*Math.atan2(y, x)+Math.PI};
+	}
+	
+	
+	private static double[] albers(double x, double y) {
+		y = (y-1)/2;
+		final double r = Math.hypot(x, y);
+		if (r < Math.sqrt(1/11.) || r > 1)	return null;
+		return new double[] {
+				Math.asin(1.2-2.2*Math.pow(r, 2)),
+				2*Math.atan2(y, x)};
 	}
 	
 	

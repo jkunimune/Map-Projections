@@ -64,19 +64,22 @@ public class MapProjections extends Application {
 	private static final KeyCombination ctrlS = new KeyCodeCombination(KeyCode.S, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	private static final String[] PROJ_ARR = { "Equirectangular", "Mercator", "Gall Stereographic",
-			"Hobo-Dyer", "Polar", "Stereographic", "Azimuthal Equal-Area", "Orthographic", "Gnomonic",
-			"Lambert Conical", "Winkel Tripel", "Van der Grinten", "Mollweide", "Aitoff", "Hammer", "Sinusoidal",
-			"Pierce Quincuncial", "Guyou", "TetraGraph", "Magnifier", "Experimental" };
+	private static final String[] PROJ_ARR = { "Equirectangular", "Mercator",
+			"Gall Stereographic", "Hobo-Dyer", "Polar", "Stereographic",
+			"Azimuthal Equal-Area", "Orthographic", "Gnomonic",
+			"Equidistant Conic", "Conformal Conic", "Albers", "Winkel Tripel",
+			"Van der Grinten", "Mollweide", "Aitoff", "Hammer", "Sinusoidal",
+			"Pierce Quincuncial", "Guyou", "TetraGraph", "Magnifier",
+			"Experimental" };
 	private static final String[] DESC = { "An equidistant cylindrical map", "A conformal cylindrical map",
 			"A compromising cylindrical map", "An equal-area cylindrical map", "An equidistant azimuthal map",
 			"A conformal azimuthal map", "An equal-area azimuthal map",
 			"Represents earth viewed from an infinite distance",
-			"Every straight line on the map is a straight line on the sphere", "A conformal conical map",
-			"The compromise map used by National Geographic", "A circular compromise map",
-			"An equal-area map shaped like an ellipse", "An equal-area map shaped like an elipse",
-			"An equal-area map shaped like an elipse", "An equal-area map shaped like a sinusoid",
-			"A conformal square map that uses complex math",
+			"Every straight line on the map is a straight line on the sphere", "An equidistant conic map",
+			"A conformal conic map", "An equal-area conic map", "The compromise map used by National Geographic",
+			"A circular compromise map", "An equal-area map shaped like an ellipse",
+			"An equal-area map shaped like an ellipse", "An equal-area map shaped like an ellipse",
+			"An equal-area map shaped like a sinusoid", "A conformal square map that uses complex math",
 			"A reorganized version of Pierce Quincuncial and actually the best map ever",
 			"A compromising knockoff of the AuthaGraph projection",
 			"A novelty map that swells the center to disproportionate scale",
@@ -528,6 +531,10 @@ public class MapProjections extends Application {
 			return tetragraph(lat, lon);
 		else if (p.equals("Experimental"))
 			return experiment(lat, lon);
+		else if (p.equals("Equidistant Conic"))
+			return edConic(lat, lon);
+		else if (p.equals("Albers"))
+			return albers(lat, lon);
 		else
 			throw new IllegalArgumentException(p);
 	}
@@ -789,6 +796,20 @@ public class MapProjections extends Application {
 		default:
 			return null;
 		}
+	}
+	
+	
+	private static double[] edConic(double lat, double lon) {
+		final double r = 3*Math.PI/5 - 4/5.*lat;
+		final double tht = lon/2 - Math.PI/2;
+		return new double[] { r*Math.cos(tht), r*Math.sin(tht) + Math.PI/2 };
+	}
+	
+	
+	private static double[] albers(double lat, double lon) {
+		final double r = 2*Math.sqrt(1.2 - Math.sin(lat));
+		final double tht = lon/2 - Math.PI/2;
+		return new double[] { r*Math.cos(tht), r*Math.sin(tht) + Math.PI/2 };
 	}
 	
 	
