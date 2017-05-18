@@ -1,6 +1,9 @@
 package mapAnalyzer;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.imageio.ImageIO;
 
 import javafx.application.Application;
@@ -153,7 +156,7 @@ public class MapAnalyzer extends Application {
 		layout.getChildren().add(new Separator());
 		
 		avgSizeDistort = new Label("Average size distortion: ");
-		avgShapeDistort = new Label("Average shape distortion: ");
+		avgShapeDistort = new Label("Average shape distortion: "); //TODO: reorder?
 		lbl = new Label("Blue areas are dilated, red areas are compressed, and black areas are skewed.");
 		lbl.setWrapText(true);
 		
@@ -183,37 +186,61 @@ public class MapAnalyzer extends Application {
 		calculate.setDisable(true);
 		new Thread(new Task<Void>() {
 			protected Void call() {
-				final double[][][] distortion;
 				try {
-					distortion = calculateDistortion(250);
+					final String p = projectionChooser.getValue();
+					final double[][][] distortionM =
+							calculateDistortion(map(250, p), p);
+					output.setImage(makeGraphic(distortionM));
+					
+					final double[][][] distortionG =
+							calculateDistortion(globe(100, p), p);
+					Platform.runLater(() -> {
+						avgSizeDistort.setText("Average size distortion: "+
+									format(stdDev(distortionG[0])));
+						avgShapeDistort.setText("Average shape distortion: "+
+									format(average(distortionG[1])));
+					});
+					calculate.setDisable(false);
+					return null;
 				} catch (Exception e) {
 					e.printStackTrace();
 					return null;
 				}
-				output.setImage(makeGraphic(distortion));
-				Platform.runLater(() -> {
-					avgSizeDistort.setText("Average size distortion: "+
-								average(distortion[0])); //TODO: average over the sphere, not the projection
-					avgShapeDistort.setText("Average shape distortion: "+
-								average(distortion[1])); //TODO: and also maybe use an absolute value somewhere
-				});
-				calculate.setDisable(false);
-				return null;
 			}
 		}).start();
 	}
 	
 	
-	private double[][][] calculateDistortion(int size) {
-		return calculateDistortion(size, null);
+	private void startFinalizingMap() {
+		final String p = projectionChooser.getValue();
+		
+		ProgressBarDialog pBar = new ProgressBarDialog();
+		pBar.show();
+		new Thread(() -> {
+			final double[][][] distortion = calculateDistortion(map(1000,p), p, pBar);
+			Image graphic = makeGraphic(distortion);
+			Platform.runLater(() -> saveImage(graphic, pBar));
+		}).start();
+	}
+
+
+	public void saveImage(Image img, ProgressBarDialog pBar) { // call from the main thread!
+		pBar.close();
+		
+		final File f = saver.showSaveDialog(stage);
+		if (f != null) {
+			new Thread(() -> {
+				try {
+					saveMap.setDisable(true);
+					ImageIO.write(SwingFXUtils.fromFXImage(img,null), "png", f);
+					saveMap.setDisable(false);
+				} catch (IOException e) {}
+			}).start();
+		}
 	}
 	
 	
-	private double[][][] calculateDistortion(int size, ProgressBarDialog pBar) { //generate a matrix of distortion values
-		if (pBar != null)
-			pBar.setProgress(0);
-		
-		final String proj = projectionChooser.getValue();
+	private double[][][] map(int size, String proj) { //generate a matrix of coordinates based on a map projection
 		int projIdx = 0;
 		for (int i = 0; i < PROJ_ARR.length; i ++) {
 			if (PROJ_ARR[i].equals(proj)) {
@@ -222,63 +249,87 @@ public class MapAnalyzer extends Application {
 			}
 		}
 		
-		final double dx = 1e-5;
 		final int[] dims = {size, (int)(size/DEFA[projIdx])};
-		double[][][] output = new double[2][dims[1]][dims[0]]; //the distortion matrix
-		double[][] scales = new double[dims[1]][dims[0]]; //an intermediate matrix for size distortion
-		for (int y = 0; y < output[0].length; y ++) {
-			for (int x = 0; x < output[0][y].length; x ++) {
-				final double[] s0 = rastermaps.MapProjections.project(x, y, proj, dims); //s0 is this point on the sphere
-				if (s0 == null) {
-					scales[y][x] = Double.NaN;
-					output[1][y][x] = Double.NaN; //NaN means no map here
-					continue;
-				}
-				final double[] s1 = { s0[0], s0[1]+dx/Math.cos(s0[0]) }; //consider a point slightly to the east
-				final double[] s2 = { s0[0]+dx, s0[1] }; //and slightly to the north
-				final double[] p0 = vectormaps.MapProjections.project(s0, proj);
-				final double[] p1 = vectormaps.MapProjections.project(s1, proj);
-				final double[] p2 = vectormaps.MapProjections.project(s2, proj);
-				
-				scales[y][x] = Math.abs(
-						(p1[0]-p0[0])*(p2[1]-p0[1]) - (p1[1]-p0[1])*(p2[0]-p0[0]))/(dx*dx);
-				if (scales[y][x] >= 1e6 || scales[y][x] < 1e-6) //if the scale is crazy
-					scales[y][x] = Double.POSITIVE_INFINITY; //just don't worry about it
-				
-				final double s1ps2 = Math.hypot((p1[0]-p0[0])+(p2[1]-p0[1]), (p1[1]-p0[1])-(p2[0]-p0[0]));
-				final double s1ms2 = Math.hypot((p1[0]-p0[0])-(p2[1]-p0[1]), (p1[1]-p0[1])+(p2[0]-p0[0]));
-				final double factor = Math.abs((s1ps2+s1ms2)/(s1ps2-s1ms2)); //there's some linear algebra behind this formula. Don't worry about it.
-				if (factor <= 1)
-					output[1][y][x] = 1 - factor; //the first matrix is the shape (angular) distortion
-				else
-					output[1][y][x] = 1 - 1/factor;
-			}
-			if (pBar != null)
-				pBar.setProgress((double)(y+1)/output[0].length);
-		}
+		double[][][] output = new double[dims[1]][dims[0]][2]; //the coordinate matrix
 		
-		final double avgScale = average(scales);
-		for (int y = 0; y < output[0].length; y ++)
-			for (int x = 0; x < output[0][y].length; x ++)
-				output[0][y][x] = Math.log(scales[y][x]/avgScale); //the zeroth matrix is the size (area) distortion
+		for (int y = 0; y < output.length; y ++)
+			for (int x = 0; x < output[y].length; x ++)
+				output[y][x] = rastermaps.MapProjections.project(x, y, proj, dims); //s0 is this point on the sphere
 		
 		return output;
 	}
 	
 	
-	private void startFinalizingMap() {
-		int p = 0;
-		while (p < PROJ_ARR.length &&
-				!PROJ_ARR[p].equals(projectionChooser.getValue()))
-			p ++;
+	private double[][][] globe(int n, String proj) { //generate a matrix of coordinates based on the sphere
+		List<double[]> points = new ArrayList<double[]>();
+		for (double phi = -1.57; phi < 1.57; phi += Math.PI/n) { // make sure phi is never exactly +-tau/4
+			for (double lam = -3.14; lam < 3.14; lam += 2*Math.PI/Math.cos(phi)/n) {
+				points.add(new double[] {phi, lam});
+			}
+		}
+		return new double[][][] {points.toArray(new double[0][])};
+	}
+	
+	
+	private double[][][] calculateDistortion(double[][][] points, String proj) {
+		return calculateDistortion(points, proj, null);
+	}
+	
+	
+	private double[][][] calculateDistortion(double[][][] points, String proj,
+			ProgressBarDialog pBar) { //calculate both kinds of distortion over the given region
+		double[][][] output = new double[2][points.length][points[0].length]; //the distortion matrix
 		
-		ProgressBarDialog pBar = new ProgressBarDialog();
-		pBar.show();
-		new Thread(() -> {
-			final double[][][] distortion = calculateDistortion(1000, pBar);
-			Image graphic = makeGraphic(distortion);
-			Platform.runLater(() -> saveImage(graphic, pBar));
-		}).start();
+		for (int y = 0; y < points.length; y ++) {
+			for (int x = 0; x < points[y].length; x ++) {
+				if (points[y][x] != null) {
+					final double[] distortions = getDistortionAt(points[y][x], proj);
+					output[0][y][x] = distortions[0]; //the output matrix has two layers:
+					output[1][y][x] = distortions[1]; //area and angular distortion
+				}
+				else {
+					output[0][y][x] = Double.NaN;
+					output[1][y][x] = Double.NaN; //NaN means no map here
+				}
+			}
+			if (pBar != null)
+				pBar.setProgress((double)(y+1)/points.length);
+		}
+		
+		final double avgArea = average(output[0]); //don't forget to normalize output[0] so the average is zero
+		for (int y = 0; y < output[0].length; y ++)
+			for (int x = 0; x < output[0][y].length; x ++)
+				output[0][y][x] -= avgArea;
+		
+		return output;
+	}
+	
+	
+	private double[] getDistortionAt(double[] s0, String proj) { //calculate both kinds of distortion at the given point
+		final double[] output = new double[2];
+		final double dx = 1e-5;
+		
+		final double[] s1 = { s0[0], s0[1]+dx/Math.cos(s0[0]) }; //consider a point slightly to the east
+		final double[] s2 = { s0[0]+dx, s0[1] }; //and slightly to the north
+		final double[] p0 = vectormaps.MapProjections.project(s0, proj);
+		final double[] p1 = vectormaps.MapProjections.project(s1, proj);
+		final double[] p2 = vectormaps.MapProjections.project(s2, proj);
+		
+		final double dA = 
+				(p1[0]-p0[0])*(p2[1]-p0[1]) - (p1[1]-p0[1])*(p2[0]-p0[0]);
+		output[0] = Math.log(Math.abs(dA/(dx*dx))); //the zeroth output is the size (area) distortion
+		if (Math.abs(output[0]) > 25)
+			output[0] = 0; //discard outliers
+		
+		final double s1ps2 = Math.hypot((p1[0]-p0[0])+(p2[1]-p0[1]), (p1[1]-p0[1])-(p2[0]-p0[0]));
+		final double s1ms2 = Math.hypot((p1[0]-p0[0])-(p2[1]-p0[1]), (p1[1]-p0[1])+(p2[0]-p0[0]));
+		final double factor = Math.abs((s1ps2+s1ms2)/(s1ps2-s1ms2)); //there's some linear algebra behind this formula. Don't worry about it.
+		if (factor <= 1)
+			output[1] = 1 - factor; //the first output is the shape (angular) distortion
+		else
+			output[1] = 1 - 1/factor;
+		
+		return output;
 	}
 	
 	
@@ -312,35 +363,40 @@ public class MapAnalyzer extends Application {
 		}
 		return output;
 	}
-	
-	
-	public void saveImage(Image img, ProgressBarDialog pBar) { // call from the main thread!
-		pBar.close();
-		
-		final File f = saver.showSaveDialog(stage);
-		if (f != null) {
-			new Thread(() -> {
-				try {
-					saveMap.setDisable(true);
-					ImageIO.write(SwingFXUtils.fromFXImage(img,null), "png", f);
-					saveMap.setDisable(false);
-				} catch (IOException e) {}
-			}).start();
-		}
-	}
 
 
-	private final double average(double[][] distortion) { //get the ave
+	private final double average(double[][] values) { //get the average
 		double s = 0, n = 0;
-		for (double[] row: distortion) {
+		for (double[] row: values) {
 			for (double x: row) {
-				if (Double.isFinite(x) && x > .02 && x < 50) { //ignore NaN values in the average
+				if (Double.isFinite(x)) { //ignore NaN values in the average
 					s += x;
 					n += 1;
 				}
 			}
 		}
 		return s/n;
+	}
+	
+	
+	private final double stdDev(double[][] values) {
+		double s = 0, ss = 0, n = 0;
+		for (double[] row: values) {
+			for (double x: row) {
+				s += x;
+				ss += x*x;
+				n += 1;
+			}
+		}
+		return Math.sqrt(ss/n - s*s/n*n);
+	}
+	
+	
+	private final String format(double d) {
+		if (d < 1000)
+			return Double.toString(Math.round(d*100.)/100.);
+		else
+			return "1000+";
 	}
 
 }
