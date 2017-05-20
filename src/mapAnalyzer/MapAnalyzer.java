@@ -54,19 +54,19 @@ public class MapAnalyzer extends Application {
 	
 	private static final String[] PROJ_ARR = { "Equirectangular", "Mercator", "Gall Stereographic",
 			"Hobo-Dyer", "Polar", "Stereographic", "Azimuthal Equal-Area", "Orthographic", "Gnomonic",
-			"Equidistant Conic", "Conformal Conic", "Albers", "Winkel Tripel", "Van der Grinten", "Mollweide", "Hammer", "Sinusoidal",
+			"Equidistant Conic", "Conformal Conic", "Albers", "Van der Grinten", "Robinson", "Winkel Tripel", "Mollweide", "Hammer", "Sinusoidal",
 			"Pierce Quincuncial", "Guyou", "TetraGraph", "Magnifier", "Experimental" };
 	private static final double[] DEFA = { 2, 1, 4/3.0, 1.977, 1, 1, 1, 1, 1,
-			2, 2, 2, Math.PI/2, 1, 2, 2, 2, 1, 2, Math.sqrt(3), 1, 1 };
+			2, 2, 2, 1, 1.9716, Math.PI/2, 2, 2, 2, 1, 2, Math.sqrt(3), 1, 1 };
 	private static final String[] DESC = { "An equidistant cylindrical map", "A conformal cylindrical map",
 			"A compromising cylindrical map", "An equal-area cylindrical map", "An equidistant azimuthal map",
 			"A conformal azimuthal map", "An equal-area azimuthal map",
 			"Represents earth viewed from an infinite distance",
 			"Every straight line on the map is a straight line on the sphere", "An equidistant conic map",
-			"A conformal conic map", "An equal-area conic map", "The compromise map used by National Geographic",
-			"A circular compromise map", "An equal-area map shaped like an ellipse",
-			"An equal-area map shaped like an ellipse", "An equal-area map shaped like a sinusoid",
-			"A conformal square map that uses complex math",
+			"A conformal conic map", "An equal-area conic map", "A circular compromise map",
+			"A visually pleasing piecewise compromise map", "The compromise map used by National Geographic",
+			"An equal-area map shaped like an ellipse", "An equal-area map shaped like an ellipse",
+			"An equal-area map shaped like a sinusoid", "A conformal square map that uses complex math",
 			"A reorganized version of Pierce Quincuncial and actually the best map ever",
 			"A compromising knockoff of the AuthaGraph projection",
 			"A novelty map that swells the center to disproportionate scale",
@@ -155,12 +155,15 @@ public class MapAnalyzer extends Application {
 		
 		layout.getChildren().add(new Separator());
 		
-		avgSizeDistort = new Label("Average size distortion: ");
-		avgShapeDistort = new Label("Average shape distortion: "); //TODO: reorder?
+		avgSizeDistort = new Label("...");
+		avgShapeDistort = new Label("..."); //TODO: reorder?
 		lbl = new Label("Blue areas are dilated, red areas are compressed, and black areas are skewed.");
 		lbl.setWrapText(true);
 		
-		VBox bxo = new VBox(3, avgSizeDistort, avgShapeDistort, lbl);
+		VBox bxo = new VBox(3,
+				new HBox(new Label("Average size distortion: "),avgSizeDistort),
+				new HBox(new Label("Average shape distortion: "),avgShapeDistort),
+				lbl);
 		bxo.setAlignment(Pos.CENTER_LEFT);
 		layout.getChildren().add(bxo);
 		
@@ -187,18 +190,21 @@ public class MapAnalyzer extends Application {
 		new Thread(new Task<Void>() {
 			protected Void call() {
 				try {
+					Platform.runLater(() -> {
+						avgSizeDistort.setText("...");
+						avgShapeDistort.setText("...");
+					});
+					
 					final String p = projectionChooser.getValue();
 					final double[][][] distortionM =
 							calculateDistortion(map(250, p), p);
 					output.setImage(makeGraphic(distortionM));
 					
 					final double[][][] distortionG =
-							calculateDistortion(globe(100, p), p);
+							calculateDistortion(globe(0.02, p), p);
 					Platform.runLater(() -> {
-						avgSizeDistort.setText("Average size distortion: "+
-									format(stdDev(distortionG[0])));
-						avgShapeDistort.setText("Average shape distortion: "+
-									format(average(distortionG[1])));
+						avgSizeDistort.setText(format(stdDev(distortionG[0])));
+						avgShapeDistort.setText(format(average(distortionG[1])));
 					});
 					calculate.setDisable(false);
 					return null;
@@ -260,10 +266,10 @@ public class MapAnalyzer extends Application {
 	}
 	
 	
-	private double[][][] globe(int n, String proj) { //generate a matrix of coordinates based on the sphere
+	private double[][][] globe(double dt, String proj) { //generate a matrix of coordinates based on the sphere
 		List<double[]> points = new ArrayList<double[]>();
-		for (double phi = -1.57; phi < 1.57; phi += Math.PI/n) { // make sure phi is never exactly +-tau/4
-			for (double lam = -3.14; lam < 3.14; lam += 2*Math.PI/Math.cos(phi)/n) {
+		for (double phi = -Math.PI/2+dt/2; phi < Math.PI/2; phi += dt) { // make sure phi is never exactly +-tau/4
+			for (double lam = -Math.PI; lam < Math.PI; lam += dt/Math.cos(phi)) {
 				points.add(new double[] {phi, lam});
 			}
 		}
@@ -328,6 +334,13 @@ public class MapAnalyzer extends Application {
 			output[1] = 1 - factor; //the first output is the shape (angular) distortion
 		else
 			output[1] = 1 - 1/factor;
+		
+		if (Math.abs(s0[0]) < Math.PI/3 && Math.abs(s0[1]) < Math.PI/2 && output[1] > 0.5) {
+			System.out.println("("+(s0[0]*57.3)+","+(s0[1]*57.3)+") -> ("+(p0[0]*57.3)+","+(p0[1]*57.3)+")");
+			System.out.println("("+(s1[0]*57.3)+","+(s1[1]*57.3)+") -> ("+(p1[0]*57.3)+","+(p1[1]*57.3)+")");
+			System.out.println("("+(s2[0]*57.3)+","+(s2[1]*57.3)+") -> ("+(p2[0]*57.3)+","+(p2[1]*57.3)+")");
+			System.out.println(output[0]);
+		}
 		
 		return output;
 	}
@@ -394,7 +407,7 @@ public class MapAnalyzer extends Application {
 	
 	private final String format(double d) {
 		if (d < 1000)
-			return Double.toString(Math.round(d*100.)/100.);
+			return Double.toString(Math.round(d*1000.)/1000.);
 		else
 			return "1000+";
 	}

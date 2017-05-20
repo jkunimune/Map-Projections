@@ -1,6 +1,8 @@
 package util;
 
+
 public final class WinkelTripel {
+
 	private static final double COS_PHI0 = 2/Math.PI;
 	
 	
@@ -47,4 +49,5 @@ public final class WinkelTripel {
 	private static final double C(double phi, double lam) {
 		return 1 - Math.pow(Math.cos(phi)*Math.cos(lam/2), 2);
 	}
+
 }
