@@ -83,9 +83,10 @@ public class MapAnalyzer extends Application {
 	private FileChooser saver;
 	private ComboBox<String> projectionChooser;
 	private Text projectionDesc;
-	private Button calculate, saveMap;
+	private Button calculate, saveMap, saveCharts;
 	private Label avgSizeDistort, avgShapeDistort;
 	private ImageView output;
+	private VBox charts;
 	private BarChart<String, Number> sizeChart, shapeChart;
 	
 	
@@ -156,7 +157,14 @@ public class MapAnalyzer extends Application {
 			}
 		});
 		
-		HBox box = new HBox(5, calculate, saveMap);
+		saveCharts = new Button("Save Chart...");
+		saveCharts.setOnAction(new EventHandler<ActionEvent>() {
+			public void handle(ActionEvent event) {
+				saveImage(charts.snapshot(null, null), null);
+			}
+		});
+		
+		HBox box = new HBox(5, calculate, saveMap, saveCharts);
 		box.setAlignment(Pos.CENTER);
 		layout.getChildren().add(box);
 		
@@ -164,7 +172,7 @@ public class MapAnalyzer extends Application {
 		
 		avgSizeDistort = new Label("...");
 		avgShapeDistort = new Label("..."); //TODO: reorder?
-		lbl = new Label("Blue areas are dilated, red areas are compressed, and black areas are skewed.");
+		lbl = new Label("Blue areas are dilated, red areas are compressed, and black areas are stretched.");
 		lbl.setWrapText(true);
 		
 		VBox bxo = new VBox(3,
@@ -182,20 +190,24 @@ public class MapAnalyzer extends Application {
 		sizeChart = new BarChart<String, Number>(new CategoryAxis(), new NumberAxis());
 		sizeChart.setPrefWidth(CHART_WIDTH);
 		sizeChart.setPrefHeight(IMG_WIDTH/2);
-		sizeChart.getXAxis().setLabel("Size Distortion");
+		sizeChart.getXAxis().setLabel("Scale factor");
 		sizeChart.setBarGap(0);
 		sizeChart.setCategoryGap(0);
 		sizeChart.setAnimated(false);
+		sizeChart.setLegendVisible(false);
 		
 		shapeChart = new BarChart<String, Number>(new CategoryAxis(), new NumberAxis());
 		shapeChart.setPrefWidth(CHART_WIDTH);
 		shapeChart.setPrefHeight(IMG_WIDTH/2);
-		shapeChart.getXAxis().setLabel("Shape Distortion");
+		shapeChart.getXAxis().setLabel("Stretch factor");
 		shapeChart.setBarGap(0);
 		shapeChart.setCategoryGap(0);
 		shapeChart.setAnimated(false);
+		shapeChart.setLegendVisible(false);
 		
-		final HBox gui = new HBox(layout, output, new VBox(sizeChart, shapeChart));
+		charts = new VBox(sizeChart, shapeChart);
+		
+		final HBox gui = new HBox(layout, output, charts);
 		
 		new Thread(() -> {
 			calculate.fire();
@@ -232,8 +244,10 @@ public class MapAnalyzer extends Application {
 							calculateDistortion(globe(0.02, p), p);
 					
 					Platform.runLater(() -> {
-						sizeChart.getData().add(histogram(distortionG[0], -2,2,16));
-						shapeChart.getData().add(histogram(distortionG[1], 0,1.6,16));
+						sizeChart.getData().add(histogram(distortionG[0],
+								-2,2,14, true));
+						shapeChart.getData().add(histogram(distortionG[1],
+								0,1.6,14, false));
 						
 						avgSizeDistort.setText(format(stdDev(distortionG[0])));
 						avgShapeDistort.setText(format(average(distortionG[1])));
@@ -388,7 +402,8 @@ public class MapAnalyzer extends Application {
 	
 	
 	public void saveImage(Image img, ProgressBarDialog pBar) { // call from the main thread!
-		pBar.close();
+		if (pBar != null)
+			pBar.close();
 		
 		final File f = saver.showSaveDialog(stage);
 		if (f != null) {
@@ -404,7 +419,7 @@ public class MapAnalyzer extends Application {
 	
 	
 	private final Series<String, Number> histogram(double[][] values,
-			double min, double max, int num) {
+			double min, double max, int num, boolean logarithmic) {
 		int[] hist = new int[num+1]; //this array is the histogram values for min, min+dx, ..., max-dx, max
 		int tot = 0;
 		for (double[] row: values) {
@@ -418,10 +433,14 @@ public class MapAnalyzer extends Application {
 			}
 		}
 		Series<String, Number> output = new Series<String, Number>();
-		for (int i = 0; i <= num; i ++)
+		for (int i = 0; i <= num; i ++) {
+			double x = i*(max-min)/num+min;
+			if (logarithmic)	x = Math.exp(x);
+			else				x = 1-Math.sin(x); //this is a bit nonsensical and sketch. Don't worry about it.
 			output.getData().add(new Data<String, Number>(
-					Double.toString(Math.round(10*(i*(max-min)/num+min))/10.),
+					Double.toString(Math.round(100*x)/100.),
 					(double)hist[i]/tot*100));
+		}
 		return output;
 	}
 	
