@@ -17,6 +17,11 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart.Data;
+import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -47,6 +52,7 @@ public class MapAnalyzer extends Application {
 
 	private static final int CONT_WIDTH = 300;
 	private static final int IMG_WIDTH = 500;
+	private static final int CHART_WIDTH = 400;
 	
 	
 	private static final KeyCombination ctrlS = new KeyCodeCombination(KeyCode.S, KeyCodeCombination.CONTROL_DOWN);
@@ -80,6 +86,7 @@ public class MapAnalyzer extends Application {
 	private Button calculate, saveMap;
 	private Label avgSizeDistort, avgShapeDistort;
 	private ImageView output;
+	private BarChart<String, Number> sizeChart, shapeChart;
 	
 	
 	
@@ -172,11 +179,28 @@ public class MapAnalyzer extends Application {
 		output.setFitHeight(IMG_WIDTH);
 		output.setPreserveRatio(true);
 		
+		sizeChart = new BarChart<String, Number>(new CategoryAxis(), new NumberAxis());
+		sizeChart.setPrefWidth(CHART_WIDTH);
+		sizeChart.setPrefHeight(IMG_WIDTH/2);
+		sizeChart.getXAxis().setLabel("Size Distortion");
+		sizeChart.setBarGap(0);
+		sizeChart.setCategoryGap(0);
+		sizeChart.setAnimated(false);
+		
+		shapeChart = new BarChart<String, Number>(new CategoryAxis(), new NumberAxis());
+		shapeChart.setPrefWidth(CHART_WIDTH);
+		shapeChart.setPrefHeight(IMG_WIDTH/2);
+		shapeChart.getXAxis().setLabel("Shape Distortion");
+		shapeChart.setBarGap(0);
+		shapeChart.setCategoryGap(0);
+		shapeChart.setAnimated(false);
+		
+		final HBox gui = new HBox(layout, output, new VBox(sizeChart, shapeChart));
+		
 		new Thread(() -> {
 			calculate.fire();
 		}).start();
 		
-		final HBox gui = new HBox(layout, output);
 		gui.setAlignment(Pos.CENTER);
 		gui.setSpacing(10);
 		StackPane.setMargin(gui, new Insets(10));
@@ -191,6 +215,9 @@ public class MapAnalyzer extends Application {
 			protected Void call() {
 				try {
 					Platform.runLater(() -> {
+						sizeChart.getData().clear();
+						shapeChart.getData().clear();
+						
 						avgSizeDistort.setText("...");
 						avgShapeDistort.setText("...");
 					});
@@ -198,11 +225,16 @@ public class MapAnalyzer extends Application {
 					final String p = projectionChooser.getValue();
 					final double[][][] distortionM =
 							calculateDistortion(map(250, p), p);
+					
 					output.setImage(makeGraphic(distortionM));
 					
 					final double[][][] distortionG =
 							calculateDistortion(globe(0.02, p), p);
+					
 					Platform.runLater(() -> {
+						sizeChart.getData().add(histogram(distortionG[0], -2,2,16));
+						shapeChart.getData().add(histogram(distortionG[1], 0,1.6,16));
+						
 						avgSizeDistort.setText(format(stdDev(distortionG[0])));
 						avgShapeDistort.setText(format(average(distortionG[1])));
 					});
@@ -227,53 +259,6 @@ public class MapAnalyzer extends Application {
 			Image graphic = makeGraphic(distortion);
 			Platform.runLater(() -> saveImage(graphic, pBar));
 		}).start();
-	}
-	
-	
-	public void saveImage(Image img, ProgressBarDialog pBar) { // call from the main thread!
-		pBar.close();
-		
-		final File f = saver.showSaveDialog(stage);
-		if (f != null) {
-			new Thread(() -> {
-				try {
-					saveMap.setDisable(true);
-					ImageIO.write(SwingFXUtils.fromFXImage(img,null), "png", f);
-					saveMap.setDisable(false);
-				} catch (IOException e) {}
-			}).start();
-		}
-	}
-	
-	
-	private double[][][] map(int size, String proj) { //generate a matrix of coordinates based on a map projection
-		int projIdx = 0;
-		for (int i = 0; i < PROJ_ARR.length; i ++) {
-			if (PROJ_ARR[i].equals(proj)) {
-				projIdx = i;
-				break;
-			}
-		}
-		
-		final int[] dims = {size, (int)(size/DEFA[projIdx])};
-		double[][][] output = new double[dims[1]][dims[0]][2]; //the coordinate matrix
-		
-		for (int y = 0; y < output.length; y ++)
-			for (int x = 0; x < output[y].length; x ++)
-				output[y][x] = rastermaps.MapProjections.project(x, y, proj, dims); //s0 is this point on the sphere
-		
-		return output;
-	}
-	
-	
-	private double[][][] globe(double dt, String proj) { //generate a matrix of coordinates based on the sphere
-		List<double[]> points = new ArrayList<double[]>();
-		for (double phi = -Math.PI/2+dt/2; phi < Math.PI/2; phi += dt) { // make sure phi is never exactly +-tau/4
-			for (double lam = -Math.PI; lam < Math.PI; lam += dt/Math.cos(phi)) {
-				points.add(new double[] {phi, lam});
-			}
-		}
-		return new double[][][] {points.toArray(new double[0][])};
 	}
 	
 	
@@ -325,22 +310,15 @@ public class MapAnalyzer extends Application {
 				(p1[0]-p0[0])*(p2[1]-p0[1]) - (p1[1]-p0[1])*(p2[0]-p0[0]);
 		output[0] = Math.log(Math.abs(dA/(dx*dx))); //the zeroth output is the size (area) distortion
 		if (Math.abs(output[0]) > 25)
-			output[0] = 0; //discard outliers
+			output[0] = Double.NaN; //discard outliers
 		
 		final double s1ps2 = Math.hypot((p1[0]-p0[0])+(p2[1]-p0[1]), (p1[1]-p0[1])-(p2[0]-p0[0]));
 		final double s1ms2 = Math.hypot((p1[0]-p0[0])-(p2[1]-p0[1]), (p1[1]-p0[1])+(p2[0]-p0[0]));
-		final double factor = Math.abs((s1ps2+s1ms2)/(s1ps2-s1ms2)); //there's some linear algebra behind this formula. Don't worry about it.
-		if (factor <= 1)
-			output[1] = 1 - factor; //the first output is the shape (angular) distortion
-		else
-			output[1] = 1 - 1/factor;
+		final double factor = Math.abs((s1ps2-s1ms2)/(s1ps2+s1ms2)); //there's some linear algebra behind this formula. Don't worry about it.
 		
-		if (Math.abs(s0[0]) < Math.PI/3 && Math.abs(s0[1]) < Math.PI/2 && output[1] > 0.5) {
-			System.out.println("("+(s0[0]*57.3)+","+(s0[1]*57.3)+") -> ("+(p0[0]*57.3)+","+(p0[1]*57.3)+")");
-			System.out.println("("+(s1[0]*57.3)+","+(s1[1]*57.3)+") -> ("+(p1[0]*57.3)+","+(p1[1]*57.3)+")");
-			System.out.println("("+(s2[0]*57.3)+","+(s2[1]*57.3)+") -> ("+(p2[0]*57.3)+","+(p2[1]*57.3)+")");
-			System.out.println(output[0]);
-		}
+		output[1] = Math.asin(1-factor);
+		if (output[1] >= Math.PI/2)
+			output[1] = Double.NaN;
 		
 		return output;
 	}
@@ -360,20 +338,90 @@ public class MapAnalyzer extends Application {
 				
 				final int r, g, b;
 				if (sizeDistort < 0) { //if compressing
-					r = (int)(256*(1-shapeDistort));
-					g = (int)(256*(1-shapeDistort)*(1-Math.min(1, -sizeDistort/3)));
+					r = (int)(256*(1-shapeDistort/(Math.PI/2)));
+					g = (int)(256*(1-shapeDistort/(Math.PI/2))*(1-Math.min(1, -sizeDistort/3)));
 					b = g;
 				}
 				else { //if dilating
-					r = (int)(256*(1-shapeDistort)*(1-Math.min(1, sizeDistort/3)));
+					r = (int)(256*(1-shapeDistort/(Math.PI/2))*(1-Math.min(1, sizeDistort/3)));
 					g = r;
-					b = (int)(256*(1-shapeDistort));
+					b = (int)(256*(1-shapeDistort/(Math.PI/2)));
 				}
 				
 				final int argb = ((((((0xFF)<<8)+r)<<8)+g)<<8)+b;
 				writer.setArgb(x, y, argb);
 			}
 		}
+		return output;
+	}
+	
+	
+	private double[][][] map(int size, String proj) { //generate a matrix of coordinates based on a map projection
+		int projIdx = 0;
+		for (int i = 0; i < PROJ_ARR.length; i ++) {
+			if (PROJ_ARR[i].equals(proj)) {
+				projIdx = i;
+				break;
+			}
+		}
+		
+		final int[] dims = {size, (int)(size/DEFA[projIdx])};
+		double[][][] output = new double[dims[1]][dims[0]][2]; //the coordinate matrix
+		
+		for (int y = 0; y < output.length; y ++)
+			for (int x = 0; x < output[y].length; x ++)
+				output[y][x] = rastermaps.MapProjections.project(x, y, proj, dims); //s0 is this point on the sphere
+		
+		return output;
+	}
+	
+	
+	private double[][][] globe(double dt, String proj) { //generate a matrix of coordinates based on the sphere
+		List<double[]> points = new ArrayList<double[]>();
+		for (double phi = -Math.PI/2+dt/2; phi < Math.PI/2; phi += dt) { // make sure phi is never exactly +-tau/4
+			for (double lam = -Math.PI; lam < Math.PI; lam += dt/Math.cos(phi)) {
+				points.add(new double[] {phi, lam});
+			}
+		}
+		return new double[][][] {points.toArray(new double[0][])};
+	}
+	
+	
+	public void saveImage(Image img, ProgressBarDialog pBar) { // call from the main thread!
+		pBar.close();
+		
+		final File f = saver.showSaveDialog(stage);
+		if (f != null) {
+			new Thread(() -> {
+				try {
+					saveMap.setDisable(true);
+					ImageIO.write(SwingFXUtils.fromFXImage(img,null), "png", f);
+					saveMap.setDisable(false);
+				} catch (IOException e) {}
+			}).start();
+		}
+	}
+	
+	
+	private final Series<String, Number> histogram(double[][] values,
+			double min, double max, int num) {
+		int[] hist = new int[num+1]; //this array is the histogram values for min, min+dx, ..., max-dx, max
+		int tot = 0;
+		for (double[] row: values) {
+			for (double x: row) {
+				if (Double.isFinite(x)) {
+					final int i = (int)Math.round((x-min)/(max-min)*num);
+					if (i >= 0 && i <= num)
+						hist[i] ++;
+					tot ++;
+				}
+			}
+		}
+		Series<String, Number> output = new Series<String, Number>();
+		for (int i = 0; i <= num; i ++)
+			output.getData().add(new Data<String, Number>(
+					Double.toString(Math.round(10*(i*(max-min)/num+min))/10.),
+					(double)hist[i]/tot*100));
 		return output;
 	}
 	
@@ -396,9 +444,11 @@ public class MapAnalyzer extends Application {
 		double s = 0, ss = 0, n = 0;
 		for (double[] row: values) {
 			for (double x: row) {
-				s += x;
-				ss += x*x;
-				n += 1;
+				if (Double.isFinite(x)) {
+					s += x;
+					ss += x*x;
+					n += 1;
+				}
 			}
 		}
 		return Math.sqrt(ss/n - s*s/n*n);

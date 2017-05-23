@@ -389,6 +389,8 @@ public class MapProjections extends Application {
 	
 	
 	private void startFinalizingMap() {
+		saveMap.setDisable(true);
+		
 		int p = 0;
 		while (p < PROJ_ARR.length &&
 				!PROJ_ARR[p].equals(projectionChooser.getValue()))
@@ -444,6 +446,7 @@ public class MapProjections extends Application {
 			alert.setHeaderText("File not found!");
 			alert.setContentText("Could not find "+f+".");
 		}
+		saveMap.setDisable(false);
 	}
 	
 	
@@ -661,7 +664,7 @@ public class MapProjections extends Application {
 	}
 	
 	private static double[] gnomonic(double lat, double lon) { // map where straight lines are straight
-		if (lat <= 0)	lat = 10e-5;
+		if (lat <= 0)	lat = 1e-5;
 		final double r = Math.tan(Math.PI/2 - lat);
 		return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
 	}
