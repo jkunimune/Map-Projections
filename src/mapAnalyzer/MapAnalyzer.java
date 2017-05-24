@@ -252,7 +252,7 @@ public class MapAnalyzer extends Application {
 								0,1.6,14, false));
 						
 						avgSizeDistort.setText(format(Stat.stdDev(distortionG[0])));
-						avgShapeDistort.setText(format(Stat.average(distortionG[1])));
+						avgShapeDistort.setText(format(Stat.mean(distortionG[1])));
 					});
 					calculate.setDisable(false);
 					return null;
@@ -305,7 +305,7 @@ public class MapAnalyzer extends Application {
 				pBar.setProgress((double)(y+1)/points.length);
 		}
 		
-		final double avgArea = Stat.average(output[0]); //don't forget to normalize output[0] so the average is zero
+		final double avgArea = Stat.mean(output[0]); //don't forget to normalize output[0] so the average is zero
 		for (int y = 0; y < output[0].length; y ++)
 			for (int x = 0; x < output[0][y].length; x ++)
 				output[0][y][x] -= avgArea;
@@ -459,9 +459,7 @@ public class MapAnalyzer extends Application {
 	
 	
 	public static final Projection projFromName(String s) {
-		return (p) -> {
-				return vectormaps.MapProjections.project(p[0], p[1], s);
-			};
+		return (p) -> vectormaps.MapProjections.project(p[0], p[1], s);
 	}
 	
 	

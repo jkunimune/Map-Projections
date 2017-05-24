@@ -33,8 +33,8 @@ public class MapOptimizer extends Application {
 	public void start(Stage stage) throws Exception {
 		double[][][] globe = MapAnalyzer.globe(0.02);
 		final Series<Number, Number> oldMaps = analyzeAll(globe, EXISTING_PROJECTIONS);
-		final Series<Number, Number> hyperMaps = optimizeHyperelliptical();
-		final Series<Number, Number> roundMaps = optimizeElliptihypercosine();
+		final Series<Number, Number> hyperMaps = optimizeHyperelliptical(globe);
+		final Series<Number, Number> roundMaps = optimizeElliptihypercosine(globe);
 		
 		chart = new ScatterChart<Number, Number>(new NumberAxis("Size distortion", 0, 1, 0.1),
 				new NumberAxis("Shape distortion", 0, 0.5, 0.1));
@@ -60,12 +60,48 @@ public class MapOptimizer extends Application {
 	}
 	
 	
-	private static Series<Number, Number> optimizeHyperelliptical() { //optimize and plot some hyperelliptical maps
-		return new Series<Number, Number>();
+	private static Series<Number, Number> optimizeHyperelliptical(double[][][] points) { //optimize and plot some hyperelliptical maps
+		System.out.println("Hyperelliptical stuff. Aw yeah.");
+		final double[] weights = {.22, .50, .86, 1, 1.3, 2, 3.0, 4.7, 8.0, 18.0 };
+		double[][] currentBest = new double[weights.length][5]; //the 0-3 cols are the min distortions for each weight, the other cols are the values of k and n that caused that
+		for (int i = 0; i < weights.length; i ++)
+			currentBest[i][0] = Integer.MAX_VALUE;
+		
+		System.out.println("Iterating k and n:");
+		for (double k = 2; k <= 5; k += .25) {
+			for (double n = 1; n <= 2.75; n += .125) {
+				System.out.println("("+k+","+n+")");
+				final double k0 = k, n0 = n;
+				double[][][] dist = MapAnalyzer.calculateDistortion(points,
+						(coords) -> hyperelliptical(coords, k0, n0));
+				final double avgSizeD = Stat.stdDev(dist[0]);
+				final double avgShapeD = Stat.mean(dist[1]);
+				for (int i = 0; i < weights.length; i ++) {
+					final double avgDist = avgSizeD + weights[i]*avgShapeD;
+					if (avgDist < currentBest[i][0]) {
+						currentBest[i][0] = avgDist;
+						currentBest[i][1] = avgSizeD;
+						currentBest[i][2] = avgShapeD;
+						currentBest[i][3] = k;
+						currentBest[i][4] = n;
+					}
+				}
+			}
+		}
+		
+		final Series<Number, Number> output = new Series<Number, Number>();
+		output.setName("Hyperelliptics");
+		
+		System.out.println("We got the best hyperelliptic projections using:");
+		for (double[] best: currentBest) {
+			System.out.println("\tk="+best[3]+"; n="+best[4]);
+			output.getData().add(new Data<Number, Number>(best[1], best[2]));
+		}
+		return output;
 	}
 	
 	
-	private static Series<Number, Number> optimizeElliptihypercosine() { //optimize and plot some elliptical-hypebolic-cosine maps
+	private static Series<Number, Number> optimizeElliptihypercosine(double[][][] points) { //optimize and plot some elliptical-hypebolic-cosine maps
 		return new Series<Number, Number>();
 	}
 	
@@ -74,7 +110,16 @@ public class MapOptimizer extends Application {
 		double[][][] distortion = MapAnalyzer.calculateDistortion(pts, proj);
 		return new Data<Number, Number>(
 				Stat.stdDev(distortion[0]),
-				Stat.average(distortion[1]));
+				Stat.mean(distortion[1]));
+	}
+	
+	
+	private static double[] hyperelliptical(double[] coords, double k, double n) { //a hyperelliptic map projection with hyperellipse order k and lattitudinal spacind described by x^n/n
+		final double lat = coords[0], lon = coords[1];
+		
+		return new double[] {
+				Math.pow(1 - Math.pow(Math.abs(lat/(Math.PI/2)), k),1/k)*lon,
+				(1-Math.pow(1-Math.abs(lat/(Math.PI/2)), n))/Math.sqrt(n)*Math.signum(lat)*Math.PI/2};
 	}
 
 }

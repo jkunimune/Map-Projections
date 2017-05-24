@@ -71,7 +71,7 @@ public class MapProjections extends Application {
 			"Equidistant Conic", "Conformal Conic", "Albers", "Van der Grinten",
 			"Robinson", "Winkel Tripel","Mollweide", "Aitoff", "Hammer",
 			"Sinusoidal", "Pierce Quincuncial", "Guyou", "TetraGraph",
-			"Magnifier", "Experimental" };
+			"Magnifier", "Experimental", "Test" };
 	private static final String[] DESC = { "An equidistant cylindrical map", "A conformal cylindrical map",
 			"A compromising cylindrical map", "An equal-area cylindrical map", "An equidistant azimuthal map",
 			"A conformal azimuthal map", "An equal-area azimuthal map",
@@ -85,7 +85,8 @@ public class MapProjections extends Application {
 			"A reorganized version of Pierce Quincuncial and actually the best map ever",
 			"A compromising knockoff of the AuthaGraph projection",
 			"A novelty map that swells the center to disproportionate scale",
-			"What happens when you apply a complex differentiable function to a stereographic projection?" };
+			"What happens when you apply a complex differentiable function to a stereographic projection?",
+			"Test."};
 	
 	private static final String[] AXES = { "Standard", "Transverse", "Center of Mass", "Jerusalem", "Point Nemo",
 			"Longest Line", "Longest Line Transverse", "Cylindrical", "Conical", "Quincuncial", "Antipode", "Random" };
@@ -381,7 +382,11 @@ public class MapProjections extends Application {
 	private void updateMap(boolean fast) {
 		new Thread(new Task<Void>() {
 			protected Void call() {
-				drawImage(map(fast), viewer);
+				try {
+					drawImage(map(fast), viewer);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 				return null;
 			}
 		}).start();
@@ -474,11 +479,9 @@ public class MapProjections extends Application {
 			List<double[]> curve1 = new ArrayList<double[]>(curve0.size()/step);
 			for (int j = 0; j < curve0.size(); j += step) {
 				double[] radCoords = convCoordsToMathy(curve0.get(j));
-				//System.out.println("Coast at "+radCoords[0]+","+radCoords[1]);
 				double[] plnCoords = project(obliquify(pole, radCoords), proj);
 				curve1.add(convCoordsToImg(plnCoords));
 			}
-			//System.out.println();
 			output.add(curve1);
 			
 			if (pbar != null) {
@@ -545,6 +548,8 @@ public class MapProjections extends Application {
 			return albers(lat, lon);
 		else if (p.equals("Robinson"))
 			return robinson(lat, lon);
+		else if (p.equals("Test"))
+			return hyperelliptic(lat, lon);
 		else
 			throw new IllegalArgumentException(p);
 	}
@@ -825,6 +830,25 @@ public class MapProjections extends Application {
 				Robinson.plenFromLat(Math.abs(lat))*lon,
 				Robinson.pdfeFromLat(Math.abs(lat))*Math.signum(lat)*Math.PI/2};
 	}
+	
+	
+	private static double[] hyperelliptic(double lat, double lon) {
+		final double k = 3;
+		final double n = 1.5;
+		return new double[] {
+				Math.pow(1 - Math.pow(Math.abs(lat/(Math.PI/2)), k),1/k)*lon,
+				(1-Math.pow(1-Math.abs(lat/(Math.PI/2)), n))/Math.sqrt(n)*Math.signum(lat)*Math.PI/2};
+	}
+	
+	
+	/*private static double[] ellipticosh(double lat, double lon) {
+		final double a = 16/9.;
+		final double n = 1.5;
+		return new double[] {
+				0,
+				0
+		};
+	}*/
 	
 	
 	

@@ -7,7 +7,7 @@ package util;
  */
 public class Stat {
 
-	public static final double average(double[][] values) { //get the average
+	public static final double mean(double[][] values) { //get the average
 		double s = 0, n = 0;
 		for (double[] row: values) {
 			for (double x: row) {
