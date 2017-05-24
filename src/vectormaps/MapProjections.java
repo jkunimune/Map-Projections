@@ -492,8 +492,11 @@ public class MapProjections extends Application {
 	
 	
 	public static double[] project(double[] latLon, String p) {
-		double lat = latLon[0];
-		double lon = latLon[1];
+		return project(latLon[0], latLon[1], p);
+	}
+	
+	
+	public static double[] project(double lat, double lon, String p) {
 		if (p.equals("Pierce Quincuncial"))
 			return quincuncial(lat, lon);
 		else if (p.equals("Equirectangular"))

@@ -42,9 +42,10 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import util.ProgressBarDialog;
+import util.Stat;
 
 /**
- * An application to make raster oblique aspects of map projections
+ * An application to analyze the characteristics of map projections
  * 
  * @author Justin Kunimune
  */
@@ -234,14 +235,15 @@ public class MapAnalyzer extends Application {
 						avgShapeDistort.setText("...");
 					});
 					
-					final String p = projectionChooser.getValue();
+					final String pName = projectionChooser.getValue();
+					final Projection p = projFromName(pName);
 					final double[][][] distortionM =
-							calculateDistortion(map(250, p), p);
+							calculateDistortion(map(250, pName), p);
 					
 					output.setImage(makeGraphic(distortionM));
 					
 					final double[][][] distortionG =
-							calculateDistortion(globe(0.02, p), p);
+							calculateDistortion(globe(0.02), p);
 					
 					Platform.runLater(() -> {
 						sizeChart.getData().add(histogram(distortionG[0],
@@ -249,8 +251,8 @@ public class MapAnalyzer extends Application {
 						shapeChart.getData().add(histogram(distortionG[1],
 								0,1.6,14, false));
 						
-						avgSizeDistort.setText(format(stdDev(distortionG[0])));
-						avgShapeDistort.setText(format(average(distortionG[1])));
+						avgSizeDistort.setText(format(Stat.stdDev(distortionG[0])));
+						avgShapeDistort.setText(format(Stat.average(distortionG[1])));
 					});
 					calculate.setDisable(false);
 					return null;
@@ -264,24 +266,26 @@ public class MapAnalyzer extends Application {
 	
 	
 	private void startFinalizingMap() {
-		final String p = projectionChooser.getValue();
+		final String pName = projectionChooser.getValue();
+		final Projection p = projFromName(projectionChooser.getValue());
 		
 		ProgressBarDialog pBar = new ProgressBarDialog();
 		pBar.show();
 		new Thread(() -> {
-			final double[][][] distortion = calculateDistortion(map(1000,p), p, pBar);
+			final double[][][] distortion = calculateDistortion(
+					map(1000,pName), p, pBar);
 			Image graphic = makeGraphic(distortion);
 			Platform.runLater(() -> saveImage(graphic, pBar));
 		}).start();
 	}
 	
 	
-	private double[][][] calculateDistortion(double[][][] points, String proj) {
+	public static double[][][] calculateDistortion(double[][][] points, Projection proj) {
 		return calculateDistortion(points, proj, null);
 	}
 	
 	
-	private double[][][] calculateDistortion(double[][][] points, String proj,
+	public static double[][][] calculateDistortion(double[][][] points, Projection proj,
 			ProgressBarDialog pBar) { //calculate both kinds of distortion over the given region
 		double[][][] output = new double[2][points.length][points[0].length]; //the distortion matrix
 		
@@ -301,7 +305,7 @@ public class MapAnalyzer extends Application {
 				pBar.setProgress((double)(y+1)/points.length);
 		}
 		
-		final double avgArea = average(output[0]); //don't forget to normalize output[0] so the average is zero
+		final double avgArea = Stat.average(output[0]); //don't forget to normalize output[0] so the average is zero
 		for (int y = 0; y < output[0].length; y ++)
 			for (int x = 0; x < output[0][y].length; x ++)
 				output[0][y][x] -= avgArea;
@@ -310,15 +314,15 @@ public class MapAnalyzer extends Application {
 	}
 	
 	
-	private double[] getDistortionAt(double[] s0, String proj) { //calculate both kinds of distortion at the given point
+	private static double[] getDistortionAt(double[] s0, Projection proj) { //calculate both kinds of distortion at the given point
 		final double[] output = new double[2];
 		final double dx = 1e-5;
 		
 		final double[] s1 = { s0[0], s0[1]+dx/Math.cos(s0[0]) }; //consider a point slightly to the east
 		final double[] s2 = { s0[0]+dx, s0[1] }; //and slightly to the north
-		final double[] p0 = vectormaps.MapProjections.project(s0, proj);
-		final double[] p1 = vectormaps.MapProjections.project(s1, proj);
-		final double[] p2 = vectormaps.MapProjections.project(s2, proj);
+		final double[] p0 = proj.project(s0);
+		final double[] p1 = proj.project(s1);
+		final double[] p2 = proj.project(s2);
 		
 		final double dA = 
 				(p1[0]-p0[0])*(p2[1]-p0[1]) - (p1[1]-p0[1])*(p2[0]-p0[0]);
@@ -338,7 +342,7 @@ public class MapAnalyzer extends Application {
 	}
 	
 	
-	private Image makeGraphic(double[][][] distortion) {
+	private static Image makeGraphic(double[][][] distortion) {
 		WritableImage output = new WritableImage(distortion[0][0].length, distortion[0].length);
 		PixelWriter writer = output.getPixelWriter();
 		for (int y = 0; y < distortion[0].length; y ++) {
@@ -370,7 +374,24 @@ public class MapAnalyzer extends Application {
 	}
 	
 	
-	private double[][][] map(int size, String proj) { //generate a matrix of coordinates based on a map projection
+	private void saveImage(Image img, ProgressBarDialog pBar) { // call from the main thread!
+		if (pBar != null)
+			pBar.close();
+		
+		final File f = saver.showSaveDialog(stage);
+		if (f != null) {
+			new Thread(() -> {
+				try {
+					saveMap.setDisable(true);
+					ImageIO.write(SwingFXUtils.fromFXImage(img,null), "png", f);
+					saveMap.setDisable(false);
+				} catch (IOException e) {}
+			}).start();
+		}
+	}
+
+
+	public static double[][][] map(int size, String proj) { //generate a matrix of coordinates based on a map projection
 		int projIdx = 0;
 		for (int i = 0; i < PROJ_ARR.length; i ++) {
 			if (PROJ_ARR[i].equals(proj)) {
@@ -390,7 +411,7 @@ public class MapAnalyzer extends Application {
 	}
 	
 	
-	private double[][][] globe(double dt, String proj) { //generate a matrix of coordinates based on the sphere
+	public static double[][][] globe(double dt) { //generate a matrix of coordinates based on the sphere
 		List<double[]> points = new ArrayList<double[]>();
 		for (double phi = -Math.PI/2+dt/2; phi < Math.PI/2; phi += dt) { // make sure phi is never exactly +-tau/4
 			for (double lam = -Math.PI; lam < Math.PI; lam += dt/Math.cos(phi)) {
@@ -401,24 +422,7 @@ public class MapAnalyzer extends Application {
 	}
 	
 	
-	public void saveImage(Image img, ProgressBarDialog pBar) { // call from the main thread!
-		if (pBar != null)
-			pBar.close();
-		
-		final File f = saver.showSaveDialog(stage);
-		if (f != null) {
-			new Thread(() -> {
-				try {
-					saveMap.setDisable(true);
-					ImageIO.write(SwingFXUtils.fromFXImage(img,null), "png", f);
-					saveMap.setDisable(false);
-				} catch (IOException e) {}
-			}).start();
-		}
-	}
-	
-	
-	private final Series<String, Number> histogram(double[][] values,
+	private static final Series<String, Number> histogram(double[][] values,
 			double min, double max, int num, boolean logarithmic) {
 		int[] hist = new int[num+1]; //this array is the histogram values for min, min+dx, ..., max-dx, max
 		int tot = 0;
@@ -445,40 +449,25 @@ public class MapAnalyzer extends Application {
 	}
 	
 	
-	private final double average(double[][] values) { //get the average
-		double s = 0, n = 0;
-		for (double[] row: values) {
-			for (double x: row) {
-				if (Double.isFinite(x)) { //ignore NaN values in the average
-					s += x;
-					n += 1;
-				}
-			}
-		}
-		return s/n;
-	}
 	
-	
-	private final double stdDev(double[][] values) {
-		double s = 0, ss = 0, n = 0;
-		for (double[] row: values) {
-			for (double x: row) {
-				if (Double.isFinite(x)) {
-					s += x;
-					ss += x*x;
-					n += 1;
-				}
-			}
-		}
-		return Math.sqrt(ss/n - s*s/n*n);
-	}
-	
-	
-	private final String format(double d) {
+	private static final String format(double d) {
 		if (d < 1000)
 			return Double.toString(Math.round(d*1000.)/1000.);
 		else
 			return "1000+";
+	}
+	
+	
+	public static final Projection projFromName(String s) {
+		return (p) -> {
+				return vectormaps.MapProjections.project(p[0], p[1], s);
+			};
+	}
+	
+	
+	
+	static interface Projection {
+		public double[] project(double[] coords);
 	}
 
 }

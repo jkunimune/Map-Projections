@@ -4,9 +4,17 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
+import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
 import javafx.stage.Stage;
+import mapAnalyzer.MapAnalyzer.Projection;
+import util.Stat;
 
+/**
+ * An application to compare and optimize map projections
+ * 
+ * @author Justin Kunimune
+ */
 public class MapOptimizer extends Application {
 	
 	
@@ -23,12 +31,13 @@ public class MapOptimizer extends Application {
 	
 	@Override
 	public void start(Stage stage) throws Exception {
-		final Series<Number, Number> oldMaps = analyzeAll(EXISTING_PROJECTIONS);
+		double[][][] globe = MapAnalyzer.globe(0.02);
+		final Series<Number, Number> oldMaps = analyzeAll(globe, EXISTING_PROJECTIONS);
 		final Series<Number, Number> hyperMaps = optimizeHyperelliptical();
 		final Series<Number, Number> roundMaps = optimizeElliptihypercosine();
 		
-		chart = new ScatterChart<Number, Number>(new NumberAxis("Size distortion", 0, 2, 0.5),
-				new NumberAxis("Shape distortion", 0, Math.PI / 2, 0.5));
+		chart = new ScatterChart<Number, Number>(new NumberAxis("Size distortion", 0, 1, 0.1),
+				new NumberAxis("Shape distortion", 0, 0.5, 0.1));
 		chart.getData().add(oldMaps);
 		chart.getData().add(hyperMaps);
 		chart.getData().add(roundMaps);
@@ -39,8 +48,15 @@ public class MapOptimizer extends Application {
 	}
 	
 	
-	private static Series<Number, Number> analyzeAll(String... projs) { //analyze and plot the specified preexisting map projections
-		return new Series<Number, Number>();
+	private static Series<Number, Number> analyzeAll(double[][][] points,
+			String... projs) { //analyze and plot the specified preexisting map projections
+		Series<Number, Number> output = new Series<Number, Number>();
+		output.setName("Basic Projections");
+		
+		for (String name: projs)
+			output.getData().add(plot(points, MapAnalyzer.projFromName(name)));
+		
+		return output;
 	}
 	
 	
@@ -53,4 +69,12 @@ public class MapOptimizer extends Application {
 		return new Series<Number, Number>();
 	}
 	
+	
+	private static Data<Number, Number> plot(double[][][] pts, Projection proj) {
+		double[][][] distortion = MapAnalyzer.calculateDistortion(pts, proj);
+		return new Data<Number, Number>(
+				Stat.stdDev(distortion[0]),
+				Stat.average(distortion[1]));
+	}
+
 }
