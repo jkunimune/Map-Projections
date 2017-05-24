@@ -833,8 +833,8 @@ public class MapProjections extends Application {
 	
 	
 	private static double[] hyperelliptic(double lat, double lon) {
-		final double k = 3;
-		final double n = 1.5;
+		final double k = 3.5;
+		final double n = 1.3125;
 		return new double[] {
 				Math.pow(1 - Math.pow(Math.abs(lat/(Math.PI/2)), k),1/k)*lon,
 				(1-Math.pow(1-Math.abs(lat/(Math.PI/2)), n))/Math.sqrt(n)*Math.signum(lat)*Math.PI/2};
