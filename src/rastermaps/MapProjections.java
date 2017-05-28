@@ -42,6 +42,7 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import mfc.field.Complex;
+import util.Dixon;
 import util.ProgressBarDialog;
 import util.Robinson;
 import util.WinkelTripel;
@@ -61,28 +62,24 @@ public class MapProjections extends Application {
 	private static final KeyCombination ctrlS = new KeyCodeCombination(KeyCode.S, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	private static final String[] PROJ_ARR = { "Equirectangular", "Mercator",
-			"Gall Stereographic", "Hobo-Dyer", "Polar", "Stereographic",
-			"Azimuthal Equal-Area", "Orthographic", "Gnomonic",
-			"Equidistant Conic", "Conformal Conic", "Albers", "Van der Grinten", "Robinson", "Winkel Tripel",
-			"Mollweide", "Hammer", "Sinusoidal", "Lemons",
-			"Pierce Quincuncial", "Guyou", "AuthaGraph", "TetraGraph",
-			"Magnifier", "Experimental" };
-	private static final double[] DEFA = { 2, 1, 4/3.0, 1.977, 1, 1, 1, 1, 1, 2,
-			2, 2, 1, 1.9716, Math.PI/2, 2, 2, 2, 2, 1, 2, 4.0 / Math.sqrt(3),
-			Math.sqrt(3), 1, 1 };
-	private static final String[] DESC = { "An equidistant cylindrical map", "A conformal cylindrical map",
-			"A compromising cylindrical map", "An equal-area cylindrical map", "An equidistant azimuthal map",
-			"A conformal azimuthal map", "An equal-area azimuthal map",
+	private static final String[] PROJ_ARR = { "Mercator", "Equirectangular", "Hobo-Dyer", "Gall Stereographic",
+			"Stereographic", "Polar", "Azimuthal Equal-Area", "Orthographic", "Gnomonic", "Conformal Conic",
+			"Equidistant Conic", "Albers", "Lee", "TetraGraph", "AuthaGraph", "Mollweide", "Hammer", "Sinusoidal", "Van der Grinten", "Robinson",
+			"Winkel Tripel", "Lemons", "Pierce Quincuncial", "Guyou", "Magnifier", "Experimental" };
+	private static final double[] DEFA = { 1, 2, 1.977, 4/3., 1, 1, 1, 1, 1, 2,
+			2, 2, Math.sqrt(3), Math.sqrt(3), 4/Math.sqrt(3), 2, 2, 2, 1, 1.9716, Math.PI/2, 2, 1, 2, 1, 1 };
+	private static final String[] DESC = { "A conformal cylindrical map", "An equidistant cylindrical map",
+			"An equal-area cylindrical map", "A compromising cylindrical map", "A conformal azimuthal map",
+			"An equidistant azimuthal map", "An equal-area azimuthal map",
 			"Represents earth viewed from an infinite distance",
-			"Every straight line on the map is a straight line on the sphere", "An equidistant conic map",
-			"A conformal conic map", "An equal-area conic map", "A circular compromise map",
-			"A circular compromise map", "A visually pleasing piecewise compromise map",
-			"The compromise map used by National Geographic", "An equal-area map shaped like an ellipse",
-			"An equal-area map shaped like an ellipse", "An equal-area map shaped like a sinusoid",
+			"Every straight line on the map is a straight line on the sphere", "A conformal conic map",
+			"An equidistant conic map", "An equal-area conic map", "A conformal tetrahedral map that really deserves more attention",
+			"An equidistant tetrahedral map that I invented", "An almost-equal-area tetrahedral map", "An equal-area map shaped like an ellipse",
+			"An equal-area map shaped like an ellipse", "An equal-area map shaped like a sinusoid","A circular compromise map",
+			"A visually pleasing piecewise compromise map",
+			"The compromise map used by National Geographic", 
 			"BURN LIFE'S HOUSE DOWN!", "A conformal square map that uses complex math",
-			"A reorganized version of Pierce Quincuncial and actually the best map ever",
-			"An almost-equal-area map based on a tetrahedron.", "A compromising knockoff of the AuthaGraph projection",
+			"A rearranged Pierce Quincuncial map",
 			"A novelty map that swells the center to disproportionate scale",
 			"What happens when you apply a complex differentiable function to a stereographic projection?" };
 	
@@ -162,7 +159,7 @@ public class MapProjections extends Application {
 				}
 			}
 		});
-		projectionChooser.setValue(PROJ_ARR[1]);
+		projectionChooser.setValue("Mercator");
 		layout.getChildren().add(new HBox(3, lbl, projectionChooser));
 		
 		projectionDesc = new Text(DESC[1]);
@@ -465,6 +462,8 @@ public class MapProjections extends Application {
 			return albers(X, Y);
 		else if (p.equals("Robinson"))
 			return robinson(X, Y);
+		else if (p.equals("Lee"))
+			return lee(X, Y);
 		else
 			throw new IllegalArgumentException(p);
 	}
@@ -526,7 +525,7 @@ public class MapProjections extends Application {
 		Complex k = new Complex(Math.sqrt(0.5)); // the rest comes from some fancy complex calculus
 		Complex ans = Jacobi.cn(u, k);
 		double p = 2 * Math.atan(ans.abs());
-		double theta = Math.atan2(ans.getIm(), ans.getRe()) - Math.PI/2;
+		double theta = ans.arg() - Math.PI/2;
 		double lambda = Math.PI/2 - p;
 		return new double[] {lambda, theta};
 	}
@@ -535,7 +534,7 @@ public class MapProjections extends Application {
 		Complex z = new Complex(x*3, y*3);
 		Complex ans = z.sin();
 		double p = 2 * Math.atan(ans.abs());
-		double theta = Math.atan2(ans.getIm(), ans.getRe()) + Math.PI/2;
+		double theta = ans.arg();
 		double lambda = Math.PI/2 - p;
 		return new double[] {lambda, theta};
 	}
@@ -619,8 +618,42 @@ public class MapProjections extends Application {
 		Complex k = new Complex(Math.sqrt(0.5)); // the rest comes from some fancy complex calculus
 		Complex ans = Jacobi.cn(u, k);
 		double p = 2 * Math.atan(ans.abs());
-		double theta = Math.atan2(ans.getIm(), ans.getRe());
+		double theta = ans.arg();
 		double lambda = Math.PI/2 - p;
+		return new double[] {lambda, theta};
+	}
+	
+	private static double[] lee(double x, double y) { //a tessalatable rectangle map
+		final double x1, y1;
+		if (y > x+1) {
+			x1 = -x - 4/3.;
+			y1 = y - 1;
+		}
+		else if (y < -x-1) {
+			x1 = x + 2/3.;
+			y1 = -y - 1;
+		}
+		else if (y > 1-x) {
+			x1 = -4/3. + x;
+			y1 = 1 - y;
+		}
+		else if (y < x-1) {
+			x1 = 2/3. - x;
+			y1 = 1 + y;
+		}
+		else if (x < 0) {
+			x1 = x + 2/3.;
+			y1 = -y - 1;
+		}
+		else {
+			x1 = 2/3. - x;
+			y1 = y + 1;
+		}
+		Complex w = new Complex(x1, y1/Math.sqrt(3)).times(2.655);//2.65 2.66
+		Complex ans = Dixon.leeFunc(w).times(Math.pow(2, -5/6.));
+		double p = 2 * Math.atan(ans.abs());
+		double theta = ans.arg();
+		double lambda = p - Math.PI/2;
 		return new double[] {lambda, theta};
 	}
 	
@@ -632,8 +665,6 @@ public class MapProjections extends Application {
 	}
 	
 	private static double[] winkel_tripel(double x, double y) {
-		
-		
 		final double tolerance = 10e-2;
 		
 		double X = x * (1 + Math.PI/2);

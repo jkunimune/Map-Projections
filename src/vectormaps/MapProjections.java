@@ -165,7 +165,7 @@ public class MapProjections extends Application {
 						break;
 					}
 				}
-				updateMap();
+				updateMap(); //TODO: how cool would it be to animate all of the transitions?
 			}
 		});
 		projectionChooser.setPrefWidth(210);
@@ -549,7 +549,7 @@ public class MapProjections extends Application {
 		else if (p.equals("Robinson"))
 			return robinson(lat, lon);
 		else if (p.equals("Test"))
-			return hyperelliptic(lat, lon);
+			return elliptabola(lat, lon);
 		else
 			throw new IllegalArgumentException(p);
 	}
@@ -832,23 +832,34 @@ public class MapProjections extends Application {
 	}
 	
 	
-	private static double[] hyperelliptic(double lat, double lon) {
-		final double k = 3.5;
-		final double n = 1.3125;
+	private static final double[] hyperelliptical(double lat, double lon) { //a hyperelliptic map projection with hyperellipse order k and lattitudinal spacind described by x^n/n
+		final double k = 3.25, n = 1.25, a = 1.125;
+		
 		return new double[] {
 				Math.pow(1 - Math.pow(Math.abs(lat/(Math.PI/2)), k),1/k)*lon,
-				(1-Math.pow(1-Math.abs(lat/(Math.PI/2)), n))/Math.sqrt(n)*Math.signum(lat)*Math.PI/2};
+				(1-Math.pow(1-Math.abs(lat/(Math.PI/2)), n))/Math.sqrt(n)*Math.signum(lat)*Math.PI/2*a};
 	}
 	
 	
-	/*private static double[] ellipticosh(double lat, double lon) {
-		final double a = 16/9.;
-		final double n = 1.5;
+	private static double[] elliptabola(double lat, double lon) {
+		final double k1 = 1.5;
+		final double k2 = .95;
+		final double a = 2;
+		final double p2 = 4;
+		
+		final double f1p2 = Math.pow(1-Math.pow(1-Math.abs(lat)/(Math.PI/2), k1),2);
+		final double f2l2 = Math.pow(1-Math.pow(1-Math.abs(lon)/Math.PI, k2),2);
+		final double ax = f1p2/(p2*p2);
+		final double bx = 2*f1p2/(p2)+1/(f2l2);
+		final double cx = f1p2 - 1;
+		final double ay = f2l2;
+		final double by = p2/Math.sqrt(f1p2);
+		final double cy = -p2 - f2l2;
 		return new double[] {
-				0,
-				0
+				Math.PI*Math.sqrt((-bx+Math.sqrt(bx*bx-4*ax*cx))/(2*ax))*Math.signum(lon),
+				Math.PI*(-by+Math.sqrt(by*by-4*ay*cy))/(2*ay)*Math.signum(lat)/a
 		};
-	}*/
+	}
 	
 	
 	

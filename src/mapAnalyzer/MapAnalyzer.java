@@ -334,9 +334,10 @@ public class MapAnalyzer extends Application {
 		final double s1ms2 = Math.hypot((p1[0]-p0[0])-(p2[1]-p0[1]), (p1[1]-p0[1])+(p2[0]-p0[0]));
 		final double factor = Math.abs((s1ps2-s1ms2)/(s1ps2+s1ms2)); //there's some linear algebra behind this formula. Don't worry about it.
 		
-		output[1] = Math.asin(1-factor);
-		if (output[1] >= Math.PI/2)
-			output[1] = Double.NaN;
+		//output[1] = Math.asin(1-factor);
+		output[1] = (1-factor)/Math.sqrt(factor);
+		//if (output[1] >= Math.PI/2)
+		//	output[1] = Double.NaN;
 		
 		return output;
 	}
@@ -356,14 +357,14 @@ public class MapAnalyzer extends Application {
 				
 				final int r, g, b;
 				if (sizeDistort < 0) { //if compressing
-					r = (int)(256*(1-shapeDistort/(Math.PI/2)));
-					g = (int)(256*(1-shapeDistort/(Math.PI/2))*(1-Math.min(1, -sizeDistort/3)));
+					r = (int)(255.9*Math.exp(-shapeDistort/1.5));
+					g = (int)(255.9*Math.exp(-shapeDistort/1.5)*Math.exp(sizeDistort/1.5));
 					b = g;
 				}
 				else { //if dilating
-					r = (int)(256*(1-shapeDistort/(Math.PI/2))*(1-Math.min(1, sizeDistort/3)));
+					r = (int)(255.9*Math.exp(-shapeDistort/1.5)*Math.exp(-sizeDistort/1.5));
 					g = r;
-					b = (int)(256*(1-shapeDistort/(Math.PI/2)));
+					b = (int)(255.9*Math.exp(-shapeDistort/1.5));
 				}
 				
 				final int argb = ((((((0xFF)<<8)+r)<<8)+g)<<8)+b;
