@@ -59,23 +59,24 @@ public class MapAnalyzer extends Application {
 	private static final KeyCombination ctrlS = new KeyCodeCombination(KeyCode.S, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	private static final String[] PROJ_ARR = { "Equirectangular", "Mercator", "Gall Stereographic",
-			"Hobo-Dyer", "Polar", "Stereographic", "Azimuthal Equal-Area", "Orthographic", "Gnomonic",
-			"Equidistant Conic", "Conformal Conic", "Albers", "Van der Grinten", "Robinson", "Winkel Tripel", "Mollweide", "Hammer", "Sinusoidal",
-			"Pierce Quincuncial", "Guyou", "TetraGraph", "Magnifier", "Experimental" };
-	private static final double[] DEFA = { 2, 1, 4/3.0, 1.977, 1, 1, 1, 1, 1,
-			2, 2, 2, 1, 1.9716, Math.PI/2, 2, 2, 2, 1, 2, Math.sqrt(3), 1, 1 };
-	private static final String[] DESC = { "An equidistant cylindrical map", "A conformal cylindrical map",
-			"A compromising cylindrical map", "An equal-area cylindrical map", "An equidistant azimuthal map",
-			"A conformal azimuthal map", "An equal-area azimuthal map",
+	private static final String[] PROJ_ARR = { "Mercator", "Equirectangular", "Hobo-Dyer", "Gall Stereographic",
+			"Stereographic", "Polar", "Azimuthal Equal-Area", "Orthographic", "Gnomonic", "Conformal Conic",
+			"Equidistant Conic", "Albers", "Lee", "TetraGraph", "Mollweide", "Hammer", "Sinusoidal", "Van der Grinten", "Robinson",
+			"Winkel Tripel", "Pierce Quincuncial", "Guyou", "Magnifier", "Experimental" };
+	private static final double[] DEFA = { 1, 2, 1.977, 4/3., 1, 1, 1, 1, 1, 2,
+			2, 2, Math.sqrt(3), Math.sqrt(3), 2, 2, 2, 1, 1.9716, Math.PI/2, 1, 2, 1, 1 };
+	private static final String[] DESC = { "A conformal cylindrical map", "An equidistant cylindrical map",
+			"An equal-area cylindrical map", "A compromising cylindrical map", "A conformal azimuthal map",
+			"An equidistant azimuthal map", "An equal-area azimuthal map",
 			"Represents earth viewed from an infinite distance",
-			"Every straight line on the map is a straight line on the sphere", "An equidistant conic map",
-			"A conformal conic map", "An equal-area conic map", "A circular compromise map",
-			"A visually pleasing piecewise compromise map", "The compromise map used by National Geographic",
-			"An equal-area map shaped like an ellipse", "An equal-area map shaped like an ellipse",
-			"An equal-area map shaped like a sinusoid", "A conformal square map that uses complex math",
-			"A reorganized version of Pierce Quincuncial and actually the best map ever",
-			"A compromising knockoff of the AuthaGraph projection",
+			"Every straight line on the map is a straight line on the sphere", "A conformal conic map",
+			"An equidistant conic map", "An equal-area conic map", "A conformal tetrahedral map that really deserves more attention",
+			"An equidistant tetrahedral map that I invented", "An equal-area map shaped like an ellipse",
+			"An equal-area map shaped like an ellipse", "An equal-area map shaped like a sinusoid","A circular compromise map",
+			"A visually pleasing piecewise compromise map",
+			"The compromise map used by National Geographic", 
+			"A conformal square map that uses complex math",
+			"A rearranged Pierce Quincuncial map",
 			"A novelty map that swells the center to disproportionate scale",
 			"What happens when you apply a complex differentiable function to a stereographic projection?" };
 	
@@ -120,7 +121,7 @@ public class MapAnalyzer extends Application {
 				}
 			}
 		});
-		projectionChooser.setValue(PROJ_ARR[1]);
+		projectionChooser.setValue("Mercator");
 		layout.getChildren().add(new HBox(3, lbl, projectionChooser));
 		
 		projectionDesc = new Text(DESC[1]);
@@ -441,7 +442,7 @@ public class MapAnalyzer extends Application {
 		for (int i = 0; i <= num; i ++) {
 			double x = i*(max-min)/num+min;
 			if (logarithmic)	x = Math.exp(x);
-			else				x = 1-Math.sin(x); //this is a bit nonsensical and sketch. Don't worry about it.
+			else				x = 1/(1-Math.sin(x)); //this is a bit nonsensical and sketch. Don't worry about it.
 			output.getData().add(new Data<String, Number>(
 					Double.toString(Math.round(100*x)/100.),
 					(double)hist[i]/tot*100));

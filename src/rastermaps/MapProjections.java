@@ -84,10 +84,10 @@ public class MapProjections extends Application {
 			"What happens when you apply a complex differentiable function to a stereographic projection?" };
 	
 	private static final String[] AXES = { "Standard", "Transverse", "Center of Mass", "Jerusalem", "Point Nemo",
-			"Longest Line", "Longest Line Transverse", "Cylindrical", "Conic", "Quincuncial", "Antipode", "Random" };
-	private static final double[] DEF_LATS = { 90, 0, 29.9792, 31.7833, 48.8767, -28.5217, -46.4883, -35, -10, 60 };
-	private static final double[] DEF_LONS = { 0, 0, 31.1344, 35.216, 56.6067, 141.451, 16.5305, -13.6064, 65, -6 };
-	private static final double[] DEF_THTS = { 0, 0, -32, -35, -45, 161.5, 137, 145, -150, -10 };
+			"Longest Line", "Longest Line Transverse", "Cylindrical", "Conic", "Tetrahedral", "Quincuncial", "Antipode", "Random" };
+	private static final double[] DEF_LATS = { 90, 0, 29.9792, 31.7833, 48.8767, -28.5217, -46.4883, -35, -10, 47, 60 };
+	private static final double[] DEF_LONS = { 0, 0, 31.1344, 35.216, 56.6067, 141.451, 16.5305, -13.6064, 65, -173, -6 };
+	private static final double[] DEF_THTS = { 0, 0, -32, -35, -45, 161.5, 137, 145, -150, 138, -10 };
 	
 	
 	private Stage stage;
@@ -649,7 +649,7 @@ public class MapProjections extends Application {
 			x1 = 2/3. - x;
 			y1 = y + 1;
 		}
-		Complex w = new Complex(x1, y1/Math.sqrt(3)).times(2.655);//2.65 2.66
+		Complex w = new Complex(x1, y1/Math.sqrt(3)).times(2.655);
 		Complex ans = Dixon.leeFunc(w).times(Math.pow(2, -5/6.));
 		double p = 2 * Math.atan(ans.abs());
 		double theta = ans.arg();

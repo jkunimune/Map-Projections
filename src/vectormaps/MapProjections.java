@@ -45,6 +45,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import util.Dixon;
 import util.ProgressBarDialog;
 import util.Robinson;
 import util.Vector;
@@ -65,34 +66,31 @@ public class MapProjections extends Application {
 	private static final KeyCombination ctrlS = new KeyCodeCombination(KeyCode.S, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	private static final String[] PROJ_ARR = { "Equirectangular", "Mercator",
-			"Gall Stereographic", "Hobo-Dyer", "Polar", "Stereographic",
-			"Azimuthal Equal-Area", "Orthographic", "Gnomonic",
-			"Equidistant Conic", "Conformal Conic", "Albers", "Van der Grinten",
-			"Robinson", "Winkel Tripel","Mollweide", "Aitoff", "Hammer",
-			"Sinusoidal", "Pierce Quincuncial", "Guyou", "TetraGraph",
-			"Magnifier", "Experimental", "Test" };
-	private static final String[] DESC = { "An equidistant cylindrical map", "A conformal cylindrical map",
-			"A compromising cylindrical map", "An equal-area cylindrical map", "An equidistant azimuthal map",
-			"A conformal azimuthal map", "An equal-area azimuthal map",
+	private static final String[] PROJ_ARR = { "Mercator", "Equirectangular", "Hobo-Dyer", "Gall Stereographic",
+			"Stereographic", "Polar", "Azimuthal Equal-Area", "Orthographic", "Gnomonic", "Conformal Conic",
+			"Equidistant Conic", "Albers", "Lee", "TetraGraph", "Mollweide", "Hammer", "Aitoff", "Sinusoidal", "Van der Grinten", "Robinson",
+			"Winkel Tripel", "Pierce Quincuncial", "Guyou", "Magnifier", "Experimental", "Test" };
+	private static final String[] DESC = { "A conformal cylindrical map", "An equidistant cylindrical map",
+			"An equal-area cylindrical map", "A compromising cylindrical map", "A conformal azimuthal map",
+			"An equidistant azimuthal map", "An equal-area azimuthal map",
 			"Represents earth viewed from an infinite distance",
-			"Every straight line on the map is a straight line on the sphere", "An equidistant conic map",
-			"A conformal conic map", "An equal-area conic map", "A circular compromise map",
-			"A visually pleasing piecewise compromise map", "The compromise map used by National Geographic",
-			"An equal-area map shaped like an ellipse", "An equal-area map shaped like an ellipse",
-			"An equal-area map shaped like an ellipse", "An equal-area map shaped like a sinusoid",
+			"Every straight line on the map is a straight line on the sphere", "A conformal conic map",
+			"An equidistant conic map", "An equal-area conic map", "A conformal tetrahedral map that really deserves more attention",
+			"An equidistant tetrahedral map that I invented", "An equal-area map shaped like an ellipse",
+			"An equal-area map shaped like an ellipse", "An equal-area map shaped like an ellipse", "An equal-area map shaped like a sinusoid","A circular compromise map",
+			"A visually pleasing piecewise compromise map",
+			"The compromise map used by National Geographic", 
 			"A conformal square map that uses complex math",
-			"A reorganized version of Pierce Quincuncial and actually the best map ever",
-			"A compromising knockoff of the AuthaGraph projection",
+			"A rearranged Pierce Quincuncial map",
 			"A novelty map that swells the center to disproportionate scale",
 			"What happens when you apply a complex differentiable function to a stereographic projection?",
 			"Test."};
 	
 	private static final String[] AXES = { "Standard", "Transverse", "Center of Mass", "Jerusalem", "Point Nemo",
-			"Longest Line", "Longest Line Transverse", "Cylindrical", "Conical", "Quincuncial", "Antipode", "Random" };
-	private static final double[][] DEF_ASPECTS = { { 90, 0, 29.9792, 31.7833, 48.8767, -28.5217, -46.4883, -35, -10, 60 },
-													{ 0, 0, 31.1344, 35.216, 56.6067, 141.451, 16.5305, -13.6064, 65, -6 },
-													{ 0, 0, -32, -35, -45, 161.5, 137, 145, -150, -10 } };
+			"Longest Line", "Longest Line Transverse", "Cylindrical", "Conical", "Tetrahedral", "Quincuncial", "Antipode", "Random" };
+	private static final double[][] DEF_ASPECTS = { { 90, 0, 29.9792, 31.7833, 48.8767, -28.5217, -46.4883, -35, -10, 47, 60 },
+													{ 0, 0, 31.1344, 35.216, 56.6067, 141.451, 16.5305, -13.6064, 65, -173, -6 },
+													{ 0, 0, -32, -35, -45, 161.5, 137, 145, -150, 138, -10 } };
 	private static final int DEF_MAX_VTX = 5000;
 	
 	
@@ -169,7 +167,7 @@ public class MapProjections extends Application {
 			}
 		});
 		projectionChooser.setPrefWidth(210);
-		projectionChooser.setValue(PROJ_ARR[1]);
+		projectionChooser.setValue("Mercator");
 		layout.getChildren().add(new HBox(3, lbl, projectionChooser));
 		
 		projectionDesc = new Text(DESC[1]);
@@ -429,7 +427,10 @@ public class MapProjections extends Application {
 	private void saveToSVG(List<List<double[]>> curves, ProgressBarDialog pBar) {	// call from the main thread!
 		pBar.close();
 		final File f = saver.showSaveDialog(stage);
-		if (f == null)	return;
+		if (f == null) {
+			saveMap.setDisable(false);
+			return;
+		}
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(f));
 			
@@ -550,6 +551,8 @@ public class MapProjections extends Application {
 			return robinson(lat, lon);
 		else if (p.equals("Test"))
 			return elliptabola(lat, lon);
+		else if (p.equals("Lee"))
+			return lee(lat, lon);
 		else
 			throw new IllegalArgumentException(p);
 	}
@@ -808,6 +811,54 @@ public class MapProjections extends Application {
 		case 3:
 			return new double[]
 					{-Math.PI/3 - r*Math.cos(lonR), -r*Math.sin(lonR)}; // left
+		default:
+			return null;
+		}
+	}
+	
+	private static double[] lee(double lat, double lon) { //a tesselatable rectangle map
+			final double[][] centrums = {{-Math.PI/2, 0, Math.PI/3},
+					{Math.asin(1/3.0), Math.PI, Math.PI/3},
+					{Math.asin(1/3.0), Math.PI/3, Math.PI/3},
+					{Math.asin(1/3.0), -Math.PI/3, -Math.PI/3}};
+		double latR = Double.NaN;
+		double lonR = Double.NaN;
+		byte poleIdx = -1;
+		for (byte i = 0; i < 4; i ++) {
+			final double[] relCoords = obliquify(centrums[i], new double[] {lat,lon});
+			if (Double.isNaN(latR) || relCoords[0] > latR) {
+				latR = relCoords[0]; // pick the centrum that maxes out your latitude
+				lonR = relCoords[1];
+				poleIdx = i;
+			}
+		}
+		
+		final mfc.field.Complex z = mfc.field.Complex.fromPolar(Math.pow(2, 5/6.)*Math.tan(Math.PI/4-latR/2), lonR);
+		final mfc.field.Complex w = Dixon.invFunc(z);
+		double tht = w.arg();
+		double r = w.abs()*1.186;
+		
+		switch (poleIdx) {
+		case 0:
+			if (Math.sin(lon) < 0)
+				return new double[]
+						{-2*Math.PI/3 + r*Math.sin(tht-Math.PI/6), -Math.PI/Math.sqrt(3) - r*Math.cos(tht-Math.PI/6)}; // lower left
+			else
+				return new double[]
+						{2*Math.PI/3 - r*Math.sin(tht-Math.PI/6), -Math.PI/Math.sqrt(3) + r*Math.cos(tht-Math.PI/6)}; // lower right
+		case 1:
+			if (Math.sin(lon) < 0)
+				return new double[]
+						{-2*Math.PI/3 + r*Math.sin(tht-Math.PI/6), Math.PI/Math.sqrt(3) - r*Math.cos(tht-Math.PI/6)}; // upper left
+			else
+				return new double[]
+						{2*Math.PI/3 - r*Math.sin(tht-Math.PI/6), Math.PI/Math.sqrt(3) + r*Math.cos(tht-Math.PI/6)}; // upper right
+		case 2:
+			return new double[]
+					{Math.PI/3 + r*Math.cos(tht), r*Math.sin(tht)}; // right
+		case 3:
+			return new double[]
+					{-Math.PI/3 - r*Math.cos(tht), -r*Math.sin(tht)}; // left
 		default:
 			return null;
 		}

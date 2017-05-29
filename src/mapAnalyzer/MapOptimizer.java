@@ -37,16 +37,14 @@ public class MapOptimizer extends Application {
 	public void start(Stage stage) throws Exception {
 		final long startTime = System.currentTimeMillis();
 		
-		double[][][] globe = MapAnalyzer.globe(0.02);
-		final Series<Number, Number> oldMaps = analyzeAll(globe, EXISTING_PROJECTIONS);
-		//final Series<Number, Number> hyperMaps = optimizeHyperelliptical(globe);
-		final Series<Number, Number> roundMaps = optimizeElliptabola(globe);
-		
-		chart = new ScatterChart<Number, Number>(new NumberAxis("Size distortion", 0, 1, 0.2),
+		chart = new ScatterChart<Number, Number>(
+				new NumberAxis("Size distortion", 0, 1, 0.2),
 				new NumberAxis("Shape distortion", 0, 1, 0.2));
-		chart.getData().add(oldMaps);
-		//chart.getData().add(hyperMaps);
-		chart.getData().add(roundMaps);
+		double[][][] globe = MapAnalyzer.globe(0.02);
+		
+		chart.getData().add(analyzeAll(globe, EXISTING_PROJECTIONS));
+		chart.getData().add(optimizeHyperelliptical(globe));
+		chart.getData().add(optimizeElliptabola(globe));
 		
 		System.out.println("Total time elapsed: "+
 				(System.currentTimeMillis()-startTime)/1000.+"s");
