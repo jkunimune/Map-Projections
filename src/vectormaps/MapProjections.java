@@ -305,8 +305,8 @@ public class MapProjections extends Application {
 		
 		do {
 			formatStuff += (char)c;
-			if (formatStuff.length() >= 8 &&
-					formatStuff.substring(formatStuff.length()-8).equals("path d=\"")) {
+			if (formatStuff.length() >= 4 &&
+					formatStuff.substring(formatStuff.length()-4).equals(" d=\"")) {
 				format.add(formatStuff);
 				formatStuff = "";
 				List<double[]> currentShape = new ArrayList<double[]>();
@@ -550,7 +550,7 @@ public class MapProjections extends Application {
 		else if (p.equals("Robinson"))
 			return robinson(lat, lon);
 		else if (p.equals("Test"))
-			return elliptabola(lat, lon);
+			return hyperelliptical(lat, lon);
 		else if (p.equals("Lee"))
 			return lee(lat, lon);
 		else
@@ -788,7 +788,7 @@ public class MapProjections extends Application {
 		}
 		
 		double tht = lonR - Math.floor(lonR/(2*Math.PI/3))*(2*Math.PI/3) - Math.PI/3;
-		double r = 1.1*Math.atan(1/Math.tan(latR)*Math.cos(tht))/Math.cos(tht);
+		double r = Math.atan(1/Math.tan(latR)*Math.cos(tht))/Math.cos(tht)*Math.PI/3/Math.atan(Math.sqrt(2));
 		
 		switch (poleIdx) {
 		case 0:
@@ -864,6 +864,57 @@ public class MapProjections extends Application {
 		}
 	}
 	
+	/*private static double[] tetrapower(double lat, double lon) { // a tetrahedral parametric map
+		final double k1 = 1.5;
+		final double k2 = .8;
+		
+		final double[][] centrums = {{-Math.PI/2, 0, Math.PI/3},
+									{Math.asin(1/3.0), Math.PI, Math.PI/3},
+									{Math.asin(1/3.0), Math.PI/3, Math.PI/3},
+									{Math.asin(1/3.0), -Math.PI/3, -Math.PI/3}};
+		double latR = Double.NaN;
+		double lonR = Double.NaN;
+		byte poleIdx = -1;
+		for (byte i = 0; i < 4; i ++) {
+			final double[] relCoords = obliquify(centrums[i],
+					new double[] {lat,lon});
+			if (Double.isNaN(latR) || relCoords[0] > latR) {
+				latR = relCoords[0]; // pick the centrum that maxes out your latitude
+				lonR = relCoords[1];
+				poleIdx = i;
+			}
+		}
+		
+		double lonM = lonR - Math.floor(lonR/(2*Math.PI/3))*(2*Math.PI/3) - Math.PI/3;
+		double tht = (1 - Math.pow(1-Math.abs(lonM)/(Math.PI/2), k1))/normalization;
+		double r = 1.1*Math.atan(1/Math.tan(latR)*Math.cos(tht))/Math.cos(tht);
+		
+		switch (poleIdx) {
+		case 0:
+			if (Math.sin(lon) < 0)
+				return new double[]
+						{-2*Math.PI/3 + r*Math.sin(lonR-Math.PI/6), -Math.PI/Math.sqrt(3) - r*Math.cos(lonR-Math.PI/6)}; // lower left
+			else
+				return new double[]
+						{2*Math.PI/3 - r*Math.sin(lonR-Math.PI/6), -Math.PI/Math.sqrt(3) + r*Math.cos(lonR-Math.PI/6)}; // lower right
+		case 1:
+			if (Math.sin(lon) < 0)
+				return new double[]
+						{-2*Math.PI/3 + r*Math.sin(lonR-Math.PI/6), Math.PI/Math.sqrt(3) - r*Math.cos(lonR-Math.PI/6)}; // upper left
+			else
+				return new double[]
+						{2*Math.PI/3 - r*Math.sin(lonR-Math.PI/6), Math.PI/Math.sqrt(3) + r*Math.cos(lonR-Math.PI/6)}; // upper right
+		case 2:
+			return new double[]
+					{Math.PI/3 + r*Math.cos(lonR), r*Math.sin(lonR)}; // right
+		case 3:
+			return new double[]
+					{-Math.PI/3 - r*Math.cos(lonR), -r*Math.sin(lonR)}; // left
+		default:
+			return null;
+		}
+	}*/
+	
 	private static double[] edConic(double lat, double lon) {
 		final double r = 3*Math.PI/5 - 4/5.*lat;
 		final double tht = lon/2 - Math.PI/2;
@@ -892,38 +943,23 @@ public class MapProjections extends Application {
 	}
 	
 	
-	private static double[] elliptabola(double lat, double lon) {
-		final double k1 = 1.5;
-		final double k2 = .95;
-		final double a = 2;
-		final double p2 = 4;
-		
-		final double f1p2 = Math.pow(1-Math.pow(1-Math.abs(lat)/(Math.PI/2), k1),2);
-		final double f2l2 = Math.pow(1-Math.pow(1-Math.abs(lon)/Math.PI, k2),2);
-		final double ax = f1p2/(p2*p2);
-		final double bx = 2*f1p2/(p2)+1/(f2l2);
-		final double cx = f1p2 - 1;
-		final double ay = f2l2;
-		final double by = p2/Math.sqrt(f1p2);
-		final double cy = -p2 - f2l2;
-		return new double[] {
-				Math.PI*Math.sqrt((-bx+Math.sqrt(bx*bx-4*ax*cx))/(2*ax))*Math.signum(lon),
-				Math.PI*(-by+Math.sqrt(by*by-4*ay*cy))/(2*ay)*Math.signum(lat)/a
-		};
-	}
-	
-	
 	
 	private static final Complex F(Complex phi, final Complex k) { // series solution to incomplete elliptic integral of the first kind
-		Complex sum = new Complex(0);
-		Complex i_n = phi;
+		final double TOLERANCE = 1e-3;
 		
-		for (int n = 0; n < 100; n++) {
+		Complex sum = Complex.ZERO;
+		Complex i_n = phi;
+		Complex delt;
+		
+		int n = 0;
+		do {
 			if (n > 0)
 				i_n = i_n.multiply((2.0 * n - 1) / (2.0 * n))
 						.subtract(phi.cos().multiply(phi.sin().pow(2.0 * n - 1)).divide(2.0 * n));
-			sum = sum.add(i_n.multiply(Math.abs(combine(-.5, n))).multiply(k.pow(2.0 * n)));
-		}
+			delt = i_n.multiply(Math.abs(combine(-.5, n))).multiply(k.pow(2.0 * n));
+			sum = sum.add(delt);
+			n ++;
+		} while (delt.abs() > TOLERANCE);
 		
 		return sum;
 	}

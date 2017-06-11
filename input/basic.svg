@@ -10,9 +10,10 @@
 .country {
 	opacity:1;
 	fill:#444444;
-	fill-opacity:1;
+	fill-opacity:.125;
 	fill-rule:evenodd;
-	stroke:none;
+	stroke:#444444;
+	stroke-width:.25;
 }
 /*
 Example for painting countries: 

@@ -18,7 +18,7 @@ import mfc.field.Complex;
  */
 public class Dixon {
 
-	private static final double TOLERANCE = 1e-2;//TODO
+	private static final double TOLERANCE = 1e-3;
 	
 	
 	public static Complex leeFunc(Complex w) { //the 28th order McLaurin polynomial for 2sm(w/2)cm(w/2)
@@ -26,11 +26,11 @@ public class Dixon {
 				.plus( w.pow( 7).times(.223214e-2))
 				.minus(w.pow(10).times(.069754e-3))
 				.plus( w.pow(13).times(.020121e-4))
-				.minus(w.pow(16).times(.005539e-5))
-				.plus( w.pow(19).times(.001477e-6))
-				.minus(w.pow(22).times(.000385e-7))
-				.plus( w.pow(25).times(.000099e-8))
-				.minus(w.pow(28).times(.000025e-9));
+				.minus(w.pow(16).times(.005539e-5));
+//				.plus( w.pow(19).times(.001477e-6))
+//				.minus(w.pow(22).times(.000385e-7))
+//				.plus( w.pow(25).times(.000099e-8))
+//				.minus(w.pow(28).times(.000025e-9));
 	}
 	
 	
@@ -38,12 +38,10 @@ public class Dixon {
 		Complex wi;
 		Complex wf = z;
 		
-		//do {
-		for (int i = 0; i < 5; i ++) {
+		do {
 			wi = wf;
 			wf = z.plus(wi.minus(leeFunc(wi)));
-		}
-		//} while (wf.minus(wi).abs() > TOLERANCE);
+		} while (wf.minus(wi).abs() > TOLERANCE);
 		
 		return wf;
 	}

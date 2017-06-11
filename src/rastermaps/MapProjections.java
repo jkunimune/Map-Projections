@@ -624,37 +624,73 @@ public class MapProjections extends Application {
 	}
 	
 	private static double[] lee(double x, double y) { //a tessalatable rectangle map
-		final double x1, y1;
-		if (y > x+1) {
-			x1 = -x - 4/3.;
-			y1 = y - 1;
+		final double[] faceCenter = new double[3];
+		final double rot, localX, localY;
+		if (y < x-1) {
+			faceCenter[0] = -Math.PI/2;
+			faceCenter[1] = 0;
+			rot = -Math.PI/2;
+			localX = Math.sqrt(3)*(x-2/3.);
+			localY = y+1;
 		}
 		else if (y < -x-1) {
-			x1 = x + 2/3.;
-			y1 = -y - 1;
+			faceCenter[0] = -Math.PI/2;
+			faceCenter[1] = 0;
+			rot = Math.PI/2;
+			localX = Math.sqrt(3)*(x+2/3.);
+			localY = y+1;
 		}
-		else if (y > 1-x) {
-			x1 = -4/3. + x;
-			y1 = 1 - y;
+		else if (y > -x+1) {
+			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
+			faceCenter[1] = Math.PI;
+			rot = -Math.PI/2;
+			localX = Math.sqrt(3)*(x-2/3.);
+			localY = y-1;
 		}
-		else if (y < x-1) {
-			x1 = 2/3. - x;
-			y1 = 1 + y;
+		else if (y > x+1) {
+			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
+			faceCenter[1] = Math.PI;
+			rot = Math.PI/2;
+			localX = Math.sqrt(3)*(x+2/3.);
+			localY = y-1;
 		}
 		else if (x < 0) {
-			x1 = x + 2/3.;
-			y1 = -y - 1;
+			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
+			faceCenter[1] = -Math.PI/3;
+			rot = Math.PI/6;
+			localX = Math.sqrt(3)*(x+1/3.);
+			localY = y;
 		}
 		else {
-			x1 = 2/3. - x;
-			y1 = y + 1;
+			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
+			faceCenter[1] = Math.PI/3;
+			rot = -Math.PI/6;
+			localX = Math.sqrt(3)*(x-1/3.);
+			localY = y;
 		}
-		Complex w = new Complex(x1, y1/Math.sqrt(3)).times(2.655);
+		faceCenter[2] = 0;
+		
+		final Complex w = Complex.fromPolar(
+				Math.hypot(localX, localY)*1.53,
+				Math.atan2(localY, localX)+rot - Math.PI/2);
+		final Complex ans = Dixon.leeFunc(w).times(Math.pow(2, -5/6.));
+		final double[] triCoords = {
+				Math.PI/2 - 2*Math.atan(ans.abs()),
+				ans.arg() + Math.PI };
+		/*final double t = Math.atan2(localY, localX) + rot;
+		final double t0 = Math.floor((t+Math.PI/2)/(2*Math.PI/3)+0.5)*(2*Math.PI/3) - Math.PI/2;
+		final double dt = t-t0;
+		
+		double[] triCoords = {
+				Math.PI/2 - Math.atan(Math.tan(Math.atan(Math.sqrt(2))/(Math.sqrt(3)/3)*Math.hypot(localX, localY)*Math.cos(dt))/Math.cos(dt)),
+				Math.PI/2 + t0 + dt};*/
+		return obliquify(faceCenter, triCoords);
+		/*Complex w = new Complex(x1, y1/Math.sqrt(3)).times(2.655);
 		Complex ans = Dixon.leeFunc(w).times(Math.pow(2, -5/6.));
 		double p = 2 * Math.atan(ans.abs());
 		double theta = ans.arg();
 		double lambda = p - Math.PI/2;
-		return new double[] {lambda, theta};
+		return new double[] {lambda, theta};*/
 	}
 	
 	private static double[] mollweide(double x, double y) {
@@ -777,14 +813,13 @@ public class MapProjections extends Application {
 		
 		final double t = Math.atan2(localY, localX) + rot;
 		final double t0 = Math.floor((t+Math.PI/2)/(2*Math.PI/3)+0.5)*(2*Math.PI/3) - Math.PI/2;
-		final double dt = t-t0;
-		final double z = 2.49*Math.hypot(localX, localY)*Math.cos(dt);
+		final double z = 2.49*Math.hypot(localX, localY)*Math.cos(t-t0);
 		
 		final double g = 0.03575*z*z*z + 0.0219*z*z + 0.4441*z;
 		
 		double[] triCoords = {
-				Math.PI/2 - Math.atan(Math.tan(g)/Math.cos(dt)),
-				Math.PI/2 + t0 + dt};
+				Math.PI/2 - Math.atan(Math.tan(g)/Math.cos(t-t0)),
+				Math.PI/2 + t};
 		return obliquify(faceCenter, triCoords);
 	}
 	
@@ -840,7 +875,7 @@ public class MapProjections extends Application {
 		final double dt = t-t0;
 		
 		double[] triCoords = {
-				Math.PI/2 - Math.atan(Math.tan(1.654*Math.hypot(localX, localY)*Math.cos(dt))/Math.cos(dt)),
+				Math.PI/2 - Math.atan(Math.tan(Math.atan(Math.sqrt(2))/(Math.sqrt(3)/3)*Math.hypot(localX, localY)*Math.cos(dt))/Math.cos(dt)),
 				Math.PI/2 + t0 + dt};
 		return obliquify(faceCenter, triCoords);
 	}
