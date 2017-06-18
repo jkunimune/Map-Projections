@@ -520,6 +520,39 @@ public class MapProjections extends Application {
 	}
 	
 	
+	private static double[] tetrahedralProjection(double x, double y) { // a function to help with tetrahedral projections
+		if (y < x-1) {
+			return new double[] {
+					-Math.PI/2, 0, 0,
+					-Math.PI/2, Math.sqrt(3)*(x-2/3.), y+1 };
+		}
+		else if (y < -x-1) {
+			return new double[] {
+					-Math.PI/2, 0, 0,
+					Math.PI/2, Math.sqrt(3)*(x+2/3.), y+1 };
+		}
+		else if (y > -x+1) {
+			return new double[] {
+					Math.PI/2-Math.asin(Math.sqrt(8)/3), Math.PI, 0,
+					-Math.PI/2, Math.sqrt(3)*(x-2/3.), y-1 };
+		}
+		else if (y > x+1) {
+			return new double[] {
+					Math.PI/2-Math.asin(Math.sqrt(8)/3), Math.PI, 0,
+					Math.PI/2, Math.sqrt(3)*(x+2/3.), y-1 };
+		}
+		else if (x < 0)
+			return new double[] {
+					Math.PI/2-Math.asin(Math.sqrt(8)/3), -Math.PI/3, 0,
+					Math.PI/6, Math.sqrt(3)*(x+1/3.), y };
+		else
+			return new double[] {
+					Math.PI/2-Math.asin(Math.sqrt(8)/3), Math.PI/3, 0,
+					-Math.PI/6, Math.sqrt(3)*(x-1/3.), y };
+		
+	}
+
+
 	private static double[] quincuncial(double x, double y) { // a tessalatable square map
 		Complex u = new Complex(1.854 * (x+1), 1.854 * y); // 1.854 is approx K(sqrt(1/2)
 		Complex k = new Complex(Math.sqrt(0.5)); // the rest comes from some fancy complex calculus
@@ -624,73 +657,19 @@ public class MapProjections extends Application {
 	}
 	
 	private static double[] lee(double x, double y) { //a tessalatable rectangle map
-		final double[] faceCenter = new double[3];
-		final double rot, localX, localY;
-		if (y < x-1) {
-			faceCenter[0] = -Math.PI/2;
-			faceCenter[1] = 0;
-			rot = -Math.PI/2;
-			localX = Math.sqrt(3)*(x-2/3.);
-			localY = y+1;
-		}
-		else if (y < -x-1) {
-			faceCenter[0] = -Math.PI/2;
-			faceCenter[1] = 0;
-			rot = Math.PI/2;
-			localX = Math.sqrt(3)*(x+2/3.);
-			localY = y+1;
-		}
-		else if (y > -x+1) {
-			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
-			faceCenter[1] = Math.PI;
-			rot = -Math.PI/2;
-			localX = Math.sqrt(3)*(x-2/3.);
-			localY = y-1;
-		}
-		else if (y > x+1) {
-			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
-			faceCenter[1] = Math.PI;
-			rot = Math.PI/2;
-			localX = Math.sqrt(3)*(x+2/3.);
-			localY = y-1;
-		}
-		else if (x < 0) {
-			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
-			faceCenter[1] = -Math.PI/3;
-			rot = Math.PI/6;
-			localX = Math.sqrt(3)*(x+1/3.);
-			localY = y;
-		}
-		else {
-			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
-			faceCenter[1] = Math.PI/3;
-			rot = -Math.PI/6;
-			localX = Math.sqrt(3)*(x-1/3.);
-			localY = y;
-		}
-		faceCenter[2] = 0;
+		final double[] doubles = tetrahedralProjection(x,y);
+		final double[] faceCenter = { doubles[0], doubles[1], doubles[2] };
+		final double tht = doubles[3], xp = doubles[4], yp = doubles[5];
 		
 		final Complex w = Complex.fromPolar(
-				Math.hypot(localX, localY)*1.53,
-				Math.atan2(localY, localX)+rot - Math.PI/2);
+				Math.hypot(xp, yp)*1.53,
+				Math.atan2(yp, xp)+tht - Math.PI/2);
 		final Complex ans = Dixon.leeFunc(w).times(Math.pow(2, -5/6.));
 		final double[] triCoords = {
 				Math.PI/2 - 2*Math.atan(ans.abs()),
 				ans.arg() + Math.PI };
-		/*final double t = Math.atan2(localY, localX) + rot;
-		final double t0 = Math.floor((t+Math.PI/2)/(2*Math.PI/3)+0.5)*(2*Math.PI/3) - Math.PI/2;
-		final double dt = t-t0;
 		
-		double[] triCoords = {
-				Math.PI/2 - Math.atan(Math.tan(Math.atan(Math.sqrt(2))/(Math.sqrt(3)/3)*Math.hypot(localX, localY)*Math.cos(dt))/Math.cos(dt)),
-				Math.PI/2 + t0 + dt};*/
 		return obliquify(faceCenter, triCoords);
-		/*Complex w = new Complex(x1, y1/Math.sqrt(3)).times(2.655);
-		Complex ans = Dixon.leeFunc(w).times(Math.pow(2, -5/6.));
-		double p = 2 * Math.atan(ans.abs());
-		double theta = ans.arg();
-		double lambda = p - Math.PI/2;
-		return new double[] {lambda, theta};*/
 	}
 	
 	private static double[] mollweide(double x, double y) {
@@ -813,73 +792,31 @@ public class MapProjections extends Application {
 		
 		final double t = Math.atan2(localY, localX) + rot;
 		final double t0 = Math.floor((t+Math.PI/2)/(2*Math.PI/3)+0.5)*(2*Math.PI/3) - Math.PI/2;
-		final double z = 2.49*Math.hypot(localX, localY)*Math.cos(t-t0);
+		final double dt = t-t0;
+		final double z = 2.49*Math.hypot(localX, localY)*Math.cos(dt);
 		
 		final double g = 0.03575*z*z*z + 0.0219*z*z + 0.4441*z;
 		
 		double[] triCoords = {
-				Math.PI/2 - Math.atan(Math.tan(g)/Math.cos(t-t0)),
-				Math.PI/2 + t};
+				Math.PI/2 - Math.atan(Math.tan(g)/Math.cos(dt)),
+				Math.PI/2 + t0 + dt };
 		return obliquify(faceCenter, triCoords);
 	}
 	
-	private static double[] tetragraph(double x, double y) { // a tetrahedral compromise
-		final double[] faceCenter = new double[3];
-		final double rot, localX, localY;
-		if (y < x-1) {
-			faceCenter[0] = -Math.PI/2;
-			faceCenter[1] = 0;
-			rot = -Math.PI/2;
-			localX = Math.sqrt(3)*(x-2/3.0);
-			localY = y+1;
-		}
-		else if (y < -x-1) {
-			faceCenter[0] = -Math.PI/2;
-			faceCenter[1] = 0;
-			rot = Math.PI/2;
-			localX = Math.sqrt(3)*(x+2/3.0);
-			localY = y+1;
-		}
-		else if (y > -x+1) {
-			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
-			faceCenter[1] = Math.PI;
-			rot = -Math.PI/2;
-			localX = Math.sqrt(3)*(x-2/3.0);
-			localY = y-1;
-		}
-		else if (y > x+1) {
-			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
-			faceCenter[1] = Math.PI;
-			rot = Math.PI/2;
-			localX = Math.sqrt(3)*(x+2/3.0);
-			localY = y-1;
-		}
-		else if (x < 0) {
-			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
-			faceCenter[1] = -Math.PI/3;
-			rot = Math.PI/6;
-			localX = Math.sqrt(3)*(x+1/3.0);
-			localY = y;
-		}
-		else {
-			faceCenter[0] = Math.PI/2-Math.asin(Math.sqrt(8)/3);
-			faceCenter[1] = Math.PI/3;
-			rot = -Math.PI/6;
-			localX = Math.sqrt(3)*(x-1/3.0);
-			localY = y;
-		}
-		faceCenter[2] = 0;
+	private static double[] tetragraph(double x, double y) {
+		final double[] doubles = tetrahedralProjection(x,y);
+		final double[] faceCenter = { doubles[0], doubles[1], doubles[2] };
+		final double tht = doubles[3], xp = doubles[4], yp = doubles[5];
 		
-		final double t = Math.atan2(localY, localX) + rot;
+		final double t = Math.atan2(yp, xp) + tht;
 		final double t0 = Math.floor((t+Math.PI/2)/(2*Math.PI/3)+0.5)*(2*Math.PI/3) - Math.PI/2;
 		final double dt = t-t0;
 		
 		double[] triCoords = {
-				Math.PI/2 - Math.atan(Math.tan(Math.atan(Math.sqrt(2))/(Math.sqrt(3)/3)*Math.hypot(localX, localY)*Math.cos(dt))/Math.cos(dt)),
+				Math.PI/2 - Math.atan(Math.tan(Math.atan(Math.sqrt(2))/(Math.sqrt(3)/3)*Math.hypot(xp,yp)*Math.cos(dt))/Math.cos(dt)),
 				Math.PI/2 + t0 + dt};
 		return obliquify(faceCenter, triCoords);
 	}
-	
 	
 	private static double[] edConic(double x, double y) {
 		y = (y-1)/2;
@@ -890,7 +827,6 @@ public class MapProjections extends Application {
 				2*Math.atan2(y, x)+Math.PI};
 	}
 	
-	
 	private static double[] albers(double x, double y) {
 		y = (y-1)/2;
 		final double r = Math.hypot(x, y);
@@ -899,7 +835,6 @@ public class MapProjections extends Application {
 				Math.asin(1.2-2.2*Math.pow(r, 2)),
 				2*Math.atan2(y, x)};
 	}
-	
 	
 	private static double[] robinson(double x, double y) {
 		return new double[] {

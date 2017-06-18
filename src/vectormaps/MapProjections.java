@@ -5,15 +5,16 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.UnaryOperator;
+
 import org.apache.commons.math3.complex.Complex;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -32,6 +33,7 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Separator;
 import javafx.scene.control.Slider;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -101,6 +103,7 @@ public class MapProjections extends Application {
 	private ComboBox<String> projectionChooser;
 	private Text projectionDesc;
 	private Slider[] aspectSliders;
+	private Spinner<Double>[] aspectSpinners;
 	private Button saveMap;
 	private List<String> format;
 	private List<List<double[]>> input;
@@ -115,6 +118,7 @@ public class MapProjections extends Application {
 	}
 	
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public void start(Stage primaryStage) {
 		stage = primaryStage;
@@ -196,24 +200,48 @@ public class MapProjections extends Application {
 				new Slider(-180,180,0),
 				new Slider(-180,180,0)
 		};
+		final Spinner<Double> latSpinner = new Spinner<Double>(-90, 90, 90.0);
+		aspectSpinners = (Spinner<Double>[]) Array.newInstance(latSpinner.getClass(), 3);
+		aspectSpinners[0] = latSpinner;
+		aspectSpinners[1] = new Spinner<Double>(-180, 180, 0.0);
+		aspectSpinners[2] = new Spinner<Double>(-180, 180, 0.0);
 		
 		GridPane grid = new GridPane();
-		grid.addRow(0, new Text("Latitude:"), aspectSliders[0]);
-		grid.addRow(1, new Text("Longitude:"), aspectSliders[1]);
-		grid.addRow(2, new Text("Orientation:"), aspectSliders[2]);
-		for (Slider s: aspectSliders) {
-			GridPane.setHgrow(s, Priority.ALWAYS);
-			s.setTooltip(new Tooltip("Change the aspect of the map"));
-			s.valueChangingProperty().addListener(new ChangeListener<Boolean>() {
-				public void changed(ObservableValue<? extends Boolean> observable, Boolean then, Boolean now) {
-					if (!now)	updateMap();
+		grid.addRow(0, new Text("Latitude:"), aspectSliders[0], aspectSpinners[0]);
+		grid.addRow(1, new Text("Longitude:"), aspectSliders[1], aspectSpinners[1]);
+		grid.addRow(2, new Text("Orientation:"), aspectSliders[2], aspectSpinners[2]);
+		
+		for (int i = 0; i < 3; i ++) {
+			final Slider sld = aspectSliders[i];
+			final Spinner<Double> spn = aspectSpinners[i];
+			GridPane.setHgrow(sld, Priority.ALWAYS);
+			sld.setTooltip(new Tooltip("Change the aspect of the map"));
+			sld.valueChangingProperty().addListener(
+					(observable, then, now) -> {
+						if (!now)	updateMap();
+						if (spn.getValue() != sld.getValue())
+							spn.getEditor().textProperty().set(Double.toString(sld.getValue()));
+					});
+			
+			spn.setTooltip(new Tooltip("Change the aspect of the map"));
+			spn.setPrefWidth(100);
+			spn.setEditable(true);
+			spn.getEditor().textProperty().addListener((ov, pv, nv) -> {	// link the Spinners
+				if (spn.getEditor().textProperty().isEmpty().get())	return;
+				try {
+					Double.parseDouble(nv);
+					spn.increment(0);	// forces the spinner to commit its value
+					if (spn.getValue() != sld.getValue())
+						sld.setValue(spn.getValue());
+				} catch (NumberFormatException e) {
+					spn.getEditor().textProperty().set(pv); //yeah, this is all pretty jank. JavaFX spinners are just weird by default
 				}
 			});
-			/*s.valueProperty().addListener(new ChangeListener<Number>() {
-				public void changed(ObservableValue<? extends Number> observable, Number old, Number now) {
-					updateMap(true);
-				}
-			});*/ // Java doesn't like this; it can't handle that many threads
+			spn.setOnKeyPressed((event) -> {
+				System.out.println(event);
+				if (event.getCode() == KeyCode.ENTER)
+					updateMap();
+			});
 		}
 		layout.getChildren().add(grid);
 		
@@ -422,8 +450,8 @@ public class MapProjections extends Application {
 			g.stroke();
 		}
 	}
-
-
+	
+	
 	private void saveToSVG(List<List<double[]>> curves, ProgressBarDialog pBar) {	// call from the main thread!
 		pBar.close();
 		final File f = saver.showSaveDialog(stage);
@@ -550,7 +578,7 @@ public class MapProjections extends Application {
 		else if (p.equals("Robinson"))
 			return robinson(lat, lon);
 		else if (p.equals("Test"))
-			return hyperelliptical(lat, lon);
+			return tetrapower(lat, lon);
 		else if (p.equals("Lee"))
 			return lee(lat, lon);
 		else
@@ -612,6 +640,52 @@ public class MapProjections extends Application {
 	}
 	
 	
+	public static double[] tetrahedralProjection(double lat, double lon, UnaryOperator<double[]> func) { //a helper function for projections like tetragraph and lee
+		final double[][] centrums = {{-Math.PI/2, 0, Math.PI/3},
+				{Math.asin(1/3.0), Math.PI, Math.PI/3},
+				{Math.asin(1/3.0), Math.PI/3, Math.PI/3},
+				{Math.asin(1/3.0), -Math.PI/3, -Math.PI/3}};
+		double latR = Double.NaN;
+		double lonR = Double.NaN;
+		byte poleIdx = -1;
+		for (byte i = 0; i < 4; i++) {
+			final double[] relCoords = obliquify(centrums[i], new double[] { lat, lon });
+			if (Double.isNaN(latR) || relCoords[0] > latR) {
+				latR = relCoords[0]; // pick the centrum that maxes out your latitude
+				lonR = relCoords[1];
+				poleIdx = i;
+			}
+		}
+		
+		final double[] rtht = func.apply(new double[] { latR, lonR });
+		
+		switch (poleIdx) {
+		case 0:
+			if (Math.sin(lon) < 0)
+				return new double[]
+						{-2*Math.PI/3 + rtht[0]*Math.sin(rtht[1]-Math.PI/6), -Math.PI/Math.sqrt(3) - rtht[0]*Math.cos(rtht[1]-Math.PI/6)}; // lower left
+			else
+				return new double[]
+						{2*Math.PI/3 - rtht[0]*Math.sin(rtht[1]-Math.PI/6), -Math.PI/Math.sqrt(3) + rtht[0]*Math.cos(rtht[1]-Math.PI/6)}; // lower right
+		case 1:
+			if (Math.sin(lon) < 0)
+				return new double[]
+						{-2*Math.PI/3 + rtht[0]*Math.sin(rtht[1]-Math.PI/6), Math.PI/Math.sqrt(3) - rtht[0]*Math.cos(rtht[1]-Math.PI/6)}; // upper left
+			else
+				return new double[]
+						{2*Math.PI/3 - rtht[0]*Math.sin(rtht[1]-Math.PI/6), Math.PI/Math.sqrt(3) + rtht[0]*Math.cos(rtht[1]-Math.PI/6)}; // upper right
+		case 2:
+			return new double[]
+					{Math.PI/3 + rtht[0]*Math.cos(rtht[1]), rtht[0]*Math.sin(rtht[1])}; // right
+		case 3:
+			return new double[]
+					{-Math.PI/3 - rtht[0]*Math.cos(rtht[1]), -rtht[0]*Math.sin(rtht[1])}; // left
+		default:
+			return null;
+		}
+	}
+	
+	
 	private static double[] quincuncial(double lat, double lon) { // a tessalatable square map
 		final double alat = Math.abs(lat);
 		final double wMag = Math.tan(Math.PI/4-alat/2);
@@ -644,7 +718,6 @@ public class MapProjections extends Application {
 		Complex z = w.asin();
 		if (z.isInfinite() || z.isNaN())
 			z = new Complex(0);
-				
 		return new double[] {z.getReal(), z.getImaginary()};
 	}
 	
@@ -768,152 +841,41 @@ public class MapProjections extends Application {
 				Math.sin(lat)*a/Math.sin(a)};
 	}
 	
-	
 	private static double[] tetragraph(double lat, double lon) { // a tetrahedral compromise
-		final double[][] centrums = {{-Math.PI/2, 0, Math.PI/3},
-									{Math.asin(1/3.0), Math.PI, Math.PI/3},
-									{Math.asin(1/3.0), Math.PI/3, Math.PI/3},
-									{Math.asin(1/3.0), -Math.PI/3, -Math.PI/3}};
-		double latR = Double.NaN;
-		double lonR = Double.NaN;
-		byte poleIdx = -1;
-		for (byte i = 0; i < 4; i ++) {
-			final double[] relCoords = obliquify(centrums[i],
-					new double[] {lat,lon});
-			if (Double.isNaN(latR) || relCoords[0] > latR) {
-				latR = relCoords[0]; // pick the centrum that maxes out your latitude
-				lonR = relCoords[1];
-				poleIdx = i;
-			}
-		}
-		
-		double tht = lonR - Math.floor(lonR/(2*Math.PI/3))*(2*Math.PI/3) - Math.PI/3;
-		double r = Math.atan(1/Math.tan(latR)*Math.cos(tht))/Math.cos(tht)*Math.PI/3/Math.atan(Math.sqrt(2));
-		
-		switch (poleIdx) {
-		case 0:
-			if (Math.sin(lon) < 0)
-				return new double[]
-						{-2*Math.PI/3 + r*Math.sin(lonR-Math.PI/6), -Math.PI/Math.sqrt(3) - r*Math.cos(lonR-Math.PI/6)}; // lower left
-			else
-				return new double[]
-						{2*Math.PI/3 - r*Math.sin(lonR-Math.PI/6), -Math.PI/Math.sqrt(3) + r*Math.cos(lonR-Math.PI/6)}; // lower right
-		case 1:
-			if (Math.sin(lon) < 0)
-				return new double[]
-						{-2*Math.PI/3 + r*Math.sin(lonR-Math.PI/6), Math.PI/Math.sqrt(3) - r*Math.cos(lonR-Math.PI/6)}; // upper left
-			else
-				return new double[]
-						{2*Math.PI/3 - r*Math.sin(lonR-Math.PI/6), Math.PI/Math.sqrt(3) + r*Math.cos(lonR-Math.PI/6)}; // upper right
-		case 2:
-			return new double[]
-					{Math.PI/3 + r*Math.cos(lonR), r*Math.sin(lonR)}; // right
-		case 3:
-			return new double[]
-					{-Math.PI/3 - r*Math.cos(lonR), -r*Math.sin(lonR)}; // left
-		default:
-			return null;
-		}
+		return tetrahedralProjection(lat, lon, (coordR) -> {
+			final double tht = coordR[1] - Math.floor(coordR[1]/(2*Math.PI/3))*(2*Math.PI/3) - Math.PI/3;
+			return new double[] {
+					Math.atan(1/Math.tan(coordR[0])*Math.cos(tht))/Math.cos(tht)*Math.PI/3/Math.atan(Math.sqrt(2)),
+					coordR[1]
+			};
+		});
 	}
 	
-	private static double[] lee(double lat, double lon) { //a tesselatable rectangle map
-			final double[][] centrums = {{-Math.PI/2, 0, Math.PI/3},
-					{Math.asin(1/3.0), Math.PI, Math.PI/3},
-					{Math.asin(1/3.0), Math.PI/3, Math.PI/3},
-					{Math.asin(1/3.0), -Math.PI/3, -Math.PI/3}};
-		double latR = Double.NaN;
-		double lonR = Double.NaN;
-		byte poleIdx = -1;
-		for (byte i = 0; i < 4; i ++) {
-			final double[] relCoords = obliquify(centrums[i], new double[] {lat,lon});
-			if (Double.isNaN(latR) || relCoords[0] > latR) {
-				latR = relCoords[0]; // pick the centrum that maxes out your latitude
-				lonR = relCoords[1];
-				poleIdx = i;
-			}
-		}
-		
-		final mfc.field.Complex z = mfc.field.Complex.fromPolar(Math.pow(2, 5/6.)*Math.tan(Math.PI/4-latR/2), lonR);
-		final mfc.field.Complex w = Dixon.invFunc(z);
-		double tht = w.arg();
-		double r = w.abs()*1.186;
-		
-		switch (poleIdx) {
-		case 0:
-			if (Math.sin(lon) < 0)
-				return new double[]
-						{-2*Math.PI/3 + r*Math.sin(tht-Math.PI/6), -Math.PI/Math.sqrt(3) - r*Math.cos(tht-Math.PI/6)}; // lower left
-			else
-				return new double[]
-						{2*Math.PI/3 - r*Math.sin(tht-Math.PI/6), -Math.PI/Math.sqrt(3) + r*Math.cos(tht-Math.PI/6)}; // lower right
-		case 1:
-			if (Math.sin(lon) < 0)
-				return new double[]
-						{-2*Math.PI/3 + r*Math.sin(tht-Math.PI/6), Math.PI/Math.sqrt(3) - r*Math.cos(tht-Math.PI/6)}; // upper left
-			else
-				return new double[]
-						{2*Math.PI/3 - r*Math.sin(tht-Math.PI/6), Math.PI/Math.sqrt(3) + r*Math.cos(tht-Math.PI/6)}; // upper right
-		case 2:
-			return new double[]
-					{Math.PI/3 + r*Math.cos(tht), r*Math.sin(tht)}; // right
-		case 3:
-			return new double[]
-					{-Math.PI/3 - r*Math.cos(tht), -r*Math.sin(tht)}; // left
-		default:
-			return null;
-		}
+	private static double[] lee(double lat, double lon) { //a tesselatable rectangle conformal map
+		return tetrahedralProjection(lat, lon, (coordR) -> {
+			final mfc.field.Complex z = mfc.field.Complex.fromPolar(Math.pow(2, 5/6.)*Math.tan(Math.PI/4-coordR[0]/2), coordR[1]);
+			final mfc.field.Complex w = Dixon.invFunc(z);
+			return new double[] { w.abs()*1.186, w.arg() };
+		});
 	}
 	
-	/*private static double[] tetrapower(double lat, double lon) { // a tetrahedral parametric map
-		final double k1 = 1.5;
+	private static double[] tetrapower(double lat, double lon) { // a tetrahedral parametric map
+		final double k1 = .5;
 		final double k2 = .8;
 		
-		final double[][] centrums = {{-Math.PI/2, 0, Math.PI/3},
-									{Math.asin(1/3.0), Math.PI, Math.PI/3},
-									{Math.asin(1/3.0), Math.PI/3, Math.PI/3},
-									{Math.asin(1/3.0), -Math.PI/3, -Math.PI/3}};
-		double latR = Double.NaN;
-		double lonR = Double.NaN;
-		byte poleIdx = -1;
-		for (byte i = 0; i < 4; i ++) {
-			final double[] relCoords = obliquify(centrums[i],
-					new double[] {lat,lon});
-			if (Double.isNaN(latR) || relCoords[0] > latR) {
-				latR = relCoords[0]; // pick the centrum that maxes out your latitude
-				lonR = relCoords[1];
-				poleIdx = i;
-			}
-		}
-		
-		double lonM = lonR - Math.floor(lonR/(2*Math.PI/3))*(2*Math.PI/3) - Math.PI/3;
-		double tht = (1 - Math.pow(1-Math.abs(lonM)/(Math.PI/2), k1))/normalization;
-		double r = 1.1*Math.atan(1/Math.tan(latR)*Math.cos(tht))/Math.cos(tht);
-		
-		switch (poleIdx) {
-		case 0:
-			if (Math.sin(lon) < 0)
-				return new double[]
-						{-2*Math.PI/3 + r*Math.sin(lonR-Math.PI/6), -Math.PI/Math.sqrt(3) - r*Math.cos(lonR-Math.PI/6)}; // lower left
-			else
-				return new double[]
-						{2*Math.PI/3 - r*Math.sin(lonR-Math.PI/6), -Math.PI/Math.sqrt(3) + r*Math.cos(lonR-Math.PI/6)}; // lower right
-		case 1:
-			if (Math.sin(lon) < 0)
-				return new double[]
-						{-2*Math.PI/3 + r*Math.sin(lonR-Math.PI/6), Math.PI/Math.sqrt(3) - r*Math.cos(lonR-Math.PI/6)}; // upper left
-			else
-				return new double[]
-						{2*Math.PI/3 - r*Math.sin(lonR-Math.PI/6), Math.PI/Math.sqrt(3) + r*Math.cos(lonR-Math.PI/6)}; // upper right
-		case 2:
-			return new double[]
-					{Math.PI/3 + r*Math.cos(lonR), r*Math.sin(lonR)}; // right
-		case 3:
-			return new double[]
-					{-Math.PI/3 - r*Math.cos(lonR), -r*Math.sin(lonR)}; // left
-		default:
-			return null;
-		}
-	}*/
+		return tetrahedralProjection(lat, lon, (coordR) -> {
+			final double t0 = Math.floor(coordR[1]/(2*Math.PI/3))*(2*Math.PI/3) + Math.PI/3;
+			final double tht = coordR[1] - t0;
+			final double thtP = Math.PI/3*(1 - Math.pow(1-Math.abs(tht)/(Math.PI/2),k1))/(1 - 1/Math.pow(3,k1))*Math.signum(tht);
+			final double rmax = .5/Math.cos(thtP); //the max radius of this triangle (in the plane)
+			final double rtgf = Math.atan(1/Math.tan(coordR[0])*Math.cos(tht))/Math.atan(Math.sqrt(2))*rmax; //normalized tetragraph radius
+			return new double[] {
+					(1 - Math.pow(1-rtgf,k2))/(1 - Math.pow(1-rmax,k2))*rmax*2*Math.PI/3,
+					//rtgf*2*Math.PI/3,
+					thtP + t0
+			};
+		});
+	}
 	
 	private static double[] edConic(double lat, double lon) {
 		final double r = 3*Math.PI/5 - 4/5.*lat;
