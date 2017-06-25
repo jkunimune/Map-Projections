@@ -1,6 +1,7 @@
 package rastermaps;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.Optional;
 import javax.imageio.ImageIO;
 
@@ -24,6 +25,7 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Separator;
 import javafx.scene.control.Slider;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -85,9 +87,9 @@ public class MapProjections extends Application {
 	
 	private static final String[] AXES = { "Standard", "Transverse", "Center of Mass", "Jerusalem", "Point Nemo",
 			"Longest Line", "Longest Line Transverse", "Cylindrical", "Conic", "Tetrahedral", "Quincuncial", "Antipode", "Random" };
-	private static final double[] DEF_LATS = { 90, 0, 29.9792, 31.7833, 48.8767, -28.5217, -46.4883, -35, -10, 47, 60 };
-	private static final double[] DEF_LONS = { 0, 0, 31.1344, 35.216, 56.6067, 141.451, 16.5305, -13.6064, 65, -173, -6 };
-	private static final double[] DEF_THTS = { 0, 0, -32, -35, -45, 161.5, 137, 145, -150, 138, -10 };
+	private static final double[][] DEF_ASPECTS = { { 90, 0, 29.9792, 31.7833, 48.8767, -28.5217, -46.4883, -35, -10, 47, 60 },
+			{ 0, 0, 31.1344, 35.216, 56.6067, 141.451, 16.5305, -13.6064, 65, -173, -6 },
+			{ 0, 0, -32, -35, -45, 161.5, 137, 145, -150, 138, -10 } };
 	
 	
 	private Stage stage;
@@ -96,7 +98,8 @@ public class MapProjections extends Application {
 	private Button changeInput;
 	private ComboBox<String> projectionChooser;
 	private Text projectionDesc;
-	private Slider latSlider, lonSlider, thtSlider;
+	private Slider[] aspectSliders;
+	private Spinner<Double>[] aspectSpinners;
 	private Button update, saveMap;
 	private Image input;
 	private ImageView output;
@@ -108,6 +111,7 @@ public class MapProjections extends Application {
 	}
 	
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public void start(Stage primaryStage) {
 		stage = primaryStage;
@@ -182,22 +186,53 @@ public class MapProjections extends Application {
 				"Set the aspect sliders based on a preset"));
 		layout.getChildren().add(defAxes);
 		
-		latSlider = new Slider(-90, 90, 90);
-		lonSlider = new Slider(-180,180,0);
-		thtSlider = new Slider(-180,180,0);
-		Tooltip aspTlTp = new Tooltip("Change the aspect of the map");
-		latSlider.setTooltip(aspTlTp);
-		lonSlider.setTooltip(aspTlTp);
-		thtSlider.setTooltip(aspTlTp);
+		aspectSliders = new Slider[] {
+				new Slider(-90, 90, 90),
+				new Slider(-180,180,0),
+				new Slider(-180,180,0)
+		};
+		final Spinner<Double> latSpinner = new Spinner<Double>(-90, 90, 90.0);
+		aspectSpinners = (Spinner<Double>[]) Array.newInstance(latSpinner.getClass(), 3);
+		aspectSpinners[0] = latSpinner;
+		aspectSpinners[1] = new Spinner<Double>(-180, 180, 0.0);
+		aspectSpinners[2] = new Spinner<Double>(-180, 180, 0.0);
 		
 		GridPane grid = new GridPane();
-		grid.addRow(0, new Text("Latitude:"), latSlider);
-		grid.addRow(1, new Text("Longitude:"), lonSlider);
-		grid.addRow(2, new Text("Orientation:"), thtSlider);
-		GridPane.setHgrow(latSlider, Priority.ALWAYS);
-		GridPane.setHgrow(lonSlider, Priority.ALWAYS);
-		GridPane.setHgrow(thtSlider, Priority.ALWAYS);
-		//GridPane.setFillWidth(latSlider, Boolean.valueOf(true));
+		grid.addRow(0, new Text("Latitude:"), aspectSliders[0], aspectSpinners[0]);
+		grid.addRow(1, new Text("Longitude:"), aspectSliders[1], aspectSpinners[1]);
+		grid.addRow(2, new Text("Orientation:"), aspectSliders[2], aspectSpinners[2]);
+		
+		for (int i = 0; i < 3; i ++) {
+			final Slider sld = aspectSliders[i];
+			final Spinner<Double> spn = aspectSpinners[i];
+			GridPane.setHgrow(sld, Priority.ALWAYS);
+			sld.setTooltip(new Tooltip("Change the aspect of the map"));
+			sld.valueChangingProperty().addListener(
+					(observable, then, now) -> {
+						if (spn.getValue() != sld.getValue())
+							spn.getEditor().textProperty().set(Double.toString(sld.getValue()));
+					});
+			
+			spn.setTooltip(new Tooltip("Change the aspect of the map"));
+			spn.setPrefWidth(100);
+			spn.setEditable(true);
+			spn.getEditor().textProperty().addListener((ov, pv, nv) -> {	// link the Spinners
+				if (spn.getEditor().textProperty().isEmpty().get())	return;
+				try {
+					Double.parseDouble(nv);
+					spn.increment(0);	// forces the spinner to commit its value
+					if (spn.getValue() != sld.getValue())
+						sld.setValue(spn.getValue());
+				} catch (NumberFormatException e) {
+					spn.getEditor().textProperty().set(pv); //yeah, this is all pretty jank. JavaFX spinners are just weird by default
+				}
+			});
+			spn.setOnKeyPressed((event) -> {
+				System.out.println(event);
+				if (event.getCode() == KeyCode.ENTER)
+					updateMap();
+			});
+		}
 		layout.getChildren().add(grid);
 		
 		layout.getChildren().add(new Separator());
@@ -288,22 +323,21 @@ public class MapProjections extends Application {
 	
 	private void setAxisByPreset(String preset) {
 		if (preset.equals("Antipode")) {
-			latSlider.setValue(-latSlider.getValue());
-			lonSlider.setValue((lonSlider.getValue()+360)%360-180);
-			thtSlider.setValue(-thtSlider.getValue());
+			for (Slider s: aspectSliders)
+				s.setValue(-s.getValue());
+			aspectSliders[1].setValue((-aspectSliders[1].getValue()+360)%360-180);
 			return;
 		}
 		if (preset.equals("Random")) {
-			latSlider.setValue(Math.toDegrees(Math.asin(Math.random()*2-1)));
-			lonSlider.setValue(Math.random()*360-180);
-			thtSlider.setValue(Math.random()*360-180);
+			aspectSliders[0].setValue(Math.toDegrees(Math.asin(Math.random()*2-1)));
+			aspectSliders[1].setValue(Math.random()*360-180);
+			aspectSliders[2].setValue(Math.random()*360-180);
 			return;
 		}
 		for (int i = 0; i < AXES.length; i ++) {
 			if (AXES[i].equals(preset)) {
-				latSlider.setValue(DEF_LATS[i]);
-				lonSlider.setValue(DEF_LONS[i]);
-				thtSlider.setValue(DEF_THTS[i]);
+				for (int j = 0; j < 3; j ++)
+					aspectSliders[j].setValue(DEF_ASPECTS[j][i]);
 				break;
 			}
 		}
@@ -343,7 +377,7 @@ public class MapProjections extends Application {
 			new Thread(() -> {
 				try {
 					saveMap.setDisable(true);
-					ImageIO.write(SwingFXUtils.fromFXImage(img,null), "png", f);
+					ImageIO.write(SwingFXUtils.fromFXImage(img,null), "jpg", f);
 					saveMap.setDisable(false);
 				} catch (IOException e) {}
 			}).start();
@@ -368,9 +402,9 @@ public class MapProjections extends Application {
 	public Image map(int outputWidth, int outputHeight, int smoothing,
 			ProgressBarDialog pbar) {
 		final String proj = projectionChooser.getValue();
-		final double[] pole = {Math.toRadians(latSlider.getValue()),
-							Math.toRadians(lonSlider.getValue()),
-							Math.toRadians(thtSlider.getValue())};
+		final double[] pole = new double[3];
+		for (int i = 0; i < 3; i ++)
+			pole[i] = Math.toRadians(aspectSliders[i].getValue());
 		final PixelReader ref = input.getPixelReader();
 		final int[] refDims = {(int)input.getWidth(), (int)input.getHeight()};
 		final int[] outDims = {outputWidth, outputHeight};
@@ -565,7 +599,9 @@ public class MapProjections extends Application {
 	
 	private static double[] experiment(double x, double y) { // just some random complex plane stuff
 		Complex z = new Complex(x*3, y*3);
-		Complex ans = z.sin();
+//		Complex ans = z.sin();
+		Complex k = new Complex(Math.sqrt(.75));
+		Complex ans = Jacobi.cn(z.plus(3), k);
 		double p = 2 * Math.atan(ans.abs());
 		double theta = ans.arg();
 		double lambda = Math.PI/2 - p;

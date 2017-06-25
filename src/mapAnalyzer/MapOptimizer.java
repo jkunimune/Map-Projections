@@ -1,12 +1,16 @@
 package mapAnalyzer;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.function.BinaryOperator;
 
+import javax.imageio.ImageIO;
+
 import javafx.application.Application;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Scene;
+import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.ScatterChart;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
 import javafx.stage.Stage;
@@ -21,11 +25,11 @@ import vectormaps.MapProjections;
  */
 public class MapOptimizer extends Application {
 	
-	
-	private static final String[] EXISTING_PROJECTIONS = { "Hobo-Dyer", "Mollweide", "TetraGraph", "Robinson", "Lee" };
-	private static final double[] WEIGHTS = { .11, .43, 1.0, 2.3, 9.0 };
-	private static final int NUM_DESCENT = 10;//40;
-	private ScatterChart<Number, Number> chart;
+//	private static final String[] EXISTING_PROJECTIONS = { "Hobo-Dyer", "Mollweide", "EACyllindrical", "Robinson", "Winkel Tripel", "Van der Grinten", "Lee", "Mercator", "Orthographic" };
+	private static final String[] EXISTING_PROJECTIONS = { "Hobo-Dyer", "Robinson", "Tetragraph", "Lee" };
+	private static final double[] WEIGHTS = { .125, .5, 1.0, 2, 8 };//{ .11, .25
+	private static final int NUM_DESCENT = 40;
+	private LineChart<Number, Number> chart;
 	
 	
 	
@@ -38,21 +42,27 @@ public class MapOptimizer extends Application {
 	public void start(Stage stage) throws Exception {
 		final long startTime = System.currentTimeMillis();
 		
-		chart = new ScatterChart<Number, Number>(
+		chart = new LineChart<Number, Number>(
 				new NumberAxis("Size distortion", 0, 1, 0.2),
 				new NumberAxis("Shape distortion", 0, 1, 0.2));
+		chart.setCreateSymbols(true);
 		double[][][] globe = MapAnalyzer.globe(0.02);
 		
 		chart.getData().add(analyzeAll(globe, EXISTING_PROJECTIONS));
-		//chart.getData().add(optimizeHyperelliptical(globe));
+//		chart.getData().add(optimizeHyperelliptical(globe));
 		chart.getData().add(optimizeTetrapower(globe));
-		//chart.getData().add(optimizeTetrafilllet(globe));
+		chart.getData().add(optimizeTetrafillet(globe));
 		
 		System.out.println("Total time elapsed: "+
 				(System.currentTimeMillis()-startTime)/1000.+"s");
 		
 		stage.setTitle("Map Projections");
 		stage.setScene(new Scene(chart));
+		
+		ImageIO.write(
+				SwingFXUtils.fromFXImage(chart.snapshot(null, null), null),
+				"png", new File("output/graph.png"));
+		
 		stage.show();
 	}
 	
@@ -123,7 +133,6 @@ public class MapOptimizer extends Application {
 					frd[j] = avgDistortion(projectionFam, params, points, WEIGHTS[k]); //and the distortion nearby
 					params[j] -= h;
 				}
-				System.out.println(Arrays.toString(frd));
 				for (int j = 0; j < params.length; j ++)
 					params[j] -= (frd[j]-fr0)/h*delX; //use that to approximate the gradient and go in that direction
 			}
@@ -139,7 +148,7 @@ public class MapOptimizer extends Application {
 			System.out.print("\t");
 			for (int i = 0; i < params.length; i ++)
 				System.out.print("t"+i+"="+best[3+i]+"; ");
-			System.out.println();
+			System.out.println("\t("+best[1]+", "+best+")");
 			output.getData().add(new Data<Number, Number>(best[1], best[2]));
 		}
 		return output;
@@ -154,7 +163,13 @@ public class MapOptimizer extends Application {
 	
 	private static Series<Number, Number> optimizeTetrapower(double[][][] points) { //optimize and plot some hyperelliptical maps
 		return optimizeFamily(MapOptimizer::tetrapower, "Tetrapower",
-				new double[][] {{0.25,2.25}, {0.25,2.25}}, points);
+				new double[][] {{0.25,2.25}, {0.25,2.25}, {.25,2.25}}, points);
+	}
+	
+	
+	private static Series<Number, Number> optimizeTetrafillet(double[][][] points) { //optimize and plot some hyperelliptical maps
+		return optimizeFamily(MapOptimizer::tetrafillet, "Tetrafillet",
+				new double[][] {{0.25,2.25}, {0.25,2.25}, {.25,2.25}}, points);
 	}
 	
 	
@@ -177,17 +192,35 @@ public class MapOptimizer extends Application {
 	
 	
 	private static final double[] tetrapower(double[] coords, double[] params) { //a tetragraph projection using a few power functions to spice it up
-		final double k1 = params[0], k2 = params[0];
+		final double k1 = params[0], k2 = params[1], k3 = params[2];
 		
 		return MapProjections.tetrahedralProjection(coords[0], coords[1], (coordR) -> {
 			final double t0 = Math.floor(coordR[1]/(2*Math.PI/3))*(2*Math.PI/3) + Math.PI/3;
 			final double tht = coordR[1] - t0;
 			final double thtP = Math.PI/3*(1 - Math.pow(1-Math.abs(tht)/(Math.PI/2),k1))/(1 - 1/Math.pow(3,k1))*Math.signum(tht);
-			final double rmax = .5/Math.cos(thtP); //the max radius of this triangle (in the plane)
+			final double kRad = k3*Math.abs(thtP)/(Math.PI/3) + k2*(1-Math.abs(thtP)/(Math.PI/3));
+			final double rmax = .5/Math.cos(thtP); //the max normalized radius of this triangle (in the plane)
 			final double rtgf = Math.atan(1/Math.tan(coordR[0])*Math.cos(tht))/Math.atan(Math.sqrt(2))*rmax; //normalized tetragraph radius
 			return new double[] {
-					(1 - Math.pow(1-rtgf,k2))/(1 - Math.pow(1-rmax,k2))*rmax*2*Math.PI/3,
-					//rtgf*2*Math.PI/3,
+					(1 - Math.pow(1-rtgf,kRad))/(1 - Math.pow(1-rmax,kRad))*rmax*2*Math.PI/3,
+					thtP + t0
+			};
+		});
+	}
+	
+	
+	private static final double[] tetrafillet(double[] coords, double[] params) { //a tetragraph projection using a few power functions to spice it up and now with fillets
+		final double k1 = params[0], k2 = params[1], k3 = params[2];
+		
+		return MapProjections.tetrahedralProjection(coords[0], coords[1], (coordR) -> {
+			final double t0 = Math.floor(coordR[1]/(2*Math.PI/3))*(2*Math.PI/3) + Math.PI/3;
+			final double tht = coordR[1] - t0;
+			final double thtP = Math.PI/3*(1 - Math.pow(1-Math.abs(tht)/(Math.PI/2),k1))/(1 - 1/Math.pow(3,k1))*Math.signum(tht);
+			final double kRad = k3*Math.abs(thtP)/(Math.PI/3) + k2*(1-Math.abs(thtP)/(Math.PI/3));
+			final double rmax = 1/2. + 1/4.*Math.pow(thtP,2) + 5/48.*Math.pow(thtP,4) - .132621*Math.pow(thtP,6); //the max normalized radius of this triangle (in the plane)
+			final double rtgf = Math.atan(1/Math.tan(coordR[0])*Math.cos(tht))/Math.atan(Math.sqrt(2))*rmax; //normalized tetragraph radius
+			return new double[] {
+					(1 - Math.pow(1-rtgf,kRad))/(1 - Math.pow(1-rmax,kRad))*rmax*2*Math.PI/3,
 					thtP + t0
 			};
 		});

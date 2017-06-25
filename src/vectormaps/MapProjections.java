@@ -860,18 +860,23 @@ public class MapProjections extends Application {
 	}
 	
 	private static double[] tetrapower(double lat, double lon) { // a tetrahedral parametric map
-		final double k1 = .5;
-		final double k2 = .8;
+//		final double k1 = .5;
+//		final double k2 = 1.1;
+//		final double k3 = .7;
+		final double k1 = 1;
+		final double k2 = 1;
+		final double k3 = 1;
 		
 		return tetrahedralProjection(lat, lon, (coordR) -> {
 			final double t0 = Math.floor(coordR[1]/(2*Math.PI/3))*(2*Math.PI/3) + Math.PI/3;
 			final double tht = coordR[1] - t0;
 			final double thtP = Math.PI/3*(1 - Math.pow(1-Math.abs(tht)/(Math.PI/2),k1))/(1 - 1/Math.pow(3,k1))*Math.signum(tht);
-			final double rmax = .5/Math.cos(thtP); //the max radius of this triangle (in the plane)
+			final double kRad = k3*Math.abs(thtP)/(Math.PI/3) + k2*(1-Math.abs(thtP)/(Math.PI/3));
+//			final double rmax = .5/Math.cos(thtP); //the max normalized radius of this triangle (in the plane)
+			final double rmax = 1/2. + 1/4.*Math.pow(thtP,2) + 5/48.*Math.pow(thtP,4) - .132621*Math.pow(thtP,6); //the max normalized radius of this triangle (in the plane)
 			final double rtgf = Math.atan(1/Math.tan(coordR[0])*Math.cos(tht))/Math.atan(Math.sqrt(2))*rmax; //normalized tetragraph radius
 			return new double[] {
-					(1 - Math.pow(1-rtgf,k2))/(1 - Math.pow(1-rmax,k2))*rmax*2*Math.PI/3,
-					//rtgf*2*Math.PI/3,
+					(1 - Math.pow(1-rtgf,kRad))/(1 - Math.pow(1-rmax,kRad))*rmax*2*Math.PI/3,
 					thtP + t0
 			};
 		});
@@ -894,7 +899,6 @@ public class MapProjections extends Application {
 				Robinson.plenFromLat(Math.abs(lat))*lon,
 				Robinson.pdfeFromLat(Math.abs(lat))*Math.signum(lat)*Math.PI/2};
 	}
-	
 	
 	private static final double[] hyperelliptical(double lat, double lon) { //a hyperelliptic map projection with hyperellipse order k and lattitudinal spacind described by x^n/n
 		final double k = 3.25, n = 1.25, a = 1.125;
