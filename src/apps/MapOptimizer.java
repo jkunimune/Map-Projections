@@ -1,8 +1,32 @@
-package mapAnalyzer;
+/**
+ * MIT License
+ * 
+ * Copyright (c) 2017 Justin Kunimune
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+package apps;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.function.BinaryOperator;
+import java.util.function.UnaryOperator;
 
 import javax.imageio.ImageIO;
 
@@ -14,9 +38,8 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
 import javafx.stage.Stage;
-import mapAnalyzer.MapAnalyzer.Projection;
-import util.Stat;
-import vectormaps.MapProjections;
+import maps.Projection;
+import util.Math2;
 
 /**
  * An application to compare and optimize map projections
@@ -25,9 +48,10 @@ import vectormaps.MapProjections;
  */
 public class MapOptimizer extends Application {
 	
-//	private static final String[] EXISTING_PROJECTIONS = { "Hobo-Dyer", "Mollweide", "EACyllindrical", "Robinson", "Winkel Tripel", "Van der Grinten", "Lee", "Mercator", "Orthographic" };
-	private static final String[] EXISTING_PROJECTIONS = { "Hobo-Dyer", "Robinson", "Tetragraph", "Lee" };
-	private static final double[] WEIGHTS = { .125, .5, 1.0, 2, 8 };//{ .11, .25
+	
+	private static final Projection[] EXISTING_PROJECTIONS = { Projection.HOBODYER, Projection.ROBINSON,
+			Projection.EQUIRECTANGULAR, Projection.LEE };
+	private static final double[] WEIGHTS = { .125, .5, 1.0, 2, 8 };
 	private static final int NUM_DESCENT = 40;
 	private LineChart<Number, Number> chart;
 	
@@ -49,7 +73,7 @@ public class MapOptimizer extends Application {
 		double[][][] globe = MapAnalyzer.globe(0.02);
 		
 		chart.getData().add(analyzeAll(globe, EXISTING_PROJECTIONS));
-//		chart.getData().add(optimizeHyperelliptical(globe));
+		chart.getData().add(optimizeHyperelliptical(globe));
 		chart.getData().add(optimizeTetrapower(globe));
 		chart.getData().add(optimizeTetrafillet(globe));
 		
@@ -68,13 +92,13 @@ public class MapOptimizer extends Application {
 	
 	
 	private static Series<Number, Number> analyzeAll(double[][][] points,
-			String... projs) { //analyze and plot the specified preexisting map projections
+			Projection... projs) { //analyze and plot the specified preexisting map projections
 		System.out.println("Analyzing "+Arrays.toString(projs));
 		Series<Number, Number> output = new Series<Number, Number>();
 		output.setName("Basic Projections");
 		
-		for (String name: projs)
-			output.getData().add(plotDistortion(points, MapAnalyzer.projFromName(name)));
+		for (Projection proj: projs)
+			output.getData().add(plotDistortion(points, proj::project));
 		
 		return output;
 	}
@@ -173,11 +197,11 @@ public class MapOptimizer extends Application {
 	}
 	
 	
-	private static Data<Number, Number> plotDistortion(double[][][] pts, Projection proj) {
+	private static Data<Number, Number> plotDistortion(double[][][] pts, UnaryOperator<double[]> proj) {
 		double[][][] distortion = MapAnalyzer.calculateDistortion(pts, proj);
 		return new Data<Number, Number>(
-				Stat.stdDev(distortion[0]),
-				Stat.mean(distortion[1]));
+				Math2.stdDev(distortion[0]),
+				Math2.mean(distortion[1]));
 	}
 	
 	
@@ -194,7 +218,7 @@ public class MapOptimizer extends Application {
 	private static final double[] tetrapower(double[] coords, double[] params) { //a tetragraph projection using a few power functions to spice it up
 		final double k1 = params[0], k2 = params[1], k3 = params[2];
 		
-		return MapProjections.tetrahedralProjection(coords[0], coords[1], (coordR) -> {
+		return Projection.tetrahedralProjectionForward(coords[0], coords[1], (coordR) -> {
 			final double t0 = Math.floor(coordR[1]/(2*Math.PI/3))*(2*Math.PI/3) + Math.PI/3;
 			final double tht = coordR[1] - t0;
 			final double thtP = Math.PI/3*(1 - Math.pow(1-Math.abs(tht)/(Math.PI/2),k1))/(1 - 1/Math.pow(3,k1))*Math.signum(tht);
@@ -212,7 +236,7 @@ public class MapOptimizer extends Application {
 	private static final double[] tetrafillet(double[] coords, double[] params) { //a tetragraph projection using a few power functions to spice it up and now with fillets
 		final double k1 = params[0], k2 = params[1], k3 = params[2];
 		
-		return MapProjections.tetrahedralProjection(coords[0], coords[1], (coordR) -> {
+		return Projection.tetrahedralProjectionForward(coords[0], coords[1], (coordR) -> {
 			final double t0 = Math.floor(coordR[1]/(2*Math.PI/3))*(2*Math.PI/3) + Math.PI/3;
 			final double tht = coordR[1] - t0;
 			final double thtP = Math.PI/3*(1 - Math.pow(1-Math.abs(tht)/(Math.PI/2),k1))/(1 - 1/Math.pow(3,k1))*Math.signum(tht);
@@ -231,7 +255,7 @@ public class MapOptimizer extends Application {
 			double[] params, double[][][] points) {
 		final double[][][] distDist = MapAnalyzer.calculateDistortion(points,
 				(coords) -> projFam.apply(coords, params)); //distortion distribution
-		return new double[] { Stat.stdDev(distDist[0]), Stat.mean(distDist[1]) };
+		return new double[] { Math2.stdDev(distDist[0]), Math2.mean(distDist[1]) };
 	}
 	
 	

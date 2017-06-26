@@ -1,11 +1,36 @@
-package mapAnalyzer;
+/**
+ * MIT License
+ * 
+ * Copyright (c) 2017 Justin Kunimune
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+package apps;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 import javax.imageio.ImageIO;
 
+import dialogs.ProgressBarDialog;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -41,8 +66,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import util.ProgressBarDialog;
-import util.Stat;
+import maps.Projection;
+import util.Math2;
 
 /**
  * An application to analyze the characteristics of map projections
@@ -59,31 +84,17 @@ public class MapAnalyzer extends Application {
 	private static final KeyCombination ctrlS = new KeyCodeCombination(KeyCode.S, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	private static final String[] PROJ_ARR = { "Mercator", "Equirectangular", "Hobo-Dyer", "Gall Stereographic",
-			"Stereographic", "Polar", "Azimuthal Equal-Area", "Orthographic", "Gnomonic", "Conformal Conic",
-			"Equidistant Conic", "Albers", "Lee", "TetraGraph", "Mollweide", "Hammer", "Sinusoidal", "Van der Grinten", "Robinson",
-			"Winkel Tripel", "Pierce Quincuncial", "Guyou", "Magnifier", "Experimental" };
-	private static final double[] DEFA = { 1, 2, 1.977, 4/3., 1, 1, 1, 1, 1, 2,
-			2, 2, Math.sqrt(3), Math.sqrt(3), 2, 2, 2, 1, 1.9716, Math.PI/2, 1, 2, 1, 1 };
-	private static final String[] DESC = { "A conformal cylindrical map", "An equidistant cylindrical map",
-			"An equal-area cylindrical map", "A compromising cylindrical map", "A conformal azimuthal map",
-			"An equidistant azimuthal map", "An equal-area azimuthal map",
-			"Represents earth viewed from an infinite distance",
-			"Every straight line on the map is a straight line on the sphere", "A conformal conic map",
-			"An equidistant conic map", "An equal-area conic map", "A conformal tetrahedral map that really deserves more attention",
-			"An equidistant tetrahedral map that I invented", "An equal-area map shaped like an ellipse",
-			"An equal-area map shaped like an ellipse", "An equal-area map shaped like a sinusoid","A circular compromise map",
-			"A visually pleasing piecewise compromise map",
-			"The compromise map used by National Geographic", 
-			"A conformal square map that uses complex math",
-			"A rearranged Pierce Quincuncial map",
-			"A novelty map that swells the center to disproportionate scale",
-			"What happens when you apply a complex differentiable function to a stereographic projection?" };
+	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.EQUIRECTANGULAR, Projection.GALL_PETERS, Projection.HOBODYER, Projection.LAMBERT_CYLIND,
+			Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
+			Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC,
+			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.MOLLWEIDE, Projection.HAMMER, Projection.SINUSOIDAL,
+			Projection.VAN_DER_GRINTEN, Projection.ROBINSON, Projection.WINKEL_TRIPEL, Projection.PEIRCE_QUINCUNCIAL,
+			Projection.GUYOU, Projection.MAGNIFIER, Projection.EXPERIMENT };
 	
 	
 	private Stage stage;
 	private FileChooser saver;
-	private ComboBox<String> projectionChooser;
+	private ComboBox<Projection> projectionChooser;
 	private Text projectionDesc;
 	private Button calculate, saveMap, saveCharts;
 	private Label avgSizeDistort, avgShapeDistort;
@@ -109,22 +120,17 @@ public class MapAnalyzer extends Application {
 		layout.setPrefWidth(CONT_WIDTH);
 		
 		Label lbl = new Label("Projection:");
-		ObservableList<String> items = FXCollections.observableArrayList(PROJ_ARR);
-		projectionChooser = new ComboBox<String>(items);
+		ObservableList<Projection> items = FXCollections.observableArrayList(PROJ_ARR);
+		projectionChooser = new ComboBox<Projection>(items);
 		projectionChooser.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
-				for (int i = 0; i < PROJ_ARR.length; i ++) {
-					if (PROJ_ARR[i].equals(projectionChooser.getValue())) {
-						projectionDesc.setText(DESC[i]);
-						break;
-					}
-				}
+				projectionDesc.setText(projectionChooser.getValue().getDescription());
 			}
 		});
-		projectionChooser.setValue("Mercator");
+		projectionChooser.setValue(Projection.MERCATOR);
 		layout.getChildren().add(new HBox(3, lbl, projectionChooser));
 		
-		projectionDesc = new Text(DESC[1]);
+		projectionDesc = new Text(projectionChooser.getValue().getDescription());
 		projectionDesc.setWrappingWidth(CONT_WIDTH);
 		layout.getChildren().add(projectionDesc);
 		
@@ -236,15 +242,14 @@ public class MapAnalyzer extends Application {
 						avgShapeDistort.setText("...");
 					});
 					
-					final String pName = projectionChooser.getValue();
-					final Projection p = projFromName(pName);
+					final Projection p = projectionChooser.getValue();
 					final double[][][] distortionM =
-							calculateDistortion(map(250, pName), p);
+							calculateDistortion(map(250, p), p::project);
 					
 					output.setImage(makeGraphic(distortionM));
 					
 					final double[][][] distortionG =
-							calculateDistortion(globe(0.02), p);
+							calculateDistortion(globe(0.02), p::project);
 					
 					Platform.runLater(() -> {
 						sizeChart.getData().add(histogram(distortionG[0],
@@ -252,8 +257,8 @@ public class MapAnalyzer extends Application {
 						shapeChart.getData().add(histogram(distortionG[1],
 								0,1.6,14, false));
 						
-						avgSizeDistort.setText(format(Stat.stdDev(distortionG[0])));
-						avgShapeDistort.setText(format(Stat.mean(distortionG[1])));
+						avgSizeDistort.setText(format(Math2.stdDev(distortionG[0])));
+						avgShapeDistort.setText(format(Math2.mean(distortionG[1])));
 					});
 					calculate.setDisable(false);
 					return null;
@@ -267,33 +272,32 @@ public class MapAnalyzer extends Application {
 	
 	
 	private void startFinalizingMap() {
-		final String pName = projectionChooser.getValue();
-		final Projection p = projFromName(projectionChooser.getValue());
+		final Projection p = projectionChooser.getValue();
 		
 		ProgressBarDialog pBar = new ProgressBarDialog();
 		pBar.show();
 		new Thread(() -> {
 			final double[][][] distortion = calculateDistortion(
-					map(1000,pName), p, pBar);
+					map(1000, p), p::project, pBar);
 			Image graphic = makeGraphic(distortion);
 			Platform.runLater(() -> saveImage(graphic, pBar));
 		}).start();
 	}
 	
 	
-	public static double[][][] calculateDistortion(double[][][] points, Projection proj) {
-		return calculateDistortion(points, proj, null);
+	public static double[][][] calculateDistortion(double[][][] points, UnaryOperator<double[]> p) {
+		return calculateDistortion(points, p, null);
 	}
 	
 	
-	public static double[][][] calculateDistortion(double[][][] points, Projection proj,
+	public static double[][][] calculateDistortion(double[][][] points, UnaryOperator<double[]> p,
 			ProgressBarDialog pBar) { //calculate both kinds of distortion over the given region
 		double[][][] output = new double[2][points.length][points[0].length]; //the distortion matrix
 		
 		for (int y = 0; y < points.length; y ++) {
 			for (int x = 0; x < points[y].length; x ++) {
 				if (points[y][x] != null) {
-					final double[] distortions = getDistortionAt(points[y][x], proj);
+					final double[] distortions = getDistortionAt(points[y][x], p);
 					output[0][y][x] = distortions[0]; //the output matrix has two layers:
 					output[1][y][x] = distortions[1]; //area and angular distortion
 				}
@@ -306,7 +310,7 @@ public class MapAnalyzer extends Application {
 				pBar.setProgress((double)(y+1)/points.length);
 		}
 		
-		final double avgArea = Stat.mean(output[0]); //don't forget to normalize output[0] so the average is zero
+		final double avgArea = Math2.mean(output[0]); //don't forget to normalize output[0] so the average is zero
 		for (int y = 0; y < output[0].length; y ++)
 			for (int x = 0; x < output[0][y].length; x ++)
 				output[0][y][x] -= avgArea;
@@ -315,15 +319,15 @@ public class MapAnalyzer extends Application {
 	}
 	
 	
-	private static double[] getDistortionAt(double[] s0, Projection proj) { //calculate both kinds of distortion at the given point
+	private static double[] getDistortionAt(double[] s0, UnaryOperator<double[]> p) { //calculate both kinds of distortion at the given point
 		final double[] output = new double[2];
-		final double dx = 1e-5;
+		final double dx = 1e-6;
 		
 		final double[] s1 = { s0[0], s0[1]+dx/Math.cos(s0[0]) }; //consider a point slightly to the east
 		final double[] s2 = { s0[0]+dx, s0[1] }; //and slightly to the north
-		final double[] p0 = proj.project(s0);
-		final double[] p1 = proj.project(s1);
-		final double[] p2 = proj.project(s2);
+		final double[] p0 = p.apply(s0);
+		final double[] p1 = p.apply(s1);
+		final double[] p2 = p.apply(s2);
 		
 		final double dA = 
 				(p1[0]-p0[0])*(p2[1]-p0[1]) - (p1[1]-p0[1])*(p2[0]-p0[0]);
@@ -393,21 +397,13 @@ public class MapAnalyzer extends Application {
 	}
 
 
-	public static double[][][] map(int size, String proj) { //generate a matrix of coordinates based on a map projection
-		int projIdx = 0;
-		for (int i = 0; i < PROJ_ARR.length; i ++) {
-			if (PROJ_ARR[i].equals(proj)) {
-				projIdx = i;
-				break;
-			}
-		}
-		
-		final int[] dims = {size, (int)(size/DEFA[projIdx])};
-		double[][][] output = new double[dims[1]][dims[0]][2]; //the coordinate matrix
+	public static double[][][] map(int size, Projection proj) { //generate a matrix of coordinates based on a map projection
+		final int w = size, h = (int)(size/proj.getAspectRatio());
+		double[][][] output = new double[h][w][2]; //the coordinate matrix
 		
 		for (int y = 0; y < output.length; y ++)
 			for (int x = 0; x < output[y].length; x ++)
-				output[y][x] = rastermaps.MapProjections.project(x, y, proj, dims); //s0 is this point on the sphere
+				output[y][x] = proj.inverse(2.*x/w - 1, 1 - 2.*y/h); //s0 is this point on the sphere
 		
 		return output;
 	}
@@ -457,17 +453,6 @@ public class MapAnalyzer extends Application {
 			return Double.toString(Math.round(d*1000.)/1000.);
 		else
 			return "1000+";
-	}
-	
-	
-	public static final Projection projFromName(String s) {
-		return (p) -> vectormaps.MapProjections.project(p[0], p[1], s);
-	}
-	
-	
-	
-	static interface Projection {
-		public double[] project(double[] coords);
 	}
 
 }
