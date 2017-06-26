@@ -34,6 +34,7 @@ import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.LineChart.SortingPolicy;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
@@ -51,7 +52,7 @@ public class MapOptimizer extends Application {
 	
 	private static final Projection[] EXISTING_PROJECTIONS = { Projection.HOBODYER, Projection.ROBINSON,
 			Projection.EQUIRECTANGULAR, Projection.LEE };
-	private static final double[] WEIGHTS = { .125, .5, 1.0, 2, 8 };
+	private static final double[] WEIGHTS = { .20, .33, .50, .71, 1.0, 1.4, 2.0, 3.0, 5.0 };
 	private static final int NUM_DESCENT = 40;
 	private LineChart<Number, Number> chart;
 	
@@ -70,10 +71,12 @@ public class MapOptimizer extends Application {
 				new NumberAxis("Size distortion", 0, 1, 0.2),
 				new NumberAxis("Shape distortion", 0, 1, 0.2));
 		chart.setCreateSymbols(true);
+		chart.setAxisSortingPolicy(SortingPolicy.NONE);
 		double[][][] globe = MapAnalyzer.globe(0.02);
 		
 		chart.getData().add(analyzeAll(globe, EXISTING_PROJECTIONS));
 		chart.getData().add(optimizeHyperelliptical(globe));
+//		chart.getData().add(optimizeEACylinder(globe));
 		chart.getData().add(optimizeTetrapower(globe));
 		chart.getData().add(optimizeTetrafillet(globe));
 		
@@ -125,7 +128,7 @@ public class MapOptimizer extends Application {
 				}
 			}
 			if (i == params.length)	break; //if you made it through the for loop without breaking (finding a parameter to increment), you're done!
-			System.out.println(Arrays.toString(params));
+//			System.out.println(Arrays.toString(params));
 			
 			double[] distortions = avgDistortion(projectionFam, params, points);
 			for (int k = 0; k < WEIGHTS.length; k ++) {
@@ -144,14 +147,14 @@ public class MapOptimizer extends Application {
 		final double delX = 5e-2;
 		for (int k = 0; k < WEIGHTS.length; k ++) { //now do gradient descent
 			System.arraycopy(currentBest[k],3, params,0, params.length);
-			System.out.println("Starting gradient descent with weight "+WEIGHTS[k]+" and initial parameters "+Arrays.toString(params));
+//			System.out.println("Starting gradient descent with weight "+WEIGHTS[k]+" and initial parameters "+Arrays.toString(params));
 			double fr0 = currentBest[k][0];
 			double[] frd = new double[params.length];
 			for (int i = 0; i < NUM_DESCENT; i ++) {
 				if (i > 0)
 					fr0 = avgDistortion( //calculate the distortion here
 							projectionFam, params, points, WEIGHTS[k]);
-				System.out.println(Arrays.toString(params)+" -> "+fr0);
+//				System.out.println(Arrays.toString(params)+" -> "+fr0);
 				for (int j = 0; j < params.length; j ++) {
 					params[j] += h;
 					frd[j] = avgDistortion(projectionFam, params, points, WEIGHTS[k]); //and the distortion nearby
@@ -160,7 +163,6 @@ public class MapOptimizer extends Application {
 				for (int j = 0; j < params.length; j ++)
 					params[j] -= (frd[j]-fr0)/h*delX; //use that to approximate the gradient and go in that direction
 			}
-			System.out.println(Arrays.toString(params));
 			System.arraycopy(params,0, currentBest[k],3, params.length);
 		}
 		
@@ -172,7 +174,7 @@ public class MapOptimizer extends Application {
 			System.out.print("\t");
 			for (int i = 0; i < params.length; i ++)
 				System.out.print("t"+i+"="+best[3+i]+"; ");
-			System.out.println("\t("+best[1]+", "+best+")");
+			System.out.println("\t("+best[1]+", "+best[2]+")");
 			output.getData().add(new Data<Number, Number>(best[1], best[2]));
 		}
 		return output;
@@ -182,6 +184,12 @@ public class MapOptimizer extends Application {
 	private static Series<Number, Number> optimizeHyperelliptical(double[][][] points) { //optimize and plot some hyperelliptical maps
 		return optimizeFamily(MapOptimizer::hyperelliptical, "Hyperelliptic",
 				new double[][] {{2.5,5}, {0.5,1.75}, {1.0,1.5}}, points);
+	}
+	
+	
+	private static Series<Number, Number> optimizeEACylinder(double[][][] points) { //optimize and plot some cylinder maps
+		return optimizeFamily(MapOptimizer::eaCylinder, "E.A. Cylindrical",
+				new double[][] {{1,Math.PI}}, points);
 	}
 	
 	
@@ -212,6 +220,13 @@ public class MapOptimizer extends Application {
 		return new double[] {
 				Math.pow(1 - Math.pow(Math.abs(lat/(Math.PI/2)), k),1/k)*lon,
 				(1-Math.pow(1-Math.abs(lat/(Math.PI/2)), n))/Math.sqrt(n)*Math.signum(lat)*Math.PI/2*a};
+	}
+	
+	
+	private static final double[] eaCylinder(double[] coords, double[] params) { //a equal-area cylindrical map projection with hyperellipse order k and lattitudinal spacind described by x^n/n
+		final double lat = coords[0], lon = coords[1];
+		final double a = params[0];
+		return new double[] {lon, Math.sin(lat)*Math.PI/a};
 	}
 	
 	

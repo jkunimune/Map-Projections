@@ -77,6 +77,15 @@ public enum Projection {
 		}
 	},
 	
+	BEHRMANN("Behrmann", 2.356, 0b1111, "cylindrical", "equal-area", null, "with least distortion at 30.5°") {
+		public double[] project(double lat, double lon) {
+			return new double[] {lon, Math.sin(lat)*Math.PI/2.356};
+		}
+		public double[] inverse(double x, double y) {
+			return new double[] { Math.asin(y), x*Math.PI };
+		}
+	},
+	
 	LAMBERT_CYLIND("Lambert cylindrical", Math.PI, 0b1111, "cylindrical", "equal-area",
 			null, "with least distortion along the equator") {
 		public double[] project(double lat, double lon) {
@@ -385,14 +394,12 @@ public enum Projection {
 	ROBINSON("Robinson", "A visually pleasing piecewise compromise map",
 			1.9716, 0b1111, "pseudocylindrical", "compromise") {
 		public double[] project(double lat, double lon) {
-			return new double[] {
-					Robinson.plenFromLat(Math.abs(lat))*lon,
-					Robinson.pdfeFromLat(Math.abs(lat))*Math.signum(lat)*Math.PI/2};
+			return new double[] { Robinson.plenFromLat(lat)*lon,
+								Robinson.pdfeFromLat(lat)*Math.PI/2};
 		}
 		public double[] inverse(double x, double y) {
-			return new double[] {
-					Robinson.latFromPdfe(Math.abs(y))*Math.signum(y),
-					x/Robinson.plenFromPdfe(Math.abs(y))*Math.PI };
+			return new double[] { Robinson.latFromPdfe(y),
+								x/Robinson.plenFromPdfe(y)*Math.PI };
 		}
 	},
 	
