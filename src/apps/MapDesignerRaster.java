@@ -88,8 +88,8 @@ public class MapDesignerRaster extends Application {
 	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.EQUIRECTANGULAR, Projection.HOBODYER,
 			Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
 			Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC,
-			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.AUTHAGRAPH, Projection.MOLLWEIDE,
-			Projection.SINUSOIDAL, Projection.VAN_DER_GRINTEN, Projection.ROBINSON, Projection.WINKEL_TRIPEL,
+			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.AUTHAGRAPH, Projection.SINUSOIDAL, Projection.MOLLWEIDE,
+			Projection.TOBLER, Projection.VAN_DER_GRINTEN, Projection.ROBINSON, Projection.WINKEL_TRIPEL,
 			Projection.PEIRCE_QUINCUNCIAL, Projection.GUYOU, Projection.LEMONS, Projection.MAGNIFIER,
 			Projection.EXPERIMENT };
 	
@@ -390,11 +390,9 @@ public class MapDesignerRaster extends Application {
 		return map(IMG_WIDTH, (int)(IMG_WIDTH/a), 1);
 	}
 	
-	
 	public Image map(int outputWidth, int outputHeight, int smoothing) {
 		return map(outputWidth,outputHeight,smoothing, null);
 	}
-	
 	
 	public Image map(int outputWidth, int outputHeight, int smoothing,
 			ProgressBarDialog pbar) {
@@ -412,8 +410,8 @@ public class MapDesignerRaster extends Application {
 			for (int y = 0; y < outputHeight; y ++) {
 				int[] colors = new int[smoothing*smoothing];
 				int i = 0;
-				for (double dx = 0; dx < 1; dx += 1.0/smoothing) {
-					for (double dy = 0; dy < 1; dy += 1.0/smoothing) {
+				for (double dx = 0.5/smoothing; dx < 1; dx += 1.0/smoothing) {
+					for (double dy = .5/smoothing; dy < 1; dy += 1.0/smoothing) {
 						colors[i] = getArgb(x+dx, y+dy,
 								proj,pole,ref,refDims,outDims);
 						i ++;

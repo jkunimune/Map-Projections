@@ -25,6 +25,8 @@ package maps;
 
 import java.util.Arrays;
 
+import util.NumericalAnalysis;
+
 /**
  * A class with static methods and a matrix constant that pertain to the
  * Robinson projection.
@@ -69,48 +71,8 @@ public class Robinson {
 	public static final double smartInterpolate(double x, double[] X, double[] f, int k) {
 		int i = Arrays.binarySearch(X, x);
 		if (i < 0)	i = -i - 1; //if you couldn't find it, don't worry about it
-		return aitkenInterpolate(x, X, f,
+		return NumericalAnalysis.aitkenInterpolate(x, X, f,
 				Math.max(i-k,0), Math.min(i+k,X.length)); //just call aitken with the correct bounds
 	}
-	
-	
-	public static final double aitkenInterpolate(double x, double[] X, double[] f) {
-		return aitkenInterpolate(x, X, f, 0, X.length);
-	}
-	
-	public static final double aitkenInterpolate(double x,
-			double[] X, double[] f, int from, int to) { //map from X to f using elements start to end
-		final int N = to - from;
-		final double[][] fx = new double[N][]; // the table of successive approximations
-		
-		fx[0] = Arrays.copyOfRange(f, from, to); //fill in the zeroth row
-		
-		for (int i = 1; i < N; i ++) { //i+1 is the number of points interpolated on
-			fx[i] = new double[N];
-			for (int j = i; j < N; j ++) { //the points will be 0, ..., i-1, j
-				fx[i][j] = 1/(X[from+j] - X[from+i-1])*determ(fx[i-1][i-1], fx[i-1][j],
-														X[from+i-1] - x, X[from+j] - x); //I won't bother to explain this; go look up Aitken interpolation
-			}
-		}
-		
-		return fx[N-1][N-1];
-	}
-	
-	
-	private static final double determ(double a, double b, double c, double d) {
-		return a*d - b*c;
-	}
-	
-	
-	public static final void main(String[] args) {
-		System.out.println("Testing Aitken Interpolation:");
-		System.out.println("Input points are (-1,1), (-.5,-1), (0,0), (.5,1), and (1,-1)");
-		//double[] X = {-1, -.5, 0, .5, 1};
-		//double[] Y = {1, -1, 0, 1, -1};
-		double[] X = TABLE[2];
-		double[] Y = TABLE[1];
-		System.out.println("Interpolating points from -1 to 1:");
-		for (double x = -1; x <= 1; x += 1/1024.)
-			System.out.println(x+", "+aitkenInterpolate(x, X, Y)+";");
-	}
+
 }

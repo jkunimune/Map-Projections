@@ -52,7 +52,7 @@ public class MapOptimizer extends Application {
 	
 	private static final Projection[] EXISTING_PROJECTIONS = { Projection.HOBODYER, Projection.ROBINSON,
 			Projection.EQUIRECTANGULAR, Projection.LEE };
-	private static final double[] WEIGHTS = { .20, .33, .50, .71, 1.0, 1.4, 2.0, 3.0, 5.0 };
+	private static final double[] WEIGHTS = { .083, .20, .33, .50, .71, 1.0, 1.4, 2.0, 3.0, 5.0, 12. };
 	private static final int NUM_DESCENT = 40;
 	private LineChart<Number, Number> chart;
 	
@@ -164,6 +164,8 @@ public class MapOptimizer extends Application {
 					params[j] -= (frd[j]-fr0)/h*delX; //use that to approximate the gradient and go in that direction
 			}
 			System.arraycopy(params,0, currentBest[k],3, params.length);
+			System.arraycopy(avgDistortion(projectionFam, params, points), 0,
+					currentBest[k], 1, 2);
 		}
 		
 		final Series<Number, Number> output = new Series<Number, Number>();
@@ -183,13 +185,7 @@ public class MapOptimizer extends Application {
 	
 	private static Series<Number, Number> optimizeHyperelliptical(double[][][] points) { //optimize and plot some hyperelliptical maps
 		return optimizeFamily(MapOptimizer::hyperelliptical, "Hyperelliptic",
-				new double[][] {{2.5,5}, {0.5,1.75}, {1.0,1.5}}, points);
-	}
-	
-	
-	private static Series<Number, Number> optimizeEACylinder(double[][][] points) { //optimize and plot some cylinder maps
-		return optimizeFamily(MapOptimizer::eaCylinder, "E.A. Cylindrical",
-				new double[][] {{1,Math.PI}}, points);
+				new double[][] {{2.5,5}, {0.5,1.75}, {1.0,2.0}}, points);
 	}
 	
 	
@@ -220,13 +216,6 @@ public class MapOptimizer extends Application {
 		return new double[] {
 				Math.pow(1 - Math.pow(Math.abs(lat/(Math.PI/2)), k),1/k)*lon,
 				(1-Math.pow(1-Math.abs(lat/(Math.PI/2)), n))/Math.sqrt(n)*Math.signum(lat)*Math.PI/2*a};
-	}
-	
-	
-	private static final double[] eaCylinder(double[] coords, double[] params) { //a equal-area cylindrical map projection with hyperellipse order k and lattitudinal spacind described by x^n/n
-		final double lat = coords[0], lon = coords[1];
-		final double a = params[0];
-		return new double[] {lon, Math.sin(lat)*Math.PI/a};
 	}
 	
 	

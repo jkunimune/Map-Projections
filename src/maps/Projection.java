@@ -31,6 +31,7 @@ import ellipticFunctions.Jacobi;
 import util.Dixon;
 import util.Elliptic;
 import util.Math2;
+import util.NumericalAnalysis;
 import util.Vector;
 
 /**
@@ -299,6 +300,16 @@ public enum Projection {
 		}
 	},
 	
+	SINUSOIDAL("Sinusoidal", "An equal-area map shaped like a sine-wave",
+			2., 0b1111, "pseudocylindrical", "equal-area") {
+		public double[] project(double lat, double lon) {
+			return new double[] { Math.cos(lat)*lon, lat };
+		}
+		public double[] inverse(double x, double y) {
+			return new double[] { y*Math.PI/2, x*Math.PI/Math.cos(y*Math.PI/2) };
+		}
+	},
+	
 	MOLLWEIDE("Mollweide", "An equal-area projection shaped like an ellipse",
 			2., 0b1101, "pseudocylindrical", "equal-area") {
 		public double[] project(double lat, double lon) {
@@ -345,14 +356,18 @@ public enum Projection {
 		}
 	},
 	
-	SINUSOIDAL("Sinusoidal", "An equal-area map shaped like a sine-wave",
-			2., 0b1111, "pseudocylindrical", "equal-area") {
-		public double[] project(double lat, double lon) {
-			return new double[] { Math.cos(lat)*lon, lat };
-		}
-		public double[] inverse(double x, double y) {
-			return new double[] { y*Math.PI/2, x*Math.PI/Math.cos(y*Math.PI/2) };
-		}
+	TOBLER("Tobler", "An equal-area projection shaped like a 2.5th-order hyperellipse",
+			2., 0b1001, "pseudocylindrical", "equal-area") {
+				public double[] project(double lat, double lon) {
+					return new double[] {
+							lon*Tobler.xfacFromLat(lat)*18,
+							Tobler.yFromLat(lat)*Math.PI/10 };
+				}
+				public double[] inverse(double x, double y) {
+					return new double[] {
+							Tobler.latFromY(5*y),
+							x/Tobler.xfacFromY(5*y)*Math.PI/18 };
+				}
 	},
 	
 	VAN_DER_GRINTEN("Van der Grinten", "A circular compromise map that is popular for some reason",
@@ -411,7 +426,8 @@ public enum Projection {
 		}
 		public double[] inverse(double x, double y1) {
 			double y = (x<0) == (y1<0) ? -y1 : y1;
-			double[] output = Math2.newtonRaphsonApproximation(x*(1 + Math.PI/2), y*Math.PI/2,
+			double[] output = NumericalAnalysis.newtonRaphsonApproximation(
+					x*(1 + Math.PI/2), y*Math.PI/2,
 					WinkelTripel::f1pX, WinkelTripel::f2pY, WinkelTripel::df1dphi,
 					WinkelTripel::df1dlam, WinkelTripel::df2dphi, WinkelTripel::df2dlam, .0625);
 			if (output != null && (x<0) == (y1<0))	output[0] *= -1;
@@ -556,7 +572,12 @@ public enum Projection {
 	HYPERELLIPOWER("Hyperellipower", "A parametric projection that I'm still testing",
 			2., 0b1111, "pseudocylindrical", "compromise") {
 		public double[] project(double lat, double lon) {
-			return null;
+			final double k = 3.7308;
+			final double n = 1.2027;
+			final double a = 1.1443;
+			return new double[] {
+					Math.pow(1 - Math.pow(Math.abs(lat/(Math.PI/2)), k),1/k)*lon,
+					(1-Math.pow(1-Math.abs(lat/(Math.PI/2)), n))/Math.sqrt(n)*Math.signum(lat)*Math.PI/2*a};
 		}
 		public double[] inverse(double x, double y) {
 			return null;
@@ -566,9 +587,9 @@ public enum Projection {
 	TETRAPOWER("Tetrapower", "A parametric projection that I'm still testing",
 			Math.sqrt(3), 0b1111, "tetrahedral", "compromise") {
 		public double[] project(double lat, double lon) {
-			final double k1 = .5;
-			final double k2 = 1.1;
-			final double k3 = .7;
+			final double k1 = 1.4586;
+			final double k2 = 1.2891;
+			final double k3 = 1.9158;
 			return tetrahedralProjectionForward(lat, lon, (coordR) -> {
 				final double t0 = Math.floor(coordR[1]/(2*Math.PI/3))*(2*Math.PI/3) + Math.PI/3;
 				final double tht = coordR[1] - t0;
@@ -587,12 +608,12 @@ public enum Projection {
 		}
 	},
 	
-	TETRAFILLET("Equirectangular", "A parametric projection that I'm still testing",
+	TETRAFILLET("Tetrafillet", "A parametric projection that I'm still testing",
 			2., 0b1111, "other", "compromise") {
 		public double[] project(double lat, double lon) {
-			final double k1 = .5;
-			final double k2 = 1.1;
-			final double k3 = 1;
+			final double k1 = 1.1598;
+			final double k2 = .36295;
+			final double k3 = 1.9553;
 			return tetrahedralProjectionForward(lat, lon, (coordR) -> {
 				final double t0 = Math.floor(coordR[1]/(2*Math.PI/3))*(2*Math.PI/3) + Math.PI/3;
 				final double tht = coordR[1] - t0;

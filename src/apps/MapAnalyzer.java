@@ -84,10 +84,11 @@ public class MapAnalyzer extends Application {
 	private static final KeyCombination ctrlS = new KeyCodeCombination(KeyCode.S, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.EQUIRECTANGULAR, Projection.GALL_PETERS, Projection.HOBODYER, Projection.LAMBERT_CYLIND,
-			Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
-			Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC,
-			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.MOLLWEIDE, Projection.HAMMER, Projection.SINUSOIDAL,
+	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.EQUIRECTANGULAR,
+			Projection.GALL_PETERS, Projection.HOBODYER, Projection.LAMBERT_CYLIND, Projection.GALL,
+			Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH, Projection.ORTHOGRAPHIC,
+			Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC, Projection.ALBERS, Projection.LEE,
+			Projection.TETRAGRAPH, Projection.SINUSOIDAL, Projection.MOLLWEIDE, Projection.HAMMER, Projection.TOBLER,
 			Projection.VAN_DER_GRINTEN, Projection.ROBINSON, Projection.WINKEL_TRIPEL, Projection.PEIRCE_QUINCUNCIAL,
 			Projection.GUYOU, Projection.MAGNIFIER, Projection.EXPERIMENT };
 	
@@ -403,7 +404,7 @@ public class MapAnalyzer extends Application {
 		
 		for (int y = 0; y < output.length; y ++)
 			for (int x = 0; x < output[y].length; x ++)
-				output[y][x] = proj.inverse(2.*x/w - 1, 1 - 2.*y/h); //s0 is this point on the sphere
+				output[y][x] = proj.inverse(2.*(x+.5)/w - 1, 1 - 2.*(y+.5)/h); //s0 is this point on the sphere
 		
 		return output;
 	}

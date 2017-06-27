@@ -23,8 +23,6 @@
  */
 package util;
 
-import java.util.function.BinaryOperator;
-
 /**
  * A class of some useful Math functions that seem like they could be in Math
  * 
@@ -70,37 +68,13 @@ public class Math2 {
 	}
 	
 	
-	public static final double mod(double x, double y) {
-		return x - Math.floor(x/y)*y;
+	public static final double determ(double a, double b, double c, double d) {
+		return a*d - b*c;
 	}
 	
 	
-	public static final double[] newtonRaphsonApproximation(double x0, double y0, BinaryOperator<Double> f1pX, BinaryOperator<Double> f2pY, BinaryOperator<Double> df1dp,
-			BinaryOperator<Double> df1dl, BinaryOperator<Double> df2dp, BinaryOperator<Double> df2dl, double tolerance) {
-		double x = x0;
-		double y = y0;
-		double phi = y;
-		double lam = x; // I used equirectangular for my initial guess
-		double error = Math.PI;
-		
-		for (int i = 0; i < 6 && error > tolerance; i++) {
-			final double f1 = f1pX.apply(phi, lam) - x;
-			final double f2 = f2pY.apply(phi, lam) - y;
-			final double df1dP = df2dp.apply(phi, lam);
-			final double df1dL = df1dl.apply(phi, lam);
-			final double df2dP = df2dp.apply(phi, lam);
-			final double df2dL = df2dl.apply(phi, lam);
-			
-			phi -= (f1*df2dL - f2*df1dL) / (df1dP*df2dL - df2dP*df1dL);
-			lam -= (f2*df1dP - f1*df2dP) / (df1dP*df2dL - df2dP*df1dL);
-			
-			error = Math.hypot(f1, f2);
-		}
-		
-		if (error > tolerance) // if it aborted due to timeout
-			return null;
-		else // if it aborted due to convergence
-			return new double[] {phi, lam};
+	public static final double mod(double x, double y) {
+		return x - Math.floor(x/y)*y;
 	}
 
 }
