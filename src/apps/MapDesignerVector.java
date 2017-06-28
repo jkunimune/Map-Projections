@@ -88,10 +88,9 @@ public class MapDesignerVector extends Application { //TODO: inheritance
 			Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
 			Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC,
 			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.SINUSOIDAL, Projection.MOLLWEIDE,
-			Projection.AITOFF, Projection.TOBLER, Projection.SINUSOIDAL, Projection.VAN_DER_GRINTEN,
-			Projection.ROBINSON, Projection.WINKEL_TRIPEL, Projection.PEIRCE_QUINCUNCIAL, Projection.GUYOU,
-			Projection.MAGNIFIER, Projection.EXPERIMENT, Projection.HYPERELLIPOWER, Projection.TETRAPOWER,
-			Projection.TETRAFILLET };
+			Projection.TOBLER, Projection.AITOFF, Projection.VAN_DER_GRINTEN, Projection.ROBINSON,
+			Projection.WINKEL_TRIPEL, Projection.PEIRCE_QUINCUNCIAL, Projection.GUYOU, Projection.MAGNIFIER,
+			Projection.EXPERIMENT, Projection.HYPERELLIPOWER, Projection.TETRAPOWER, Projection.TETRAFILLET };
 	
 	private static final String[] AXES = { "Standard", "Transverse", "Center of Mass", "Jerusalem", "Point Nemo",
 			"Longest Line", "Longest Line Transverse", "Cylindrical", "Conical", "Tetrahedral", "Quincuncial", "Antipode", "Random" };

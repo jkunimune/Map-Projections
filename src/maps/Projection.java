@@ -330,21 +330,24 @@ public enum Projection {
 		}
 	},
 	
-	AITOFF("Aitoff", "An equal-area projection shaped like an ellipse",
-			2., 0b1011, "other", "equal-area") {
+	AITOFF("Aitoff", "A compromise projection shaped like an ellipse",
+			2., 0b1011, "pseudoazimuthal", "equal-area") {
 		public double[] project(double lat, double lon) {
-			return new double[] { Math.PI/2*Aitoff.f2pX(lat,lon),
-					Math.PI/2*Aitoff.f1pY(lat,lon) };
+			final double a = Math.acos(Math.cos(lat)*Math.cos(lon/2));
+			return new double[] {
+					2*Math.cos(lat)*Math.sin(lon/2)*a/Math.sin(a),
+					Math.sin(lat)*a/Math.sin(a)};
 		}
 		public double[] inverse(double x, double y) {
-			return NumericalAnalysis.newtonRaphsonApproximation(
-					2*x, y, Aitoff::f2pX, Aitoff::f1pY, Aitoff::df2dphi,
-					Aitoff::df2dlam, Aitoff::df1dphi, Aitoff::df1dlam, .0625);
+			final double[] intermediate = POLAR.inverse(x/2, y/2);
+			double[] transverse = obliquifyPlnr(intermediate, new double[] {0,0,0});
+			if (transverse != null)	transverse[1] *= 2;
+			return transverse;
 		}
 	},
 	
 	HAMMER("Hammer", "An equal-area projection shaped like an ellipse",
-			2., 0b1111, "other", "equal-area") {
+			2., 0b1111, "pseudoazimuthal", "equal-area") {
 		public double[] project(double lat, double lon) {
 			return new double[] {
 					Math.PI*Math.cos(lat)*Math.sin(lon/2)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2)),

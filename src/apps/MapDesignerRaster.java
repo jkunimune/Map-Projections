@@ -89,7 +89,7 @@ public class MapDesignerRaster extends Application {
 			Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
 			Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC,
 			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.AUTHAGRAPH, Projection.SINUSOIDAL,
-			Projection.AITOFF, Projection.MOLLWEIDE, Projection.TOBLER, Projection.VAN_DER_GRINTEN, Projection.ROBINSON,
+			Projection.MOLLWEIDE, Projection.TOBLER, Projection.AITOFF, Projection.VAN_DER_GRINTEN, Projection.ROBINSON,
 			Projection.WINKEL_TRIPEL, Projection.PEIRCE_QUINCUNCIAL, Projection.GUYOU, Projection.LEMONS,
 			Projection.MAGNIFIER, Projection.EXPERIMENT };
 	

@@ -46,7 +46,7 @@ public class MapPlotter extends Application {
 			Projection.E_A_AZIMUTH, Projection.ALBERS, Projection.HOBODYER, Projection.VAN_DER_GRINTEN,
 			Projection.ROBINSON, Projection.WINKEL_TRIPEL, Projection.GNOMONIC, Projection.ORTHOGRAPHIC };
 	private static final Projection[] UNCOMMON = { Projection.PEIRCE_QUINCUNCIAL, Projection.LEE, Projection.TOBLER,
-			Projection.MOLLWEIDE };
+			Projection.MOLLWEIDE, Projection.AITOFF };
 	private static final Projection[] INVENTED = { Projection.HYPERELLIPOWER, Projection.TETRAPOWER,
 			Projection.TETRAFILLET };
 	
@@ -61,8 +61,8 @@ public class MapPlotter extends Application {
 	public void start(Stage root) {
 		final ScatterChart<Number, Number> plot =
 				new ScatterChart<Number, Number>(
-				new NumberAxis("Size distortion", 0, 1, 0.2),
-				new NumberAxis("Shape distortion", 0, 1, 0.2));
+				new NumberAxis("Size distortion", 0, 3, 0.2),
+				new NumberAxis("Shape distortion", 0, 3, 0.2));
 		final double[][][] points = Projection.globe(.02);
 		
 		plotProjections(plot, COMMON, "Common", points);

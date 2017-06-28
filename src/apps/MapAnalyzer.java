@@ -81,12 +81,13 @@ public class MapAnalyzer extends Application {
 	
 	
 	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.EQUIRECTANGULAR,
-			Projection.GALL_PETERS, Projection.HOBODYER, Projection.BEHRMANN, Projection.LAMBERT_CYLIND, Projection.GALL,
-			Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH, Projection.ORTHOGRAPHIC,
-			Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC, Projection.ALBERS, Projection.LEE,
-			Projection.TETRAGRAPH, Projection.SINUSOIDAL, Projection.MOLLWEIDE, Projection.AITOFF, Projection.HAMMER, Projection.TOBLER,
-			Projection.VAN_DER_GRINTEN, Projection.ROBINSON, Projection.WINKEL_TRIPEL, Projection.PEIRCE_QUINCUNCIAL,
-			Projection.GUYOU, Projection.MAGNIFIER, Projection.EXPERIMENT };
+			Projection.GALL_PETERS, Projection.HOBODYER, Projection.BEHRMANN, Projection.LAMBERT_CYLIND,
+			Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
+			Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC,
+			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.SINUSOIDAL, Projection.MOLLWEIDE,
+			Projection.HAMMER, Projection.TOBLER, Projection.AITOFF, Projection.VAN_DER_GRINTEN, Projection.ROBINSON,
+			Projection.WINKEL_TRIPEL, Projection.PEIRCE_QUINCUNCIAL, Projection.GUYOU, Projection.MAGNIFIER,
+			Projection.EXPERIMENT };
 	
 	
 	private Stage stage;
