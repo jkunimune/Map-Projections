@@ -72,7 +72,7 @@ public class MapOptimizer extends Application {
 				new NumberAxis("Shape distortion", 0, 1, 0.2));
 		chart.setCreateSymbols(true);
 		chart.setAxisSortingPolicy(SortingPolicy.NONE);
-		double[][][] globe = MapAnalyzer.globe(0.02);
+		double[][][] globe = Projection.globe(0.02);
 		
 		chart.getData().add(analyzeAll(globe, EXISTING_PROJECTIONS));
 		chart.getData().add(optimizeHyperelliptical(globe));
@@ -201,8 +201,8 @@ public class MapOptimizer extends Application {
 	}
 	
 	
-	private static Data<Number, Number> plotDistortion(double[][][] pts, UnaryOperator<double[]> proj) {
-		double[][][] distortion = MapAnalyzer.calculateDistortion(pts, proj);
+	private static Data<Number, Number> plotDistortion(double[][][] pts, UnaryOperator<double[]> xform) {
+		double[][][] distortion = Projection.calculateDistortion(pts, xform);
 		return new Data<Number, Number>(
 				Math2.stdDev(distortion[0]),
 				Math2.mean(distortion[1]));
@@ -257,7 +257,7 @@ public class MapOptimizer extends Application {
 	
 	private static double[] avgDistortion(BinaryOperator<double[]> projFam,
 			double[] params, double[][][] points) {
-		final double[][][] distDist = MapAnalyzer.calculateDistortion(points,
+		final double[][][] distDist = Projection.calculateDistortion(points,
 				(coords) -> projFam.apply(coords, params)); //distortion distribution
 		return new double[] { Math2.stdDev(distDist[0]), Math2.mean(distDist[1]) };
 	}

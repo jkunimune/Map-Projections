@@ -88,10 +88,10 @@ public class MapDesignerRaster extends Application {
 	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.EQUIRECTANGULAR, Projection.HOBODYER,
 			Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
 			Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC,
-			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.AUTHAGRAPH, Projection.SINUSOIDAL, Projection.MOLLWEIDE,
-			Projection.TOBLER, Projection.VAN_DER_GRINTEN, Projection.ROBINSON, Projection.WINKEL_TRIPEL,
-			Projection.PEIRCE_QUINCUNCIAL, Projection.GUYOU, Projection.LEMONS, Projection.MAGNIFIER,
-			Projection.EXPERIMENT };
+			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.AUTHAGRAPH, Projection.SINUSOIDAL,
+			Projection.AITOFF, Projection.MOLLWEIDE, Projection.TOBLER, Projection.VAN_DER_GRINTEN, Projection.ROBINSON,
+			Projection.WINKEL_TRIPEL, Projection.PEIRCE_QUINCUNCIAL, Projection.GUYOU, Projection.LEMONS,
+			Projection.MAGNIFIER, Projection.EXPERIMENT };
 	
 	private static final String[] AXES = { "Standard", "Transverse", "Center of Mass", "Jerusalem", "Point Nemo",
 			"Longest Line", "Longest Line Transverse", "Cylindrical", "Conic", "Tetrahedral", "Quincuncial", "Antipode", "Random" };

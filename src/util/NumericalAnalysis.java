@@ -47,21 +47,21 @@ public class NumericalAnalysis {
 	 * @param tolerance The maximum error that this can return
 	 * @return the values of phi and lam that put f1pX and f2pY near x0 and y0
 	 */
-	public static final double[] newtonRaphsonApproximation(double x0, double y0, BinaryOperator<Double> f1pX, BinaryOperator<Double> f2pY, BinaryOperator<Double> df1dp,
-			BinaryOperator<Double> df1dl, BinaryOperator<Double> df2dp, BinaryOperator<Double> df2dl, double tolerance) {
+	public static final double[] newtonRaphsonApproximation(double x0, double y0, BinaryOperator<Double> fxpX, BinaryOperator<Double> fypY, BinaryOperator<Double> dfxdp,
+			BinaryOperator<Double> dfxdl, BinaryOperator<Double> dfydp, BinaryOperator<Double> dfydl, double tolerance) {
 		double x = x0;
 		double y = y0;
 		double phi = y;
 		double lam = x; // I used equirectangular for my initial guess
 		double error = Math.PI;
 		
-		for (int i = 0; i < 6 && error > tolerance; i++) {
-			final double f1 = f1pX.apply(phi, lam) - x;
-			final double f2 = f2pY.apply(phi, lam) - y;
-			final double df1dP = df2dp.apply(phi, lam);
-			final double df1dL = df1dl.apply(phi, lam);
-			final double df2dP = df2dp.apply(phi, lam);
-			final double df2dL = df2dl.apply(phi, lam);
+		for (int i = 0; i < 5 && error > tolerance; i++) {
+			final double f1 = fxpX.apply(phi, lam) - x;
+			final double f2 = fypY.apply(phi, lam) - y;
+			final double df1dP = dfxdp.apply(phi, lam);
+			final double df1dL = dfxdl.apply(phi, lam);
+			final double df2dP = dfydp.apply(phi, lam);
+			final double df2dL = dfydl.apply(phi, lam);
 			
 			phi -= (f1*df2dL - f2*df1dL) / (df1dP*df2dL - df2dP*df1dL);
 			lam -= (f2*df1dP - f1*df2dP) / (df1dP*df2dL - df2dP*df1dL);
@@ -113,17 +113,6 @@ public class NumericalAnalysis {
 		}
 		
 		return fx[N-1][N-1];
-	}
-	
-	
-	public static final void main(String[] args) {
-		System.out.println("Testing Aitken Interpolation:");
-		System.out.println("Input points are (-1,1), (-.5,-1), (0,0), (.5,1), and (1,-1)");
-		double[] X = {-1, -.5, 0, .5, 1};
-		double[] Y = {1, -1, 0, 1, -1};
-		System.out.println("Interpolating points from -1 to 1:");
-		for (double x = -1; x <= 1; x += 1/1024.)
-			System.out.println(x+", "+aitkenInterpolate(x, X, Y)+";");
 	}
 
 }

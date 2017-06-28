@@ -23,10 +23,13 @@
  */
 package maps;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.UnaryOperator;
 
 import org.apache.commons.math3.complex.Complex;
 
+import dialogs.ProgressBarDialog;
 import ellipticFunctions.Jacobi;
 import util.Dixon;
 import util.Elliptic;
@@ -330,13 +333,13 @@ public enum Projection {
 	AITOFF("Aitoff", "An equal-area projection shaped like an ellipse",
 			2., 0b1011, "other", "equal-area") {
 		public double[] project(double lat, double lon) {
-			final double a = Math.acos(Math.cos(lat)*Math.cos(lon/2));
-			return new double[] {
-					2*Math.cos(lat)*Math.sin(lon/2)*a/Math.sin(a),
-					Math.sin(lat)*a/Math.sin(a)};
+			return new double[] { Math.PI/2*Aitoff.f2pX(lat,lon),
+					Math.PI/2*Aitoff.f1pY(lat,lon) };
 		}
 		public double[] inverse(double x, double y) {
-			return null; //TODO: do this
+			return NumericalAnalysis.newtonRaphsonApproximation(
+					2*x, y, Aitoff::f2pX, Aitoff::f1pY, Aitoff::df2dphi,
+					Aitoff::df2dlam, Aitoff::df1dphi, Aitoff::df1dlam, .0625);
 		}
 	},
 	
@@ -424,14 +427,11 @@ public enum Projection {
 			return new double[] { WinkelTripel.f1pX(lat,lon)/(.5+1/Math.PI),
 					WinkelTripel.f2pY(lat,lon)/(.5+1/Math.PI) };
 		}
-		public double[] inverse(double x, double y1) {
-			double y = (x<0) == (y1<0) ? -y1 : y1;
-			double[] output = NumericalAnalysis.newtonRaphsonApproximation(
+		public double[] inverse(double x, double y) {
+			return NumericalAnalysis.newtonRaphsonApproximation(
 					x*(1 + Math.PI/2), y*Math.PI/2,
 					WinkelTripel::f1pX, WinkelTripel::f2pY, WinkelTripel::df1dphi,
 					WinkelTripel::df1dlam, WinkelTripel::df2dphi, WinkelTripel::df2dlam, .0625);
-			if (output != null && (x<0) == (y1<0))	output[0] *= -1;
-			return output;
 		}
 	},
 	
@@ -673,6 +673,19 @@ public enum Projection {
 	}
 	
 	
+	private static String buildDescription(String type, String property, String adjective, String addendum) { //these should all be lowercase
+		String description = property+" "+type+" projection";
+		if (adjective != null)
+			description = adjective+" "+description;
+		if (addendum != null)
+			description += " "+addendum;
+		if (description.charAt(0) == 'a' || description.charAt(0) == 'e' || description.charAt(0) == 'i' || description.charAt(0) == 'o' || description.charAt(0) == 'u')
+			return "An "+description;
+		else
+			return "A "+description;
+	}
+	
+	
 	
 	public abstract double[] project(double lat, double lon);
 	
@@ -739,19 +752,6 @@ public enum Projection {
 		return this.property;
 	}
 	
-	
-	
-	private static String buildDescription(String type, String property, String adjective, String addendum) { //these should all be lowercase
-		String description = property+" "+type+" projection";
-		if (adjective != null)
-			description = adjective+" "+description;
-		if (addendum != null)
-			description += " "+addendum;
-		if (description.charAt(0) == 'a' || description.charAt(0) == 'e' || description.charAt(0) == 'i' || description.charAt(0) == 'o' || description.charAt(0) == 'u')
-			return "An "+description;
-		else
-			return "A "+description;
-	}
 	
 	
 	public static double[] tetrahedralProjectionForward(double lat, double lon, UnaryOperator<double[]> func) { //a helper function for projections like tetragraph and lee
@@ -899,6 +899,100 @@ public enum Projection {
 		
 		double[] output = {latf, lonf, thtf};
 		return output;
+	}
+	
+	
+	public double[][][] calculateDistortion(double[][][] points) {
+		return calculateDistortion(points, this::project);
+	}
+	
+	public static double[][][] calculateDistortion(double[][][] points, UnaryOperator<double[]> p) {
+		return calculateDistortion(points, p, null);
+	}
+	
+	public double[][][] calculateDistortion(double[][][] points, ProgressBarDialog pBar) {
+		return calculateDistortion(points, this::project, pBar);
+	}
+	
+	public static double[][][] calculateDistortion(double[][][] points, UnaryOperator<double[]> p,
+			ProgressBarDialog pBar) { //calculate both kinds of distortion over the given region
+		double[][][] output = new double[2][points.length][points[0].length]; //the distortion matrix
+		
+		for (int y = 0; y < points.length; y ++) {
+			for (int x = 0; x < points[y].length; x ++) {
+				if (points[y][x] != null) {
+					final double[] distortions = getDistortionAt(points[y][x], p);
+					output[0][y][x] = distortions[0]; //the output matrix has two layers:
+					output[1][y][x] = distortions[1]; //area and angular distortion
+				}
+				else {
+					output[0][y][x] = Double.NaN;
+					output[1][y][x] = Double.NaN; //NaN means no map here
+				}
+			}
+			if (pBar != null)
+				pBar.setProgress((double)(y+1)/points.length);
+		}
+		
+		final double avgArea = Math2.mean(output[0]); //don't forget to normalize output[0] so the average is zero
+		for (int y = 0; y < output[0].length; y ++)
+			for (int x = 0; x < output[0][y].length; x ++)
+				output[0][y][x] -= avgArea;
+		
+		return output;
+	}
+	
+	
+	public static double[] getDistortionAt(double[] s0, UnaryOperator<double[]> p) { //calculate both kinds of distortion at the given point
+		final double[] output = new double[2];
+		final double dx = 1e-6;
+		
+		final double[] s1 = { s0[0], s0[1]+dx/Math.cos(s0[0]) }; //consider a point slightly to the east
+		final double[] s2 = { s0[0]+dx, s0[1] }; //and slightly to the north
+		final double[] p0 = p.apply(s0);
+		final double[] p1 = p.apply(s1);
+		final double[] p2 = p.apply(s2);
+		
+		final double dA = 
+				(p1[0]-p0[0])*(p2[1]-p0[1]) - (p1[1]-p0[1])*(p2[0]-p0[0]);
+		output[0] = Math.log(Math.abs(dA/(dx*dx))); //the zeroth output is the size (area) distortion
+		if (Math.abs(output[0]) > 25)
+			output[0] = Double.NaN; //discard outliers
+		
+		final double s1ps2 = Math.hypot((p1[0]-p0[0])+(p2[1]-p0[1]), (p1[1]-p0[1])-(p2[0]-p0[0]));
+		final double s1ms2 = Math.hypot((p1[0]-p0[0])-(p2[1]-p0[1]), (p1[1]-p0[1])+(p2[0]-p0[0]));
+		final double factor = Math.abs((s1ps2-s1ms2)/(s1ps2+s1ms2)); //there's some linear algebra behind this formula. Don't worry about it.
+		
+		output[1] = (1-factor)/Math.sqrt(factor);
+		
+		return output;
+	}
+	
+	
+	public double[][][] map(int size) {
+		return map(size, this);
+	}
+	
+	public static double[][][] map(int size, Projection proj) { //generate a matrix of coordinates based on a map projection
+		final int w = size, h = (int)(size/proj.getAspectRatio());
+		double[][][] output = new double[h][w][2]; //the coordinate matrix
+		
+		for (int y = 0; y < output.length; y ++)
+			for (int x = 0; x < output[y].length; x ++)
+				output[y][x] = proj.inverse(2.*(x+.5)/w - 1, 1 - 2.*(y+.5)/h); //s0 is this point on the sphere
+		
+		return output;
+	}
+	
+	
+	public static double[][][] globe(double dt) { //generate a matrix of coordinates based on the sphere
+		List<double[]> points = new ArrayList<double[]>();
+		for (double phi = -Math.PI/2+dt/2; phi < Math.PI/2; phi += dt) { // make sure phi is never exactly +-tau/4
+			for (double lam = -Math.PI; lam < Math.PI; lam += dt/Math.cos(phi)) {
+				points.add(new double[] {phi, lam});
+			}
+		}
+		return new double[][][] {points.toArray(new double[0][])};
 	}
 
 }
