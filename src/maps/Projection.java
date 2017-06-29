@@ -592,7 +592,8 @@ public enum Projection {
 		public double[] project(double lat, double lon) {
 			final double k1 = 1.4586;
 			final double k2 = 1.2891;
-			final double k3 = 1.9158;
+			final double k3 = 1.9583;
+			
 			return tetrahedralProjectionForward(lat, lon, (coordR) -> {
 				final double t0 = Math.floor(coordR[1]/(2*Math.PI/3))*(2*Math.PI/3) + Math.PI/3;
 				final double tht = coordR[1] - t0;
@@ -602,8 +603,7 @@ public enum Projection {
 				final double rtgf = Math.atan(1/Math.tan(coordR[0])*Math.cos(tht))/Math.atan(Math.sqrt(2))*rmax; //normalized tetragraph radius
 				return new double[] {
 						(1 - Math.pow(1-rtgf,kRad))/(1 - Math.pow(1-rmax,kRad))*rmax*2*Math.PI/3,
-						thtP + t0
-				};
+						thtP + t0 };
 			});
 		}
 		public double[] inverse(double x, double y) {
@@ -836,7 +836,7 @@ public enum Projection {
 	}
 	
 	
-	public static double[] obliquifySphc(double[] coords, double[] pole) { // go from polar coordinates to relative
+	public static final double[] obliquifySphc(double[] coords, double[] pole) { // go from polar coordinates to relative
 		final double lat0 = pole[0];
 		final double lon0 = pole[1];
 		final double tht0 = pole[2];
@@ -905,6 +905,44 @@ public enum Projection {
 	}
 	
 	
+	public double[][][] map(int size) {
+		return map(size, this);
+	}
+	
+	public static double[][][] map(int size, Projection proj) { //generate a matrix of coordinates based on a map projection
+		final int w = size, h = (int)(size/proj.getAspectRatio());
+		double[][][] output = new double[h][w][2]; //the coordinate matrix
+		
+		for (int y = 0; y < output.length; y ++)
+			for (int x = 0; x < output[y].length; x ++)
+				output[y][x] = proj.inverse(2.*(x+.5)/w - 1, 1 - 2.*(y+.5)/h); //s0 is this point on the sphere
+		
+		return output;
+	}
+	
+	
+	public static double[][][] globe(double dt) { //generate a matrix of coordinates based on the sphere
+		List<double[]> points = new ArrayList<double[]>();
+		for (double phi = -Math.PI/2+dt/2; phi < Math.PI/2; phi += dt) { // make sure phi is never exactly +-tau/4
+			for (double lam = -Math.PI; lam < Math.PI; lam += dt/Math.cos(phi)) {
+				points.add(new double[] {phi, lam});
+			}
+		}
+		return new double[][][] {points.toArray(new double[0][])};
+	}
+	
+	
+	public double[] avgDistortion(double[][][] points) {
+		return avgDistortion(this::project, points);
+	}
+	
+	public static double[] avgDistortion(
+			UnaryOperator<double[]> xform, double[][][] points) {
+		final double[][][] distDist = calculateDistortion(points, xform);
+		return new double[] { Math2.stdDev(distDist[0]), Math2.mean(distDist[1]) };
+	}
+	
+	
 	public double[][][] calculateDistortion(double[][][] points) {
 		return calculateDistortion(points, this::project);
 	}
@@ -969,33 +1007,6 @@ public enum Projection {
 		output[1] = (1-factor)/Math.sqrt(factor);
 		
 		return output;
-	}
-	
-	
-	public double[][][] map(int size) {
-		return map(size, this);
-	}
-	
-	public static double[][][] map(int size, Projection proj) { //generate a matrix of coordinates based on a map projection
-		final int w = size, h = (int)(size/proj.getAspectRatio());
-		double[][][] output = new double[h][w][2]; //the coordinate matrix
-		
-		for (int y = 0; y < output.length; y ++)
-			for (int x = 0; x < output[y].length; x ++)
-				output[y][x] = proj.inverse(2.*(x+.5)/w - 1, 1 - 2.*(y+.5)/h); //s0 is this point on the sphere
-		
-		return output;
-	}
-	
-	
-	public static double[][][] globe(double dt) { //generate a matrix of coordinates based on the sphere
-		List<double[]> points = new ArrayList<double[]>();
-		for (double phi = -Math.PI/2+dt/2; phi < Math.PI/2; phi += dt) { // make sure phi is never exactly +-tau/4
-			for (double lam = -Math.PI; lam < Math.PI; lam += dt/Math.cos(phi)) {
-				points.add(new double[] {phi, lam});
-			}
-		}
-		return new double[][][] {points.toArray(new double[0][])};
 	}
 
 }
