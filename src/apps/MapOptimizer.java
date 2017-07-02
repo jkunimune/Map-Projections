@@ -26,9 +26,6 @@ package apps;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.Arrays;
-import java.util.function.BinaryOperator;
-import java.util.function.UnaryOperator;
-
 import javax.imageio.ImageIO;
 
 import javafx.application.Application;
@@ -50,10 +47,10 @@ import maps.Projection;
 public class MapOptimizer extends Application {
 	
 	
-	private static final Projection[] EXISTING_PROJECTIONS = { Projection.HOBODYER, Projection.ROBINSON,
-			Projection.EQUIRECTANGULAR, Projection.LEE };
-	private static final double[] WEIGHTS = {.20, .50, 1.0, 2.0, 5.0};//{ .083, .20, .33, .50, .71, 1.0, 1.4, 2.0, 3.0, 5.0, 12. };
-	private static final int NUM_DESCENT = 5;//40;
+	private static final Projection[] EXISTING_PROJECTIONS = { Projection.HOBO_DYER, Projection.ROBINSON,
+			Projection.PLATE_CARREE, Projection.LEE };
+	private static final double[] WEIGHTS = { .083, .20, .33, .50, .71, 1.0, 1.4, 2.0, 3.0, 5.0, 12. };
+	private static final int NUM_DESCENT = 40;
 	private LineChart<Number, Number> chart;
 	
 	
@@ -76,10 +73,10 @@ public class MapOptimizer extends Application {
 		PrintStream log = new PrintStream(new File("output/parameters.txt"));
 		
 		chart.getData().add(analyzeAll(globe, EXISTING_PROJECTIONS));
-//		chart.getData().add(optimizeHyperelliptical(globe, log));
+		chart.getData().add(optimizeHyperelliptical(globe, log));
 //		chart.getData().add(optimizeEACylinder(globe, log));
 		chart.getData().add(optimizeTetrapower(globe, log));
-//		chart.getData().add(optimizeTetrafillet(globe, log));
+		chart.getData().add(optimizeTetrafillet(globe, log));
 		
 		System.out.println("Total time elapsed: "+
 				(System.currentTimeMillis()-startTime)/1000.+"s");
@@ -97,21 +94,22 @@ public class MapOptimizer extends Application {
 	
 	
 	private static Series<Number, Number> analyzeAll(double[][][] points,
-			Projection... projs) { //analyze and plot the specified preexisting map projections
+			Projection... projs) { //analyze and plot the specified preexisting map projections. These projections must not be parametrized
 		System.out.println("Analyzing "+Arrays.toString(projs));
 		Series<Number, Number> output = new Series<Number, Number>();
 		output.setName("Basic Projections");
 		
 		for (Projection proj: projs)
-			output.getData().add(plotDistortion(points, proj::project));
+			if (!proj.isParametrized())
+				output.getData().add(plotDistortion(points, proj, new double[0]));
 		
 		return output;
 	}
 	
 	
-	private static Series<Number, Number> optimizeFamily(BinaryOperator<double[]> projectionFam, String name,
-			double[][] bounds, double[][][] points, PrintStream log) { // optimize and plot some maps of a given family maps
-		System.out.println("Optimizing "+name);
+	private static Series<Number, Number> optimizeFamily(
+			Projection projectionFam, double[][] bounds, double[][][] points, PrintStream log) { // optimize and plot some maps of a given family maps
+		System.out.println("Optimizing "+projectionFam.getName());
 		final double[][] currentBest = new double[WEIGHTS.length][3+bounds.length]; //the 0-3 cols are the min distortions for each weight, the other cols are the values of k and n that caused that
 		for (int k = 0; k < WEIGHTS.length; k ++)
 			currentBest[k][0] = Integer.MAX_VALUE;
@@ -121,8 +119,7 @@ public class MapOptimizer extends Application {
 		
 		while (true) { //start with brute force
 			System.out.println(Arrays.toString(params));
-			double[] distortions = Projection.avgDistortion(
-					(coords) -> projectionFam.apply(coords,params), points);
+			double[] distortions = projectionFam.avgDistortion(points, params);
 			for (int k = 0; k < WEIGHTS.length; k ++) {
 				final double avgDist = Math.pow(distortions[0],1.5) +
 						WEIGHTS[k]*Math.pow(distortions[1],1.5);
@@ -155,28 +152,27 @@ public class MapOptimizer extends Application {
 			double[] frd = new double[params.length];
 			for (int i = 0; i < NUM_DESCENT; i ++) {
 				if (i > 0)
-					fr0 = weighDistortion(WEIGHTS[k], Projection.avgDistortion(
-							parametrize(projectionFam,params), points)); //calculate the distortion here
+					fr0 = weighDistortion(WEIGHTS[k],
+							projectionFam.avgDistortion(points, params)); //calculate the distortion here
 				System.out.println(Arrays.toString(params)+" -> "+fr0);
 				for (int j = 0; j < params.length; j ++) {
 					params[j] += h;
-					frd[j] = weighDistortion(WEIGHTS[k], Projection.avgDistortion(
-							parametrize(projectionFam,params), points)); //and the distortion nearby
+					frd[j] = weighDistortion(WEIGHTS[k],
+							projectionFam.avgDistortion(points, params)); //and the distortion nearby
 					params[j] -= h;
 				}
 				for (int j = 0; j < params.length; j ++)
 					params[j] -= (frd[j]-fr0)/h*delX; //use that to approximate the gradient and go in that direction
 			}
 			System.arraycopy(params,0, currentBest[k],3, params.length);
-			System.arraycopy(
-					Projection.avgDistortion(parametrize(projectionFam,params), points),
-					0, currentBest[k], 1, 2);
+			System.arraycopy(projectionFam.avgDistortion(points, params), 0,
+					currentBest[k], 1, 2);
 		}
 		
 		final Series<Number, Number> output = new Series<Number, Number>();
-		output.setName(name);
+		output.setName(projectionFam.getName());
 		
-		log.println("We got the best "+name+" projections using:");
+		log.println("We got the best "+projectionFam.getName()+" projections using:");
 		for (double[] best: currentBest) {
 			log.print("\t");
 			for (int i = 0; i < params.length; i ++)
@@ -195,82 +191,31 @@ public class MapOptimizer extends Application {
 	}
 	
 	
-	private static final UnaryOperator<double[]> parametrize(
-			BinaryOperator<double[]> projFam, double[] params) {
-		return (coords) -> projFam.apply(coords, params);
-	}
-	
-	
 	private static Series<Number, Number> optimizeHyperelliptical(
 			double[][][] points, PrintStream log) { //optimize and plot some hyperelliptical maps
-		return optimizeFamily(MapOptimizer::hyperelliptical, "Hyperelliptic",
+		return optimizeFamily(Projection.HYPERELLIPOWER,
 				new double[][] {{2.5,5}, {0.5,1.75}, {1.0,2.0}}, points, log);
 	}
 	
 	
 	private static Series<Number, Number> optimizeTetrapower(
 			double[][][] points, PrintStream log) { //optimize and plot some hyperelliptical maps
-		return optimizeFamily(MapOptimizer::tetrapower, "Tetrapower",
+		return optimizeFamily(Projection.TETRAPOWER,
 				new double[][] {{0.25,2.25}, {0.25,2.25}, {.25,2.25}}, points, log);
 	}
 	
 	
 	private static Series<Number, Number> optimizeTetrafillet(
 			double[][][] points, PrintStream log) { //optimize and plot some hyperelliptical maps
-		return optimizeFamily(MapOptimizer::tetrafillet, "Tetrafillet",
+		return optimizeFamily(Projection.TETRAFILLET,
 				new double[][] {{0.25,2.25}, {0.25,2.25}, {.25,2.25}}, points, log);
 	}
 	
 	
 	private static Data<Number, Number> plotDistortion(
-			double[][][] pts, UnaryOperator<double[]> xform) {
-		double[] distortion = Projection.avgDistortion(xform, pts);
+			double[][][] pts, Projection proj, double[] params) {
+		double[] distortion = proj.avgDistortion(pts, params);
 		return new Data<Number, Number>(distortion[0], distortion[1]);
-	}
-	
-	
-	private static final double[] hyperelliptical(double[] coords, double[] params) { //a hyperelliptic map projection with hyperellipse order k and lattitudinal spacind described by x^n/n
-		final double lat = coords[0], lon = coords[1];
-		final double k = params[0], n = params[1], a = params[2];
-		
-		return new double[] {
-				Math.pow(1 - Math.pow(Math.abs(lat/(Math.PI/2)), k),1/k)*lon,
-				(1-Math.pow(1-Math.abs(lat/(Math.PI/2)), n))/Math.sqrt(n)*Math.signum(lat)*Math.PI/2*a};
-	}
-	
-	
-	private static final double[] tetrapower(double[] coords, double[] params) { //a tetragraph projection using a few power functions to spice it up
-		final double k1 = params[0], k2 = params[1], k3 = params[2];
-		
-		return Projection.tetrahedralProjectionForward(coords[0], coords[1], (coordR) -> {
-			final double t0 = Math.floor(coordR[1]/(2*Math.PI/3))*(2*Math.PI/3) + Math.PI/3;
-			final double tht = coordR[1] - t0;
-			final double thtP = Math.PI/3*(1 - Math.pow(1-Math.abs(tht)/(Math.PI/2),k1))/(1 - 1/Math.pow(3,k1))*Math.signum(tht);
-			final double kRad = k3*Math.abs(thtP)/(Math.PI/3) + k2*(1-Math.abs(thtP)/(Math.PI/3));
-			final double rmax = .5/Math.cos(thtP); //the max normalized radius of this triangle (in the plane)
-			final double rtgf = Math.atan(1/Math.tan(coordR[0])*Math.cos(tht))/Math.atan(Math.sqrt(2))*rmax; //normalized tetragraph radius
-			return new double[] {
-					(1 - Math.pow(1-rtgf,kRad))/(1 - Math.pow(1-rmax,kRad))*rmax*2*Math.PI/3,
-					thtP + t0 };
-		});
-	}
-	
-	
-	private static final double[] tetrafillet(double[] coords, double[] params) { //a tetragraph projection using a few power functions to spice it up and now with fillets
-		final double k1 = params[0], k2 = params[1], k3 = params[2];
-		
-		return Projection.tetrahedralProjectionForward(coords[0], coords[1], (coordR) -> {
-			final double t0 = Math.floor(coordR[1]/(2*Math.PI/3))*(2*Math.PI/3) + Math.PI/3;
-			final double tht = coordR[1] - t0;
-			final double thtP = Math.PI/3*(1 - Math.pow(1-Math.abs(tht)/(Math.PI/2),k1))/(1 - 1/Math.pow(3,k1))*Math.signum(tht);
-			final double kRad = k3*Math.abs(thtP)/(Math.PI/3) + k2*(1-Math.abs(thtP)/(Math.PI/3));
-			final double rmax = 1/2. + 1/4.*Math.pow(thtP,2) + 5/48.*Math.pow(thtP,4) - .132621*Math.pow(thtP,6); //the max normalized radius of this triangle (in the plane)
-			final double rtgf = Math.atan(1/Math.tan(coordR[0])*Math.cos(tht))/Math.atan(Math.sqrt(2))*rmax; //normalized tetragraph radius
-			return new double[] {
-					(1 - Math.pow(1-rtgf,kRad))/(1 - Math.pow(1-rmax,kRad))*rmax*2*Math.PI/3,
-					thtP + t0
-			};
-		});
 	}
 
 }

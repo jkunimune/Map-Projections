@@ -22,8 +22,6 @@
  * SOFTWARE.
  */
 package dialogs;
-import apps.MapDesignerRaster;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -34,12 +32,10 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
-import javafx.scene.control.ButtonBar.ButtonData;
-import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 
-public class MapConfigurationDialog extends Dialog<Thread> {
+public class MapConfigurationDialog extends Dialog<Void> {
 
 	public final double DEF_SIZE = 1000;
 	
@@ -49,13 +45,11 @@ public class MapConfigurationDialog extends Dialog<Thread> {
 	private final CheckBox maintainRatio;
 	private final Spinner<Integer> widthBox, heightBox;
 	private final ComboBox<String> smoothBox;
-	private final MapDesignerRaster parent;
 	
 	private boolean realEdit; // is a real edit happening, or is it just me?
 	
-	public MapConfigurationDialog(double defAsp, MapDesignerRaster mp) {
+	public MapConfigurationDialog(double defAsp) {
 		this.defaultRatio = defAsp;
-		this.parent = mp;
 		DialogPane pane = this.getDialogPane();
 		
 		this.maintainRatio = new CheckBox("Maintain aspect ratio");	// instantiate the components
@@ -125,24 +119,7 @@ public class MapConfigurationDialog extends Dialog<Thread> {
 		pane.getButtonTypes().addAll(new ButtonType[] { ButtonType.OK, ButtonType.CANCEL });	// add buttons
 		this.updateGUI();
 		
-		this.setResultConverter((btn) -> {	// set the return value
-			ButtonData bData = btn == null ? null : btn.getButtonData();
-			if (bData == ButtonData.OK_DONE) {
-				ProgressBarDialog pBar = new ProgressBarDialog();
-				pBar.show();
-				
-				return new Thread(() -> {
-					Image map = parent.map(
-							widthBox.getValue(),
-							heightBox.getValue(),
-							getSmoothing(),
-							pBar);
-					Platform.runLater(() -> parent.saveImage(map, pBar));
-				});
-			}
-			else
-				return null;
-		});
+		this.setResultConverter((btn) -> { return null; }); //this needn't return anything
 		
 		realEdit = true;
 	}
@@ -169,7 +146,12 @@ public class MapConfigurationDialog extends Dialog<Thread> {
 	}
 	
 	
-	private int getSmoothing() {
+	public int[] getDims() {
+		return new int[] { widthBox.getValue(), heightBox.getValue() };
+	}
+	
+	
+	public int getSmoothing() {
 		if (smoothBox.getValue().equals("None"))
 			return 1;
 		else if (smoothBox.getValue().equals("Low"))

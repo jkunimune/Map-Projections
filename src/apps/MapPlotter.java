@@ -42,8 +42,8 @@ public class MapPlotter extends Application {
 
 	
 	private static final Projection[] COMMON = { Projection.STEREOGRAPHIC, Projection.LAMBERT_CONIC,
-			Projection.MERCATOR, Projection.POLAR, Projection.E_D_CONIC, Projection.EQUIRECTANGULAR,
-			Projection.E_A_AZIMUTH, Projection.ALBERS, Projection.HOBODYER, Projection.VAN_DER_GRINTEN,
+			Projection.MERCATOR, Projection.POLAR, Projection.E_D_CONIC, Projection.PLATE_CARREE,
+			Projection.E_A_AZIMUTH, Projection.ALBERS, Projection.HOBO_DYER, Projection.VAN_DER_GRINTEN,
 			Projection.ROBINSON, Projection.WINKEL_TRIPEL, Projection.GNOMONIC, Projection.ORTHOGRAPHIC };
 	private static final Projection[] UNCOMMON = { Projection.PEIRCE_QUINCUNCIAL, Projection.LEE, Projection.TOBLER,
 			Projection.MOLLWEIDE, Projection.AITOFF };
@@ -81,7 +81,8 @@ public class MapPlotter extends Application {
 		series.setName(name);
 		
 		for (Projection projection: projections) {
-			final double distortion[][][] = projection.calculateDistortion(points);
+			final double[] params = projection.getDefaultParameters();
+			final double distortion[][][] = projection.calculateDistortion(points, params);
 			final double sizeDist = Math2.stdDev(distortion[0]);
 			final double anglDist = Math2.mean(distortion[1]);
 			series.getData().add(new Data<Number, Number>(sizeDist, anglDist));

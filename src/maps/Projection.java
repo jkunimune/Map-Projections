@@ -38,94 +38,116 @@ import util.NumericalAnalysis;
 import util.Vector;
 
 /**
- * A functional class that takes a double[] as input
- * and returns a new double[] in a new coordinate system.
+ * Map projections!
  * 
  * @author jkunimune
  */
 public enum Projection {
 
+	NULL("null", "", 1., 0b0000, "", "", new String[0], new double[0][]) {
+		public double[] project(double lat, double lon, double[] params) {
+			return null;
+		}
+		public double[] inverse(double x, double y, double[] params) {
+			return null;
+		}
+	},
+	
 	MERCATOR("Mercator", 1., 0b0111, "cylindrical", "conformal", "very popular") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			return new double[] {lon, Math.log(Math.tan(Math.PI/4+lat/2))};
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			return new double[] {Math.atan(Math.sinh(y*Math.PI)), x*Math.PI};
 		}
 	},
 	
-	EQUIRECTANGULAR("Equirectangular", 2., 0b1111, "cylindrical", "equidistant") {
-		public double[] project(double lat, double lon) {
+	PLATE_CARREE("Plate Carrée", 2., 0b1111, "cylindrical", "equidistant") {
+		public double[] project(double lat, double lon, double[] params) {
 			return new double[] {lon, lat};
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			return new double[] {y*Math.PI/2, x*Math.PI};
 		}
 	},
 	
 	GALL_PETERS("Gall-Peters", 1.571, 0b1111, "cylindrical", "equal-area", "somewhat controversial") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			return new double[] {lon, Math.sin(lat)*Math.PI/1.571};
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			return new double[] { Math.asin(y), x*Math.PI };
 		}
 	},
 	
-	HOBODYER("Hobo-Dyer", 1.977, 0b1111, "cylindrical", "equal-area", null, "with least distortion at 37.5°") {
-		public double[] project(double lat, double lon) {
+	HOBO_DYER("Hobo-Dyer", 1.977, 0b1111, "cylindrical", "equal-area", "with least distortion at 37.5°") {
+		public double[] project(double lat, double lon, double[] params) {
 			return new double[] {lon, Math.sin(lat)*Math.PI/1.977};
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			return new double[] { Math.asin(y), x*Math.PI };
 		}
 	},
 	
-	BEHRMANN("Behrmann", 2.356, 0b1111, "cylindrical", "equal-area", null, "with least distortion at 30.5°") {
-		public double[] project(double lat, double lon) {
+	BEHRMANN("Behrmann", 2.356, 0b1111, null, "cylindrical", "equal-area", "with least distortion at 30°") {
+		public double[] project(double lat, double lon, double[] params) {
 			return new double[] {lon, Math.sin(lat)*Math.PI/2.356};
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			return new double[] { Math.asin(y), x*Math.PI };
 		}
 	},
 	
 	LAMBERT_CYLIND("Lambert cylindrical", Math.PI, 0b1111, "cylindrical", "equal-area",
 			null, "with least distortion along the equator") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			return new double[] {lon, Math.sin(lat)};
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			return new double[] { Math.asin(y), x*Math.PI };
 		}
 	},
 	
+	EA_CYLIND("Equal-area cylindrical", "A generalized equal-area cylindrical projection",
+			Math.PI, 0b1111, "cylindrical", "equal-area",
+			new String[]{"Std. parallel"}, new double[][]{{0, 90, 37.5}}) {
+		public double[] project(double lat, double lon, double[] params) {
+			return new double[] {lon, Math.sin(lat)/params[0]};
+		}
+		public double[] inverse(double x, double y, double[] params) {
+			return new double[] { Math.asin(y), x*Math.PI };
+		}
+		public double getAspectRatio(double[] params) {
+			return 1/Math.cos(params[0]);
+		}
+	},
+	
 	GALL("Gall Stereographic", 4/3., 0b1111, "cylindrical", "compromise") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			return new double[] {lon, Math.tan(lat/2)*(1+Math.sqrt(2))};
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			return new double[] { 2*Math.atan(y), x*Math.PI };
 		}
 	},
 	
 	STEREOGRAPHIC("Stereographic", 1., 0b0111, "azimuthal", "conformal", "mathematically important") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			final double r = 1.5/(Math.tan(lat/2 + Math.PI/4));
 			return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			return new double[] { Math.PI/2 - 2*Math.atan(2*Math.hypot(x, y)),
 					Math.atan2(y, x) + Math.PI/2 };
 		}
 	},
 	
 	POLAR("Polar", 1., 0b0111, "azimuthal", "equidistant") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			final double r = Math.PI/2 - lat;
 			return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			double phi = Math.PI/2 - Math.PI * Math.hypot(x, y);
 			if (phi > -Math.PI/2)
 				return new double[] {phi, Math.atan2(y, x) + Math.PI/2};
@@ -135,11 +157,11 @@ public enum Projection {
 	},
 	
 	E_A_AZIMUTH("Azimuthalal Equal-Area", 1., 0b0111, "azimuthal", "equal-area") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			final double r = Math.PI*Math.cos((Math.PI/2+lat)/2);
 			return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			double R = Math.hypot(x, y);
 			if (R <= 1)
 				return new double[] {Math.asin(1-2*R*R), Math.atan2(y,x)+Math.PI/2};
@@ -150,12 +172,12 @@ public enum Projection {
 	
 	ORTHOGRAPHIC("Orthographic", "A projection that mimics the Earth viewed from a great distance",
 			1., 0b1110, "azimuthal", "orthographic") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			if (lat < 0)	lat = 0;
 			final double r = Math.PI*Math.cos(lat);
 			return new double[] { r*Math.sin(lon), -r*Math.cos(lon) };
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			double R = Math.hypot(x, y);
 			if (R <= 1)
 				return new double[] { Math.acos(R), Math.atan2(y, x) + Math.PI/2 };
@@ -166,62 +188,71 @@ public enum Projection {
 	
 	GNOMONIC("Gnomonic", "A projection that draws all great circles as straight lines",
 			1., 0b0110, "azimuthal", "gnomonic") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			if (lat <= 0)	lat = 1e-5;
 			final double r = Math.tan(Math.PI/2 - lat);
 			return new double[] { r*Math.sin(lon), -r*Math.cos(lon)};
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			return new double[] { Math.PI/2 - Math.atan(2*Math.hypot(x, y)),
 					Math.atan2(y, x) + Math.PI/2 };
 		}
 	},
 	
-	LAMBERT_CONIC("Conformal Conic", 2., 0b0111, "conic", "conformal") {
-		public double[] project(double lat, double lon) {
+	LAMBERT_CONIC("Conformal Conic", 0b0111, "conformal") {
+		public double[] project(double lat, double lon, double[] params) {
 			final double r = 3*Math.sqrt(Math.tan(Math.PI/4-lat/2));
 			return new double[] { r*Math.sin(lon/2), Math.PI-r*Math.cos(lon/2) };
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			y = (y-1)/2;
 			return new double[] {
 					Math.PI/2 - 2*Math.atan(Math.pow(1.5*Math.hypot(x, y), 2)),
 					2*(Math.atan2(y, x) + Math.PI/2)};
 		}
+		public double getAspectRatio(double[] params) {
+			return 2; //TODO: implement this
+		}
 	},
 	
-	E_D_CONIC("Equidistant Conic", 2., 0b1111, "conic", "equidistant") {
-		public double[] project(double lat, double lon) {
+	E_D_CONIC("Equidistant Conic", 0b1111, "equidistant") {
+		public double[] project(double lat, double lon, double[] params) {
 			final double r = 3*Math.PI/5 - 4/5.*lat;
 			final double tht = lon/2 - Math.PI/2;
 			return new double[] { r*Math.cos(tht), r*Math.sin(tht) + Math.PI/2 };
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			y = (y-1)/2;
 			final double r = Math.hypot(x, y);
 			if (r < 0.2 || r > 1)	return null;
 			return new double[] {
 					3*Math.PI/4 - 5*Math.PI/4*r, 2*Math.atan2(y, x)+Math.PI };
 		}
+		public double getAspectRatio(double[] params) {
+			return 2; //TODO: implement this
+		}
 	},
 	
-	ALBERS("Albers", 2., 0b1111, "conic", "equal-area") {
-		public double[] project(double lat, double lon) {
+	ALBERS("Albers", 0b1111, "equal-area") {
+		public double[] project(double lat, double lon, double[] params) {
 			final double r = 2*Math.sqrt(1.2 - Math.sin(lat));
 			final double tht = lon/2 - Math.PI/2;
 			return new double[] { r*Math.cos(tht), r*Math.sin(tht) + Math.PI/2 };
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			y = (y-1)/2;
 			final double r = Math.hypot(x, y);
 			if (r < Math.sqrt(1/11.) || r > 1)	return null;
 			return new double[] {
-					Math.asin(1.2-2.2*Math.pow(r, 2)), 2*Math.atan2(y, x) };
+					Math.asin(1.2-2.2*Math.pow(r, 2)), 2*Math.atan2(y, x)+Math.PI };
+		}
+		public double getAspectRatio(double[] params) {
+			return 2; //TODO: implement this
 		}
 	},
 	
 	LEE("Lee", Math.sqrt(3), 0b1001, "tetrahedral", "conformal", null, "that really deserves more attention") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			return tetrahedralProjectionForward(lat, lon, (coordR) -> {
 				final mfc.field.Complex z = mfc.field.Complex.fromPolar(
 						Math.pow(2, 5/6.)*Math.tan(Math.PI/4-coordR[0]/2), coordR[1]);
@@ -229,7 +260,7 @@ public enum Projection {
 				return new double[] { w.abs()*1.186, w.arg() };
 			});
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			final double[] doubles = tetrahedralProjectionInverse(x,y);
 			final double[] faceCenter = { doubles[0], doubles[1], doubles[2] };
 			final double tht = doubles[3], xp = doubles[4], yp = doubles[5];
@@ -248,10 +279,10 @@ public enum Projection {
 	
 	AUTHAGRAPH("AuthaGraph", "A hip new Japanese map that is almost authagraphic (this is an approximation; they won't give me their actual equations)",
 			4/Math.sqrt(3), 0b1001, "tetrahedral", "compromise") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			return null;
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			final double[] faceCenter = new double[3];
 			final double rot, localX, localY;
 			if (y-1 < 4*x && y-1 < -4*x) {
@@ -305,24 +336,24 @@ public enum Projection {
 	
 	SINUSOIDAL("Sinusoidal", "An equal-area map shaped like a sine-wave",
 			2., 0b1111, "pseudocylindrical", "equal-area") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			return new double[] { Math.cos(lat)*lon, lat };
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			return new double[] { y*Math.PI/2, x*Math.PI/Math.cos(y*Math.PI/2) };
 		}
 	},
 	
 	MOLLWEIDE("Mollweide", "An equal-area projection shaped like an ellipse",
 			2., 0b1101, "pseudocylindrical", "equal-area") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			double tht = lat;
 			for (int i = 0; i < 10; i ++)
 				tht -= (2*tht+Math.sin(2*tht)-Math.PI*Math.sin(lat))/
 						(2+2*Math.cos(2*tht));
 			return new double[] { lon*Math.cos(tht), Math.PI/2*Math.sin(tht) };
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			double tht = Math.asin(y);
 			return new double[] {
 					Math.asin((2*tht + Math.sin(2*tht)) / Math.PI),
@@ -332,28 +363,28 @@ public enum Projection {
 	
 	AITOFF("Aitoff", "A compromise projection shaped like an ellipse",
 			2., 0b1011, "pseudoazimuthal", "equal-area") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			final double a = Math.acos(Math.cos(lat)*Math.cos(lon/2));
 			return new double[] {
 					2*Math.cos(lat)*Math.sin(lon/2)*a/Math.sin(a),
 					Math.sin(lat)*a/Math.sin(a)};
 		}
-		public double[] inverse(double x, double y) {
-			final double[] intermediate = POLAR.inverse(x/2, y/2);
+		public double[] inverse(double x, double y, double[] params) {
+			final double[] intermediate = POLAR.inverse(x/2, y/2, params);
 			double[] transverse = obliquifyPlnr(intermediate, new double[] {0,0,0});
-			if (transverse != null)	transverse[1] *= 2;
+			if (transverse != null) 	transverse[1] *= 2;
 			return transverse;
 		}
 	},
 	
 	HAMMER("Hammer", "An equal-area projection shaped like an ellipse",
 			2., 0b1111, "pseudoazimuthal", "equal-area") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			return new double[] {
 					Math.PI*Math.cos(lat)*Math.sin(lon/2)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2)),
 					Math.PI/2*Math.sin(lat)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2)) };
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			final double X = x * Math.sqrt(8);
 			final double Y = y * Math.sqrt(2);
 			final double z = Math.sqrt(1 - Math.pow(X/4, 2) - Math.pow(Y/2, 2));
@@ -364,12 +395,12 @@ public enum Projection {
 	
 	TOBLER("Tobler", "An equal-area projection shaped like a 2.5th-order hyperellipse",
 			2., 0b1001, "pseudocylindrical", "equal-area") {
-				public double[] project(double lat, double lon) {
+				public double[] project(double lat, double lon, double[] params) {
 					return new double[] {
 							lon*Tobler.xfacFromLat(lat)*18,
 							Tobler.yFromLat(lat)*Math.PI/10 };
 				}
-				public double[] inverse(double x, double y) {
+				public double[] inverse(double x, double y, double[] params) {
 					return new double[] {
 							Tobler.latFromY(5*y),
 							x/Tobler.xfacFromY(5*y)*Math.PI/18 };
@@ -378,7 +409,7 @@ public enum Projection {
 	
 	VAN_DER_GRINTEN("Van der Grinten", "A circular compromise map that is popular for some reason",
 			1., 0b1111, "other", "compromise") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			final double t = Math.asin(Math.abs(2*lat/Math.PI));
 			if (lat == 0) // special case 1: equator
 				return new double[] {lon, 0};
@@ -392,7 +423,7 @@ public enum Projection {
 					Math.PI*Math.signum(lon)*(A*(G-P*P)+Math.sqrt(A*A*(G-P*P)*(G-P*P)-(P*P+A*A)*(G*G-P*P)))/(P*P+A*A),
 					Math.PI*Math.signum(lat)*(P*Q-A*Math.sqrt((A*A+1)*(P*P+A*A)-Q*Q))/(P*P+A*A)};
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			if (y == 0) // special case 1: equator
 				return new double[] {0, x*Math.PI};
 			if (x == 0) // special case 3: meridian
@@ -414,11 +445,11 @@ public enum Projection {
 	
 	ROBINSON("Robinson", "A visually pleasing piecewise compromise map",
 			1.9716, 0b1111, "pseudocylindrical", "compromise") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			return new double[] { Robinson.plenFromLat(lat)*lon,
 								Robinson.pdfeFromLat(lat)*Math.PI/2};
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			return new double[] { Robinson.latFromPdfe(y),
 								x/Robinson.plenFromPdfe(y)*Math.PI };
 		}
@@ -426,11 +457,11 @@ public enum Projection {
 	
 	WINKEL_TRIPEL("Winkel Tripel", "National Geographic's compromise projection of choice",
 			Math.PI/2, 0b1011, "other", "compromise") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			return new double[] { WinkelTripel.f1pX(lat,lon)/(.5+1/Math.PI),
 					WinkelTripel.f2pY(lat,lon)/(.5+1/Math.PI) };
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			return NumericalAnalysis.newtonRaphsonApproximation(
 					x*(1 + Math.PI/2), y*Math.PI/2,
 					WinkelTripel::f1pX, WinkelTripel::f2pY, WinkelTripel::df1dphi,
@@ -440,7 +471,7 @@ public enum Projection {
 	
 	PEIRCE_QUINCUNCIAL("Peirce Quincuncial", "A conformal projection that uses complex elliptic functions",
 			1., 0b1001, "other", "conformal") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			final double alat = Math.abs(lat);
 			final double wMag = Math.tan(Math.PI/4-alat/2);
 			final Complex w = new Complex(wMag*Math.sin(lon), -wMag*Math.cos(lon));
@@ -461,7 +492,7 @@ public enum Projection {
 			}
 			return new double[] {z.getReal(), z.getImaginary()};
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			mfc.field.Complex u = new mfc.field.Complex(1.854*(x+1), 1.854*y); // 1.854 is approx K(sqrt(1/2)
 			mfc.field.Complex k = new mfc.field.Complex(Math.sqrt(0.5)); // the rest comes from some fancy complex calculus
 			mfc.field.Complex ans = Jacobi.cn(u, k);
@@ -473,32 +504,35 @@ public enum Projection {
 	},
 	
 	GUYOU("Guyou", "Peirce Quincuncial, rearranged a bit", 2., 0b1001, "other", "conformal") {
-		public double[] project(double lat, double lon) {
-			final double alat = Math.abs(lat);
+		private final double[] POLE = {0, -Math.PI/2, Math.PI/4};
+		
+		public double[] project(double lat, double lon, double[] params) {
+			final double[] coords = obliquifySphc(lat,lon, POLE);
+			final double alat = Math.abs(coords[0]);
 			final double wMag = Math.tan(Math.PI/4-alat/2);
-			final Complex w = new Complex(wMag*Math.sin(lon), -wMag*Math.cos(lon));
+			final Complex w = new Complex(wMag*Math.sin(coords[1]), -wMag*Math.cos(coords[1]));
 			final Complex k = new Complex(Math.sqrt(0.5));
 			Complex z = Elliptic.F(w.acos(),k).multiply(new Complex(Math.PI/3.708,Math.PI/3.708)).subtract(new Complex(0,Math.PI/2));
-			if (z.isInfinite() || z.isNaN())	z = new Complex(0);
-			if (lat < 0)	z = z.conjugate().negate();
+			if (z.isInfinite() || z.isNaN()) 	z = new Complex(0);
+			if (coords[0] < 0) 	z = z.conjugate().negate();
 			return new double[] {z.getReal(), z.getImaginary()};
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			mfc.field.Complex u = new mfc.field.Complex(1.8558*(x - y/2 - 0.5), 1.8558*(x + y/2 + 0.5)); // don't ask me where 3.7116 comes from
 			mfc.field.Complex k = new mfc.field.Complex(Math.sqrt(0.5)); // the rest comes from some fancy complex calculus
 			mfc.field.Complex ans = Jacobi.cn(u, k);
 			double p = 2 * Math.atan(ans.abs());
 			double theta = ans.arg();
 			double lambda = Math.PI/2 - p;
-			return new double[] {lambda, theta};
+			return obliquifyPlnr(new double[] {lambda,theta}, POLE);
 		}
 	},
 	
 	LEMONS("Lemons", "BURN LIFE'S HOUSE DOWN!!!", 2., 0b1110, "pseudocylindrical", "?") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			return null;
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			x = x+2;
 			final double lemWdt = 1/6.0;
 			if (Math.abs(x % lemWdt - lemWdt / 2.0) <= Math.cos(y*Math.PI/2) * lemWdt/2.0) // if it is in
@@ -512,13 +546,13 @@ public enum Projection {
 	
 	MAGNIFIER("Magnifier", "A novelty map projection that blows up the center way out of proportion",
 			1., 0b1011, "azimuthal", "pointless") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			final double p = 1/2.0+lat/Math.PI;
 			final double fp = 1 - 0.1*p - 0.9*Math.pow(p,7);
 			final double r = Math.PI*fp;
 			return new double[] { r*Math.sin(lon), -r*Math.cos(lon) };
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			double R = Math.hypot(x, y);
 			if (R <= 1)
 				return new double[] {
@@ -531,14 +565,14 @@ public enum Projection {
 	
 	EXPERIMENT("Experiment", "What happens when you apply a complex differentiable function to a stereographic projection?",
 			1., 0b0000, "?", "conformal") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			final double wMag = Math.tan(Math.PI/4-lat/2);
 			final Complex w = new Complex(wMag*Math.sin(lon), -wMag*Math.cos(lon));
 			Complex z = w.asin();
 			if (z.isInfinite() || z.isNaN())	z = new Complex(0);
 			return new double[] { z.getReal(), z.getImaginary() };
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			Complex z = new Complex(x*3, y*3);
 			Complex ans = z.sin();
 			double p = 2 * Math.atan(ans.abs());
@@ -549,7 +583,7 @@ public enum Projection {
 	},
 	
 	TETRAGRAPH("TetraGraph", Math.sqrt(3), 0b1111, "tetrahedral", "equidistant", null, "that I invented") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			return tetrahedralProjectionForward(lat, lon, (coordR) -> {
 				final double tht = coordR[1] - Math.floor(coordR[1]/(2*Math.PI/3))*(2*Math.PI/3) - Math.PI/3;
 				return new double[] {
@@ -558,7 +592,7 @@ public enum Projection {
 				};
 			});
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			final double[] doubles = tetrahedralProjectionInverse(x,y);
 			final double[] faceCenter = { doubles[0], doubles[1], doubles[2] };
 			final double tht = doubles[3], xp = doubles[4], yp = doubles[5];
@@ -574,7 +608,7 @@ public enum Projection {
 	
 	HYPERELLIPOWER("Hyperellipower", "A parametric projection that I'm still testing",
 			2., 0b1111, "pseudocylindrical", "compromise") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			final double k = 3.7308;
 			final double n = 1.2027;
 			final double a = 1.1443;
@@ -582,14 +616,14 @@ public enum Projection {
 					Math.pow(1 - Math.pow(Math.abs(lat/(Math.PI/2)), k),1/k)*lon,
 					(1-Math.pow(1-Math.abs(lat/(Math.PI/2)), n))/Math.sqrt(n)*Math.signum(lat)*Math.PI/2*a};
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			return null;
 		}
 	},
 	
 	TETRAPOWER("Tetrapower", "A parametric projection that I'm still testing",
 			Math.sqrt(3), 0b1111, "tetrahedral", "compromise") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			final double k1 = 1.4586;
 			final double k2 = 1.2891;
 			final double k3 = 1.9583;
@@ -606,14 +640,14 @@ public enum Projection {
 						thtP + t0 };
 			});
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			return null;
 		}
 	},
 	
 	TETRAFILLET("Tetrafillet", "A parametric projection that I'm still testing",
 			2., 0b1111, "other", "compromise") {
-		public double[] project(double lat, double lon) {
+		public double[] project(double lat, double lon, double[] params) {
 			final double k1 = 1.1598;
 			final double k2 = .36295;
 			final double k3 = 1.9553;
@@ -630,7 +664,7 @@ public enum Projection {
 				};
 			});
 		}
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y, double[] params) {
 			return null;
 		}
 	};
@@ -639,8 +673,10 @@ public enum Projection {
 	
 	private String name;
 	private String description;
+	private String[] paramNames;
+	private double[][] paramValues;
 	
-	private double aspectRatio; //W/H for the map
+	private double aspectRatio; //default W/H for the map
 	private boolean finite; //is it completely bounded?
 	private boolean invertable; //is the inverse solution closed-form?
 	private boolean solveable; //is the solution closed-form?
@@ -650,22 +686,34 @@ public enum Projection {
 	
 	
 	
+	private Projection(String name, int fisc, String property) { //this one is just for conic maps, because they're so similar
+		this(name, buildDescription("conic",property,null,null), 0., fisc, "conic", property,
+				new String[] {"Std. Parallel 1", "Std. Parallel 2"},
+				new double[][] {{-90,90,15}, {-90,90,45}});
+	}
+	
 	private Projection(String name, double aspectRatio, int fisc, String type, String property) {
-		this(name, buildDescription(type,property,null,null), aspectRatio, fisc, type, property);
+		this(name, buildDescription(type,property,null,null), aspectRatio, fisc, type, property, new String[0], new double[0][]);
 	}
 	
 	private Projection(String name, double aspectRatio, int fisc, String type, String property, String adjective) {
-		this(name, buildDescription(type,property,adjective,null), aspectRatio, fisc, type, property);
+		this(name, buildDescription(type,property,adjective,null), aspectRatio, fisc, type, property, new String[0], new double[0][]);
 	}
 	
 	private Projection(String name, double aspectRatio, int fisc, String type, String property, String adjective, String addendum) {
-		this(name, buildDescription(type,property,adjective,addendum), aspectRatio, fisc, type, property);
+		this(name, buildDescription(type,property,adjective,addendum), aspectRatio, fisc, type, property, new String[0], new double[0][]);
+	}
+	
+	private Projection(String name, String description, double aspectRatio, int fisc, String type, String property) {
+		this(name, description, aspectRatio, fisc, type, property, new String[0], new double[0][]);
 	}
 	
 	private Projection(String name, String description, double aspectRatio,
-			int fisc, String type, String property) {
+			int fisc, String type, String property, String[] paramNames, double[][] paramValues) {
 		this.name = name;
 		this.description = description;
+		this.paramNames = paramNames;
+		this.paramValues = paramValues;
 		this.aspectRatio = aspectRatio;
 		this.finite = (fisc&0b1000) > 0;
 		this.invertable = (fisc&0b0100) > 0;
@@ -690,74 +738,118 @@ public enum Projection {
 	
 	
 	
-	public abstract double[] project(double lat, double lon);
+	public abstract double[] project(double lat, double lon, double[] params);
 	
-	public abstract double[] inverse(double x, double y);
+	public abstract double[] inverse(double x, double y, double[] params);
 	
 	
-	public double[] project(double[] coords) {
-		return project(coords[0], coords[1]);
+	public double[] project(double[] coords, double[] params) {
+		return project(coords[0], coords[1], params);
 	}
 	
-	public double[] project(double lat, double lon, double[] pole) {
-		return project(obliquifySphc(new double[] {lat,lon}, pole));
-	}
-	
-	
-	public double[] inverse(double[] coords) {
-		return inverse(coords[0], coords[1]);
-	}
-	
-	public double[] inverse(double x, double y, double[] pole) {
-		return obliquifyPlnr(inverse(x, y), pole);
+	public double[] project(double lat, double lon, double[] params, double[] pole) {
+		return project(obliquifySphc(lat, lon, pole), params);
 	}
 	
 	
-	@Override
-	public String toString() {
-		return this.getName();
+	public double[] inverse(double[] coords, double[] params) {
+		return inverse(coords[0], coords[1], params);
+	}
+	
+	public double[] inverse(double x, double y, double[] params, double[] pole) {
+		return obliquifyPlnr(inverse(x, y, params), pole);
 	}
 	
 	
-	public String getName() {
-		return this.name;
-	}
-	
-	public String getDescription() {
-		return this.description;
-	}
-	
-	public double getAspectRatio() {
-		return this.aspectRatio;
-	}
-	
-	public boolean isFinite() {
-		return this.finite;
-	}
-	
-	public boolean isInvertable() {
-		return this.invertable;
-	}
-	
-	public boolean isSolveable() {
-		return this.solveable;
-	}
-	
-	public boolean isContinuous() {
-		return this.continuous;
-	}
-	
-	public String getType() {
-		return this.type;
-	}
-	
-	public String getProperty() {
-		return this.property;
+	public double[][][] map(int size, double[] params) { //generate a matrix of coordinates based on a map projection
+		final int w = size, h = (int)(size/this.getAspectRatio(params));
+		double[][][] output = new double[h][w][2]; //the coordinate matrix
+		
+		for (int y = 0; y < output.length; y ++)
+			for (int x = 0; x < output[y].length; x ++)
+				output[y][x] = inverse(2*(x+.5)/w - 1, 1 - 2*(y+.5)/h, params); //s0 is this point on the sphere
+		
+		return output;
 	}
 	
 	
+	public static double[][][] globe(double dt) { //generate a matrix of coordinates based on the sphere
+		List<double[]> points = new ArrayList<double[]>();
+		for (double phi = -Math.PI/2+dt/2; phi < Math.PI/2; phi += dt) { // make sure phi is never exactly +-tau/4
+			for (double lam = -Math.PI; lam < Math.PI; lam += dt/Math.cos(phi)) {
+				points.add(new double[] {phi, lam});
+			}
+		}
+		return new double[][][] {points.toArray(new double[0][])};
+	}
 	
-	public static double[] tetrahedralProjectionForward(double lat, double lon, UnaryOperator<double[]> func) { //a helper function for projections like tetragraph and lee
+	
+	public double[] avgDistortion(double[][][] points, double[] params) {
+		final double[][][] distDist = calculateDistortion(points, params);
+		return new double[] { Math2.stdDev(distDist[0]), Math2.mean(distDist[1]) };
+	}
+	
+	
+	public double[][][] calculateDistortion(double[][][] points, double[] params) {
+		return calculateDistortion(points, params, null);
+	}
+	
+	public double[][][] calculateDistortion(double[][][] points,
+			double[] params, ProgressBarDialog pBar) { //calculate both kinds of distortion over the given region
+		double[][][] output = new double[2][points.length][points[0].length]; //the distortion matrix
+		
+		for (int y = 0; y < points.length; y ++) {
+			for (int x = 0; x < points[y].length; x ++) {
+				if (points[y][x] != null) {
+					final double[] dists = getDistortionAt(points[y][x], params);
+					output[0][y][x] = dists[0]; //the output matrix has two layers:
+					output[1][y][x] = dists[1]; //area and angular distortion
+				}
+				else {
+					output[0][y][x] = Double.NaN;
+					output[1][y][x] = Double.NaN; //NaN means no map here
+				}
+			}
+			if (pBar != null)
+				pBar.setProgress((double)(y+1)/points.length);
+		}
+		
+		final double avgArea = Math2.mean(output[0]); //don't forget to normalize output[0] so the average is zero
+		for (int y = 0; y < output[0].length; y ++)
+			for (int x = 0; x < output[0][y].length; x ++)
+				output[0][y][x] -= avgArea;
+		
+		return output;
+	}
+	
+	
+	public double[] getDistortionAt(double[] s0, double[] params) { //calculate both kinds of distortion at the given point
+		final double[] output = new double[2];
+		final double dx = 1e-6;
+		
+		final double[] s1 = { s0[0], s0[1]+dx/Math.cos(s0[0]) }; //consider a point slightly to the east
+		final double[] s2 = { s0[0]+dx, s0[1] }; //and slightly to the north
+		final double[] p0 = project(s0, params);
+		final double[] p1 = project(s1, params);
+		final double[] p2 = project(s2, params);
+		
+		final double dA = 
+				(p1[0]-p0[0])*(p2[1]-p0[1]) - (p1[1]-p0[1])*(p2[0]-p0[0]);
+		output[0] = Math.log(Math.abs(dA/(dx*dx))); //the zeroth output is the size (area) distortion
+		if (Math.abs(output[0]) > 25)
+			output[0] = Double.NaN; //discard outliers
+		
+		final double s1ps2 = Math.hypot((p1[0]-p0[0])+(p2[1]-p0[1]), (p1[1]-p0[1])-(p2[0]-p0[0]));
+		final double s1ms2 = Math.hypot((p1[0]-p0[0])-(p2[1]-p0[1]), (p1[1]-p0[1])+(p2[0]-p0[0]));
+		final double factor = Math.abs((s1ps2-s1ms2)/(s1ps2+s1ms2)); //there's some linear algebra behind this formula. Don't worry about it.
+		
+		output[1] = (1-factor)/Math.sqrt(factor);
+		
+		return output;
+	}
+	
+	
+	private static double[] tetrahedralProjectionForward(double lat, double lon, UnaryOperator<double[]> func) { //a helper function for projections like tetragraph and lee
 		final double[][] centrums = {{-Math.PI/2, 0, Math.PI/3},
 				{Math.asin(1/3.0), Math.PI, Math.PI/3},
 				{Math.asin(1/3.0), Math.PI/3, Math.PI/3},
@@ -766,7 +858,7 @@ public enum Projection {
 		double lonR = Double.NaN;
 		byte poleIdx = -1;
 		for (byte i = 0; i < 4; i++) {
-			final double[] relCoords = obliquifySphc(new double[] { lat, lon }, centrums[i]);
+			final double[] relCoords = obliquifySphc(lat, lon, centrums[i]);
 			if (Double.isNaN(latR) || relCoords[0] > latR) {
 				latR = relCoords[0]; // pick the centrum that maxes out your latitude
 				lonR = relCoords[1];
@@ -803,7 +895,7 @@ public enum Projection {
 	}
 	
 	
-	public static double[] tetrahedralProjectionInverse(double x, double y) { // a function to help with tetrahedral projections
+	private static double[] tetrahedralProjectionInverse(double x, double y) { // a function to help with tetrahedral projections
 		if (y < x-1) {
 			return new double[] {
 					-Math.PI/2, 0, 0,
@@ -836,12 +928,10 @@ public enum Projection {
 	}
 	
 	
-	public static final double[] obliquifySphc(double[] coords, double[] pole) { // go from polar coordinates to relative
+	private static final double[] obliquifySphc(double latF, double lonF, double[] pole) { // go from polar coordinates to relative
 		final double lat0 = pole[0];
 		final double lon0 = pole[1];
 		final double tht0 = pole[2];
-		double latF = coords[0];
-		double lonF = coords[1];
 		Vector r0 = new Vector (1, lat0, lon0);
 		Vector rF = new Vector (1, latF, lonF);
 		Vector r0XrF = r0.cross(rF);
@@ -867,14 +957,14 @@ public enum Projection {
 	}
 	
 	
-	public static final double[] obliquifyPlnr(double[] coords, double[] pole) { //go from relative coordinates to polar
-		if (coords == null)	return null;
+	private static final double[] obliquifyPlnr(double[] coords, double[] pole) { //go from relative coordinates to polar
+		if (coords == null) 	return null;
 		
+		double lat1 = coords[0];
+		double lon1 = coords[1];
 		final double lat0 = pole[0];
 		final double lon0 = pole[1];
 		final double tht0 = pole[2];
-		double lat1 = coords[0];
-		double lon1 = coords[1];
 		lon1 += tht0;
 		double latf = Math.asin(Math.sin(lat0)*Math.sin(lat1) - Math.cos(lat0)*Math.cos(lon1)*Math.cos(lat1));
 		double lonf;
@@ -897,116 +987,72 @@ public enum Projection {
 					Math.acos(innerFunc);
 		
 		double thtf = 0;
-		if (pole.length >= 3)
-			thtf += pole[2];
+		thtf += pole[2];
 		
 		double[] output = {latf, lonf, thtf};
 		return output;
 	}
 	
 	
-	public double[][][] map(int size) {
-		return map(size, this);
-	}
-	
-	public static double[][][] map(int size, Projection proj) { //generate a matrix of coordinates based on a map projection
-		final int w = size, h = (int)(size/proj.getAspectRatio());
-		double[][][] output = new double[h][w][2]; //the coordinate matrix
-		
-		for (int y = 0; y < output.length; y ++)
-			for (int x = 0; x < output[y].length; x ++)
-				output[y][x] = proj.inverse(2.*(x+.5)/w - 1, 1 - 2.*(y+.5)/h); //s0 is this point on the sphere
-		
-		return output;
+	@Override
+	public String toString() {
+		return this.getName();
 	}
 	
 	
-	public static double[][][] globe(double dt) { //generate a matrix of coordinates based on the sphere
-		List<double[]> points = new ArrayList<double[]>();
-		for (double phi = -Math.PI/2+dt/2; phi < Math.PI/2; phi += dt) { // make sure phi is never exactly +-tau/4
-			for (double lam = -Math.PI; lam < Math.PI; lam += dt/Math.cos(phi)) {
-				points.add(new double[] {phi, lam});
-			}
-		}
-		return new double[][][] {points.toArray(new double[0][])};
+	public String getName() {
+		return this.name;
 	}
 	
-	
-	public double[] avgDistortion(double[][][] points) {
-		return avgDistortion(this::project, points);
+	public String getDescription() {
+		return this.description;
 	}
 	
-	public static double[] avgDistortion(
-			UnaryOperator<double[]> xform, double[][][] points) {
-		final double[][][] distDist = calculateDistortion(points, xform);
-		return new double[] { Math2.stdDev(distDist[0]), Math2.mean(distDist[1]) };
+	public boolean isParametrized() {
+		return this.paramNames.length > 0;
 	}
 	
-	
-	public double[][][] calculateDistortion(double[][][] points) {
-		return calculateDistortion(points, this::project);
+	public int getNumParameters() {
+		return this.paramNames.length;
 	}
 	
-	public static double[][][] calculateDistortion(double[][][] points, UnaryOperator<double[]> p) {
-		return calculateDistortion(points, p, null);
+	public String[] getParameterNames() {
+		return this.paramNames;
 	}
 	
-	public double[][][] calculateDistortion(double[][][] points, ProgressBarDialog pBar) {
-		return calculateDistortion(points, this::project, pBar);
+	public double[] getDefaultParameters() {
+		final double[] params = new double[this.getNumParameters()];
+		for (int i = 0; i < this.getNumParameters(); i ++)
+			params[i] = this.paramValues[i][2];
+		return params;
 	}
 	
-	public static double[][][] calculateDistortion(double[][][] points, UnaryOperator<double[]> p,
-			ProgressBarDialog pBar) { //calculate both kinds of distortion over the given region
-		double[][][] output = new double[2][points.length][points[0].length]; //the distortion matrix
-		
-		for (int y = 0; y < points.length; y ++) {
-			for (int x = 0; x < points[y].length; x ++) {
-				if (points[y][x] != null) {
-					final double[] distortions = getDistortionAt(points[y][x], p);
-					output[0][y][x] = distortions[0]; //the output matrix has two layers:
-					output[1][y][x] = distortions[1]; //area and angular distortion
-				}
-				else {
-					output[0][y][x] = Double.NaN;
-					output[1][y][x] = Double.NaN; //NaN means no map here
-				}
-			}
-			if (pBar != null)
-				pBar.setProgress((double)(y+1)/points.length);
-		}
-		
-		final double avgArea = Math2.mean(output[0]); //don't forget to normalize output[0] so the average is zero
-		for (int y = 0; y < output[0].length; y ++)
-			for (int x = 0; x < output[0][y].length; x ++)
-				output[0][y][x] -= avgArea;
-		
-		return output;
+	public double getAspectRatio(double[] params) {
+		return this.aspectRatio;
 	}
 	
+	public boolean isFinite() {
+		return this.finite;
+	}
 	
-	public static double[] getDistortionAt(double[] s0, UnaryOperator<double[]> p) { //calculate both kinds of distortion at the given point
-		final double[] output = new double[2];
-		final double dx = 1e-6;
-		
-		final double[] s1 = { s0[0], s0[1]+dx/Math.cos(s0[0]) }; //consider a point slightly to the east
-		final double[] s2 = { s0[0]+dx, s0[1] }; //and slightly to the north
-		final double[] p0 = p.apply(s0);
-		final double[] p1 = p.apply(s1);
-		final double[] p2 = p.apply(s2);
-		
-		final double dA = 
-				(p1[0]-p0[0])*(p2[1]-p0[1]) - (p1[1]-p0[1])*(p2[0]-p0[0]);
-		output[0] = Math.log(Math.abs(dA/(dx*dx))); //the zeroth output is the size (area) distortion
-		if (Math.abs(output[0]) > 25)
-			output[0] = Double.NaN; //discard outliers
-		
-		final double s1ps2 = Math.hypot((p1[0]-p0[0])+(p2[1]-p0[1]), (p1[1]-p0[1])-(p2[0]-p0[0]));
-		final double s1ms2 = Math.hypot((p1[0]-p0[0])-(p2[1]-p0[1]), (p1[1]-p0[1])+(p2[0]-p0[0]));
-		final double factor = Math.abs((s1ps2-s1ms2)/(s1ps2+s1ms2)); //there's some linear algebra behind this formula. Don't worry about it.
-		
-		output[1] = (1-factor)/Math.sqrt(factor);
-		
-		return output;
+	public boolean isInvertable() {
+		return this.invertable;
+	}
+	
+	public boolean isSolveable() {
+		return this.solveable;
+	}
+	
+	public boolean isContinuous() {
+		return this.continuous;
+	}
+	
+	public String getType() {
+		return this.type;
+	}
+	
+	public String getProperty() {
+		return this.property;
 	}
 
 }

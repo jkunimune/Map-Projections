@@ -80,8 +80,8 @@ public class MapAnalyzer extends Application {
 	private static final KeyCombination ctrlS = new KeyCodeCombination(KeyCode.S, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.EQUIRECTANGULAR,
-			Projection.GALL_PETERS, Projection.HOBODYER, Projection.BEHRMANN, Projection.LAMBERT_CYLIND,
+	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.PLATE_CARREE,
+			Projection.GALL_PETERS, Projection.HOBO_DYER, Projection.BEHRMANN, Projection.LAMBERT_CYLIND,
 			Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
 			Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC,
 			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.SINUSOIDAL, Projection.MOLLWEIDE,
@@ -177,7 +177,7 @@ public class MapAnalyzer extends Application {
 		layout.getChildren().add(new Separator());
 		
 		avgSizeDistort = new Label("...");
-		avgShapeDistort = new Label("..."); //TODO: reorder?
+		avgShapeDistort = new Label("...");
 		lbl = new Label("Blue areas are dilated, red areas are compressed, and black areas are stretched.");
 		lbl.setWrapText(true);
 		
@@ -241,13 +241,14 @@ public class MapAnalyzer extends Application {
 					});
 					
 					final Projection proj = projectionChooser.getValue();
+					final double[] params = proj.getDefaultParameters(); //TODO: get real parameters
 					final double[][][] distortionM =
-							proj.calculateDistortion(proj.map(250));
+							proj.calculateDistortion(proj.map(250,params), params);
 					
 					output.setImage(makeGraphic(distortionM));
 					
 					final double[][][] distortionG =
-							proj.calculateDistortion(Projection.globe(0.02));
+							proj.calculateDistortion(Projection.globe(0.02), params);
 					
 					Platform.runLater(() -> {
 						sizeChart.getData().add(histogram(distortionG[0],
@@ -271,12 +272,13 @@ public class MapAnalyzer extends Application {
 	
 	private void startFinalizingMap() {
 		final Projection p = projectionChooser.getValue();
+		final double[] params = p.getDefaultParameters(); //TODO: get real parameters
 		
 		ProgressBarDialog pBar = new ProgressBarDialog();
 		pBar.show();
 		new Thread(() -> {
 			final double[][][] distortion = p.calculateDistortion(
-					p.map(1000), pBar);
+					p.map(1000,params), params, pBar);
 			Image graphic = makeGraphic(distortion);
 			Platform.runLater(() -> saveImage(graphic, pBar));
 		}).start();
