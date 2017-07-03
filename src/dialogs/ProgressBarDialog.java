@@ -56,9 +56,6 @@ public class ProgressBarDialog extends Dialog<Void> {
 		
 		this.box = new HBox(5);
 		
-		pane.contentTextProperty().addListener((arg0) -> {	// set it to refresh the gui when... the content texts?
-			this.resetBar();
-		});
 		this.setTitle("");	// set the words on it
 		pane.setHeaderText("Please wait.");
 		pane.getButtonTypes().addAll(new ButtonType[] { ButtonType.CLOSE });
@@ -83,9 +80,13 @@ public class ProgressBarDialog extends Dialog<Void> {
 	
 	
 	public void setProgress(double p) {
+		Platform.runLater(() -> {
+				if (p >= 0)
+					this.words.setText((Math.round(1000*p)/10.0)+"%");
+				else
+					this.words.setText("...");
+			});
 		this.bar.setProgress(p);
-		Platform.runLater(() ->
-				this.words.setText((Math.round(1000*p)/10.0)+"%"));
 	}
 
 }

@@ -393,8 +393,9 @@ public enum Projection {
 		}
 	},
 	
-	TOBLER("Tobler", "An equal-area projection shaped like a 2.5th-order hyperellipse",
-			2., 0b1001, "pseudocylindrical", "equal-area") {
+	TOBLER("Tobler", "An equal-area projection shaped like a hyperellipse",
+			2., 0b1001, "pseudocylindrical", "equal-area",new String[]{"alpha","gamma","k"},
+			new double[][] {{0,1,0}, {1,5,2.5}, {1,2,1.831}}) {
 				public double[] project(double lat, double lon, double[] params) {
 					return new double[] {
 							lon*Tobler.xfacFromLat(lat)*18,
@@ -402,7 +403,7 @@ public enum Projection {
 				}
 				public double[] inverse(double x, double y, double[] params) {
 					return new double[] {
-							Tobler.latFromY(5*y),
+							Tobler.latFromY(5*y), //TODO: make this be real
 							x/Tobler.xfacFromY(5*y)*Math.PI/18 };
 				}
 	},
@@ -456,16 +457,23 @@ public enum Projection {
 	},
 	
 	WINKEL_TRIPEL("Winkel Tripel", "National Geographic's compromise projection of choice",
-			Math.PI/2, 0b1011, "other", "compromise") {
+			0, 0b1011, "other", "compromise",
+			new String[] {"Std. Parallel"}, new double[][] {{0,90,50.4598}}) {
 		public double[] project(double lat, double lon, double[] params) {
-			return new double[] { WinkelTripel.f1pX(lat,lon)/(.5+1/Math.PI),
-					WinkelTripel.f2pY(lat,lon)/(.5+1/Math.PI) };
+			final double cosphi0 = Math.cos(Math.toRadians(params[0]));
+			return new double[] { WinkelTripel.f1pX(lat,lon,cosphi0)/(1+cosphi0),
+					WinkelTripel.f2pY(lat,lon,cosphi0)/(1+cosphi0) };
 		}
 		public double[] inverse(double x, double y, double[] params) {
+			final double cosphi0 = Math.cos(Math.toRadians(params[0]));
 			return NumericalAnalysis.newtonRaphsonApproximation(
-					x*(1 + Math.PI/2), y*Math.PI/2,
+					x*Math.PI*(1 + cosphi0), y*Math.PI,
 					WinkelTripel::f1pX, WinkelTripel::f2pY, WinkelTripel::df1dphi,
-					WinkelTripel::df1dlam, WinkelTripel::df2dphi, WinkelTripel::df2dlam, .0625);
+					WinkelTripel::df1dlam, WinkelTripel::df2dphi, WinkelTripel::df2dlam,
+					.05, cosphi0);
+		}
+		public double getAspectRatio(double[] params) {
+			return 1 + Math.cos(Math.toRadians(params[0]));
 		}
 	},
 	
@@ -607,11 +615,10 @@ public enum Projection {
 	},
 	
 	HYPERELLIPOWER("Hyperellipower", "A parametric projection that I'm still testing",
-			2., 0b1111, "pseudocylindrical", "compromise") {
+			2., 0b1111, "pseudocylindrical", "compromise", new String[] {"k","n","a"},
+			new double[][] {{1,5,3.7308},{.5,2.,1.2027},{.5,2.,1.1443}}) {
 		public double[] project(double lat, double lon, double[] params) {
-			final double k = 3.7308;
-			final double n = 1.2027;
-			final double a = 1.1443;
+			final double k = params[0], n = params[1], a = params[2];
 			return new double[] {
 					Math.pow(1 - Math.pow(Math.abs(lat/(Math.PI/2)), k),1/k)*lon,
 					(1-Math.pow(1-Math.abs(lat/(Math.PI/2)), n))/Math.sqrt(n)*Math.signum(lat)*Math.PI/2*a};
@@ -622,12 +629,10 @@ public enum Projection {
 	},
 	
 	TETRAPOWER("Tetrapower", "A parametric projection that I'm still testing",
-			Math.sqrt(3), 0b1111, "tetrahedral", "compromise") {
+			Math.sqrt(3), 0b1111, "tetrahedral", "compromise", new String[] {"k1","k2","k3"},
+			new double[][] {{.25,4.,1.4586},{.25,4.,1.2891},{.25,4.,1.9583}}) {
 		public double[] project(double lat, double lon, double[] params) {
-			final double k1 = 1.4586;
-			final double k2 = 1.2891;
-			final double k3 = 1.9583;
-			
+			final double k1 = params[0], k2 = params[1], k3 = params[2];
 			return tetrahedralProjectionForward(lat, lon, (coordR) -> {
 				final double t0 = Math.floor(coordR[1]/(2*Math.PI/3))*(2*Math.PI/3) + Math.PI/3;
 				final double tht = coordR[1] - t0;
@@ -646,11 +651,10 @@ public enum Projection {
 	},
 	
 	TETRAFILLET("Tetrafillet", "A parametric projection that I'm still testing",
-			2., 0b1111, "other", "compromise") {
+			2., 0b1111, "other", "compromise", new String[] {"k1","k2","k3"},
+			new double[][] {{.25,4.,1.1598},{.25,4.,.36295},{.25,4.,1.9553}}) {
 		public double[] project(double lat, double lon, double[] params) {
-			final double k1 = 1.1598;
-			final double k2 = .36295;
-			final double k3 = 1.9553;
+			final double k1 = params[0], k2 = params[1], k3 = params[2];
 			return tetrahedralProjectionForward(lat, lon, (coordR) -> {
 				final double t0 = Math.floor(coordR[1]/(2*Math.PI/3))*(2*Math.PI/3) + Math.PI/3;
 				final double tht = coordR[1] - t0;
@@ -1025,6 +1029,10 @@ public enum Projection {
 		for (int i = 0; i < this.getNumParameters(); i ++)
 			params[i] = this.paramValues[i][2];
 		return params;
+	}
+	
+	public double[][] getParameterValues() {
+		return this.paramValues;
 	}
 	
 	public double getAspectRatio(double[] params) {

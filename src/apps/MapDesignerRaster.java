@@ -64,8 +64,8 @@ public class MapDesignerRaster extends MapApplication {
 	
 	
 	private static final FileChooser.ExtensionFilter[] RASTER_TYPES = {
-			new FileChooser.ExtensionFilter("JPG", "*.jpg; *.jpeg; *.jpe; *.jfif"),
-			new FileChooser.ExtensionFilter("PNG", "*.png") };
+			new FileChooser.ExtensionFilter("PNG", "*.png"),
+			new FileChooser.ExtensionFilter("JPG", "*.jpg","*.jpeg","*.jpe","*.jfif") };
 	
 	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.PLATE_CARREE, Projection.HOBO_DYER,
 			Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
@@ -106,15 +106,17 @@ public class MapDesignerRaster extends MapApplication {
 		final Node inputSelector = buildInputSelector(RASTER_TYPES, this::setInput);
 		final Node projectionSelector = buildProjectionSelector(PROJ_ARR, Projection.MERCATOR, Procedure.NONE);
 		final Node aspectSelector = buildAspectSelector(this.aspect, Procedure.NONE);
+		final Node parameterSelector = buildParameterSelector(Procedure.NONE);
 		this.updateBtn = buildUpdateButton(this::updateMap);
 		this.saveMapBtn = buildSaveButton(true, "map", RASTER_TYPES,
-				this::collectFinalParameters, this::calculateAndSaveMap);
+				this::collectFinalSettings, this::calculateAndSaveMap);
 		final HBox buttons = new HBox(5, updateBtn, saveMapBtn);
 		buttons.setAlignment(Pos.CENTER);
 		
 		final VBox layout = new VBox(5,
 				inputSelector, new Separator(), projectionSelector,
-				new Separator(), aspectSelector, new Separator(), buttons);
+				new Separator(), aspectSelector, parameterSelector,
+				new Separator(), buttons);
 		layout.setAlignment(Pos.CENTER);
 		layout.setPrefWidth(CONT_WIDTH);
 		
@@ -155,21 +157,22 @@ public class MapDesignerRaster extends MapApplication {
 	}
 	
 	
-	protected void collectFinalParameters() {
-		final double ratio = getProjection().getAspectRatio(getProjection().getDefaultParameters()); //TODO: get real parameters
+	protected void collectFinalSettings() {
+		final double ratio = getProjection().getAspectRatio(this.getParams());
 		this.configDialog = new MapConfigurationDialog(ratio);
 		this.configDialog.showAndWait();
 	}
 	
 	
 	protected void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
-		pBar.setContentText("Finalizing map...");
 		Image theMap = map(
 				configDialog.getDims(), configDialog.getSmoothing(), pBar); //calculate
 		Platform.runLater(() -> pBar.setProgress(-1));
-		pBar.setContentText("Saving...");
+		final String filename = file.getName();
+		final String extension;
+		extension = filename.substring(filename.lastIndexOf('.')+1);
 		try {
-			ImageIO.write(SwingFXUtils.fromFXImage(theMap,null), "jpg", file); //save
+			ImageIO.write(SwingFXUtils.fromFXImage(theMap,null), extension, file); //save
 		} catch (IOException e) {
 			final Alert alert = new Alert(AlertType.ERROR);
 			alert.setHeaderText("Failure!");
@@ -180,7 +183,7 @@ public class MapDesignerRaster extends MapApplication {
 	
 	
 	public Image map() {
-		final double a = this.getProjection().getAspectRatio(getProjection().getDefaultParameters()); //TODO: get real parameters
+		final double a = this.getProjection().getAspectRatio(this.getParams());
 		return map(new int[] { IMG_WIDTH, (int)(IMG_WIDTH/a) }, 1);
 	}
 	
@@ -191,7 +194,7 @@ public class MapDesignerRaster extends MapApplication {
 	public Image map(int[] outDims, int smoothing,
 			ProgressBarDialog pbar) {
 		final Projection proj = this.getProjection();
-		final double[] params = proj.getDefaultParameters(); //TODO: get real parameters
+		final double[] params = this.getParams();
 		final PixelReader ref = input.getPixelReader();
 		final int[] refDims = {(int)input.getWidth(), (int)input.getHeight()};
 		

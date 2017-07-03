@@ -25,6 +25,7 @@ package dialogs;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -35,7 +36,7 @@ import javafx.scene.control.Spinner;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 
-public class MapConfigurationDialog extends Dialog<Void> {
+public class MapConfigurationDialog extends Dialog<Boolean> {
 
 	public final double DEF_SIZE = 1000;
 	
@@ -119,7 +120,12 @@ public class MapConfigurationDialog extends Dialog<Void> {
 		pane.getButtonTypes().addAll(new ButtonType[] { ButtonType.OK, ButtonType.CANCEL });	// add buttons
 		this.updateGUI();
 		
-		this.setResultConverter((btn) -> { return null; }); //this needn't return anything
+		this.setResultConverter((btn) -> {
+				if (btn != null && btn.getButtonData() == ButtonData.OK_DONE)
+					return true;
+				else
+					return false;
+			});
 		
 		realEdit = true;
 	}

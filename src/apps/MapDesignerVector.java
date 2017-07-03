@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import dialogs.ProgressBarDialog;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -107,13 +106,15 @@ public class MapDesignerVector extends MapApplication {
 		this.aspect = new double[3];
 		final Node inputSelector = buildInputSelector(VECTOR_TYPES, this::setInput);
 		final Node projectionSelector = buildProjectionSelector(PROJ_ARR, Projection.MERCATOR, this::updateMap);
-		final Node aspectSelector = buildAspectSelector(this.aspect, this::setAspect);
+		final Node aspectSelector = buildAspectSelector(this.aspect, this::updateMap);
+		final Node parameterSelector = buildParameterSelector(this::updateMap);
 		this.saveBtn = buildSaveButton(true, "map", VECTOR_TYPES,
 				Procedure.NONE, this::calculateAndSaveMap);
 		
 		final VBox layout = new VBox(5,
 				inputSelector, new Separator(), projectionSelector,
-				new Separator(), aspectSelector, new Separator(), saveBtn);
+				new Separator(), aspectSelector, parameterSelector,
+				new Separator(), saveBtn);
 		
 		layout.setAlignment(Pos.CENTER);
 		layout.setPrefWidth(CONT_WIDTH);
@@ -210,11 +211,6 @@ public class MapDesignerVector extends MapApplication {
 	}
 	
 	
-	private void setAspect() {
-		updateMap();
-	}
-	
-	
 	private void updateMap() {
 		drawImage(map(DEF_MAX_VTX, null), viewer);
 	}
@@ -237,11 +233,8 @@ public class MapDesignerVector extends MapApplication {
 	
 	
 	private void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
-		pBar.setContentText("Finalizing map...");
 		List<List<double[]>> map = map(0, pBar); //calculate
-		Platform.runLater(() -> pBar.setProgress(-1));
-		pBar.setContentText("Saving..."); //save
-		saveToSVG(map, file, pBar);
+		saveToSVG(map, file, pBar); //save
 	}
 	
 	
@@ -276,7 +269,7 @@ public class MapDesignerVector extends MapApplication {
 	private List<List<double[]>> map(int maxVtx,
 			ProgressBarDialog pbar) {
 		final Projection proj = this.getProjection();
-		final double[] params = proj.getDefaultParameters(); //TODO: get real parameters
+		final double[] params = this.getParams();
 		
 		int step = maxVtx==0 ? 1 : numVtx/maxVtx+1;
 		List<List<double[]>> output = new LinkedList<List<double[]>>();

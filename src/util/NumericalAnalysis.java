@@ -24,7 +24,6 @@
 package util;
 
 import java.util.Arrays;
-import java.util.function.BinaryOperator;
 
 /**
  * A whole class just for numeric approximation methods
@@ -45,23 +44,26 @@ public class NumericalAnalysis {
 	 * @param df2dp The partial derivative of y with respect to phi
 	 * @param df2dl The partial derivative of y with respect to lam
 	 * @param tolerance The maximum error that this can return
+	 * @param params Constant parameters for the functions
 	 * @return the values of phi and lam that put f1pX and f2pY near x0 and y0
 	 */
-	public static final double[] newtonRaphsonApproximation(double x0, double y0, BinaryOperator<Double> fxpX, BinaryOperator<Double> fypY, BinaryOperator<Double> dfxdp,
-			BinaryOperator<Double> dfxdl, BinaryOperator<Double> dfydp, BinaryOperator<Double> dfydl, double tolerance) {
+	public static final double[] newtonRaphsonApproximation(double x0, double y0,
+			VectorFunction fxpX, VectorFunction fypY, VectorFunction dfxdp,
+			VectorFunction dfxdl, VectorFunction dfydp, VectorFunction dfydl,
+			double tolerance, double... params) {
 		double x = x0;
 		double y = y0;
-		double phi = y;
-		double lam = x; // I used equirectangular for my initial guess
+		double phi = y/2;
+		double lam = x/2; // I used equirectangular for my initial guess
 		double error = Math.PI;
 		
 		for (int i = 0; i < 5 && error > tolerance; i++) {
-			final double f1 = fxpX.apply(phi, lam) - x;
-			final double f2 = fypY.apply(phi, lam) - y;
-			final double df1dP = dfxdp.apply(phi, lam);
-			final double df1dL = dfxdl.apply(phi, lam);
-			final double df2dP = dfydp.apply(phi, lam);
-			final double df2dL = dfydl.apply(phi, lam);
+			final double f1 = fxpX.evaluate(phi, lam, params) - x;
+			final double f2 = fypY.evaluate(phi, lam, params) - y;
+			final double df1dP = dfxdp.evaluate(phi, lam, params);
+			final double df1dL = dfxdl.evaluate(phi, lam, params);
+			final double df2dP = dfydp.evaluate(phi, lam, params);
+			final double df2dL = dfydl.evaluate(phi, lam, params);
 			
 			phi -= (f1*df2dL - f2*df1dL) / (df1dP*df2dL - df2dP*df1dL);
 			lam -= (f2*df1dP - f1*df2dP) / (df1dP*df2dL - df2dP*df1dL);
@@ -113,6 +115,12 @@ public class NumericalAnalysis {
 		}
 		
 		return fx[N-1][N-1];
+	}
+	
+	
+	
+	public interface VectorFunction {
+		public double evaluate(double x, double y, double[] constants);
 	}
 
 }
