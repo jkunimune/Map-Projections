@@ -24,39 +24,32 @@
 package apps;
 import java.io.File;
 import java.io.IOException;
+import java.util.function.DoubleUnaryOperator;
+
 import javax.imageio.ImageIO;
 
 import dialogs.ProgressBarDialog;
-import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
+import javafx.scene.Node;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
-import javafx.scene.control.Tooltip;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -64,24 +57,32 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import maps.Projection;
 import util.Math2;
+import util.Procedure;
 
 /**
  * An application to analyze the characteristics of map projections
  * 
  * @author Justin Kunimune
  */
-public class MapAnalyzer extends Application {
+public class MapAnalyzer extends MapApplication {
 
-	private static final int CONT_WIDTH = 300;
-	private static final int IMG_WIDTH = 500;
+	public static final void main(String[] args) {
+		launch(args);
+	}
+	
+	
+	
 	private static final int CHART_WIDTH = 400;
+	private static final int ROUGH_SAMP_NUM = 250;
+	private static final int FINE_SAMP_NUM = 1000;
+	private static final double GLOBE_RES = .02;
 	
+	private static final FileChooser.ExtensionFilter[] RASTER_TYPES = {
+			new FileChooser.ExtensionFilter("PNG", "*.png"),
+			new FileChooser.ExtensionFilter("JPG", "*.jpg","*.jpeg","*.jpe","*.jfif") };
 	
-	private static final KeyCombination ctrlS = new KeyCodeCombination(KeyCode.S, KeyCodeCombination.CONTROL_DOWN);
-	
-	
-	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.PLATE_CARREE,
-			Projection.GALL_PETERS, Projection.HOBO_DYER, Projection.BEHRMANN, Projection.LAMBERT_CYLIND,
+	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.PLATE_CARREE, Projection.GALL_PETERS,
+			Projection.HOBO_DYER, Projection.BEHRMANN, Projection.LAMBERT_CYLIND, Projection.E_A_CYLIND,
 			Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
 			Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC,
 			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.SINUSOIDAL, Projection.MOLLWEIDE,
@@ -90,198 +91,173 @@ public class MapAnalyzer extends Application {
 			Projection.EXPERIMENT, Projection.HYPERELLIPOWER, Projection.TETRAPOWER, Projection.TETRAFILLET };
 	
 	
-	private Stage stage;
-	private FileChooser saver;
-	private ComboBox<Projection> projectionChooser;
-	private Text projectionDesc;
-	private Button calculate, saveMap, saveCharts;
-	private Label avgSizeDistort, avgShapeDistort;
-	private ImageView output;
-	private VBox charts;
-	private BarChart<String, Number> sizeChart, shapeChart;
+	private Button updateBtn;
+	private Text avgSizeDistort, avgShapeDistort;
+	private ImageView mapDisplay;
+	private Region charts;
+	private BarChart<String, Number> sizeChart;
+	private BarChart<String, Number> shapeChart;
 	
 	
 	
-	public static final void main(String[] args) {
-		launch(args);
+	public MapAnalyzer() {
+		super("Map Analyzer");
 	}
 	
 	
 	@Override
-	public void start(Stage primaryStage) {
-		stage = primaryStage;
-		stage.setTitle("Map Analyzer");
+	public void start(Stage root) {
+		super.start(root);
+		new Thread(() -> {
+			calculateAndUpdate();
+		}).start();
+	}
+	
+	
+	@Override
+	protected Node makeWidgets() {
+		final Node projectionSelector = buildProjectionSelector(PROJ_ARR, Projection.MERCATOR, Procedure.NONE);
+		final Node parameterSelector = buildParameterSelector(Procedure.NONE);
+		final Node textDisplay = buildTextDisplay();
+		this.updateBtn = buildUpdateButton(this::calculateAndUpdate);
+		this.updateBtn.setText("Calculate"); //I don't need to follow your darn conventions!
+		final Button saveMapBtn = buildSaveButton(true, "map", RASTER_TYPES,
+				Procedure.NONE, this::calculateAndSaveMap);
+		final Button savePltBtn = buildSaveButton(true, "plots", RASTER_TYPES,
+				Procedure.NONE, this::calculateAndSavePlot);
+		final HBox buttons = new HBox(5, updateBtn, saveMapBtn, savePltBtn);
+		buttons.setAlignment(Pos.CENTER);
 		
-		final VBox layout = new VBox();
-		layout.setSpacing(5);
+		final VBox layout = new VBox(5,
+				projectionSelector, parameterSelector, new Separator(),
+				buttons, new Separator(), textDisplay);
 		layout.setAlignment(Pos.CENTER);
-		layout.setPrefWidth(CONT_WIDTH);
+		layout.setPrefWidth(GUI_WIDTH);
 		
-		Label lbl = new Label("Projection:");
-		ObservableList<Projection> items = FXCollections.observableArrayList(PROJ_ARR);
-		projectionChooser = new ComboBox<Projection>(items);
-		projectionChooser.setOnAction(new EventHandler<ActionEvent>() {
-			public void handle(ActionEvent event) {
-				projectionDesc.setText(projectionChooser.getValue().getDescription());
-			}
-		});
-		projectionChooser.setValue(Projection.MERCATOR);
-		layout.getChildren().add(new HBox(3, lbl, projectionChooser));
+		this.mapDisplay = new ImageView();
+		this.mapDisplay.setFitWidth(IMG_WIDTH);
+		this.mapDisplay.setFitHeight(IMG_WIDTH);
+		this.mapDisplay.setPreserveRatio(true);
+		final StackPane pane = new StackPane(mapDisplay);
+		pane.setMinWidth(IMG_WIDTH);
 		
-		projectionDesc = new Text(projectionChooser.getValue().getDescription());
-		projectionDesc.setWrappingWidth(CONT_WIDTH);
-		layout.getChildren().add(projectionDesc);
+		this.charts = buildDistortionHistograms();
 		
-		calculate = new Button("Calculate");
-		calculate.setOnAction(new EventHandler<ActionEvent>() {
-			public void handle(ActionEvent event) {
-				calculateMap();
-			}
-		});
-		calculate.setTooltip(new Tooltip(
-				"Calculate the distortion for this map."));
-		calculate.setDefaultButton(true);
+		final HBox gui = new HBox(10, layout, pane, charts);
+		gui.setAlignment(Pos.CENTER);
+		StackPane.setMargin(gui, new Insets(10));
 		
-		saver = new FileChooser();
-		saver.setInitialDirectory(new File("output"));
-		saver.setInitialFileName("myMap.jpg");
-		saver.setTitle("Save Image");
-		saver.getExtensionFilters().addAll(
-				new FileChooser.ExtensionFilter("JPG", "*.jpg"),
-				new FileChooser.ExtensionFilter("PNG", "*.png"));
+		return gui;
+	}
+	
+	
+	private Node buildTextDisplay() {
+		this.avgSizeDistort = new Text("...");
+		this.avgShapeDistort = new Text("...");
+		final Text txt = new Text("Blue areas are dilated, red areas are compressed, and black areas are stretched.");
+		txt.setWrappingWidth(GUI_WIDTH);
 		
-		saveMap = new Button("Save Image...");
-		saveMap.setOnAction(new EventHandler<ActionEvent>() {
-			public void handle(ActionEvent event) {
-				startFinalizingMap();
-			}
-		});
-		saveMap.setTooltip(new Tooltip("Save the distortion graphic."));
-		stage.addEventHandler(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {	//ctrl-S saves
-			public void handle(KeyEvent event) {
-				if (ctrlS.match(event))	saveMap.fire();
-			}
-		});
-		
-		saveCharts = new Button("Save Chart...");
-		saveCharts.setOnAction(new EventHandler<ActionEvent>() {
-			public void handle(ActionEvent event) {
-				saveImage(charts.snapshot(null, null), null);
-			}
-		});
-		
-		HBox box = new HBox(5, calculate, saveMap, saveCharts);
-		box.setAlignment(Pos.CENTER);
-		layout.getChildren().add(box);
-		
-		layout.getChildren().add(new Separator());
-		
-		avgSizeDistort = new Label("...");
-		avgShapeDistort = new Label("...");
-		lbl = new Label("Blue areas are dilated, red areas are compressed, and black areas are stretched.");
-		lbl.setWrapText(true);
-		
-		VBox bxo = new VBox(3,
+		VBox box = new VBox(3,
 				new HBox(new Label("Average size distortion: "),avgSizeDistort),
 				new HBox(new Label("Average shape distortion: "),avgShapeDistort),
-				lbl);
-		bxo.setAlignment(Pos.CENTER_LEFT);
-		layout.getChildren().add(bxo);
-		
-		output = new ImageView();
-		output.setFitWidth(IMG_WIDTH);
-		output.setFitHeight(IMG_WIDTH);
-		output.setPreserveRatio(true);
-		
-		sizeChart = new BarChart<String, Number>(new CategoryAxis(), new NumberAxis());
-		sizeChart.setPrefWidth(CHART_WIDTH);
-		sizeChart.setPrefHeight(IMG_WIDTH/2);
-		sizeChart.getXAxis().setLabel("Scale factor");
-		sizeChart.setBarGap(0);
-		sizeChart.setCategoryGap(0);
-		sizeChart.setAnimated(false);
-		sizeChart.setLegendVisible(false);
-		
-		shapeChart = new BarChart<String, Number>(new CategoryAxis(), new NumberAxis());
-		shapeChart.setPrefWidth(CHART_WIDTH);
-		shapeChart.setPrefHeight(IMG_WIDTH/2);
-		shapeChart.getXAxis().setLabel("Stretch factor");
-		shapeChart.setBarGap(0);
-		shapeChart.setCategoryGap(0);
-		shapeChart.setAnimated(false);
-		shapeChart.setLegendVisible(false);
-		
-		charts = new VBox(sizeChart, shapeChart);
-		
-		final HBox gui = new HBox(layout, output, charts);
-		
-		new Thread(() -> {
-			calculate.fire();
-		}).start();
-		
-		gui.setAlignment(Pos.CENTER);
-		gui.setSpacing(10);
-		StackPane.setMargin(gui, new Insets(10));
-		stage.setScene(new Scene(new StackPane(gui)));
-		stage.show();
+				txt);
+		box.setAlignment(Pos.CENTER_LEFT);
+		return box;
 	}
 	
 	
-	private void calculateMap() {
-		calculate.setDisable(true);
-		new Thread(new Task<Void>() {
-			protected Void call() {
-				try {
-					Platform.runLater(() -> {
-						sizeChart.getData().clear();
-						shapeChart.getData().clear();
-						
-						avgSizeDistort.setText("...");
-						avgShapeDistort.setText("...");
-					});
-					
-					final Projection proj = projectionChooser.getValue();
-					final double[] params = proj.getDefaultParameters(); //TODO: get real parameters
-					final double[][][] distortionM =
-							proj.calculateDistortion(proj.map(250,params), params);
-					
-					output.setImage(makeGraphic(distortionM));
-					
-					final double[][][] distortionG =
-							proj.calculateDistortion(Projection.globe(0.02), params);
-					
-					Platform.runLater(() -> {
-						sizeChart.getData().add(histogram(distortionG[0],
-								-2,2,14, true));
-						shapeChart.getData().add(histogram(distortionG[1],
-								0,1.6,14, false));
-						
-						avgSizeDistort.setText(format(Math2.stdDev(distortionG[0])));
-						avgShapeDistort.setText(format(Math2.mean(distortionG[1])));
-					});
-					calculate.setDisable(false);
-					return null;
-				} catch (Exception e) {
-					e.printStackTrace();
-					return null;
-				}
-			}
-		}).start();
+	private Region buildDistortionHistograms() {
+		this.sizeChart = new BarChart<String, Number>(new CategoryAxis(), new NumberAxis());
+		this.sizeChart.setPrefWidth(CHART_WIDTH);
+		this.sizeChart.setPrefHeight(IMG_WIDTH/2);
+		this.sizeChart.getXAxis().setLabel("Scale factor");
+		this.sizeChart.setBarGap(0);
+		this.sizeChart.setCategoryGap(0);
+		this.sizeChart.setAnimated(false);
+		this.sizeChart.setLegendVisible(false);
+		
+		this.shapeChart = new BarChart<String, Number>(new CategoryAxis(), new NumberAxis());
+		this.shapeChart.setPrefWidth(CHART_WIDTH);
+		this.shapeChart.setPrefHeight(IMG_WIDTH/2);
+		this.shapeChart.getXAxis().setLabel("Stretch factor");
+		this.shapeChart.setBarGap(0);
+		this.shapeChart.setCategoryGap(0);
+		this.shapeChart.setAnimated(false);
+		this.shapeChart.setLegendVisible(false);
+		
+		return new VBox(5, sizeChart, shapeChart);
 	}
 	
 	
-	private void startFinalizingMap() {
-		final Projection p = projectionChooser.getValue();
-		final double[] params = p.getDefaultParameters(); //TODO: get real parameters
+	private void calculateAndUpdate() {
+		Platform.runLater(() -> {
+			sizeChart.getData().clear();
+			shapeChart.getData().clear();
+			
+			avgSizeDistort.setText("...");
+			avgShapeDistort.setText("...");
+		});
 		
-		ProgressBarDialog pBar = new ProgressBarDialog();
-		pBar.show();
-		new Thread(() -> {
-			final double[][][] distortion = p.calculateDistortion(
-					p.map(1000,params), params, pBar);
-			Image graphic = makeGraphic(distortion);
-			Platform.runLater(() -> saveImage(graphic, pBar));
-		}).start();
+		final Projection proj = this.getProjection();
+		final double[] params = this.getParams();
+		final double[][][] distortionM = proj.calculateDistortion(
+				proj.map(ROUGH_SAMP_NUM,params), params);
+		
+		mapDisplay.setImage(makeGraphic(distortionM));
+		
+		final double[][][] distortionG = proj.calculateDistortion(
+				Projection.globe(GLOBE_RES), params);
+		
+		Platform.runLater(() -> {
+			sizeChart.getData().add(histogram(distortionG[0],
+					-2, 2, 14, Math::exp));
+			shapeChart.getData().add(histogram(distortionG[1],
+					0, 2.8, 14, (x) -> 1/(x*x/2+1-x*Math.sqrt(x*x/4+1))));
+			
+			avgSizeDistort.setText(format(Math2.stdDev(distortionG[0])));
+			avgShapeDistort.setText(format(Math2.mean(distortionG[1])));
+		});
+	}
+	
+	
+	private void calculateAndSavePlot(File file, ProgressBarDialog pBar) {
+		pBar.setProgress(-1);
+		final String filename = file.getName();
+		final String extension = filename.substring(filename.lastIndexOf('.')+1);
+		try {
+			final WritableImage out = new WritableImage(
+					(int) charts.getWidth(), (int) charts.getHeight());
+			Platform.runLater(() -> charts.snapshot(null,out));
+			while (out.getProgress() < 1) {}
+			ImageIO.write(SwingFXUtils.fromFXImage(out, null), extension, file); //save
+		} catch (IOException e) {
+			final Alert alert = new Alert(AlertType.ERROR);
+			alert.setHeaderText("Failure!");
+			alert.setContentText("Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
+			alert.showAndWait();
+		}
+	}
+	
+	
+	private void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
+		final Projection proj = this.getProjection();
+		final double[] params = this.getParams();
+		final double[][][] distortion = proj.calculateDistortion(
+				proj.map(FINE_SAMP_NUM,params), params, pBar); //calculate
+		Image graphic = makeGraphic(distortion);
+		
+		pBar.setProgress(-1);
+		
+		final String filename = file.getName();
+		final String extension = filename.substring(filename.lastIndexOf('.')+1);
+		try {
+			ImageIO.write(SwingFXUtils.fromFXImage(graphic,null), extension, file); //save
+		} catch (IOException e) {
+			final Alert alert = new Alert(AlertType.ERROR);
+			alert.setHeaderText("Failure!");
+			alert.setContentText("Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
+			alert.showAndWait();
+		}
 	}
 	
 	
@@ -317,25 +293,8 @@ public class MapAnalyzer extends Application {
 	}
 	
 	
-	private void saveImage(Image img, ProgressBarDialog pBar) { // call from the main thread!
-		if (pBar != null)
-			pBar.close();
-		
-		final File f = saver.showSaveDialog(stage);
-		if (f != null) {
-			new Thread(() -> {
-				try {
-					saveMap.setDisable(true);
-					ImageIO.write(SwingFXUtils.fromFXImage(img,null), "png", f);
-					saveMap.setDisable(false);
-				} catch (IOException e) {}
-			}).start();
-		}
-	}
-	
-	
 	private static final Series<String, Number> histogram(double[][] values,
-			double min, double max, int num, boolean logarithmic) {
+			double min, double max, int num, DoubleUnaryOperator labeler) {
 		int[] hist = new int[num+1]; //this array is the histogram values for min, min+dx, ..., max-dx, max
 		int tot = 0;
 		for (double[] row: values) {
@@ -350,9 +309,7 @@ public class MapAnalyzer extends Application {
 		}
 		Series<String, Number> output = new Series<String, Number>();
 		for (int i = 0; i <= num; i ++) {
-			double x = i*(max-min)/num+min;
-			if (logarithmic)	x = Math.exp(x);
-			else				x = 1/(1-Math.sin(x)); //this is a bit nonsensical and sketch. Don't worry about it.
+			double x = labeler.applyAsDouble(i*(max-min)/num+min);
 			output.getData().add(new Data<String, Number>(
 					Double.toString(Math.round(100*x)/100.),
 					(double)hist[i]/tot*100));

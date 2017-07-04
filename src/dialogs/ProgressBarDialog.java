@@ -83,10 +83,13 @@ public class ProgressBarDialog extends Dialog<Void> {
 		Platform.runLater(() -> {
 				if (p >= 0)
 					this.words.setText((Math.round(1000*p)/10.0)+"%");
-				else
+				else {
+					this.bar.setProgress(-1);
 					this.words.setText("...");
+				}
 			});
-		this.bar.setProgress(p);
+		if (p >= 0)
+			this.bar.setProgress(p);
 	}
 
 }

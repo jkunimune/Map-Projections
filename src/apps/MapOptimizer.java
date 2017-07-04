@@ -45,8 +45,7 @@ import maps.Projection;
  * @author Justin Kunimune
  */
 public class MapOptimizer extends Application {
-	
-	
+
 	private static final Projection[] EXISTING_PROJECTIONS = { Projection.HOBO_DYER, Projection.ROBINSON,
 			Projection.PLATE_CARREE, Projection.LEE };
 	private static final double[] WEIGHTS = { .083, .20, .33, .50, .71, 1.0, 1.4, 2.0, 3.0, 5.0, 12. };
@@ -73,10 +72,10 @@ public class MapOptimizer extends Application {
 		PrintStream log = new PrintStream(new File("output/parameters.txt"));
 		
 		chart.getData().add(analyzeAll(globe, EXISTING_PROJECTIONS));
-		chart.getData().add(optimizeHyperelliptical(globe, log));
-//		chart.getData().add(optimizeEACylinder(globe, log));
-		chart.getData().add(optimizeTetrapower(globe, log));
-		chart.getData().add(optimizeTetrafillet(globe, log));
+		chart.getData().add(optimizeFamily(Projection.HYPERELLIPOWER, globe, log));
+		chart.getData().add(optimizeFamily(Projection.WINKEL_TRIPEL, globe, log));
+		chart.getData().add(optimizeFamily(Projection.TETRAPOWER, globe, log));
+		chart.getData().add(optimizeFamily(Projection.TETRAFILLET, globe, log));
 		
 		System.out.println("Total time elapsed: "+
 				(System.currentTimeMillis()-startTime)/1000.+"s");
@@ -108,18 +107,19 @@ public class MapOptimizer extends Application {
 	
 	
 	private static Series<Number, Number> optimizeFamily(
-			Projection projectionFam, double[][] bounds, double[][][] points, PrintStream log) { // optimize and plot some maps of a given family maps
-		System.out.println("Optimizing "+projectionFam.getName());
-		final double[][] currentBest = new double[WEIGHTS.length][3+bounds.length]; //the 0-3 cols are the min distortions for each weight, the other cols are the values of k and n that caused that
+			Projection proj, double[][][] points, PrintStream log) { // optimize and plot some maps of a given family maps
+		System.out.println("Optimizing "+proj.getName());
+		final double[][] currentBest = new double[WEIGHTS.length][3+proj.getNumParameters()]; //the 0-3 cols are the min distortions for each weight, the other cols are the values of k and n that caused that
 		for (int k = 0; k < WEIGHTS.length; k ++)
 			currentBest[k][0] = Integer.MAX_VALUE;
 		
-		final double[] params = new double[bounds.length];
-		for (int i = 0; i < params.length; i ++)	params[i] = bounds[i][0]; //initialize params
+		final double[][] bounds = proj.getParameterValues();
+		final double[] params = new double[proj.getNumParameters()];
+		for (int i = 0; i < params.length; i ++) 	params[i] = bounds[i][0]; //initialize params
 		
 		while (true) { //start with brute force
 			System.out.println(Arrays.toString(params));
-			double[] distortions = projectionFam.avgDistortion(points, params);
+			double[] distortions = proj.avgDistortion(points, params);
 			for (int k = 0; k < WEIGHTS.length; k ++) {
 				final double avgDist = Math.pow(distortions[0],1.5) +
 						WEIGHTS[k]*Math.pow(distortions[1],1.5);
@@ -153,26 +153,26 @@ public class MapOptimizer extends Application {
 			for (int i = 0; i < NUM_DESCENT; i ++) {
 				if (i > 0)
 					fr0 = weighDistortion(WEIGHTS[k],
-							projectionFam.avgDistortion(points, params)); //calculate the distortion here
+							proj.avgDistortion(points, params)); //calculate the distortion here
 				System.out.println(Arrays.toString(params)+" -> "+fr0);
 				for (int j = 0; j < params.length; j ++) {
 					params[j] += h;
 					frd[j] = weighDistortion(WEIGHTS[k],
-							projectionFam.avgDistortion(points, params)); //and the distortion nearby
+							proj.avgDistortion(points, params)); //and the distortion nearby
 					params[j] -= h;
 				}
 				for (int j = 0; j < params.length; j ++)
 					params[j] -= (frd[j]-fr0)/h*delX; //use that to approximate the gradient and go in that direction
 			}
 			System.arraycopy(params,0, currentBest[k],3, params.length);
-			System.arraycopy(projectionFam.avgDistortion(points, params), 0,
+			System.arraycopy(proj.avgDistortion(points, params), 0,
 					currentBest[k], 1, 2);
 		}
 		
 		final Series<Number, Number> output = new Series<Number, Number>();
-		output.setName(projectionFam.getName());
+		output.setName(proj.getName());
 		
-		log.println("We got the best "+projectionFam.getName()+" projections using:");
+		log.println("We got the best "+proj.getName()+" projections using:");
 		for (double[] best: currentBest) {
 			log.print("\t");
 			for (int i = 0; i < params.length; i ++)
@@ -188,27 +188,6 @@ public class MapOptimizer extends Application {
 	private static final double weighDistortion(double weight, double... distortions) {
 		return Math.pow(distortions[0], 1.5) +
 				weight*Math.pow(distortions[1], 1.5);
-	}
-	
-	
-	private static Series<Number, Number> optimizeHyperelliptical(
-			double[][][] points, PrintStream log) { //optimize and plot some hyperelliptical maps
-		return optimizeFamily(Projection.HYPERELLIPOWER,
-				new double[][] {{2.5,5}, {0.5,1.75}, {1.0,2.0}}, points, log);
-	}
-	
-	
-	private static Series<Number, Number> optimizeTetrapower(
-			double[][][] points, PrintStream log) { //optimize and plot some hyperelliptical maps
-		return optimizeFamily(Projection.TETRAPOWER,
-				new double[][] {{0.25,2.25}, {0.25,2.25}, {.25,2.25}}, points, log);
-	}
-	
-	
-	private static Series<Number, Number> optimizeTetrafillet(
-			double[][][] points, PrintStream log) { //optimize and plot some hyperelliptical maps
-		return optimizeFamily(Projection.TETRAFILLET,
-				new double[][] {{0.25,2.25}, {0.25,2.25}, {.25,2.25}}, points, log);
 	}
 	
 	

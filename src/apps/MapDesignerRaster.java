@@ -29,7 +29,6 @@ import javax.imageio.ImageIO;
 
 import dialogs.MapConfigurationDialog;
 import dialogs.ProgressBarDialog;
-import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -118,16 +117,15 @@ public class MapDesignerRaster extends MapApplication {
 				new Separator(), aspectSelector, parameterSelector,
 				new Separator(), buttons);
 		layout.setAlignment(Pos.CENTER);
-		layout.setPrefWidth(CONT_WIDTH);
+		layout.setPrefWidth(GUI_WIDTH);
 		
 		this.display = new ImageView();
 		this.display.setFitWidth(IMG_WIDTH);
 		this.display.setFitHeight(IMG_WIDTH);
 		this.display.setPreserveRatio(true);
 		
-		final HBox gui = new HBox(layout, this.display);
+		final HBox gui = new HBox(10, layout, this.display);
 		gui.setAlignment(Pos.CENTER);
-		gui.setSpacing(10);
 		StackPane.setMargin(gui, new Insets(10));
 		
 		return gui;
@@ -167,10 +165,9 @@ public class MapDesignerRaster extends MapApplication {
 	protected void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
 		Image theMap = map(
 				configDialog.getDims(), configDialog.getSmoothing(), pBar); //calculate
-		Platform.runLater(() -> pBar.setProgress(-1));
+		pBar.setProgress(-1);
 		final String filename = file.getName();
-		final String extension;
-		extension = filename.substring(filename.lastIndexOf('.')+1);
+		final String extension = filename.substring(filename.lastIndexOf('.')+1);
 		try {
 			ImageIO.write(SwingFXUtils.fromFXImage(theMap,null), extension, file); //save
 		} catch (IOException e) {

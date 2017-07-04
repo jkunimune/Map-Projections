@@ -54,7 +54,7 @@ import util.Procedure;
  */
 public abstract class MapApplication extends Application {
 
-	protected static final int CONT_WIDTH = 350;
+	protected static final int GUI_WIDTH = 350;
 	protected static final int IMG_WIDTH = 500;
 	
 	private static final KeyCombination ctrlO = new KeyCodeCombination(KeyCode.O, KeyCodeCombination.CONTROL_DOWN);
@@ -156,7 +156,7 @@ public abstract class MapApplication extends Application {
 		projectionChooser.setValue(defProj);
 		
 		final Text description = new Text(projectionChooser.getValue().getDescription());
-		description.setWrappingWidth(CONT_WIDTH);
+		description.setWrappingWidth(GUI_WIDTH);
 		
 		projectionChooser.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
@@ -399,7 +399,9 @@ public abstract class MapApplication extends Application {
 			paramSpinVF.setMin(paramValues[i][0]);
 			paramSpinVF.setMax(paramValues[i][1]);
 			paramSpinVF.setValue(paramValues[i][2]);
-			final Tooltip tt = new Tooltip("Change the "+paramNames[i]+" of the map");
+			final Tooltip tt = new Tooltip(
+					"Change the "+paramNames[i]+" of the map (default is "+
+					paramValues[i][2]+")");
 			paramSliders[i].setTooltip(tt);
 			paramSpinners[i].setTooltip(tt);
 			paramGrid.addRow(i, paramLabels[i], paramSliders[i], paramSpinners[i]);

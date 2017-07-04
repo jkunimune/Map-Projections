@@ -119,6 +119,7 @@ public class NumericalAnalysis {
 	
 	
 	
+	@FunctionalInterface
 	public interface VectorFunction {
 		public double evaluate(double x, double y, double[] constants);
 	}

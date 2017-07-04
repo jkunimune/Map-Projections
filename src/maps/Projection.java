@@ -108,17 +108,18 @@ public enum Projection {
 		}
 	},
 	
-	EA_CYLIND("Equal-area cylindrical", "A generalized equal-area cylindrical projection",
+	E_A_CYLIND("Equal-area cylindrical", "A generalized equal-area cylindrical projection",
 			Math.PI, 0b1111, "cylindrical", "equal-area",
-			new String[]{"Std. parallel"}, new double[][]{{0, 90, 37.5}}) {
+			new String[]{"Std. parallel"}, new double[][]{{0, 75, 37.5}}) {
 		public double[] project(double lat, double lon, double[] params) {
-			return new double[] {lon, Math.sin(lat)/params[0]};
+			final double a = Math.pow(Math.cos(Math.toRadians(params[0])), 2);
+			return new double[] {lon, Math.sin(lat)/a};
 		}
 		public double[] inverse(double x, double y, double[] params) {
 			return new double[] { Math.asin(y), x*Math.PI };
 		}
 		public double getAspectRatio(double[] params) {
-			return 1/Math.cos(params[0]);
+			return Math.PI*Math.pow(Math.cos(Math.toRadians(params[0])), 2);
 		}
 	},
 	

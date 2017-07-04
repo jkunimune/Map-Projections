@@ -117,13 +117,12 @@ public class MapDesignerVector extends MapApplication {
 				new Separator(), saveBtn);
 		
 		layout.setAlignment(Pos.CENTER);
-		layout.setPrefWidth(CONT_WIDTH);
+		layout.setPrefWidth(GUI_WIDTH);
 		
 		viewer = new Canvas(IMG_WIDTH, IMG_WIDTH);
 		
-		final HBox gui = new HBox(layout, viewer);
+		final HBox gui = new HBox(10, layout, viewer);
 		gui.setAlignment(Pos.CENTER);
-		gui.setSpacing(10);
 		StackPane.setMargin(gui, new Insets(10));
 		
 		return gui;
