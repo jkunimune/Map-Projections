@@ -63,8 +63,8 @@ public class MapDesignerRaster extends MapApplication {
 	
 	
 	private static final FileChooser.ExtensionFilter[] RASTER_TYPES = {
-			new FileChooser.ExtensionFilter("PNG", "*.png"),
-			new FileChooser.ExtensionFilter("JPG", "*.jpg","*.jpeg","*.jpe","*.jfif") };
+			new FileChooser.ExtensionFilter("JPG", "*.jpg","*.jpeg","*.jpe","*.jfif"),
+			new FileChooser.ExtensionFilter("PNG", "*.png") };
 	
 	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.PLATE_CARREE, Projection.HOBO_DYER,
 			Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
@@ -102,13 +102,16 @@ public class MapDesignerRaster extends MapApplication {
 	@Override
 	protected Node makeWidgets() {
 		this.aspect = new double[3];
-		final Node inputSelector = buildInputSelector(RASTER_TYPES, this::setInput);
-		final Node projectionSelector = buildProjectionSelector(PROJ_ARR, Projection.MERCATOR, Procedure.NONE);
-		final Node aspectSelector = buildAspectSelector(this.aspect, Procedure.NONE);
+		final Node inputSelector = buildInputSelector(RASTER_TYPES,
+				RASTER_TYPES[0], this::setInput);
+		final Node projectionSelector = buildProjectionSelector(PROJ_ARR,
+				Projection.MERCATOR, Procedure.NONE);
+		final Node aspectSelector = buildAspectSelector(this.aspect,
+				Procedure.NONE);
 		final Node parameterSelector = buildParameterSelector(Procedure.NONE);
 		this.updateBtn = buildUpdateButton(this::updateMap);
 		this.saveMapBtn = buildSaveButton(true, "map", RASTER_TYPES,
-				this::collectFinalSettings, this::calculateAndSaveMap);
+				RASTER_TYPES[1], this::collectFinalSettings, this::calculateAndSaveMap);
 		final HBox buttons = new HBox(5, updateBtn, saveMapBtn);
 		buttons.setAlignment(Pos.CENTER);
 		
@@ -151,7 +154,8 @@ public class MapDesignerRaster extends MapApplication {
 	
 	
 	private void updateMap() {
-		display.setImage(map());
+		display.setImage(makeImage(
+				this.getProjection().map(IMG_WIDTH, this.getParams(), aspect)));
 	}
 	
 	
@@ -163,9 +167,13 @@ public class MapDesignerRaster extends MapApplication {
 	
 	
 	protected void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
-		Image theMap = map(
-				configDialog.getDims(), configDialog.getSmoothing(), pBar); //calculate
+		final int[] outDims = configDialog.getDims();
+		final int smoothing = configDialog.getSmoothing();
+		double[][][] points =this.getProjection().map(
+				outDims[0]*smoothing, outDims[1]*smoothing, this.getParams(), aspect, pBar::setProgress);
 		pBar.setProgress(-1);
+		Image theMap = makeImage(points, smoothing); //calculate
+		
 		final String filename = file.getName();
 		final String extension = filename.substring(filename.lastIndexOf('.')+1);
 		try {
@@ -179,66 +187,42 @@ public class MapDesignerRaster extends MapApplication {
 	}
 	
 	
-	public Image map() {
-		final double a = this.getProjection().getAspectRatio(this.getParams());
-		return map(new int[] { IMG_WIDTH, (int)(IMG_WIDTH/a) }, 1);
+	private Image makeImage(double[][][] points) {
+		return makeImage(points, 1);
 	}
 	
-	public Image map(int[] outputDims, int smoothing) {
-		return map(outputDims,smoothing, null);
-	}
-	
-	public Image map(int[] outDims, int smoothing,
-			ProgressBarDialog pbar) {
-		final Projection proj = this.getProjection();
-		final double[] params = this.getParams();
-		final PixelReader ref = input.getPixelReader();
-		final int[] refDims = {(int)input.getWidth(), (int)input.getHeight()};
-		
-		WritableImage img = new WritableImage(outDims[0], outDims[1]);
-		
-		for (int x = 0; x < outDims[0]; x ++) {
-			for (int y = 0; y < outDims[1]; y ++) {
-				int[] colors = new int[smoothing*smoothing];
-				int i = 0;
-				for (double dx = 0.5/smoothing; dx < 1; dx += 1.0/smoothing) {
-					for (double dy = .5/smoothing; dy < 1; dy += 1.0/smoothing) {
-						colors[i] = getArgb(x+dx, y+dy,
-								proj,params,aspect,ref,refDims,outDims);
-						i ++;
+	private Image makeImage(double[][][] points, int step) {
+		final PixelReader in = input.getPixelReader();
+		final WritableImage out = new WritableImage(points[0].length/step, points.length/step);
+		for (int y = 0; y < out.getHeight(); y ++) {
+			for (int x = 0; x < out.getWidth(); x ++) {
+				int[] colors = new int[step*step];
+				for (int dy = 0; dy < step; dy ++) {
+					for (int dx = 0; dx < step; dx ++) {
+						colors[step*dy+dx] = getArgb(points[step*y+dy][step*x+dx], in, input.getWidth(), input.getHeight());
 					}
 				}
-				img.getPixelWriter().setArgb(x, y, blend(colors));
+				out.getPixelWriter().setArgb(x, y, blend(colors));
 			}
-			if (pbar != null)	pbar.setProgress((double)(x+1)/outDims[0]);
 		}
+		return out;
+	}
+	
+	
+	public static int getArgb(double[] coords, PixelReader in,
+			double inWidth, double inHeight) { // returns the color of any coordinate on earth
+		if (coords == null) 	return 0;
 		
-		return img;
-	}
-	
-	
-	public static int getArgb(double x, double y, Projection proj, double[] params, double[] pole,
-			PixelReader ref, int[] refDims, int[] outDims) {
-		final double[] coords = proj.inverse(
-				2.*x/outDims[0]-1, 1-2.*y/outDims[1], params, pole);
-		if (coords != null)
-			return getColorAt(coords, ref, refDims);
-		else
-			return 0;
-	}
-	
-	
-	public static int getColorAt(double[] coords, PixelReader ref, int[] refDims) { // returns the color of any coordinate on earth
 		double x = 1/2.0 + coords[1]/(2*Math.PI);
-		x = (x - Math.floor(x)) * refDims[0];
+		x = (x - Math.floor(x)) * inWidth;
 		
-		double y = refDims[1]/2.0 - coords[0]*refDims[1]/(Math.PI);
+		double y = inHeight/2.0 - coords[0]*inHeight/(Math.PI);
 		if (y < 0)
 			y = 0;
-		else if (y >= refDims[1])
-			y = refDims[1] - 1;
+		else if (y >= inHeight)
+			y = inHeight - 1;
 		
-		return ref.getArgb((int)x, (int)y);
+		return in.getArgb((int) x, (int) y);
 	}
 	
 	

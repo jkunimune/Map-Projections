@@ -104,12 +104,15 @@ public class MapDesignerVector extends MapApplication {
 	@Override
 	public Node makeWidgets() {
 		this.aspect = new double[3];
-		final Node inputSelector = buildInputSelector(VECTOR_TYPES, this::setInput);
-		final Node projectionSelector = buildProjectionSelector(PROJ_ARR, Projection.MERCATOR, this::updateMap);
-		final Node aspectSelector = buildAspectSelector(this.aspect, this::updateMap);
+		final Node inputSelector = buildInputSelector(VECTOR_TYPES,
+				VECTOR_TYPES[0], this::setInput);
+		final Node projectionSelector = buildProjectionSelector(PROJ_ARR,
+				Projection.MERCATOR, this::updateMap);
+		final Node aspectSelector = buildAspectSelector(this.aspect,
+				this::updateMap);
 		final Node parameterSelector = buildParameterSelector(this::updateMap);
 		this.saveBtn = buildSaveButton(true, "map", VECTOR_TYPES,
-				Procedure.NONE, this::calculateAndSaveMap);
+				VECTOR_TYPES[0], Procedure.NONE, this::calculateAndSaveMap);
 		
 		final VBox layout = new VBox(5,
 				inputSelector, new Separator(), projectionSelector,
@@ -220,12 +223,18 @@ public class MapDesignerVector extends MapApplication {
 		g.clearRect(0, 0, c.getWidth(), c.getHeight());
 		for (List<double[]> closedCurve: img) {
 			g.beginPath();
-			for (int i = 0; i < closedCurve.size(); i ++) {
-				double[] p = closedCurve.get(i);
-				if (i == 0)	g.moveTo(p[0], p[1]);
-				else		g.lineTo(p[0], p[1]);
+			g.moveTo(closedCurve.get(0)[0], closedCurve.get(0)[1]);
+			for (int i = 1; i < closedCurve.size()+1; i ++) {
+				double[] p0 = closedCurve.get(i-1);
+				double[] p1 = closedCurve.get(i%closedCurve.size());
+				if (Math.hypot(p1[0]-p0[0], p1[1]-p0[1]) >= c.getWidth()/10) {
+					g.stroke();
+					g.beginPath();
+					g.moveTo(p1[0], p1[1]);
+				}
+				else
+					g.lineTo(p1[0], p1[1]);
 			}
-			g.closePath();
 			g.stroke();
 		}
 	}

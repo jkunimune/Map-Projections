@@ -32,43 +32,123 @@ import java.util.Arrays;
  */
 public class NumericalAnalysis {
 
+	public static final void main(String[] args) {
+		System.out.println(simpsonIntegrate(-1,1, (x,prms) -> 4*Math.sqrt(1-x*x), .001, null));
+	}
 	/**
-	 * Applies Newton's method in two dimensions to solve for phi and lam given
-	 * desired x and y values, x(phi,lam), y(phi,lam), and some derivatives
-	 * @param x0 The x value that the functions need to match
-	 * @param y0 The y value that the functions need to match
-	 * @param f1pX x in terms of phi and lam
-	 * @param f2pY y in terms of phi and lam
+	 * Performs a definite integral using Simpson's rule and a constant step size
+	 * @param a The start of the integration region
+	 * @param b The end of the integration region (must be greater than a)
+	 * @param f The integrand
+	 * @param h The step size (must be positive)
+	 * @param constants Constant parameters for the function
+	 * @return \int_a^b \! f(x) \, \mathrm{d}x
+	 */
+	public static final double simpsonIntegrate(double a, double b, ScalarFunction f, double h, double... constants) {
+		double sum = 0;
+		for (double x = a; x < b; x += h) {
+			if (x+h > b) 	h = b-x;
+			sum += h/6*(f.evaluate(x,constants)
+					+ 4*f.evaluate(x+h/2, constants)
+					+   f.evaluate(x+h, constants));
+		}
+		return sum;
+	}
+	
+	
+	/**
+	 * Solves a simple ODE using Simpson's rule and a constant step size
+	 * @param T The maximum time value at which to sample (must be positive)
+	 * @param n The desired number of spaces (or the number of samples minus 1)
+	 * @param f The derivative of y with respect to time
+	 * @param h The internal step size (must be positive)
+	 * @param constants Constant parameters for the function
+	 * @return the double[] y, where y[i] is the value of y at t=i*T/n
+	 */
+	public static final double[] simpsonODESolve(double T, int n, ScalarFunction f, double h, double... constants) {
+		final double[] y = new double[n+1]; //the output
+		double t = 0;
+		double sum = 0;
+		for (int i = 0; i <= n; i ++) {
+			while (t < i*T/n) {
+				final double tph = Math.min(t+h, i*T/n);
+				sum += (tph-t)/6*(f.evaluate(t, constants)
+							  + 4*f.evaluate((t+tph)/2, constants)
+							  +   f.evaluate(tph, constants));
+				t = tph;
+			}
+			y[i] = sum;
+		}
+		return y;
+	}
+	
+	
+	/**
+	 * Applies Newton's method in one dimension to solve for x such that f(x)=y
+	 * @param y Desired value for f
+	 * @param x0 Initial guess for x
+	 * @param f The error in terms of x
+	 * @param dfdx The derivative of f with respect to x
+	 * @param tolerance The maximum error that this can return
+	 * @param constants Constant parameters for the function
+	 * @return The value of x that puts f near 0, or NaN if it does not
+	 * 		converge in 5 iterations
+	 */
+	public static final double newtonRaphsonApproximation(
+			double y, double x0, ScalarFunction f, ScalarFunction dfdx,
+			double tolerance, double... constants) {
+		double x = x0;
+		double error = Math.PI;
+		for (int i = 0; i < 5 && error > tolerance; i ++) {
+			error = f.evaluate(x, constants) - y;
+			final double dydx = dfdx.evaluate(x, constants);
+			x -= error/dydx;
+		}
+		if (error > tolerance)
+			return Double.NaN;
+		else
+			return x;
+	}
+	
+	
+	/**
+	 * Applies Newton's method in two dimensions to solve for phi and lam such
+	 * that f1(phi,lam)=x and f2(phi,lam)=y
+	 * @param x Desired value for f1
+	 * @param y Desired value for f2
+	 * @param phi0 Initial guess for phi
+	 * @param lam0 Initial guess for lam
+	 * @param f1 x-error in terms of phi and lam
+	 * @param f2 y-error in terms of phi and lam
 	 * @param df1dp The partial derivative of x with respect to phi
 	 * @param df1dl The partial derivative of x with respect to lam
 	 * @param df2dp The partial derivative of y with respect to phi
 	 * @param df2dl The partial derivative of y with respect to lam
 	 * @param tolerance The maximum error that this can return
-	 * @param params Constant parameters for the functions
-	 * @return the values of phi and lam that put f1pX and f2pY near x0 and y0
+	 * @param constants Constant parameters for the functions
+	 * @return the values of phi and lam that put f1 and f2 near 0, or
+	 * 			<code>null</code> if it does not converge in 5 iterations.
 	 */
-	public static final double[] newtonRaphsonApproximation(double x0, double y0,
-			VectorFunction fxpX, VectorFunction fypY, VectorFunction dfxdp,
-			VectorFunction dfxdl, VectorFunction dfydp, VectorFunction dfydl,
-			double tolerance, double... params) {
-		double x = x0;
-		double y = y0;
-		double phi = y/2;
-		double lam = x/2; // I used equirectangular for my initial guess
+	public static final double[] newtonRaphsonApproximation(double x, double y,
+			double phi0, double lam0, VectorFunction f1, VectorFunction f2,
+			VectorFunction df1dp, VectorFunction df1dl, VectorFunction df2dp,
+			VectorFunction df2dl, double tolerance, double... constants) {
+		double phi = phi0;
+		double lam = lam0;
 		double error = Math.PI;
 		
 		for (int i = 0; i < 5 && error > tolerance; i++) {
-			final double f1 = fxpX.evaluate(phi, lam, params) - x;
-			final double f2 = fypY.evaluate(phi, lam, params) - y;
-			final double df1dP = dfxdp.evaluate(phi, lam, params);
-			final double df1dL = dfxdl.evaluate(phi, lam, params);
-			final double df2dP = dfydp.evaluate(phi, lam, params);
-			final double df2dL = dfydl.evaluate(phi, lam, params);
+			final double F1mx = f1.evaluate(phi, lam, constants) - x;
+			final double F2my = f2.evaluate(phi, lam, constants) - y;
+			final double dF1dP = df1dp.evaluate(phi, lam, constants);
+			final double dF1dL = df1dl.evaluate(phi, lam, constants);
+			final double dF2dP = df2dp.evaluate(phi, lam, constants);
+			final double dF2dL = df2dl.evaluate(phi, lam, constants);
 			
-			phi -= (f1*df2dL - f2*df1dL) / (df1dP*df2dL - df2dP*df1dL);
-			lam -= (f2*df1dP - f1*df2dP) / (df1dP*df2dL - df2dP*df1dL);
+			phi -= (F1mx*dF2dL - F2my*dF1dL) / (dF1dP*dF2dL - dF2dP*dF1dL);
+			lam -= (F2my*dF1dP - F1mx*dF2dP) / (dF1dP*dF2dL - dF2dP*dF1dL);
 			
-			error = Math.hypot(f1, f2);
+			error = Math.hypot(F1mx, F2my);
 		}
 		
 		if (error > tolerance) // if it aborted due to timeout
@@ -94,8 +174,8 @@ public class NumericalAnalysis {
 	 * @param x The input value
 	 * @param X The sorted array of inputs on which to interpolate
 	 * @param f The sorted array of outputs on which to interpolate
-	 * @param from The index of the arrays at which to start
-	 * @param to The index of the arrays at which to stop
+	 * @param from The index of the arrays at which to start (inclusive)
+	 * @param to The index of the arrays at which to stop (exclusive)
 	 * @return f(x), approximately
 	 */
 	public static final double aitkenInterpolate(double x,
@@ -118,6 +198,11 @@ public class NumericalAnalysis {
 	}
 	
 	
+	
+	@FunctionalInterface
+	public interface ScalarFunction {
+		public double evaluate(double x, double[] constants);
+	}
 	
 	@FunctionalInterface
 	public interface VectorFunction {

@@ -64,9 +64,9 @@ public abstract class MapApplication extends Application {
 	private static final String[] ASPECT_NAMES = { "Standard", "Transverse", "Center of Mass", "Jerusalem", "Point Nemo",
 			"Longest Line", "Longest Line Transverse", "Cylindrical", "Conic", "Tetrahedral", "Quincuncial", "Antipode", "Random" };
 	private static final double[][] ASPECT_VALS = {
-			{ 90., 0., 29.9792, 31.7833, 48.8767, -28.5217,-46.4883,-35.,    -10.,  47., 60. },
-			{  0., 0., 31.1344, 35.2160, 56.6067, 141.451,  16.5305,-13.6064, 65.,-173., -6. },
-			{  0., 0.,-32.,    -35.,    -45.,     161.5,   137.,    145.,   -150., 138.,-10. } };
+			{ 90., 0., 29.98, 31.78, 48.88, -28.52,-46.4883,-35.,  -10.,  47., 60. },
+			{  0., 0., 31.13, 35.22, 56.61, 141.45, 16.5305,-13.61, 65.,-173., -6. },
+			{  0., 0.,-32.,  -35.,  -45.,   161.5, 137.,    145., -150., 138.,-10. } };
 	
 	
 	final private String name;
@@ -107,6 +107,7 @@ public abstract class MapApplication extends Application {
 	 */
 	protected Region buildInputSelector(
 			FileChooser.ExtensionFilter[] allowedExtensions,
+			FileChooser.ExtensionFilter defaultExtension,
 			Consumer<File> inputSetter) {
 		final Label label = new Label("Current input:");
 		final Text inputLabel = new Text("None");
@@ -115,6 +116,7 @@ public abstract class MapApplication extends Application {
 		inputChooser.setInitialDirectory(new File("input"));
 		inputChooser.setTitle("Choose an input map");
 		inputChooser.getExtensionFilters().addAll(allowedExtensions);
+		inputChooser.setSelectedExtensionFilter(defaultExtension);
 		
 		final Button loadButton = new Button("Choose input...");
 		loadButton.setTooltip(new Tooltip(
@@ -300,13 +302,15 @@ public abstract class MapApplication extends Application {
 	 */
 	protected Button buildSaveButton(boolean bindCtrlS, String savee,
 			FileChooser.ExtensionFilter[] allowedExtensions,
+			FileChooser.ExtensionFilter defaultExtension,
 			Procedure settingCollector,
 			BiConsumer<File, ProgressBarDialog> calculateAndSaver) {
 		final FileChooser saver = new FileChooser();
 		saver.setInitialDirectory(new File("output"));
-		saver.setInitialFileName("my"+savee+allowedExtensions[0].getExtensions().get(0).substring(1));
+		saver.setInitialFileName("my"+savee+defaultExtension.getExtensions().get(0).substring(1));
 		saver.setTitle("Save "+savee);
 		saver.getExtensionFilters().addAll(allowedExtensions);
+		saver.setSelectedExtensionFilter(defaultExtension);
 		
 		final Button saveButton = new Button("Save "+savee+"...");
 		saveButton.setOnAction(new EventHandler<ActionEvent>() {

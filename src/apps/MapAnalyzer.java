@@ -75,11 +75,11 @@ public class MapAnalyzer extends MapApplication {
 	private static final int CHART_WIDTH = 400;
 	private static final int ROUGH_SAMP_NUM = 250;
 	private static final int FINE_SAMP_NUM = 1000;
-	private static final double GLOBE_RES = .02;
+	private static final double GLOBE_RES = .01;
 	
 	private static final FileChooser.ExtensionFilter[] RASTER_TYPES = {
-			new FileChooser.ExtensionFilter("PNG", "*.png"),
-			new FileChooser.ExtensionFilter("JPG", "*.jpg","*.jpeg","*.jpe","*.jfif") };
+			new FileChooser.ExtensionFilter("JPG", "*.jpg","*.jpeg","*.jpe","*.jfif"),
+			new FileChooser.ExtensionFilter("PNG", "*.png") };
 	
 	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.PLATE_CARREE, Projection.GALL_PETERS,
 			Projection.HOBO_DYER, Projection.BEHRMANN, Projection.LAMBERT_CYLIND, Projection.E_A_CYLIND,
@@ -122,9 +122,9 @@ public class MapAnalyzer extends MapApplication {
 		this.updateBtn = buildUpdateButton(this::calculateAndUpdate);
 		this.updateBtn.setText("Calculate"); //I don't need to follow your darn conventions!
 		final Button saveMapBtn = buildSaveButton(true, "map", RASTER_TYPES,
-				Procedure.NONE, this::calculateAndSaveMap);
+				RASTER_TYPES[1], Procedure.NONE, this::calculateAndSaveMap);
 		final Button savePltBtn = buildSaveButton(true, "plots", RASTER_TYPES,
-				Procedure.NONE, this::calculateAndSavePlot);
+				RASTER_TYPES[1], Procedure.NONE, this::calculateAndSavePlot);
 		final HBox buttons = new HBox(5, updateBtn, saveMapBtn, savePltBtn);
 		buttons.setAlignment(Pos.CENTER);
 		
@@ -212,7 +212,7 @@ public class MapAnalyzer extends MapApplication {
 			sizeChart.getData().add(histogram(distortionG[0],
 					-2, 2, 14, Math::exp));
 			shapeChart.getData().add(histogram(distortionG[1],
-					0, 2.8, 14, (x) -> 1/(x*x/2+1-x*Math.sqrt(x*x/4+1))));
+					0, 2, 14, (x) -> 1/(x*x/2+1-x*Math.sqrt(x*x/4+1))));
 			
 			avgSizeDistort.setText(format(Math2.stdDev(distortionG[0])));
 			avgShapeDistort.setText(format(Math2.mean(distortionG[1])));
@@ -275,14 +275,14 @@ public class MapAnalyzer extends MapApplication {
 				
 				final int r, g, b;
 				if (sizeDistort < 0) { //if compressing
-					r = (int)(255.9*Math.exp(-shapeDistort/1.5));
-					g = (int)(255.9*Math.exp(-shapeDistort/1.5)*Math.exp(sizeDistort/1.5));
+					r = (int)(255.9*Math.exp(-shapeDistort*.6));
+					g = (int)(255.9*Math.exp(-shapeDistort*.6)*Math.exp(sizeDistort*.6));
 					b = g;
 				}
 				else { //if dilating
-					r = (int)(255.9*Math.exp(-shapeDistort/1.5)*Math.exp(-sizeDistort/1.5));
-					g = r;
-					b = (int)(255.9*Math.exp(-shapeDistort/1.5));
+					r = (int)(255.9*Math.exp(-shapeDistort*.6)*Math.exp(-sizeDistort*.6));
+					g = r; //I find .6 to ba a rather visually pleasing sensitivity
+					b = (int)(255.9*Math.exp(-shapeDistort*.6));
 				}
 				
 				final int argb = ((((((0xFF)<<8)+r)<<8)+g)<<8)+b;

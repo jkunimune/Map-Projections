@@ -25,6 +25,7 @@ package maps;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.DoubleConsumer;
 import java.util.function.UnaryOperator;
 
 import org.apache.commons.math3.complex.Complex;
@@ -109,8 +110,8 @@ public enum Projection {
 	},
 	
 	E_A_CYLIND("Equal-area cylindrical", "A generalized equal-area cylindrical projection",
-			Math.PI, 0b1111, "cylindrical", "equal-area",
-			new String[]{"Std. parallel"}, new double[][]{{0, 75, 37.5}}) {
+			1.977, 0b1111, "cylindrical", "equal-area",
+			new String[]{"Std. parallel"}, new double[][]{{0, 85, 37.5}}) {
 		public double[] project(double lat, double lon, double[] params) {
 			final double a = Math.pow(Math.cos(Math.toRadians(params[0])), 2);
 			return new double[] {lon, Math.sin(lat)/a};
@@ -395,17 +396,41 @@ public enum Projection {
 	},
 	
 	TOBLER("Tobler", "An equal-area projection shaped like a hyperellipse",
-			2., 0b1001, "pseudocylindrical", "equal-area",new String[]{"alpha","gamma","k"},
-			new double[][] {{0,1,0}, {1,5,2.5}, {1,2,1.831}}) {
+			2., 0b1001, "pseudocylindrical", "equal-area",new String[]{"alpha","K"},
+			new double[][] {{0,1,0}, {1,5,2.5}}) {
 				public double[] project(double lat, double lon, double[] params) {
-					return new double[] {
-							lon*Tobler.xfacFromLat(lat)*18,
-							Tobler.yFromLat(lat)*Math.PI/10 };
+					final double g = 1/NumericalAnalysis.simpsonIntegrate(0, 1,
+							Tobler::hyperEllipse, .01, params);//I think my gammaay be defined differently from Tobler's
+					final double y =
+							NumericalAnalysis.newtonRaphsonApproximation(
+									Math.abs(Math.sin(lat)), Math.abs(Math.sin(lat)),
+									Tobler::sinPhi, Tobler::dsinPhidY, .01,
+									params[0], params[1], g)*Math.signum(lat);
+					return new double[] { Tobler.X(y, lon, params), Math.PI/2*y }; //I suppose I could make this about twice as fast if I really wanted to deal with more inheritance, but this is fast enough.
 				}
 				public double[] inverse(double x, double y, double[] params) {
-					return new double[] {
-							Tobler.latFromY(5*y), //TODO: make this be real
-							x/Tobler.xfacFromY(5*y)*Math.PI/18 };
+					return new double[] { 0, Tobler.lam(x,y,params) };
+				}
+				public double[][][] map(double w, double h, double[] params, double[] pole, DoubleConsumer tracker) { //generate a matrix of coordinates based on a map projection
+					final int n = (int) h; //just so I don't forget
+					final double g = 1/NumericalAnalysis.simpsonIntegrate(0, 1,
+							Tobler::hyperEllipse, .01, params);
+					double[] z = NumericalAnalysis.simpsonODESolve(
+							1, n, Tobler::dZdY, Math.min(1./n,.01),
+							params[0], params[1], g);
+					double[][][] output = new double[(int) h][(int) w][2]; //the coordinate matrix
+					for (int y = 0; y < output.length; y ++) {
+						final double zoy;
+						if (y < output.length/2) 	zoy = z[n - 2*y - 1];
+						else 						zoy =-z[2*y + 1 - n];
+						for (int x = 0; x < output[y].length; x ++) {
+							output[y][x] = inverse((2*x+1)/w-1, 1-(2*y+1)/h, params, pole);
+							output[y][x][0] = Math.asin(zoy);
+						}
+						if (tracker != null) 	tracker.accept((double) y/output.length);
+					}
+					
+					return output;
 				}
 	},
 	
@@ -469,9 +494,10 @@ public enum Projection {
 			final double cosphi0 = Math.cos(Math.toRadians(params[0]));
 			return NumericalAnalysis.newtonRaphsonApproximation(
 					x*Math.PI*(1 + cosphi0), y*Math.PI,
-					WinkelTripel::f1pX, WinkelTripel::f2pY, WinkelTripel::df1dphi,
-					WinkelTripel::df1dlam, WinkelTripel::df2dphi, WinkelTripel::df2dlam,
-					.05, cosphi0);
+					y*Math.PI/2, x*Math.PI*(1 + Math.cos(y*Math.PI/2))/2,
+					WinkelTripel::f1pX, WinkelTripel::f2pY,
+					WinkelTripel::df1dphi, WinkelTripel::df1dlam,
+					WinkelTripel::df2dphi, WinkelTripel::df2dlam, .05, cosphi0);
 		}
 		public double getAspectRatio(double[] params) {
 			return 1 + Math.cos(Math.toRadians(params[0]));
@@ -766,13 +792,26 @@ public enum Projection {
 	}
 	
 	
-	public double[][][] map(int size, double[] params) { //generate a matrix of coordinates based on a map projection
-		final int w = size, h = (int)(size/this.getAspectRatio(params));
-		double[][][] output = new double[h][w][2]; //the coordinate matrix
+	public double[][][] map(int size, double[] params) {
+		return map(size, params, new double[] {Math.PI/2,0,0});
+	}
+	
+	public double[][][] map(int size, double[] params, double[] pole) {
+		final double ratio = this.getAspectRatio(params);
+		if (ratio < 1)
+			return map(Math.round(size*ratio), size, params, pole, null);
+		else
+			return map(size, Math.round(size/ratio), params, pole, null);
+	}
+	
+	public double[][][] map(double w, double h, double[] params, double[] pole, DoubleConsumer tracker) { //generate a matrix of coordinates based on a map projection
+		double[][][] output = new double[(int) h][(int) w][2]; //the coordinate matrix
 		
-		for (int y = 0; y < output.length; y ++)
+		for (int y = 0; y < output.length; y ++) {
 			for (int x = 0; x < output[y].length; x ++)
-				output[y][x] = inverse(2*(x+.5)/w - 1, 1 - 2*(y+.5)/h, params); //s0 is this point on the sphere
+				output[y][x] = inverse((2*x+1)/w-1, 1-(2*y+1)/h, params, pole);
+			if (tracker != null) 	tracker.accept((double) y/output.length);
+		}
 		
 		return output;
 	}
