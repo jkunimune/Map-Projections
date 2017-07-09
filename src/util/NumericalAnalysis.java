@@ -32,9 +32,6 @@ import java.util.Arrays;
  */
 public class NumericalAnalysis {
 
-	public static final void main(String[] args) {
-		System.out.println(simpsonIntegrate(-1,1, (x,prms) -> 4*Math.sqrt(1-x*x), .001, null));
-	}
 	/**
 	 * Performs a definite integral using Simpson's rule and a constant step size
 	 * @param a The start of the integration region
@@ -99,7 +96,7 @@ public class NumericalAnalysis {
 			double tolerance, double... constants) {
 		double x = x0;
 		double error = Math.PI;
-		for (int i = 0; i < 5 && error > tolerance; i ++) {
+		for (int i = 0; i < 6 && error > tolerance; i ++) {
 			error = f.evaluate(x, constants) - y;
 			final double dydx = dfdx.evaluate(x, constants);
 			x -= error/dydx;
@@ -137,7 +134,7 @@ public class NumericalAnalysis {
 		double lam = lam0;
 		double error = Math.PI;
 		
-		for (int i = 0; i < 5 && error > tolerance; i++) {
+		for (int i = 0; i < 6 && error > tolerance; i++) {
 			final double F1mx = f1.evaluate(phi, lam, constants) - x;
 			final double F2my = f2.evaluate(phi, lam, constants) - y;
 			final double dF1dP = df1dp.evaluate(phi, lam, constants);

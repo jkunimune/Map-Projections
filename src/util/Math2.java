@@ -76,5 +76,11 @@ public class Math2 {
 	public static final double mod(double x, double y) {
 		return x - Math.floor(x/y)*y;
 	}
+	
+	
+	public static final double linInterp(double x, double a0, double a1,
+			double b0, double b1) {
+		return (x-a0)*(b1-b0)/(a1-a0) + b0;
+	}
 
 }

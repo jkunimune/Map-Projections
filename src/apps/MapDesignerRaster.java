@@ -159,14 +159,14 @@ public class MapDesignerRaster extends MapApplication {
 	}
 	
 	
-	protected void collectFinalSettings() {
+	private void collectFinalSettings() {
 		final double ratio = getProjection().getAspectRatio(this.getParams());
 		this.configDialog = new MapConfigurationDialog(ratio);
 		this.configDialog.showAndWait();
 	}
 	
 	
-	protected void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
+	private void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
 		final int[] outDims = configDialog.getDims();
 		final int smoothing = configDialog.getSmoothing();
 		double[][][] points =this.getProjection().map(
@@ -209,7 +209,7 @@ public class MapDesignerRaster extends MapApplication {
 	}
 	
 	
-	public static int getArgb(double[] coords, PixelReader in,
+	private static int getArgb(double[] coords, PixelReader in,
 			double inWidth, double inHeight) { // returns the color of any coordinate on earth
 		if (coords == null) 	return 0;
 		

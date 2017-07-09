@@ -24,6 +24,8 @@
 package maps;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.function.DoubleConsumer;
 import java.util.function.UnaryOperator;
@@ -398,40 +400,44 @@ public enum Projection {
 	TOBLER("Tobler", "An equal-area projection shaped like a hyperellipse",
 			2., 0b1001, "pseudocylindrical", "equal-area",new String[]{"alpha","K"},
 			new double[][] {{0,1,0}, {1,5,2.5}}) {
-				public double[] project(double lat, double lon, double[] params) {
-					final double g = 1/NumericalAnalysis.simpsonIntegrate(0, 1,
-							Tobler::hyperEllipse, .01, params);//I think my gammaay be defined differently from Tobler's
-					final double y =
-							NumericalAnalysis.newtonRaphsonApproximation(
-									Math.abs(Math.sin(lat)), Math.abs(Math.sin(lat)),
-									Tobler::sinPhi, Tobler::dsinPhidY, .01,
-									params[0], params[1], g)*Math.signum(lat);
-					return new double[] { Tobler.X(y, lon, params), Math.PI/2*y }; //I suppose I could make this about twice as fast if I really wanted to deal with more inheritance, but this is fast enough.
-				}
-				public double[] inverse(double x, double y, double[] params) {
-					return new double[] { 0, Tobler.lam(x,y,params) };
-				}
-				public double[][][] map(double w, double h, double[] params, double[] pole, DoubleConsumer tracker) { //generate a matrix of coordinates based on a map projection
-					final int n = (int) h; //just so I don't forget
-					final double g = 1/NumericalAnalysis.simpsonIntegrate(0, 1,
-							Tobler::hyperEllipse, .01, params);
-					double[] z = NumericalAnalysis.simpsonODESolve(
-							1, n, Tobler::dZdY, Math.min(1./n,.01),
-							params[0], params[1], g);
-					double[][][] output = new double[(int) h][(int) w][2]; //the coordinate matrix
-					for (int y = 0; y < output.length; y ++) {
-						final double zoy;
-						if (y < output.length/2) 	zoy = z[n - 2*y - 1];
-						else 						zoy =-z[2*y + 1 - n];
-						for (int x = 0; x < output[y].length; x ++) {
-							output[y][x] = inverse((2*x+1)/w-1, 1-(2*y+1)/h, params, pole);
-							output[y][x][0] = Math.asin(zoy);
-						}
-						if (tracker != null) 	tracker.accept((double) y/output.length);
-					}
-					
-					return output;
-				}
+		private double[] Z; //Z[i] = sin(phi) when y = i/(Z.length-1)
+		private void generateZ(int n, double[] params) {
+			final double g = 1/NumericalAnalysis.simpsonIntegrate(0, 1,
+					Tobler::hyperEllipse, .0001, params);
+			Z = NumericalAnalysis.simpsonODESolve(1, n,
+					Tobler::dZdY, Math.min(1./n,.0001),
+					params[0], params[1], g);
+		}
+		public List<List<double[]>> transform(List<List<double[]>> curves, int step,
+				double[] params, double[] pole, DoubleConsumer tracker) {
+			generateZ(10000, params);
+			return super.transform(curves, step, params, pole, tracker); //sneak z in where params used to be
+		}
+		public double[] project(double lat, double lon, double[] params) {
+			if (Z == null) 	generateZ(10000, params);
+			final double z0 = Math.abs(Math.sin(lat));
+			final int i = Arrays.binarySearch(Z, z0);
+			final double y;
+			if (i >= 0)
+				y = i/(Z.length-1.);
+			else
+				y = Math2.linInterp(z0, Z[-i-2], Z[-i-1], -i-2, -i-1)/
+						(Z.length-1.);
+			return new double[] {
+					Tobler.X(y, lon, params), Math.PI/2*y*Math.signum(lat) };
+		}
+		public double[][][] map(double w, double h, double[] params, double[] pole, DoubleConsumer tracker) { //generate a matrix of coordinates based on a map projection
+			final int n = (int) h; //just so I don't forget
+			generateZ(n, params);
+			final double[][][] output = super.map(w, h, params, pole, tracker);
+			Z = null; // set this to null so no one else accidentally uses it
+			return output;
+		}
+		public double[] inverse(double x, double y, double[] params) {
+			return new double[] {
+					Math.asin(Z[(int)Math.round(Math.abs(y)*(Z.length-1))])*Math.signum(y),
+					Tobler.lam(x,y,params) };
+		}
 	},
 	
 	VAN_DER_GRINTEN("Van der Grinten", "A circular compromise map that is popular for some reason",
@@ -497,7 +503,7 @@ public enum Projection {
 					y*Math.PI/2, x*Math.PI*(1 + Math.cos(y*Math.PI/2))/2,
 					WinkelTripel::f1pX, WinkelTripel::f2pY,
 					WinkelTripel::df1dphi, WinkelTripel::df1dlam,
-					WinkelTripel::df2dphi, WinkelTripel::df2dlam, .05, cosphi0);
+					WinkelTripel::df2dphi, WinkelTripel::df2dlam, .002, cosphi0);
 		}
 		public double getAspectRatio(double[] params) {
 			return 1 + Math.cos(Math.toRadians(params[0]));
@@ -778,6 +784,10 @@ public enum Projection {
 		return project(coords[0], coords[1], params);
 	}
 	
+	public double[] project(double[] coords, double[] params, double[] pole) {
+		return project(coords[0], coords[1], params, pole);
+	}
+	
 	public double[] project(double lat, double lon, double[] params, double[] pole) {
 		return project(obliquifySphc(lat, lon, pole), params);
 	}
@@ -787,8 +797,33 @@ public enum Projection {
 		return inverse(coords[0], coords[1], params);
 	}
 	
+	public double[] inverse(double[] coords, double[] params, double[] pole) {
+		return inverse(coords[0], coords[1], params, pole);
+	}
+	
 	public double[] inverse(double x, double y, double[] params, double[] pole) {
 		return obliquifyPlnr(inverse(x, y, params), pole);
+	}
+	
+	
+	public List<List<double[]>> transform(List<List<double[]>> curves, int step,
+			double[] params, double[] pole, DoubleConsumer tracker) {
+		List<List<double[]>> output = new LinkedList<List<double[]>>();
+		int i = 0;
+		for (List<double[]> curve0: curves) {
+			if (curve0.size() < step*3)	continue;
+			
+			List<double[]> curve1 = new ArrayList<double[]>(curve0.size()/step);
+			for (int j = 0; j < curve0.size(); j += step)
+				curve1.add(project(curve0.get(j), params, pole));
+			output.add(curve1);
+			
+			if (tracker != null) {
+				i ++;
+				tracker.accept((double)i/curves.size());
+			}
+		}
+		return output;
 	}
 	
 	

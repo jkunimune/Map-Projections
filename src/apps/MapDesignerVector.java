@@ -29,7 +29,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import dialogs.ProgressBarDialog;
 import javafx.geometry.Insets;
@@ -46,6 +45,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import maps.Projection;
+import util.Math2;
 import util.Procedure;
 
 /**
@@ -102,7 +102,7 @@ public class MapDesignerVector extends MapApplication {
 	
 	
 	@Override
-	public Node makeWidgets() {
+	protected Node makeWidgets() {
 		this.aspect = new double[3];
 		final Node inputSelector = buildInputSelector(VECTOR_TYPES,
 				VECTOR_TYPES[0], this::setInput);
@@ -194,7 +194,7 @@ public class MapDesignerVector extends MapApplication {
 						double y = Double.parseDouble(num);
 						if (y < minY)	minY = y;
 						if (y > maxY)	maxY = y;
-						currentShape.add(new double[] {x, y});
+						currentShape.add(new double[] {x,y});
 						numVtx ++;
 					}
 					else {
@@ -209,12 +209,29 @@ public class MapDesignerVector extends MapApplication {
 		
 		format.add(formatStuff);
 		in.close();
+		
+		for (List<double[]> curve: input) {
+			for (double[] coords: curve) {
+				final double[] radCoords = convCoordsToMathy(coords);
+				coords[0] = radCoords[0];
+				coords[1] = radCoords[1];
+			}
+		}
 		return input;
 	}
 	
 	
 	private void updateMap() {
-		drawImage(map(DEF_MAX_VTX, null), viewer);
+		final List<List<double[]>> transformed = this.getProjection().transform(
+				input, numVtx/DEF_MAX_VTX+1, this.getParams(), aspect, null);
+		drawImage(transformed, viewer);
+	}
+	
+	
+	private void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
+		final List<List<double[]>> transformed = this.getProjection().transform(
+				input, 1, this.getParams(), aspect, pBar::setProgress); //calculate
+		saveToSVG(transformed, file, pBar); //save
 	}
 	
 	
@@ -222,11 +239,12 @@ public class MapDesignerVector extends MapApplication {
 		GraphicsContext g = c.getGraphicsContext2D();
 		g.clearRect(0, 0, c.getWidth(), c.getHeight());
 		for (List<double[]> closedCurve: img) {
+			final double[] start = convCoordsToImg(closedCurve.get(0));
 			g.beginPath();
-			g.moveTo(closedCurve.get(0)[0], closedCurve.get(0)[1]);
+			g.moveTo(start[0], start[1]);
 			for (int i = 1; i < closedCurve.size()+1; i ++) {
-				double[] p0 = closedCurve.get(i-1);
-				double[] p1 = closedCurve.get(i%closedCurve.size());
+				double[] p0 = convCoordsToImg(closedCurve.get(i-1));
+				double[] p1 = convCoordsToImg(closedCurve.get(i%closedCurve.size()));
 				if (Math.hypot(p1[0]-p0[0], p1[1]-p0[1]) >= c.getWidth()/10) {
 					g.stroke();
 					g.beginPath();
@@ -237,12 +255,6 @@ public class MapDesignerVector extends MapApplication {
 			}
 			g.stroke();
 		}
-	}
-	
-	
-	private void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
-		List<List<double[]>> map = map(0, pBar); //calculate
-		saveToSVG(map, file, pBar); //save
 	}
 	
 	
@@ -274,60 +286,25 @@ public class MapDesignerVector extends MapApplication {
 	}
 	
 	
-	private List<List<double[]>> map(int maxVtx,
-			ProgressBarDialog pbar) {
-		final Projection proj = this.getProjection();
-		final double[] params = this.getParams();
-		
-		int step = maxVtx==0 ? 1 : numVtx/maxVtx+1;
-		List<List<double[]>> output = new LinkedList<List<double[]>>();
-		
-		int i = 0;
-		for (List<double[]> curve0: input) {
-			if (curve0.size() < step*3)	continue;
-			
-			List<double[]> curve1 = new ArrayList<double[]>(curve0.size()/step);
-			for (int j = 0; j < curve0.size(); j += step) {
-				double[] radCoords = convCoordsToMathy(curve0.get(j));
-				double[] plnCoords = proj.project(radCoords[0],radCoords[1],params,aspect);
-				curve1.add(convCoordsToImg(plnCoords));
-			}
-			output.add(curve1);
-			
-			if (pbar != null) {
-				i ++;
-				pbar.setProgress((double)i/input.size());
-			}
-		}
-		
-		return output;
-	}
-	
-	
-	private double[] convCoordsToMathy(double[] coords) { // changes svg coordinates to radians
-		final double NORTHMOST = 1.459095;
+	private double[] convCoordsToMathy(double... coords) { // changes svg coordinates to radians
+		final double NORTHMOST = 1.459095; //TODO: use image height and width
 		final double SOUTHMOST = -1.4868809;
 		final double EASTMOST = -Math.PI;
 		final double WESTMOST = Math.PI;
-		return new double[] {linMap(coords[1], minY,maxY, SOUTHMOST,NORTHMOST),
-				linMap(coords[0], minX,maxX, EASTMOST,WESTMOST)};
+		return new double[] {Math2.linInterp(coords[1], minY,maxY, SOUTHMOST,NORTHMOST),
+				Math2.linInterp(coords[0], minX,maxX, EASTMOST,WESTMOST)};
 	}
 	
 	
-	private double[] convCoordsToImg(double[] coords) { // changes [-1,1] coordinates to image coordinates
-		return new double[] {linMap(coords[0], -Math.PI,Math.PI, 0,IMG_WIDTH),
-				linMap(coords[1], -Math.PI,Math.PI, IMG_WIDTH,0)};
+	private double[] convCoordsToImg(double... coords) { // changes [-1,1] coordinates to image coordinates
+		return new double[] {Math2.linInterp(coords[0], -Math.PI,Math.PI, 0,IMG_WIDTH),
+				Math2.linInterp(coords[1], -Math.PI,Math.PI, IMG_WIDTH,0)};
 	}
 	
 	
-	private double[] convCoordsToSVG(double[] coords) { // changes [-1,1] coordinates to image coordinates
-		return new double[] {linMap(coords[0], 0,IMG_WIDTH, -100,100),
-				linMap(coords[1], IMG_WIDTH,0, -100,100)};
-	}
-	
-	
-	private static final double linMap(double x, double a0, double a1, double b0, double b1) {
-		return (x-a0)*(b1-b0)/(a1-a0) + b0;
+	private double[] convCoordsToSVG(double... coords) { // changes image coordinates to svg coordinates
+		return new double[] {Math2.linInterp(coords[0], -Math.PI,Math.PI, -180,180), //TODO: use image height and width
+				Math2.linInterp(coords[1], -Math.PI,Math.PI, -180,180)};
 	}
 	
 	
