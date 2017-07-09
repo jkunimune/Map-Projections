@@ -85,7 +85,7 @@ public class MapOptimizer extends Application {
 		
 		ImageIO.write(
 				SwingFXUtils.fromFXImage(chart.snapshot(null, null), null),
-				"png", new File("output/graph.png"));
+				"png", new File("output/graph - optimizer.png"));
 		
 		stage.show();
 		log.close();
