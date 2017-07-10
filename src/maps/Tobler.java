@@ -23,8 +23,6 @@
  */
 package maps;
 
-import util.NumericalAnalysis;
-
 /**
  * A class of values and functions used to approximate the Tobler projection
  * 
@@ -34,35 +32,20 @@ public class Tobler {
 
 	public static final double lam(double x, double y, double[] params) {
 		final double a = params[0];
-		return Math.PI * x / (a + (1-a)*hyperEllipse(y, params));
+		return Math.PI * x / Math.abs(a + (1-a)*hyperEllipse(y, params));
 	}
 	
 	
 	public static final double X(double y, double lam, double[] params) {
 		final double a = params[0];
-		return lam * (a + (1-a)*hyperEllipse(y, params));
-	}
-	
-	
-	public static final double sinPhi(double y, double[] params) { //subtract sin(phi), once you have phi, to get error
-		final double a = params[0], g = params[2];
-		return (a*y + (1-a)*NumericalAnalysis.simpsonIntegrate(
-				0, y, Tobler::hyperEllipse, .0625, params))/
-				(a + (1-a)/g);
-	}
-	
-	
-	public static final double dsinPhidY(double y, double[] params) {
-		final double a = params[0], g = params[2];
-		return (a + (1-a)*hyperEllipse(y, params))/
-				(a + (1-a)/g);
+		return lam * Math.abs(a + (1-a)*hyperEllipse(y, params));
 	}
 	
 	
 	public static final double dZdY(double y, double[] params) {
-		final double a = params[0], g = params[2];
-		return (a + (1-a)*hyperEllipse(y, params))/
-				(a + (1-a)/g);
+		final double a = params[0], e = params[2];
+		return Math.abs((a + (1-a)*hyperEllipse(y, params))/
+				(a + (1-a)*e));
 	}
 	
 	

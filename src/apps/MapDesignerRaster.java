@@ -66,7 +66,7 @@ public class MapDesignerRaster extends MapApplication {
 			new FileChooser.ExtensionFilter("JPG", "*.jpg","*.jpeg","*.jpe","*.jfif"),
 			new FileChooser.ExtensionFilter("PNG", "*.png") };
 	
-	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.PLATE_CARREE, Projection.HOBO_DYER,
+	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.PLATE_CARREE, Projection.BEHRMANN,
 			Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
 			Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC,
 			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.AUTHAGRAPH, Projection.SINUSOIDAL,
@@ -159,10 +159,11 @@ public class MapDesignerRaster extends MapApplication {
 	}
 	
 	
-	private void collectFinalSettings() {
+	private boolean collectFinalSettings() {
 		final double ratio = getProjection().getAspectRatio(this.getParams());
 		this.configDialog = new MapConfigurationDialog(ratio);
 		this.configDialog.showAndWait();
+		return this.configDialog.getResult();
 	}
 	
 	

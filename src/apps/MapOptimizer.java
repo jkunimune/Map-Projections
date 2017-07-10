@@ -72,8 +72,9 @@ public class MapOptimizer extends Application {
 		PrintStream log = new PrintStream(new File("output/parameters.txt"));
 		
 		chart.getData().add(analyzeAll(globe, EXISTING_PROJECTIONS));
+//		chart.getData().add(optimizeFamily(Projection.WINKEL_TRIPEL, globe, log));
+		chart.getData().add(optimizeFamily(Projection.TOBLER, globe, log));
 		chart.getData().add(optimizeFamily(Projection.HYPERELLIPOWER, globe, log));
-		chart.getData().add(optimizeFamily(Projection.WINKEL_TRIPEL, globe, log));
 		chart.getData().add(optimizeFamily(Projection.TETRAPOWER, globe, log));
 		chart.getData().add(optimizeFamily(Projection.TETRAFILLET, globe, log));
 		

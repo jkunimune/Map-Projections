@@ -72,6 +72,8 @@ public class MapAnalyzer extends MapApplication {
 	
 	
 	
+	private static final double LN_10 = Math.log(10);
+	
 	private static final int CHART_WIDTH = 400;
 	private static final int ROUGH_SAMP_NUM = 250;
 	private static final int FINE_SAMP_NUM = 1000;
@@ -122,9 +124,9 @@ public class MapAnalyzer extends MapApplication {
 		this.updateBtn = buildUpdateButton(this::calculateAndUpdate);
 		this.updateBtn.setText("Calculate"); //I don't need to follow your darn conventions!
 		final Button saveMapBtn = buildSaveButton(true, "map", RASTER_TYPES,
-				RASTER_TYPES[1], Procedure.NONE, this::calculateAndSaveMap);
+				RASTER_TYPES[1], ()->true, this::calculateAndSaveMap);
 		final Button savePltBtn = buildSaveButton(true, "plots", RASTER_TYPES,
-				RASTER_TYPES[1], Procedure.NONE, this::calculateAndSavePlot);
+				RASTER_TYPES[1], ()->true, this::calculateAndSavePlot);
 		final HBox buttons = new HBox(5, updateBtn, saveMapBtn, savePltBtn);
 		buttons.setAlignment(Pos.CENTER);
 		
@@ -209,14 +211,14 @@ public class MapAnalyzer extends MapApplication {
 				Projection.globe(GLOBE_RES), params);
 		
 		Platform.runLater(() -> {
-			sizeChart.getData().add(histogram(distortionG[0],
-					-2, 2, 14, Math::exp));
-			shapeChart.getData().add(histogram(distortionG[1],
-					0, 2, 14, (x) -> 1/(x*x/2+1-x*Math.sqrt(x*x/4+1))));
-			
-			avgSizeDistort.setText(format(Math2.stdDev(distortionG[0])));
-			avgShapeDistort.setText(format(Math2.mean(distortionG[1])));
-		});
+				sizeChart.getData().add(histogram(distortionG[0],
+						-LN_10, LN_10, 14, Math::exp));
+				shapeChart.getData().add(histogram(distortionG[1],
+						   0.0, LN_10, 14, Math::exp));
+				
+				avgSizeDistort.setText(format(Math2.stdDev(distortionG[0])));
+				avgShapeDistort.setText(format(Math2.mean(distortionG[1])));
+			});
 	}
 	
 	

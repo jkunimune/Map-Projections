@@ -46,7 +46,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import maps.Projection;
 import util.Math2;
-import util.Procedure;
 
 /**
  * An application to make vector oblique aspects of map projections
@@ -64,7 +63,7 @@ public class MapDesignerVector extends MapApplication {
 	private static final FileChooser.ExtensionFilter[] VECTOR_TYPES = {
 			new FileChooser.ExtensionFilter("SVG", "*.svg") };
 	
-	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.PLATE_CARREE, Projection.HOBO_DYER,
+	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.PLATE_CARREE, Projection.BEHRMANN,
 			Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
 			Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC,
 			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.SINUSOIDAL, Projection.MOLLWEIDE,
@@ -112,7 +111,7 @@ public class MapDesignerVector extends MapApplication {
 				this::updateMap);
 		final Node parameterSelector = buildParameterSelector(this::updateMap);
 		this.saveBtn = buildSaveButton(true, "map", VECTOR_TYPES,
-				VECTOR_TYPES[0], Procedure.NONE, this::calculateAndSaveMap);
+				VECTOR_TYPES[0], ()->true, this::calculateAndSaveMap);
 		
 		final VBox layout = new VBox(5,
 				inputSelector, new Separator(), projectionSelector,

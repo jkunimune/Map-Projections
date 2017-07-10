@@ -27,10 +27,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.imageio.ImageIO;
 
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Scene;
 import javafx.scene.chart.NumberAxis;
@@ -42,7 +47,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import maps.Projection;
-import util.Math2;
 
 /**
  * A simple script that creates an annotated ScatterPlot of map projections
@@ -54,12 +58,15 @@ public class MapPlotter extends Application {
 	
 	private static final Projection[] COMMON = { Projection.STEREOGRAPHIC, Projection.LAMBERT_CONIC,
 			Projection.MERCATOR, Projection.POLAR, Projection.E_D_CONIC, Projection.PLATE_CARREE,
-			Projection.E_A_AZIMUTH, Projection.ALBERS, Projection.HOBO_DYER, Projection.VAN_DER_GRINTEN,
-			Projection.ROBINSON, Projection.WINKEL_TRIPEL };
+			Projection.E_A_AZIMUTH, Projection.ALBERS, Projection.GALL_PETERS, Projection.VAN_DER_GRINTEN,
+			Projection.ROBINSON, Projection.WINKEL_TRIPEL, Projection.ORTHOGRAPHIC };
 	private static final Projection[] UNCOMMON = { Projection.PEIRCE_QUINCUNCIAL, Projection.LEE, Projection.TOBLER,
-			Projection.MOLLWEIDE, Projection.AITOFF };
+			Projection.BEHRMANN, Projection.AITOFF };
 	private static final Projection[] INVENTED = { Projection.HYPERELLIPOWER, Projection.TETRAPOWER,
 			Projection.TETRAFILLET };
+	
+	
+	private StackPane stack;
 	
 	
 	
@@ -72,63 +79,82 @@ public class MapPlotter extends Application {
 	public void start(Stage root) {
 		final ScatterChart<Number, Number> plot =
 				new ScatterChart<Number, Number>(
-				new NumberAxis("Size distortion", 0, 3, 0.2),
-				new NumberAxis("Shape distortion", 0, 3, 0.2));
+				new NumberAxis("Size distortion", 0, 2.4, 0.2),
+				new NumberAxis("Shape distortion", 0, 1.2, 0.2));
 		final AnchorPane overlay = new AnchorPane();
-		final StackPane stack = new StackPane(plot, overlay);
+		stack = new StackPane(plot, overlay);
+		
 		final List<Label> labels = new LinkedList<Label>();
-		final List<double[]> coords = new LinkedList<double[]>();
+		final List<Data<Number,Number>> data = new LinkedList<Data<Number,Number>>();
 		final double[][][] points = Projection.globe(.02);
 		
-		plotProjections(plot, overlay, labels, coords, COMMON, "Common", points);
-		plotProjections(plot, overlay, labels, coords, UNCOMMON, "Hipster", points);
-		plotProjections(plot, overlay, labels, coords, INVENTED, "Mine", points);
+		plotProjections(plot, overlay, labels, data, COMMON, "Common", points);
+		plotProjections(plot, overlay, labels, data, UNCOMMON, "Hipster", points);
+		plotProjections(plot, overlay, labels, data, INVENTED, "Mine", points);
+		
+		final ChangeListener<Number> listener = new ChangeListener<Number>() {
+			final Timer timer = new Timer();
+			TimerTask task = null;
+			@Override
+			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+				if (task != null) 	task.cancel();
+				task = new TimerTask() {
+					public void run() {
+						drawLabelsAndSave(plot, labels, data);
+					}
+				};
+				timer.schedule(task, 100);
+			}
+		};
+		plot.widthProperty().addListener(listener);
+		plot.heightProperty().addListener(listener);
 		
 		root.setTitle("Map Projections");
 		root.setScene(new Scene(stack));
 		root.show();
-		
-		addLabels(plot, labels, coords);
-		
-		try {
-			ImageIO.write(
-					SwingFXUtils.fromFXImage(stack.snapshot(null, null), null),
-					"png", new File("output/graph - plotter.png"));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	
 	private static void plotProjections(ScatterChart<Number, Number> chart,
-			AnchorPane overlay, List<Label> labels, List<double[]> coords,
+			AnchorPane overlay, List<Label> labels, List<Data<Number,Number>> data,
 			Projection[] projections, String name, double[][][] points) {
 		final Series<Number, Number> series = new Series<Number, Number>();
 		series.setName(name);
 		
 		for (Projection projection: projections) {
 			final double[] params = projection.getDefaultParameters();
-			final double distortion[][][] = projection.calculateDistortion(points, params);
-			final double sizeDist = Math2.stdDev(distortion[0]);
-			final double anglDist = Math2.mean(distortion[1]);
-			series.getData().add(new Data<Number, Number>(sizeDist, anglDist));
+			final double distortion[] = projection.avgDistortion(points, params);
+			final Data<Number, Number> datum = new Data<Number, Number>(distortion[0], distortion[1]);
+			series.getData().add(datum);
 			final Label lbl = new Label(projection.getName());
 			overlay.getChildren().add(lbl);
 			labels.add(lbl);
-			coords.add(new double[] {sizeDist, anglDist});
+			data.add(datum);
 		}
 		
 		chart.getData().add(series);
 	}
 	
 	
-	private static void addLabels(ScatterChart<Number,Number> chart, List<Label> labels, List<double[]> coords) {
+	private void drawLabelsAndSave(ScatterChart<Number,Number> chart,
+			List<Label> labels, List<Data<Number,Number>> data) {
 		for (int i = 0; i < labels.size(); i ++) {
 			AnchorPane.setLeftAnchor(labels.get(i),
-					chart.getXAxis().localToParent(chart.getXAxis().getDisplayPosition(coords.get(i)[0]), 0).getX() + chart.getPadding().getLeft());
-			AnchorPane.setBottomAnchor(labels.get(i),
-					chart.getHeight()-chart.getYAxis().localToParent(0, chart.getYAxis().getDisplayPosition(coords.get(i)[1])).getY() + chart.getPadding().getBottom());
+					chart.getXAxis().localToParent(chart.getXAxis().getDisplayPosition(data.get(i).getXValue()), 0).getX() + chart.getPadding().getLeft()
+					+ 3);
+			AnchorPane.setTopAnchor(labels.get(i),
+					chart.getYAxis().localToParent(0, chart.getYAxis().getDisplayPosition(data.get(i).getYValue())).getY() + chart.getPadding().getTop() - labels.get(i).getHeight()
+					);
 		}
+		Platform.runLater(() -> {
+				try {
+					ImageIO.write(
+							SwingFXUtils.fromFXImage(stack.snapshot(null, null), null),
+							"png", new File("output/graph - plotter.png"));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			});
 	}
 
 }

@@ -397,16 +397,16 @@ public enum Projection {
 		}
 	},
 	
-	TOBLER("Tobler", "An equal-area projection shaped like a hyperellipse",
+	TOBLER("Tobler", "An equal-area projection shaped like a hyperellipse (in case you're wondering about gamma, it's calculated automatically)",
 			2., 0b1001, "pseudocylindrical", "equal-area",new String[]{"alpha","K"},
-			new double[][] {{0,1,0}, {1,5,2.5}}) {
+			new double[][] {{0,1,0}, {1,8,2.5}}) {
 		private double[] Z; //Z[i] = sin(phi) when y = i/(Z.length-1)
 		private void generateZ(int n, double[] params) {
-			final double g = 1/NumericalAnalysis.simpsonIntegrate(0, 1,
+			final double e = NumericalAnalysis.simpsonIntegrate(0, 1,
 					Tobler::hyperEllipse, .0001, params);
 			Z = NumericalAnalysis.simpsonODESolve(1, n,
 					Tobler::dZdY, Math.min(1./n,.0001),
-					params[0], params[1], g);
+					params[0], params[1], e);
 		}
 		public List<List<double[]>> transform(List<List<double[]>> curves, int step,
 				double[] params, double[] pole, DoubleConsumer tracker) {
@@ -865,7 +865,7 @@ public enum Projection {
 	
 	public double[] avgDistortion(double[][][] points, double[] params) {
 		final double[][][] distDist = calculateDistortion(points, params);
-		return new double[] { Math2.stdDev(distDist[0]), Math2.mean(distDist[1]) };
+		return new double[] {Math2.stdDev(distDist[0]), Math2.mean(distDist[1])};
 	}
 	
 	
@@ -920,9 +920,7 @@ public enum Projection {
 		
 		final double s1ps2 = Math.hypot((p1[0]-p0[0])+(p2[1]-p0[1]), (p1[1]-p0[1])-(p2[0]-p0[0]));
 		final double s1ms2 = Math.hypot((p1[0]-p0[0])-(p2[1]-p0[1]), (p1[1]-p0[1])+(p2[0]-p0[0]));
-		final double factor = Math.abs((s1ps2-s1ms2)/(s1ps2+s1ms2)); //there's some linear algebra behind this formula. Don't worry about it.
-		
-		output[1] = (1-factor)/Math.sqrt(factor);
+		output[1] = Math.abs(Math.log(Math.abs((s1ps2-s1ms2)/(s1ps2+s1ms2))));
 		
 		return output;
 	}

@@ -6,6 +6,7 @@ package apps;
 import java.io.File;
 import java.lang.reflect.Array;
 import java.util.function.BiConsumer;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.DoubleUnaryOperator;
 
@@ -132,11 +133,12 @@ public abstract class MapApplication extends Application {
 		});
 		loadButton.setTooltip(new Tooltip(
 				"Change the input image"));
-		root.addEventHandler(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {	// ctrl-O opens
-			public void handle(KeyEvent event) {
-				if (ctrlO.match(event))	loadButton.fire();
-			}
-		});
+		root.addEventHandler(KeyEvent.KEY_PRESSED, (event) -> {	// ctrl-O opens
+				if (ctrlO.match(event)) {
+					loadButton.requestFocus();
+					loadButton.fire();
+				}
+			});
 		
 		VBox output = new VBox(5, new HBox(3, label, inputLabel), loadButton);
 		output.setAlignment(Pos.CENTER);
@@ -284,8 +286,12 @@ public abstract class MapApplication extends Application {
 				"Update the current map with your parameters"));
 		
 		updateButton.setDefaultButton(true);
-		root.addEventHandler(KeyEvent.KEY_PRESSED, (KeyEvent event) -> {
-			if (ctrlEnter.match(event))	updateButton.fire(); });
+		root.addEventHandler(KeyEvent.KEY_PRESSED, (event) -> {
+				if (ctrlEnter.match(event)) {
+					updateButton.requestFocus();
+					updateButton.fire();
+				}
+			});
 		
 		return updateButton;
 	}
@@ -303,7 +309,7 @@ public abstract class MapApplication extends Application {
 	protected Button buildSaveButton(boolean bindCtrlS, String savee,
 			FileChooser.ExtensionFilter[] allowedExtensions,
 			FileChooser.ExtensionFilter defaultExtension,
-			Procedure settingCollector,
+			BooleanSupplier settingCollector,
 			BiConsumer<File, ProgressBarDialog> calculateAndSaver) {
 		final FileChooser saver = new FileChooser();
 		saver.setInitialDirectory(new File("output"));
@@ -317,21 +323,26 @@ public abstract class MapApplication extends Application {
 			public void handle(ActionEvent event) {
 				final File f = saver.showSaveDialog(root);
 				if (f != null) {
-					settingCollector.execute();
-					final ProgressBarDialog pBar = new ProgressBarDialog();
-					pBar.setContentText("Finalizing "+savee+"...");
-					pBar.show();
-					trigger(saveButton, () -> {
-							calculateAndSaver.accept(f, pBar);
-							Platform.runLater(pBar::close); });
+					if (settingCollector.getAsBoolean()) {
+						final ProgressBarDialog pBar = new ProgressBarDialog();
+						pBar.setContentText("Finalizing "+savee+"...");
+						pBar.show();
+						trigger(saveButton, () -> {
+								calculateAndSaver.accept(f, pBar);
+								Platform.runLater(pBar::close); });
+					}
 				}
 			}
 		});
 		saveButton.setTooltip(new Tooltip("Save the "+savee+" with current settings"));
 		
 		if (bindCtrlS) // ctrl+S saves
-			root.addEventHandler(KeyEvent.KEY_PRESSED, (KeyEvent event) -> {
-				if (ctrlS.match(event))	saveButton.fire(); });
+			root.addEventHandler(KeyEvent.KEY_PRESSED, (event) -> {
+				if (ctrlS.match(event)) {
+					saveButton.requestFocus();
+					saveButton.fire();
+				}
+			});
 		
 		return saveButton;
 	}
@@ -420,8 +431,8 @@ public abstract class MapApplication extends Application {
 			final Spinner<Double> spn = spinners[i];
 			final int I = i;
 			
-			sld.valueChangingProperty().addListener((observable, then, now) -> {
-					if (then) {
+			sld.valueChangingProperty().addListener((observable, prev, now) -> { //link spinner to slider
+					if (prev) {
 						if (spn.getValue() != sld.getValue())
 							spn.getValueFactory().setValue(sld.getValue());
 						doubles[I] = converter.applyAsDouble(sld.getValue());
@@ -429,11 +440,15 @@ public abstract class MapApplication extends Application {
 					}
 				});
 			
-			spn.valueProperty().addListener((observable, then, now) -> {
+			spn.valueProperty().addListener((observable, prev, now) -> { //link slider to spinner
 					if (spn.getValue() != sld.getValue())
 						sld.setValue(spn.getValue());
 					doubles[I] = converter.applyAsDouble(spn.getValue());
 					callback.execute();
+				});
+			
+			spn.focusedProperty().addListener((observable, prev, now) -> { //make spinner act rationally
+					if (!now) 	spn.increment(0);
 				});
 		}
 	}

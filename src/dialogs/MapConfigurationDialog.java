@@ -66,42 +66,29 @@ public class MapConfigurationDialog extends Dialog<Boolean> {
 		this.heightBox.setEditable(true);
 		this.widthBox.setMaxWidth(Double.MAX_VALUE);
 		
-		this.widthBox.getEditor().textProperty().addListener((ov, pv, nv) -> {	// link the Spinners
-			if (widthBox.getEditor().textProperty().isEmpty().get())	return;
-			try {
-				widthBox.increment(0);	// forces the spinner to commit its value
-			} catch (NumberFormatException e) {
-				widthBox.getEditor().textProperty().set(pv);
-				widthBox.increment(0);
-			}
-			if (realEdit) {
-				realEdit = false;
-				if (maintainRatio.isSelected()) {
+		this.widthBox.valueProperty().addListener((observable, prev, now) -> {	// link the Spinners
+				if (realEdit && maintainRatio.isSelected()) {
+					realEdit = false;
 					int prefHeight = (int)Math.floor(widthBox.getValue()/defaultRatio);
 					heightBox.getValueFactory().setValue(prefHeight);
+					realEdit = true;
 				}
-				realEdit = true;
-			}
-		});
-		
-		this.heightBox.getEditor().textProperty().addListener((ov, pv, nv) -> {
-			if (heightBox.getEditor().textProperty().isEmpty().get())	return;
-			try {
-				heightBox.increment(0);	// forces the spinner to commit its value
-			} catch (NumberFormatException e) {
-				heightBox.getEditor().textProperty().set(pv);
-				heightBox.increment(0);
-			}
-			if (realEdit) {
-				realEdit = false;
-				
-				if (maintainRatio.isSelected()) {
+			});
+		this.heightBox.valueProperty().addListener((observable, prev, now) -> {
+				if (realEdit && maintainRatio.isSelected()) {
+					realEdit = false;
 					int prefWidth = (int)Math.ceil(heightBox.getValue()*defaultRatio);
 					widthBox.getValueFactory().setValue(prefWidth);
+					realEdit = true;
 				}
-				realEdit = true;
-			}
-		});
+			});
+		
+		this.widthBox.focusedProperty().addListener((observable, prev, now) -> { //make the spinners commit their
+				if (!now) 	widthBox.increment(0);
+			});
+		this.heightBox.focusedProperty().addListener((observable, prev,now) -> { //values when focus is lost
+				if (!now) 	heightBox.increment();
+			});
 		
 		ObservableList<String> items = FXCollections.observableArrayList(
 				"None","Low","High");
@@ -113,8 +100,8 @@ public class MapConfigurationDialog extends Dialog<Boolean> {
 		this.gui.setSpacing(20);
 		
 		pane.contentTextProperty().addListener((arg0) -> {	// set it to refresh the gui when... the content texts?
-			this.updateGUI();
-		});
+				this.updateGUI();
+			});
 		this.setTitle("Save options");	// set the words on it
 		pane.setHeaderText("Please configure the final image");
 		pane.getButtonTypes().addAll(new ButtonType[] { ButtonType.OK, ButtonType.CANCEL });	// add buttons

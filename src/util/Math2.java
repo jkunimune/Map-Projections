@@ -59,6 +59,20 @@ public class Math2 {
 	}
 	
 	
+	public static final double rms(double[][] values) {
+		double ss = 0, n = 0;
+		for (double[] row: values) {
+			for (double x: row) {
+				if (Double.isFinite(x)) {
+					ss += x*x;
+					n += 1;
+				}
+			}
+		}
+		return Math.sqrt(ss/n);
+	}
+	
+	
 	public static final double combine(double n, int k) {
 		double output = 1;
 		for (int i = k; i > 0; i --) {
