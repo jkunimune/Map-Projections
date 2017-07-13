@@ -31,26 +31,26 @@ package maps;
 public class Tobler {
 
 	public static final double lam(double x, double y, double[] params) {
-		final double a = params[0];
+		final double a = params[1];
 		return Math.PI * x / Math.abs(a + (1-a)*hyperEllipse(y, params));
 	}
 	
 	
 	public static final double X(double y, double lam, double[] params) {
-		final double a = params[0];
+		final double a = params[1];
 		return lam * Math.abs(a + (1-a)*hyperEllipse(y, params));
 	}
 	
 	
 	public static final double dZdY(double y, double[] params) {
-		final double a = params[0], e = params[2];
+		final double a = params[1], e = params[0];
 		return Math.abs((a + (1-a)*hyperEllipse(y, params))/
 				(a + (1-a)*e));
 	}
 	
 	
 	public static final double hyperEllipse(double y, double[] params) {
-		final double k = params[1];
+		final double k = params[2];
 		return Math.pow(1 - Math.pow(Math.abs(y),k), 1/k);
 	}
 

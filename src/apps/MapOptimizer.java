@@ -47,7 +47,7 @@ import maps.Projection;
 public class MapOptimizer extends Application {
 
 	private static final Projection[] EXISTING_PROJECTIONS = { Projection.HOBO_DYER, Projection.ROBINSON,
-			Projection.PLATE_CARREE, Projection.LEE };
+			Projection.PLATE_CARREE, Projection.PEIRCE_QUINCUNCIAL };
 	private static final double[] WEIGHTS = { .083, .20, .33, .50, .71, 1.0, 1.4, 2.0, 3.0, 5.0, 12. };
 	private static final int NUM_DESCENT = 40;
 	private LineChart<Number, Number> chart;
@@ -68,15 +68,15 @@ public class MapOptimizer extends Application {
 				new NumberAxis("Shape distortion", 0, 1, 0.2));
 		chart.setCreateSymbols(true);
 		chart.setAxisSortingPolicy(SortingPolicy.NONE);
-		double[][][] globe = Projection.globe(0.02);
+		double[][][] globe = Projection.globe(0.01);
 		PrintStream log = new PrintStream(new File("output/parameters.txt"));
 		
 		chart.getData().add(analyzeAll(globe, EXISTING_PROJECTIONS));
 //		chart.getData().add(optimizeFamily(Projection.WINKEL_TRIPEL, globe, log));
 		chart.getData().add(optimizeFamily(Projection.TOBLER, globe, log));
-		chart.getData().add(optimizeFamily(Projection.HYPERELLIPOWER, globe, log));
-		chart.getData().add(optimizeFamily(Projection.TETRAPOWER, globe, log));
-		chart.getData().add(optimizeFamily(Projection.TETRAFILLET, globe, log));
+//		chart.getData().add(optimizeFamily(Projection.HYPERELLIPOWER, globe, log));
+//		chart.getData().add(optimizeFamily(Projection.TETRAPOWER, globe, log));
+//		chart.getData().add(optimizeFamily(Projection.TETRAFILLET, globe, log));
 		
 		System.out.println("Total time elapsed: "+
 				(System.currentTimeMillis()-startTime)/1000.+"s");
@@ -119,11 +119,10 @@ public class MapOptimizer extends Application {
 		for (int i = 0; i < params.length; i ++) 	params[i] = bounds[i][0]; //initialize params
 		
 		while (true) { //start with brute force
-			System.out.println(Arrays.toString(params));
 			double[] distortions = proj.avgDistortion(points, params);
+			System.out.println(Arrays.toString(params)+": "+Arrays.toString(distortions));
 			for (int k = 0; k < WEIGHTS.length; k ++) {
-				final double avgDist = Math.pow(distortions[0],1.5) +
-						WEIGHTS[k]*Math.pow(distortions[1],1.5);
+				final double avgDist = weighDistortion(WEIGHTS[k], distortions);
 				if (avgDist < currentBest[k][0]) {
 					currentBest[k][0] = avgDist;
 					currentBest[k][1] = distortions[0];
@@ -134,10 +133,11 @@ public class MapOptimizer extends Application {
 			
 			int i;
 			for (i = 0; i < params.length; i ++) { //iterate the parameters
-				if (params[i] < bounds[i][1]+1e-5) {
+				final double step = (bounds[i][1]-bounds[i][0])/Math.floor(Math.pow(16, 1./params.length));
+				if (params[i]+step < bounds[i][1]+1e-5) {
 					for (int j = 0; j < i; j ++)
 						params[j] = bounds[j][0];
-					params[i] += (bounds[i][1]-bounds[i][0])/Math.floor(Math.pow(16, 1./params.length));
+					params[i] += step;
 					break;
 				}
 			}

@@ -65,12 +65,26 @@ public enum Projection {
 		}
 	},
 	
-	PLATE_CARREE("Plate Carrée", 2., 0b1111, "cylindrical", "equidistant") {
+	PLATE_CARREE("Plate Carrée", 2., 0b1111, "cylindrical", "equidistant", null, "focused on the equator") {
 		public double[] project(double lat, double lon, double[] params) {
 			return new double[] {lon, lat};
 		}
 		public double[] inverse(double x, double y, double[] params) {
 			return new double[] {y*Math.PI/2, x*Math.PI};
+		}
+	},
+	
+	EQUIRECTANGULAR("Equirectangular", "A linear mapping from longitude and latitude to x and y",
+			2, 0b1111, "cylindrical", "equidistant",
+			new String[]{"Std. parallel"}, new double[][]{{0, 85, 0}}) {
+		public double[] project(double lat, double lon, double[] params) {
+			return new double[] {lon, lat/Math.cos(Math.toRadians(params[0]))};
+		}
+		public double[] inverse(double x, double y, double[] params) {
+			return new double[] {y*Math.PI/2, x*Math.PI};
+		}
+		public double getAspectRatio(double[] params) {
+			return Math.PI*Math.pow(Math.cos(Math.toRadians(params[0])), 2);
 		}
 	},
 	
@@ -83,7 +97,8 @@ public enum Projection {
 		}
 	},
 	
-	HOBO_DYER("Hobo-Dyer", 1.977, 0b1111, "cylindrical", "equal-area", "with least distortion at 37.5°") {
+	HOBO_DYER("Hobo-Dyer", 1.977, 0b1111, "cylindrical", "equal-area",
+			null, "with least distortion at 37.5°") {
 		public double[] project(double lat, double lon, double[] params) {
 			return new double[] {lon, Math.sin(lat)*Math.PI/1.977};
 		}
@@ -92,7 +107,8 @@ public enum Projection {
 		}
 	},
 	
-	BEHRMANN("Behrmann", 2.356, 0b1111, null, "cylindrical", "equal-area", "with least distortion at 30°") {
+	BEHRMANN("Behrmann", 2.356, 0b1111, "cylindrical", "equal-area",
+			null, "with least distortion at 30°") {
 		public double[] project(double lat, double lon, double[] params) {
 			return new double[] {lon, Math.sin(lat)*Math.PI/2.356};
 		}
@@ -398,45 +414,44 @@ public enum Projection {
 	},
 	
 	TOBLER("Tobler", "An equal-area projection shaped like a hyperellipse (in case you're wondering about gamma, it's calculated automatically)",
-			2., 0b1001, "pseudocylindrical", "equal-area",new String[]{"alpha","K"},
-			new double[][] {{0,1,0}, {1,8,2.5}}) {
+			2., 0b1001, "pseudocylindrical", "equal-area",new String[]{"Std. Parallel","alpha","K"},
+			new double[][] {{0,85,37.5}, {0,1,0}, {1,8,2.5}}) {
 		private double[] Z; //Z[i] = sin(phi) when y = i/(Z.length-1)
+		private double[] lastParams;
 		private void generateZ(int n, double[] params) {
 			final double e = NumericalAnalysis.simpsonIntegrate(0, 1,
 					Tobler::hyperEllipse, .0001, params);
 			Z = NumericalAnalysis.simpsonODESolve(1, n,
 					Tobler::dZdY, Math.min(1./n,.0001),
-					params[0], params[1], e);
-		}
-		public List<List<double[]>> transform(List<List<double[]>> curves, int step,
-				double[] params, double[] pole, DoubleConsumer tracker) {
-			generateZ(10000, params);
-			return super.transform(curves, step, params, pole, tracker); //sneak z in where params used to be
+					e, params[1], params[2]);
+			lastParams = params.clone();
 		}
 		public double[] project(double lat, double lon, double[] params) {
-			if (Z == null) 	generateZ(10000, params);
+			if (Z == null || !Arrays.equals(params, lastParams))
+				generateZ(10000, params);
 			final double z0 = Math.abs(Math.sin(lat));
 			final int i = Arrays.binarySearch(Z, z0);
 			final double y;
 			if (i >= 0)
 				y = i/(Z.length-1.);
+			else if (-i-1 >= Z.length)
+				y = Z[Z.length-1];
 			else
 				y = Math2.linInterp(z0, Z[-i-2], Z[-i-1], -i-2, -i-1)/
 						(Z.length-1.);
+			final double ar = Math.pow(Math.cos(Math.toRadians(params[0])),2);
 			return new double[] {
-					Tobler.X(y, lon, params), Math.PI/2*y*Math.signum(lat) };
-		}
-		public double[][][] map(double w, double h, double[] params, double[] pole, DoubleConsumer tracker) { //generate a matrix of coordinates based on a map projection
-			final int n = (int) h; //just so I don't forget
-			generateZ(n, params);
-			final double[][][] output = super.map(w, h, params, pole, tracker);
-			Z = null; // set this to null so no one else accidentally uses it
-			return output;
+					Tobler.X(y, lon, params), y*Math.signum(lat)/ar };
 		}
 		public double[] inverse(double x, double y, double[] params) {
+			if (Z == null || !Arrays.equals(params, lastParams))
+				generateZ(10000, params);
 			return new double[] {
 					Math.asin(Z[(int)Math.round(Math.abs(y)*(Z.length-1))])*Math.signum(y),
 					Tobler.lam(x,y,params) };
+		}
+		public double getAspectRatio(double[] params) {
+			return Math.pow(Math.cos(Math.toRadians(params[0])),2) * Math.PI;
 		}
 	},
 	

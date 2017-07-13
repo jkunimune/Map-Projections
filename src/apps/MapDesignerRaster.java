@@ -126,8 +126,10 @@ public class MapDesignerRaster extends MapApplication {
 		this.display.setFitWidth(IMG_WIDTH);
 		this.display.setFitHeight(IMG_WIDTH);
 		this.display.setPreserveRatio(true);
+		final StackPane pane = new StackPane(display);
+		pane.setMinWidth(IMG_WIDTH);
 		
-		final HBox gui = new HBox(10, layout, this.display);
+		final HBox gui = new HBox(10, layout, pane);
 		gui.setAlignment(Pos.CENTER);
 		StackPane.setMargin(gui, new Insets(10));
 		
