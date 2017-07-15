@@ -69,7 +69,7 @@ public class MapConfigurationDialog extends Dialog<Boolean> {
 		this.widthBox.valueProperty().addListener((observable, prev, now) -> {	// link the Spinners
 				if (realEdit && maintainRatio.isSelected()) {
 					realEdit = false;
-					int prefHeight = (int)Math.floor(widthBox.getValue()/defaultRatio);
+					int prefHeight = (int)Math.round(widthBox.getValue()/defaultRatio);
 					heightBox.getValueFactory().setValue(prefHeight);
 					realEdit = true;
 				}
@@ -77,7 +77,7 @@ public class MapConfigurationDialog extends Dialog<Boolean> {
 		this.heightBox.valueProperty().addListener((observable, prev, now) -> {
 				if (realEdit && maintainRatio.isSelected()) {
 					realEdit = false;
-					int prefWidth = (int)Math.ceil(heightBox.getValue()*defaultRatio);
+					int prefWidth = (int)Math.round(heightBox.getValue()*defaultRatio);
 					widthBox.getValueFactory().setValue(prefWidth);
 					realEdit = true;
 				}
@@ -87,7 +87,7 @@ public class MapConfigurationDialog extends Dialog<Boolean> {
 				if (!now) 	widthBox.increment(0);
 			});
 		this.heightBox.focusedProperty().addListener((observable, prev,now) -> { //values when focus is lost
-				if (!now) 	heightBox.increment();
+				if (!now) 	heightBox.increment(0);
 			});
 		
 		ObservableList<String> items = FXCollections.observableArrayList(

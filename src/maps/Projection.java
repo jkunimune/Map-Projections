@@ -667,12 +667,21 @@ public enum Projection {
 			new double[][] {{1,5,3.7308},{.5,2.,1.2027},{.5,2.,1.1443}}) {
 		public double[] project(double lat, double lon, double[] params) {
 			final double k = params[0], n = params[1], a = params[2];
+			final double ynorm = (1-Math.pow(1-Math.abs(lat/(Math.PI/2)), n));
 			return new double[] {
-					Math.pow(1 - Math.pow(Math.abs(lat/(Math.PI/2)), k),1/k)*lon,
-					(1-Math.pow(1-Math.abs(lat/(Math.PI/2)), n))/Math.sqrt(n)*Math.signum(lat)*Math.PI/2*a};
+					Math.pow(1 - Math.pow(ynorm, k),1/k)*lon,
+					ynorm*Math.PI/2/Math.sqrt(n)*a*Math.signum(lat)
+				};
 		}
 		public double[] inverse(double x, double y, double[] params) {
-			return null;
+			final double k = params[0], n = params[1];
+			return new double[] {
+					(1 - Math.pow(1-Math.abs(y), 1/n))*Math.PI/2*Math.signum(y),
+					x/Math.pow(1 - Math.pow(Math.abs(y),k),1/k)*Math.PI };
+		}
+		public double getAspectRatio(double[] params) {
+			final double n = params[1], a = params[2];
+			return 2*Math.sqrt(n)/a;
 		}
 	},
 	
@@ -687,19 +696,34 @@ public enum Projection {
 				final double thtP = Math.PI/3*(1 - Math.pow(1-Math.abs(tht)/(Math.PI/2),k1))/(1 - 1/Math.pow(3,k1))*Math.signum(tht);
 				final double kRad = k3*Math.abs(thtP)/(Math.PI/3) + k2*(1-Math.abs(thtP)/(Math.PI/3));
 				final double rmax = .5/Math.cos(thtP); //the max normalized radius of this triangle (in the plane)
-				final double rtgf = Math.atan(1/Math.tan(coordR[0])*Math.cos(tht))/Math.atan(Math.sqrt(2))*rmax; //normalized tetragraph radius
+				final double rtgf = Math.atan(1/Math.tan(coordR[0])*Math.cos(tht))/Math.atan(Math.sqrt(2))*rmax;
 				return new double[] {
 						(1 - Math.pow(1-rtgf,kRad))/(1 - Math.pow(1-rmax,kRad))*rmax*2*Math.PI/3,
 						thtP + t0 };
 			});
 		}
 		public double[] inverse(double x, double y, double[] params) {
-			return null;
+			final double k1 = params[0], k2 = params[1], k3 = params[2];
+			final double[] doubles = tetrahedralProjectionInverse(x,y);
+			final double[] faceCenter = { doubles[0], doubles[1], doubles[2] };
+			final double tht = doubles[3], xp = doubles[4], yp = doubles[5];
+			final double R = Math.hypot(xp, yp)*Math.sqrt(3)/2;
+			final double t = Math.atan2(yp, xp) + tht;
+			final double t0 = Math.floor((t+Math.PI/2)/(2*Math.PI/3)+0.5)*(2*Math.PI/3) - Math.PI/2;
+			final double thtP = t-t0;
+			final double lamS = (1-Math.pow(1-Math.abs(thtP)*(1-1/Math.pow(3,k1))/(Math.PI/3), 1/k1))*Math.PI/2*Math.signum(thtP);
+			final double kRad = k3*Math.abs(thtP)/(Math.PI/3) + k2*(1-Math.abs(thtP)/(Math.PI/3));
+			final double rmax = .5/Math.cos(thtP); //the max normalized radius of this triangle (in the plane)
+			final double rtgf = 1-Math.pow(1-R/rmax*(1-Math.pow(Math.abs(1-rmax), kRad)), 1/kRad); //normalized tetragraph radius
+			double[] triCoords = {
+					Math.atan(Math.cos(lamS)/Math.tan(rtgf/rmax*Math.atan(Math.sqrt(2)))),
+					Math.PI/2 + t0 + lamS };
+			return obliquifyPlnr(triCoords, faceCenter);
 		}
 	},
 	
 	TETRAFILLET("Tetrafillet", "A parametric projection that I'm still testing",
-			2., 0b1111, "other", "compromise", new String[] {"k1","k2","k3"},
+			Math.sqrt(3), 0b1111, "other", "compromise", new String[] {"k1","k2","k3"},
 			new double[][] {{.25,4.,1.1598},{.25,4.,.36295},{.25,4.,1.9553}}) {
 		public double[] project(double lat, double lon, double[] params) {
 			final double k1 = params[0], k2 = params[1], k3 = params[2];
@@ -708,7 +732,9 @@ public enum Projection {
 				final double tht = coordR[1] - t0;
 				final double thtP = Math.PI/3*(1 - Math.pow(1-Math.abs(tht)/(Math.PI/2),k1))/(1 - 1/Math.pow(3,k1))*Math.signum(tht);
 				final double kRad = k3*Math.abs(thtP)/(Math.PI/3) + k2*(1-Math.abs(thtP)/(Math.PI/3));
-				final double rmax = 1/2. + 1/4.*Math.pow(thtP,2) + 5/48.*Math.pow(thtP,4) - .132621*Math.pow(thtP,6); //the max normalized radius of this triangle (in the plane)
+				final double rmax; //the max normalized radius of this triangle (in the plane)
+				if (Math.abs(thtP) < .70123892) 	rmax = .5/Math.cos(thtP);
+				else 	rmax = .75 - 1.5972774*Math.pow(Math.PI/3-Math.abs(thtP),2)/2;
 				final double rtgf = Math.atan(1/Math.tan(coordR[0])*Math.cos(tht))/Math.atan(Math.sqrt(2))*rmax; //normalized tetragraph radius
 				return new double[] {
 						(1 - Math.pow(1-rtgf,kRad))/(1 - Math.pow(1-rmax,kRad))*rmax*2*Math.PI/3,
@@ -717,7 +743,64 @@ public enum Projection {
 			});
 		}
 		public double[] inverse(double x, double y, double[] params) {
-			return null;
+			final double k1 = params[0], k2 = params[1], k3 = params[2];
+			final double[] doubles = tetrahedralProjectionInverse(x,y);
+			final double[] faceCenter = { doubles[0], doubles[1], doubles[2] };
+			final double tht = doubles[3], xp = doubles[4], yp = doubles[5];
+			final double R = Math.hypot(xp, yp)*Math.sqrt(3)/2;
+			final double t = Math.atan2(yp, xp) + tht;
+			final double t0 = Math.floor((t+Math.PI/2)/(2*Math.PI/3)+0.5)*(2*Math.PI/3) - Math.PI/2;
+			final double thtP = t-t0;
+			final double lamS = (1-Math.pow(1-Math.abs(thtP)*(1-1/Math.pow(3,k1))/(Math.PI/3), 1/k1))*Math.PI/2*Math.signum(thtP);
+			final double kRad = k3*Math.abs(thtP)/(Math.PI/3) + k2*(1-Math.abs(thtP)/(Math.PI/3));
+			final double rmax; //the max normalized radius of this triangle (in the plane)
+			if (Math.abs(thtP) < .70123892) 	rmax = .5/Math.cos(thtP);
+			else 	rmax = .75 - 1.5972774*Math.pow(Math.PI/3-Math.abs(thtP),2)/2;
+			final double rtgf = 1-Math.pow(1-R/rmax*(1-Math.pow(Math.abs(1-rmax), kRad)), 1/kRad); //normalized tetragraph radius
+			if (R > rmax) 	return null;
+			double[] triCoords = {
+					Math.atan(Math.cos(lamS)/Math.tan(rtgf/rmax*Math.atan(Math.sqrt(2)))),
+					Math.PI/2 + t0 + lamS };
+			return obliquifyPlnr(triCoords, faceCenter);
+		}
+	},
+	
+	TETRACHAMFER("Tetrachamfer", "A parametric projection that I'm still testing",
+			Math.sqrt(3), 0b1111, "other", "compromise", new String[] {"k1","k2","k3"},
+			new double[][] {{.25,4.,1.1598},{.25,4.,.36295},{.25,4.,1.9553}}) {
+		public double[] project(double lat, double lon, double[] params) {
+			final double k1 = params[0], k2 = params[1], k3 = params[2];
+			return tetrahedralProjectionForward(lat, lon, (coordR) -> {
+				final double t0 = Math.floor(coordR[1]/(2*Math.PI/3))*(2*Math.PI/3) + Math.PI/3;
+				final double tht = coordR[1] - t0;
+				final double thtP = Math.PI/3*(1 - Math.pow(1-Math.abs(tht)/(Math.PI/2),k1))/(1 - 1/Math.pow(3,k1))*Math.signum(tht);
+				final double kRad = k3*Math.abs(thtP)/(Math.PI/3) + k2*(1-Math.abs(thtP)/(Math.PI/3));
+				final double rmax = Math.min(.5/Math.cos(thtP), .75/Math.cos(Math.PI/3-Math.abs(thtP))); //the max normalized radius of this triangle (in the plane)
+				final double rtgf = Math.atan(1/Math.tan(coordR[0])*Math.cos(tht))/Math.atan(Math.sqrt(2))*rmax; //normalized tetragraph radius
+				return new double[] {
+						(1 - Math.pow(1-rtgf,kRad))/(1 - Math.pow(1-rmax,kRad))*rmax*2*Math.PI/3,
+						thtP + t0
+				};
+			});
+		}
+		public double[] inverse(double x, double y, double[] params) {
+			final double k1 = params[0], k2 = params[1], k3 = params[2];
+			final double[] doubles = tetrahedralProjectionInverse(x,y);
+			final double[] faceCenter = { doubles[0], doubles[1], doubles[2] };
+			final double tht = doubles[3], xp = doubles[4], yp = doubles[5];
+			final double R = Math.hypot(xp, yp)*Math.sqrt(3)/2;
+			final double t = Math.atan2(yp, xp) + tht;
+			final double t0 = Math.floor((t+Math.PI/2)/(2*Math.PI/3)+0.5)*(2*Math.PI/3) - Math.PI/2;
+			final double thtP = t-t0;
+			final double lamS = (1-Math.pow(1-Math.abs(thtP)*(1-1/Math.pow(3,k1))/(Math.PI/3), 1/k1))*Math.PI/2*Math.signum(thtP);
+			final double kRad = k3*Math.abs(thtP)/(Math.PI/3) + k2*(1-Math.abs(thtP)/(Math.PI/3));
+			final double rmax = Math.min(.5/Math.cos(thtP), .75/Math.cos(Math.PI/3-Math.abs(thtP))); //the max normalized radius of this triangle (in the plane)
+			final double rtgf = 1-Math.pow(1-R/rmax*(1-Math.pow(Math.abs(1-rmax), kRad)), 1/kRad); //normalized tetragraph radius
+			if (R > rmax) 	return null;
+			double[] triCoords = {
+					Math.atan(Math.cos(lamS)/Math.tan(rtgf/rmax*Math.atan(Math.sqrt(2)))),
+					Math.PI/2 + t0 + lamS };
+			return obliquifyPlnr(triCoords, faceCenter);
 		}
 	};
 	
@@ -988,26 +1071,22 @@ public enum Projection {
 	
 	
 	private static double[] tetrahedralProjectionInverse(double x, double y) { // a function to help with tetrahedral projections
-		if (y < x-1) {
+		if (y < x-1)
 			return new double[] {
 					-Math.PI/2, 0, 0,
 					-Math.PI/2, Math.sqrt(3)*(x-2/3.), y+1 };
-		}
-		else if (y < -x-1) {
+		else if (y < -x-1)
 			return new double[] {
 					-Math.PI/2, 0, 0,
 					Math.PI/2, Math.sqrt(3)*(x+2/3.), y+1 };
-		}
-		else if (y > -x+1) {
+		else if (y > -x+1)
 			return new double[] {
 					Math.PI/2-Math.asin(Math.sqrt(8)/3), Math.PI, 0,
 					-Math.PI/2, Math.sqrt(3)*(x-2/3.), y-1 };
-		}
-		else if (y > x+1) {
+		else if (y > x+1)
 			return new double[] {
 					Math.PI/2-Math.asin(Math.sqrt(8)/3), Math.PI, 0,
 					Math.PI/2, Math.sqrt(3)*(x+2/3.), y-1 };
-		}
 		else if (x < 0)
 			return new double[] {
 					Math.PI/2-Math.asin(Math.sqrt(8)/3), -Math.PI/3, 0,
@@ -1078,8 +1157,7 @@ public enum Projection {
 			lonf = lon0 -
 					Math.acos(innerFunc);
 		
-		double thtf = 0;
-		thtf += pole[2];
+		double thtf = pole[2];
 		
 		double[] output = {latf, lonf, thtf};
 		return output;
@@ -1149,6 +1227,27 @@ public enum Projection {
 	
 	public String getProperty() {
 		return this.property;
+	}
+	
+	
+	public static final void main(String[] args) {
+		double[] pole = {47, -173, 138};
+		System.out.println("The pole is at "+Arrays.toString(pole));
+		for (int i = 0; i < 3; i ++)
+			pole[i] = Math.toRadians(pole[i]);
+		for (double[] ref: new double[][] {{-Math.PI/2, 0, Math.PI/3},
+				{Math.asin(1/3.0), Math.PI, Math.PI/3},
+				{Math.asin(1/3.0), Math.PI/3, Math.PI/3},
+				{Math.asin(1/3.0), -Math.PI/3, -Math.PI/3}}) {
+			ref[0] *= -1;
+			ref[1] = (ref[1]+2*Math.PI)%(2*Math.PI)-Math.PI;
+			ref[2] *= -1;
+			System.out.println("The relative singularity is at "+Arrays.toString(ref));
+			final double[] coords = obliquifyPlnr(ref, pole);
+			for (int i = 0; i < 3; i ++)
+				coords[i] = Math.toDegrees(coords[i]);
+			System.out.println("That comes out to "+Arrays.toString(coords));
+		}
 	}
 
 }

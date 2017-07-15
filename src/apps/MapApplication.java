@@ -113,7 +113,7 @@ public abstract class MapApplication extends Application {
 		final Label label = new Label("Current input:");
 		final Text inputLabel = new Text("None");
 		
-		final FileChooser inputChooser = new FileChooser();
+		final FileChooser inputChooser = new FileChooser(); //TODO: remember last directory
 		inputChooser.setInitialDirectory(new File("input"));
 		inputChooser.setTitle("Choose an input map");
 		inputChooser.getExtensionFilters().addAll(allowedExtensions);
@@ -376,7 +376,7 @@ public abstract class MapApplication extends Application {
 			Slider[] sliders, Spinner<Double>[] spinners) {
 		if (presetName.equals("Antipode")) {
 			sliders[0].setValue(-sliders[0].getValue());
-			sliders[1].setValue((sliders[1].getValue()+180)%360);
+			sliders[1].setValue((sliders[1].getValue()+360)%360-180);
 			sliders[2].setValue(-sliders[2].getValue());
 		}
 		else if (presetName.equals("Random")) {

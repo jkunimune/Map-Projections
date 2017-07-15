@@ -73,10 +73,10 @@ public class MapOptimizer extends Application {
 		
 		chart.getData().add(analyzeAll(globe, EXISTING_PROJECTIONS));
 //		chart.getData().add(optimizeFamily(Projection.WINKEL_TRIPEL, globe, log));
-		chart.getData().add(optimizeFamily(Projection.TOBLER, globe, log));
+//		chart.getData().add(optimizeFamily(Projection.TOBLER, globe, log));
 //		chart.getData().add(optimizeFamily(Projection.HYPERELLIPOWER, globe, log));
 //		chart.getData().add(optimizeFamily(Projection.TETRAPOWER, globe, log));
-//		chart.getData().add(optimizeFamily(Projection.TETRAFILLET, globe, log));
+		chart.getData().add(optimizeFamily(Projection.TETRAFILLET, globe, log));
 		
 		System.out.println("Total time elapsed: "+
 				(System.currentTimeMillis()-startTime)/1000.+"s");
