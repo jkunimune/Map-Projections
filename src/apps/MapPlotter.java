@@ -58,8 +58,8 @@ public class MapPlotter extends Application {
 	
 	private static final Projection[] COMMON = { Projection.STEREOGRAPHIC, Projection.LAMBERT_CONIC,
 			Projection.MERCATOR, Projection.POLAR, Projection.E_D_CONIC, Projection.PLATE_CARREE,
-			Projection.E_A_AZIMUTH, Projection.ALBERS, Projection.GALL_PETERS, Projection.VAN_DER_GRINTEN,
-			Projection.ROBINSON, Projection.WINKEL_TRIPEL, Projection.ORTHOGRAPHIC };
+			Projection.E_A_AZIMUTH, Projection.ALBERS, Projection.GALL_PETERS, Projection.GALL, Projection.MILLER,
+			Projection.VAN_DER_GRINTEN, Projection.ROBINSON, Projection.WINKEL_TRIPEL, Projection.ORTHOGRAPHIC };
 	private static final Projection[] UNCOMMON = { Projection.PEIRCE_QUINCUNCIAL, Projection.LEE, Projection.TOBLER,
 			Projection.BEHRMANN, Projection.AITOFF };
 	private static final Projection[] INVENTED = { Projection.HYPERELLIPOWER, Projection.TETRAPOWER,
@@ -103,7 +103,7 @@ public class MapPlotter extends Application {
 						drawLabelsAndSave(plot, labels, data);
 					}
 				};
-				timer.schedule(task, 100);
+				timer.schedule(task, 200);
 			}
 		};
 		plot.widthProperty().addListener(listener);

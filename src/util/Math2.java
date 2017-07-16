@@ -96,5 +96,13 @@ public class Math2 {
 			double b0, double b1) {
 		return (x-a0)*(b1-b0)/(a1-a0) + b0;
 	}
+	
+	
+	public static final double[] invArr(double[] ds) {
+		if (ds == null) 	return null; //this is kind of a weird place to put this catch, but whatever
+		for (int i = 0; i < ds.length; i ++)
+			ds[i] *= -1;
+		return ds;
+	}
 
 }

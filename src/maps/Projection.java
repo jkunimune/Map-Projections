@@ -151,6 +151,15 @@ public enum Projection {
 		}
 	},
 	
+	MILLER("Miller", 4*Math.PI/5/Math.log(Math.tan(9*Math.PI/20)), 0b1111, "cylindrical", "compromise") {
+		public double[] project(double lat, double lon, double[] params) {
+			return new double[] {lon, 1.25*Math.log(Math.tan(Math.PI/4+.8*lat/2))};
+		}
+		public double[] inverse(double x, double y, double[] params) {
+			return new double[] {1.25*Math.atan(Math.sinh(y*Math.log(Math.tan(9*Math.PI/20)))), x*Math.PI};
+		}
+	},
+	
 	STEREOGRAPHIC("Stereographic", 1., 0b0111, "azimuthal", "conformal", "mathematically important") {
 		public double[] project(double lat, double lon, double[] params) {
 			final double r = 1.5/(Math.tan(lat/2 + Math.PI/4));
@@ -221,17 +230,42 @@ public enum Projection {
 	
 	LAMBERT_CONIC("Conformal Conic", 0b0111, "conformal") {
 		public double[] project(double lat, double lon, double[] params) {
-			final double r = 3*Math.sqrt(Math.tan(Math.PI/4-lat/2));
-			return new double[] { r*Math.sin(lon/2), Math.PI-r*Math.cos(lon/2) };
+			final double lat1 = Math.toRadians(params[0]);
+			final double lat2 = Math.toRadians(params[1]);
+			final double n;
+			if (Math.abs(lat1) != Math.abs(lat2))
+				n = Math.log(Math.cos(lat1)/Math.cos(lat2))/Math.log(Math.tan(Math.PI/4+lat2/2)/Math.tan(Math.PI/4+lat1/2));
+			else if (lat1 == lat2 && lat1 != 0)
+				n = Math.sin(lat1);
+			else
+				return MERCATOR.project(lat, lon, params);
+			final double F = Math.cos(lat1)*Math.pow(Math.tan(Math.PI/4+lat1/2), n)/n;
+			final double r0 = F*Math.pow(Math.tan(Math.PI/4+(lat1+lat2)/4), -n);
+			final double r = F*Math.pow(Math.tan(Math.PI/4+lat/2), -n);
+			return new double[] { r*Math.sin(n*lon), r0 - r*Math.cos(n*lon) };
 		}
 		public double[] inverse(double x, double y, double[] params) {
-			y = (y-1)/2;
-			return new double[] {
-					Math.PI/2 - 2*Math.atan(Math.pow(1.5*Math.hypot(x, y), 2)),
-					2*(Math.atan2(y, x) + Math.PI/2)};
+			final double lat1 = Math.toRadians(params[0]);
+			final double lat2 = Math.toRadians(params[1]);
+			final double n;
+			if (lat1 + lat2 > 0)
+				n = Math.log(Math.cos(lat1)/Math.cos(lat2))/Math.log(Math.tan(Math.PI/4+lat2/2)/Math.tan(Math.PI/4+lat1/2));
+			else if (Math.abs(lat1) != Math.abs(lat2))
+				return Math2.invArr(this.inverse(-x, -y, new double[] {-params[0],-params[1]}));
+			else if (lat1 == lat2 && lat1 != 0)
+				n = Math.sin(lat1);
+			else
+				return MERCATOR.inverse(x, y, params);
+			final double F = Math.cos(lat1)*Math.pow(Math.tan(Math.PI/4+lat1/2), n)/n;
+			final double r0 = F*Math.pow(Math.tan(Math.PI/4+(lat1+lat2)/4), -n);
+			final double r = Math.hypot(x, r0/Math.PI-y)*Math.PI;
+			final double phi = 2*Math.atan(Math.pow(F/r, 1/n)) - Math.PI/2;
+			final double lam = Math.atan2(x, r0/Math.PI-y)/n;
+			if (Math.abs(lam) > Math.PI) 	return null;
+			else 							return new double[] {phi, lam};
 		}
 		public double getAspectRatio(double[] params) {
-			return 2; //TODO: implement this
+			return 1; //TODO: implement this
 		}
 	},
 	
@@ -415,7 +449,7 @@ public enum Projection {
 	
 	TOBLER("Tobler", "An equal-area projection shaped like a hyperellipse (in case you're wondering about gamma, it's calculated automatically)",
 			2., 0b1001, "pseudocylindrical", "equal-area",new String[]{"Std. Parallel","alpha","K"},
-			new double[][] {{0,85,37.5}, {0,1,0}, {1,8,2.5}}) {
+			new double[][] {{0,89,37.5}, {0,1,0}, {1,8,2.5}}) {
 		private double[] Z; //Z[i] = sin(phi) when y = i/(Z.length-1)
 		private double[] lastParams;
 		private void generateZ(int n, double[] params) {
@@ -824,7 +858,7 @@ public enum Projection {
 	private Projection(String name, int fisc, String property) { //this one is just for conic maps, because they're so similar
 		this(name, buildDescription("conic",property,null,null), 0., fisc, "conic", property,
 				new String[] {"Std. Parallel 1", "Std. Parallel 2"},
-				new double[][] {{-90,90,15}, {-90,90,45}});
+				new double[][] {{-89,89,15}, {-89,89,45}});
 	}
 	
 	private Projection(String name, double aspectRatio, int fisc, String type, String property) {
@@ -932,9 +966,9 @@ public enum Projection {
 	public double[][][] map(int size, double[] params, double[] pole) {
 		final double ratio = this.getAspectRatio(params);
 		if (ratio < 1)
-			return map(Math.round(size*ratio), size, params, pole, null);
+			return map(Math.max(Math.round(size*ratio),1), size, params, pole, null);
 		else
-			return map(size, Math.round(size/ratio), params, pole, null);
+			return map(size, Math.max(Math.round(size/ratio),1), params, pole, null);
 	}
 	
 	public double[][][] map(double w, double h, double[] params, double[] pole, DoubleConsumer tracker) { //generate a matrix of coordinates based on a map projection
@@ -1227,27 +1261,6 @@ public enum Projection {
 	
 	public String getProperty() {
 		return this.property;
-	}
-	
-	
-	public static final void main(String[] args) {
-		double[] pole = {47, -173, 138};
-		System.out.println("The pole is at "+Arrays.toString(pole));
-		for (int i = 0; i < 3; i ++)
-			pole[i] = Math.toRadians(pole[i]);
-		for (double[] ref: new double[][] {{-Math.PI/2, 0, Math.PI/3},
-				{Math.asin(1/3.0), Math.PI, Math.PI/3},
-				{Math.asin(1/3.0), Math.PI/3, Math.PI/3},
-				{Math.asin(1/3.0), -Math.PI/3, -Math.PI/3}}) {
-			ref[0] *= -1;
-			ref[1] = (ref[1]+2*Math.PI)%(2*Math.PI)-Math.PI;
-			ref[2] *= -1;
-			System.out.println("The relative singularity is at "+Arrays.toString(ref));
-			final double[] coords = obliquifyPlnr(ref, pole);
-			for (int i = 0; i < 3; i ++)
-				coords[i] = Math.toDegrees(coords[i]);
-			System.out.println("That comes out to "+Arrays.toString(coords));
-		}
 	}
 
 }

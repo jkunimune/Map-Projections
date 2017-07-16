@@ -85,7 +85,7 @@ public class MapAnalyzer extends MapApplication {
 	
 	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.PLATE_CARREE, Projection.GALL_PETERS,
 			Projection.HOBO_DYER, Projection.BEHRMANN, Projection.LAMBERT_CYLIND, Projection.E_A_CYLIND,
-			Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
+			Projection.MILLER, Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
 			Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC,
 			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.SINUSOIDAL, Projection.MOLLWEIDE,
 			Projection.HAMMER, Projection.TOBLER, Projection.AITOFF, Projection.VAN_DER_GRINTEN, Projection.ROBINSON,
