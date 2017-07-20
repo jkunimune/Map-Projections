@@ -29,6 +29,7 @@ import javax.imageio.ImageIO;
 
 import dialogs.MapConfigurationDialog;
 import dialogs.ProgressBarDialog;
+import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -148,7 +149,7 @@ public class MapDesignerRaster extends MapApplication {
 			final Alert alert = new Alert(Alert.AlertType.ERROR);
 			alert.setHeaderText("File not found!");
 			alert.setContentText("Couldn't find "+file.getAbsolutePath()+".");
-			alert.showAndWait();
+			Platform.runLater(alert::showAndWait);
 		} finally {
 			updateBtn.setDisable(false);
 			saveMapBtn.setDisable(false);
@@ -186,7 +187,7 @@ public class MapDesignerRaster extends MapApplication {
 			final Alert alert = new Alert(AlertType.ERROR);
 			alert.setHeaderText("Failure!");
 			alert.setContentText("Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
-			alert.showAndWait();
+			Platform.runLater(alert::showAndWait);
 		}
 	}
 	

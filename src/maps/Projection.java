@@ -84,7 +84,7 @@ public enum Projection {
 			return new double[] {y*Math.PI/2, x*Math.PI};
 		}
 		public double getAspectRatio(double[] params) {
-			return Math.PI*Math.pow(Math.cos(Math.toRadians(params[0])), 2);
+			return 2*Math.cos(Math.toRadians(params[0]));
 		}
 	},
 	
@@ -200,7 +200,7 @@ public enum Projection {
 	},
 	
 	ORTHOGRAPHIC("Orthographic", "A projection that mimics the Earth viewed from a great distance",
-			1., 0b1110, "azimuthal", "orthographic") {
+			1., 0b1110, "azimuthal", "perspective") {
 		public double[] project(double lat, double lon, double[] params) {
 			if (lat < 0)	lat = 0;
 			final double r = Math.PI*Math.cos(lat);
@@ -229,39 +229,43 @@ public enum Projection {
 	},
 	
 	LAMBERT_CONIC("Conformal Conic", 0b0111, "conformal") {
-		public double[] project(double lat, double lon, double[] params) {
-			final double lat1 = Math.toRadians(params[0]);
-			final double lat2 = Math.toRadians(params[1]);
-			final double n;
-			if (Math.abs(lat1) != Math.abs(lat2))
-				n = Math.log(Math.cos(lat1)/Math.cos(lat2))/Math.log(Math.tan(Math.PI/4+lat2/2)/Math.tan(Math.PI/4+lat1/2));
-			else if (lat1 == lat2 && lat1 != 0)
+		private double n, F, r0;
+		private boolean reversed;
+		private double[] lastParams = null;
+		private void processParams(double[] params) {
+			double lat1 = Math.toRadians(params[0]);
+			double lat2 = Math.toRadians(params[1]);
+			reversed = lat1 + lat2 < 0;
+			if (reversed) {
+				lat1 = -lat1; lat2 = -lat2;
+			}
+			if (lat1 == -lat2) //degenerates into Mercator; indicate with n=0
+				n = 0;
+			else if (lat1 == lat2) //equation becomes indeterminate; use limit
 				n = Math.sin(lat1);
-			else
-				return MERCATOR.project(lat, lon, params);
-			final double F = Math.cos(lat1)*Math.pow(Math.tan(Math.PI/4+lat1/2), n)/n;
-			final double r0 = F*Math.pow(Math.tan(Math.PI/4+(lat1+lat2)/4), -n);
+			else //normal conic
+				n = Math.log(Math.cos(lat1)/Math.cos(lat2))/Math.log(Math.tan(Math.PI/4+lat2/2)/Math.tan(Math.PI/4+lat1/2));
+			F = Math.cos(lat1)*Math.pow(Math.tan(Math.PI/4+lat1/2), n)/n;
+			r0 = F*Math.pow(Math.tan(Math.PI/4+(lat1+lat2)/4), -n);
+			lastParams = params.clone();
+		}
+		public double[] project(double lat, double lon, double[] params) {
+			if (!Arrays.equals(params, lastParams)) 	processParams(params);
+			if (n == 0) 	return MERCATOR.project(lat, lon, params);
 			final double r = F*Math.pow(Math.tan(Math.PI/4+lat/2), -n);
 			return new double[] { r*Math.sin(n*lon), r0 - r*Math.cos(n*lon) };
 		}
 		public double[] inverse(double x, double y, double[] params) {
-			final double lat1 = Math.toRadians(params[0]);
-			final double lat2 = Math.toRadians(params[1]);
-			final double n;
-			if (lat1 + lat2 > 0)
-				n = Math.log(Math.cos(lat1)/Math.cos(lat2))/Math.log(Math.tan(Math.PI/4+lat2/2)/Math.tan(Math.PI/4+lat1/2));
-			else if (Math.abs(lat1) != Math.abs(lat2))
-				return Math2.invArr(this.inverse(-x, -y, new double[] {-params[0],-params[1]}));
-			else if (lat1 == lat2 && lat1 != 0)
-				n = Math.sin(lat1);
-			else
-				return MERCATOR.inverse(x, y, params);
-			final double F = Math.cos(lat1)*Math.pow(Math.tan(Math.PI/4+lat1/2), n)/n;
-			final double r0 = F*Math.pow(Math.tan(Math.PI/4+(lat1+lat2)/4), -n);
+			if (!Arrays.equals(params, lastParams)) 	processParams(params);
+			if (n == 0) 	return MERCATOR.inverse(x, y, params);
+			else if (reversed) {
+				x = -x; y = -y;
+			}
 			final double r = Math.hypot(x, r0/Math.PI-y)*Math.PI;
 			final double phi = 2*Math.atan(Math.pow(F/r, 1/n)) - Math.PI/2;
 			final double lam = Math.atan2(x, r0/Math.PI-y)/n;
 			if (Math.abs(lam) > Math.PI) 	return null;
+			else if (reversed) 				return new double[] {-phi, -lam};
 			else 							return new double[] {phi, lam};
 		}
 		public double getAspectRatio(double[] params) {
@@ -270,20 +274,73 @@ public enum Projection {
 	},
 	
 	E_D_CONIC("Equidistant Conic", 0b1111, "equidistant") {
+		private double m, n, a, s;
+		private boolean reversed;
+		private double[] lastParams = null;
+		private void processParams(double[] params) {
+//			System.out.println(Arrays.toString(params));
+			double lat1 = Math.toRadians(params[0]);
+			double lat2 = Math.toRadians(params[1]);
+			reversed = lat1 + lat2 < 0;
+			if (reversed) {
+				lat1 = -lat1; lat2 = -lat2;
+			}
+			if (lat1 == -lat2) //degenerates into Equirectangular; indicate with m=0
+				m = 0;
+			else if (lat1 == lat2) //equation becomes indeterminate; use limit
+				m = 1/(1/Math.tan(lat1)/Math.PI + lat1/Math.PI + .5);
+			else //normal conic
+				m = (1/Math.cos(lat2)-1/Math.cos(lat1))/((-lat1/Math.PI-.5)/Math.cos(lat1)-(-lat2/Math.PI-.5)/Math.cos(lat2));
+			n = m*Math.cos(lat1)/((-lat1/Math.PI-.5)*m+1)/Math.PI;
+			if (m == 0) {
+				a = 2*Math.cos(lat1);
+			}
+			else if (n >= .5) {
+				a = 2/(1 + Math.cos(Math.PI*(1-n)));
+				s = 1;
+			}
+			else {
+				a = 2*Math.sin(Math.PI*n)/(1 - (1-m)*Math.cos(Math.PI*n));
+				if (a >= 1) 	s = 1/Math.sin(Math.PI*n);
+				else 			s = 2/(1 - (1-m)*Math.cos(Math.PI*n));
+			}
+			lastParams = params.clone();
+		}
 		public double[] project(double lat, double lon, double[] params) {
-			final double r = 3*Math.PI/5 - 4/5.*lat;
-			final double tht = lon/2 - Math.PI/2;
-			return new double[] { r*Math.cos(tht), r*Math.sin(tht) + Math.PI/2 };
+			if (!Arrays.equals(params, lastParams)) 	processParams(params);
+			if (m == 0)
+				return EQUIRECTANGULAR.project(lat, lon, params);
+			if (reversed) {
+				lat = -lat;
+				lon = -lon;
+			}
+			final double r = Math.PI - m*lat - Math.PI*m/2;
+			final double x = s*r*Math.sin(n*lon);
+			final double y = Math.PI*(s-1/Math.max(a,1)) - s*r*Math.cos(n*lon);
+			if (reversed) 	return new double[] { -x, -y };
+			else 			return new double[] { x, y };
 		}
 		public double[] inverse(double x, double y, double[] params) {
-			y = (y-1)/2;
+			if (!Arrays.equals(params, lastParams)) 	processParams(params);
+			if (m == 0)
+				return EQUIRECTANGULAR.inverse(x, y, params);
+			if (reversed) {
+				x = -x;
+				y = -y;
+			}
+			x = x/s;
+			y = (y+1)/s/a - 1;
 			final double r = Math.hypot(x, y);
-			if (r < 0.2 || r > 1)	return null;
-			return new double[] {
-					3*Math.PI/4 - 5*Math.PI/4*r, 2*Math.atan2(y, x)+Math.PI };
+			final double phi = (1 - m/2 - r)*Math.PI/m;
+			final double lam = Math.atan2(x, -y)/n;
+			if (Math.abs(lam) > Math.PI || Math.abs(phi) > Math.PI/2)
+				return null;
+			else if (reversed) 				return new double[] {-phi, -lam};
+			else 							return new double[] {phi, lam};
 		}
 		public double getAspectRatio(double[] params) {
-			return 2; //TODO: implement this
+			if (!Arrays.equals(params, lastParams)) 	processParams(params);
+			return a;
 		}
 	},
 	
@@ -415,6 +472,47 @@ public enum Projection {
 		}
 	},
 	
+	TOBLER("Tobler", "An equal-area projection shaped like a hyperellipse (in case you're wondering about gamma, it's calculated automatically)",
+			2., 0b1001, "pseudocylindrical", "equal-area",new String[]{"Std. Parallel","alpha","K"},
+			new double[][] {{0,89,37.5}, {0,1,0}, {1,8,2.5}}) {
+		private double[] Z; //Z[i] = sin(phi) when y = i/(Z.length-1)
+		private double[] lastParams;
+		private void generateZ(int n, double[] params) {
+			final double e = NumericalAnalysis.simpsonIntegrate(0, 1,
+					Tobler::hyperEllipse, .0001, params);
+			Z = NumericalAnalysis.simpsonODESolve(1, n, Tobler::dZdY,
+					Math.min(1./n,.0001), e, params[1], params[2]);
+			lastParams = params.clone();
+		}
+		public double[] project(double lat, double lon, double[] params) {
+			if (Z == null || !Arrays.equals(params, lastParams))
+				generateZ(10000, params);
+			final double z0 = Math.abs(Math.sin(lat));
+			final int i = Arrays.binarySearch(Z, z0);
+			final double y;
+			if (i >= 0)
+				y = i/(Z.length-1.);
+			else if (-i-1 >= Z.length)
+				y = Z[Z.length-1];
+			else
+				y = Math2.linInterp(z0, Z[-i-2], Z[-i-1], -i-2, -i-1)/
+						(Z.length-1.);
+			final double ar = Math.pow(Math.cos(Math.toRadians(params[0])),2);
+			return new double[] {
+					Tobler.X(y, lon, params), y*Math.signum(lat)/ar };
+		}
+		public double[] inverse(double x, double y, double[] params) {
+			if (Z == null || !Arrays.equals(params, lastParams))
+				generateZ(10000, params);
+			return new double[] {
+					Math.asin(Z[(int)Math.round(Math.abs(y)*(Z.length-1))])*Math.signum(y),
+					Tobler.lam(x,y,params) };
+		}
+		public double getAspectRatio(double[] params) {
+			return Math.pow(Math.cos(Math.toRadians(params[0])),2) * Math.PI;
+		}
+	},
+	
 	AITOFF("Aitoff", "A compromise projection shaped like an ellipse",
 			2., 0b1011, "pseudoazimuthal", "equal-area") {
 		public double[] project(double lat, double lon, double[] params) {
@@ -444,48 +542,6 @@ public enum Projection {
 			final double z = Math.sqrt(1 - Math.pow(X/4, 2) - Math.pow(Y/2, 2));
 			return new double[] {
 					Math.asin(z * Y), 2*Math.atan(0.5*z*X / (2*z*z - 1))};
-		}
-	},
-	
-	TOBLER("Tobler", "An equal-area projection shaped like a hyperellipse (in case you're wondering about gamma, it's calculated automatically)",
-			2., 0b1001, "pseudocylindrical", "equal-area",new String[]{"Std. Parallel","alpha","K"},
-			new double[][] {{0,89,37.5}, {0,1,0}, {1,8,2.5}}) {
-		private double[] Z; //Z[i] = sin(phi) when y = i/(Z.length-1)
-		private double[] lastParams;
-		private void generateZ(int n, double[] params) {
-			final double e = NumericalAnalysis.simpsonIntegrate(0, 1,
-					Tobler::hyperEllipse, .0001, params);
-			Z = NumericalAnalysis.simpsonODESolve(1, n,
-					Tobler::dZdY, Math.min(1./n,.0001),
-					e, params[1], params[2]);
-			lastParams = params.clone();
-		}
-		public double[] project(double lat, double lon, double[] params) {
-			if (Z == null || !Arrays.equals(params, lastParams))
-				generateZ(10000, params);
-			final double z0 = Math.abs(Math.sin(lat));
-			final int i = Arrays.binarySearch(Z, z0);
-			final double y;
-			if (i >= 0)
-				y = i/(Z.length-1.);
-			else if (-i-1 >= Z.length)
-				y = Z[Z.length-1];
-			else
-				y = Math2.linInterp(z0, Z[-i-2], Z[-i-1], -i-2, -i-1)/
-						(Z.length-1.);
-			final double ar = Math.pow(Math.cos(Math.toRadians(params[0])),2);
-			return new double[] {
-					Tobler.X(y, lon, params), y*Math.signum(lat)/ar };
-		}
-		public double[] inverse(double x, double y, double[] params) {
-			if (Z == null || !Arrays.equals(params, lastParams))
-				generateZ(10000, params);
-			return new double[] {
-					Math.asin(Z[(int)Math.round(Math.abs(y)*(Z.length-1))])*Math.signum(y),
-					Tobler.lam(x,y,params) };
-		}
-		public double getAspectRatio(double[] params) {
-			return Math.pow(Math.cos(Math.toRadians(params[0])),2) * Math.PI;
 		}
 	},
 	
@@ -559,6 +615,16 @@ public enum Projection {
 		}
 	},
 	
+	WATERMAN("Waterman Butterfly", "An aesthetically pleasing octohedral map arrangement",
+			0, 0b1110, "polyhedral", "compromise") {
+		public double[] project(double lat, double lon, double[] params) {
+			return null; //TODO: projection wishlist
+		}
+		public double[] inverse(double x, double y, double[] params) {
+			return null; //TODO: projection wishlist
+		}
+	},
+	
 	PEIRCE_QUINCUNCIAL("Peirce Quincuncial", "A conformal projection that uses complex elliptic functions",
 			1., 0b1001, "other", "conformal") {
 		public double[] project(double lat, double lon, double[] params) {
@@ -618,6 +684,36 @@ public enum Projection {
 		}
 	},
 	
+	HAMMER_RETROAZIMUTHAL_FRONT("Hammer Retroazimuthal (front)", "The 'front' hemisphere of a map where bearing and distance to a reference point is preserved",
+			1., 0b1110, "quasiazimuthal", "retroazimuthal") {
+		public double[] project(double lat, double lon, double[] params) {
+			return null; //TODO: projection wishlist
+		}
+		public double[] inverse(double x, double y, double[] params) {
+			return null; //TODO: projection wishlist
+		}
+	},
+	
+	HAMMER_RETROAZIMUTHAL_BACK("Hammer Retroazimuthal (back)", "The 'back' hemisphere of a map where bearing and distance to a reference point is preserved",
+			1., 0b1110, "quasiazimuthal", "retroazimuthal") {
+		public double[] project(double lat, double lon, double[] params) {
+			return null; //TODO: projection wishlist
+		}
+		public double[] inverse(double x, double y, double[] params) {
+			return null; //TODO: projection wishlist
+		}
+	},
+	
+	TWO_POINT_EQUIDISTANT("Two-point Equidistant", "A map that preserves distances, but not angles, to two arbitrary points",
+			1., 0b1011, "quasiazimuthal", "equidistant") {
+		public double[] project(double lat, double lon, double[] params) {
+			return null; //TODO: projection wishlist
+		}
+		public double[] inverse(double x, double y, double[] params) {
+			return null; //TODO: projection wishlist
+		}
+	},
+	
 	LEMONS("Lemons", "BURN LIFE'S HOUSE DOWN!!!", 2., 0b1110, "pseudocylindrical", "?") {
 		public double[] project(double lat, double lon, double[] params) {
 			return null;
@@ -630,7 +726,7 @@ public enum Projection {
 						Math.PI * (x%lemWdt - lemWdt/2.0) / (Math.cos(y*Math.PI/2))
 								+ (int)(x/lemWdt) * Math.PI/6 };
 			else
-				return null;
+				return null; //TODO: projection wishlist
 		}
 	},
 	
@@ -693,6 +789,16 @@ public enum Projection {
 					Math.PI/2 - Math.atan(Math.tan(Math.atan(Math.sqrt(2))/(Math.sqrt(3)/3)*Math.hypot(xp,yp)*Math.cos(dt))/Math.cos(dt)),
 					Math.PI/2 + t0 + dt};
 			return obliquifyPlnr(triCoords, faceCenter);
+		}
+	},
+	
+	PSEUDOSTEREOGRAPHIC("Pseudostereographic", "The logical next step after Aitoff and Hammer",
+			2, 0b1111, "pseudocylindrical", "compromise") {
+		public double[] project(double lat, double lon, double[] params) {
+			return null; //TODO: projection wishlist
+		}
+		public double[] inverse(double x, double y, double[] params) {
+			return null; //TODO: projection wishlist
 		}
 	},
 	

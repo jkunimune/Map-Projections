@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import dialogs.ProgressBarDialog;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -94,8 +95,7 @@ public class MapDesignerVector extends MapApplication {
 	public void start(Stage root) {
 		super.start(root);
 		new Thread(() -> {
-			setInput(new File("input/basic.svg")); //TODO: this should cause the buttons to grey out
-			updateMap();
+			setInput(new File("input/basic.svg")); //this automatically updates the map//TODO: this should cause the buttons to grey out
 		}).start();
 	}
 	
@@ -140,12 +140,12 @@ public class MapDesignerVector extends MapApplication {
 			final Alert alert = new Alert(Alert.AlertType.ERROR);
 			alert.setHeaderText("Unreadable file!");
 			alert.setContentText("We couldn't read "+file.getAbsolutePath()+". It may be corrupt or an unreadable format.");
-			alert.showAndWait();
+			Platform.runLater(alert::showAndWait);
 		} catch (IOException e) {
 			final Alert alert = new Alert(Alert.AlertType.ERROR);
 			alert.setHeaderText("File not found!");
 			alert.setContentText("Couldn't find "+file.getAbsolutePath()+".");
-			alert.showAndWait();
+			Platform.runLater(alert::showAndWait);
 		} finally {
 			saveBtn.setDisable(false);
 		}
@@ -223,7 +223,7 @@ public class MapDesignerVector extends MapApplication {
 	private void updateMap() {
 		final List<List<double[]>> transformed = this.getProjection().transform(
 				input, numVtx/DEF_MAX_VTX+1, this.getParams(), aspect, null);
-		drawImage(transformed, viewer);
+		Platform.runLater(() -> drawImage(transformed, viewer));
 	}
 	
 	
@@ -279,7 +279,7 @@ public class MapDesignerVector extends MapApplication {
 			Alert alert = new Alert(Alert.AlertType.ERROR);
 			alert.setHeaderText("Failure!");
 			alert.setContentText("Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
-			alert.showAndWait();
+			Platform.runLater(alert::showAndWait);
 		}
 		saveBtn.setDisable(false);
 	}

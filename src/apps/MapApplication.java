@@ -79,6 +79,8 @@ public abstract class MapApplication extends Application {
 	private Spinner<Double>[] paramSpinners;
 	private double[] currentParams;
 	
+	private Flag suppressListeners = new Flag();
+	
 	
 	
 	public MapApplication(String name) {
@@ -207,13 +209,14 @@ public abstract class MapApplication extends Application {
 							sliders, spinners);
 					for (int i = 0; i < 3; i ++)
 						aspectArr[i] = Math.toRadians(sliders[i].getValue());
-					aspectSetter.execute();
+					if (!suppressListeners.isSet())
+						aspectSetter.execute();
 				}
 			});
 			presetChooser.getItems().add(m);
 		}
 		
-		link(sliders, spinners, aspectArr, Math::toRadians, aspectSetter);
+		link(sliders, spinners, aspectArr, Math::toRadians, aspectSetter, suppressListeners);
 		
 		final GridPane grid = new GridPane();
 		grid.setVgap(5);
@@ -254,7 +257,7 @@ public abstract class MapApplication extends Application {
 		paramSpinners[1] = new Spinner<Double>(0.,0.,0.);
 		paramSpinners[2] = new Spinner<Double>(0.,0.,0.);
 		
-		link(paramSliders, paramSpinners, currentParams, (d)->d, parameterSetter);
+		link(paramSliders, paramSpinners, currentParams, (d)->d, parameterSetter, suppressListeners);
 		
 		for (int i = 0; i < 3; i ++) {
 			GridPane.setHgrow(paramSliders[i], Priority.ALWAYS);
@@ -358,22 +361,9 @@ public abstract class MapApplication extends Application {
 	}
 	
 	
-	protected static final void trigger(Button btn, Runnable task) {
-		btn.setDisable(true);
-		new Thread(() -> {
-			try {
-				task.run();
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				btn.setDisable(false);
-			}
-		}).start();
-	}
-	
-	
 	private void setAspectByPreset(String presetName,
 			Slider[] sliders, Spinner<Double>[] spinners) {
+		this.suppressListeners.set();
 		if (presetName.equals("Antipode")) {
 			sliders[0].setValue(-sliders[0].getValue());
 			sliders[1].setValue((sliders[1].getValue()+360)%360-180);
@@ -397,10 +387,12 @@ public abstract class MapApplication extends Application {
 		for (int i = 0; i < 3; i ++)
 			spinners[i].getEditor().textProperty().set(
 					Double.toString(sliders[i].getValue()));
+		this.suppressListeners.clear();
 	}
 	
 	
 	private void revealParameters(Projection proj) {
+		this.suppressListeners.set();
 		final String[] paramNames = proj.getParameterNames();
 		final double[][] paramValues = proj.getParameterValues();
 		paramGrid.getChildren().clear();
@@ -421,35 +413,75 @@ public abstract class MapApplication extends Application {
 			paramSpinners[i].setTooltip(tt);
 			paramGrid.addRow(i, paramLabels[i], paramSliders[i], paramSpinners[i]);
 		}
+		this.suppressListeners.clear();
+	}
+	
+	
+	private static void trigger(Button btn, Runnable task) {
+		btn.setDisable(true);
+		new Thread(() -> {
+			try {
+				task.run();
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				btn.setDisable(false);
+			}
+		}).start();
 	}
 	
 	
 	private static void link(Slider[] sliders, Spinner<Double>[] spinners, double[] doubles,
-			DoubleUnaryOperator converter, Procedure callback) {
+			DoubleUnaryOperator converter, Procedure callback, Flag suppressListeners) {
 		for (int i = 0; i < doubles.length; i ++) {
 			final Slider sld = sliders[i];
 			final Spinner<Double> spn = spinners[i];
 			final int I = i;
 			
 			sld.valueChangingProperty().addListener((observable, prev, now) -> { //link spinner to slider
-					if (prev) {
+					if (!now)
 						if (spn.getValue() != sld.getValue())
 							spn.getValueFactory().setValue(sld.getValue());
-						doubles[I] = converter.applyAsDouble(sld.getValue());
-						callback.execute();
-					}
+				});
+			sld.valueProperty().addListener((observable, prev, now) -> {
+					if (!sld.valueChangingProperty().get())
+						if (spn.getValue() != sld.getValue())
+							spn.getValueFactory().setValue(sld.getValue());
 				});
 			
 			spn.valueProperty().addListener((observable, prev, now) -> { //link slider to spinner
 					if (spn.getValue() != sld.getValue())
 						sld.setValue(spn.getValue());
 					doubles[I] = converter.applyAsDouble(spn.getValue());
+					if (!suppressListeners.isSet())
 					callback.execute();
 				});
 			
 			spn.focusedProperty().addListener((observable, prev, now) -> { //make spinner act rationally
 					if (!now) 	spn.increment(0);
 				});
+		}
+	}
+	
+	
+	
+	private class Flag { //because Java apparently doesn't already have a mutable Bullion
+		private boolean set;
+		
+		public Flag() {
+			set = false;
+		}
+		
+		public boolean isSet() {
+			return set;
+		}
+		
+		public void set() {
+			set = true;
+		}
+		
+		public void clear() {
+			set = false;
 		}
 	}
 

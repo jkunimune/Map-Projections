@@ -236,7 +236,7 @@ public class MapAnalyzer extends MapApplication {
 			final Alert alert = new Alert(AlertType.ERROR);
 			alert.setHeaderText("Failure!");
 			alert.setContentText("Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
-			alert.showAndWait();
+			Platform.runLater(alert::showAndWait);
 		}
 	}
 	
@@ -258,7 +258,7 @@ public class MapAnalyzer extends MapApplication {
 			final Alert alert = new Alert(AlertType.ERROR);
 			alert.setHeaderText("Failure!");
 			alert.setContentText("Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
-			alert.showAndWait();
+			Platform.runLater(alert::showAndWait);
 		}
 	}
 	
