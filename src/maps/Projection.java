@@ -162,7 +162,7 @@ public enum Projection {
 	
 	STEREOGRAPHIC("Stereographic", 1., 0b0111, "azimuthal", "conformal", "mathematically important") {
 		public double[] project(double lat, double lon, double[] params) {
-			final double r = 1.5/(Math.tan(lat/2 + Math.PI/4));
+			final double r = Math.PI/2/(Math.tan(lat/2 + Math.PI/4));
 			return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
 		}
 		public double[] inverse(double x, double y, double[] params) {
@@ -795,10 +795,15 @@ public enum Projection {
 	PSEUDOSTEREOGRAPHIC("Pseudostereographic", "The logical next step after Aitoff and Hammer",
 			2, 0b1111, "pseudocylindrical", "compromise") {
 		public double[] project(double lat, double lon, double[] params) {
-			return null; //TODO: projection wishlist
+			double[] transverse = STEREOGRAPHIC.project(
+					obliquifySphc(lat, lon/2, new double[] {0,0,0}), params);
+			return new double[] {2*transverse[0], transverse[1]};
 		}
 		public double[] inverse(double x, double y, double[] params) {
-			return null; //TODO: projection wishlist
+			double[] transverse = obliquifyPlnr(
+					STEREOGRAPHIC.inverse(x/2, y/2, params), new double[] {0,0,0});
+			if (transverse == null) 	return null;
+			else 	return new double[] {transverse[0], 2*transverse[1]};
 		}
 	},
 	

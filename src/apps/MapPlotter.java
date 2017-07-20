@@ -62,7 +62,7 @@ public class MapPlotter extends Application {
 			Projection.VAN_DER_GRINTEN, Projection.ROBINSON, Projection.WINKEL_TRIPEL, Projection.ORTHOGRAPHIC };
 	private static final Projection[] UNCOMMON = { Projection.PEIRCE_QUINCUNCIAL, Projection.LEE, Projection.TOBLER,
 			Projection.BEHRMANN, Projection.AITOFF };
-	private static final Projection[] INVENTED = { Projection.HYPERELLIPOWER, Projection.TETRAPOWER,
+	private static final Projection[] INVENTED = { Projection.PSEUDOSTEREOGRAPHIC, Projection.HYPERELLIPOWER, Projection.TETRAPOWER,
 			Projection.TETRAFILLET };
 	
 	
