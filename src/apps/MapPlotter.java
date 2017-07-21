@@ -58,7 +58,7 @@ public class MapPlotter extends Application {
 	
 	private static final Projection[] COMMON = { Projection.STEREOGRAPHIC, Projection.LAMBERT_CONIC,
 			Projection.MERCATOR, Projection.POLAR, Projection.E_D_CONIC, Projection.PLATE_CARREE,
-			Projection.E_A_AZIMUTH, Projection.ALBERS, Projection.GALL_PETERS, Projection.GALL, Projection.MILLER,
+			Projection.E_A_AZIMUTH, Projection.ALBERS, Projection.GALL_PETERS, Projection.GALL,
 			Projection.VAN_DER_GRINTEN, Projection.ROBINSON, Projection.WINKEL_TRIPEL, Projection.ORTHOGRAPHIC };
 	private static final Projection[] UNCOMMON = { Projection.PEIRCE_QUINCUNCIAL, Projection.LEE, Projection.TOBLER,
 			Projection.BEHRMANN, Projection.AITOFF };

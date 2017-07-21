@@ -78,7 +78,11 @@ public enum Projection {
 			2, 0b1111, "cylindrical", "equidistant",
 			new String[]{"Std. parallel"}, new double[][]{{0, 85, 0}}) {
 		public double[] project(double lat, double lon, double[] params) {
-			return new double[] {lon, lat/Math.cos(Math.toRadians(params[0]))};
+			final double a = Math.cos(Math.toRadians(params[0]));
+			if (a >= 1)
+				return new double[] {lon, lat/a};
+			else
+				return new double[] {2*lon*a, 2*lat};
 		}
 		public double[] inverse(double x, double y, double[] params) {
 			return new double[] {y*Math.PI/2, x*Math.PI};
@@ -132,7 +136,10 @@ public enum Projection {
 			new String[]{"Std. parallel"}, new double[][]{{0, 85, 37.5}}) {
 		public double[] project(double lat, double lon, double[] params) {
 			final double a = Math.pow(Math.cos(Math.toRadians(params[0])), 2);
-			return new double[] {lon, Math.sin(lat)/a};
+			if (a >= 1/Math.PI)
+				return new double[] {lon, Math.sin(lat)/a};
+			else
+				return new double[] {lon*Math.PI*a, Math.sin(lat)*Math.PI};
 		}
 		public double[] inverse(double x, double y, double[] params) {
 			return new double[] { Math.asin(y), x*Math.PI };
@@ -278,7 +285,6 @@ public enum Projection {
 		private boolean reversed;
 		private double[] lastParams = null;
 		private void processParams(double[] params) {
-//			System.out.println(Arrays.toString(params));
 			double lat1 = Math.toRadians(params[0]);
 			double lat2 = Math.toRadians(params[1]);
 			reversed = lat1 + lat2 < 0;
@@ -308,8 +314,7 @@ public enum Projection {
 		}
 		public double[] project(double lat, double lon, double[] params) {
 			if (!Arrays.equals(params, lastParams)) 	processParams(params);
-			if (m == 0)
-				return EQUIRECTANGULAR.project(lat, lon, params);
+			if (m == 0) 	return EQUIRECTANGULAR.project(lat, lon, params);
 			if (reversed) {
 				lat = -lat;
 				lon = -lon;
@@ -322,14 +327,13 @@ public enum Projection {
 		}
 		public double[] inverse(double x, double y, double[] params) {
 			if (!Arrays.equals(params, lastParams)) 	processParams(params);
-			if (m == 0)
-				return EQUIRECTANGULAR.inverse(x, y, params);
+			if (m == 0) 	return EQUIRECTANGULAR.inverse(x, y, params);
 			if (reversed) {
 				x = -x;
 				y = -y;
 			}
 			x = x/s;
-			y = (y+1)/s/a - 1;
+			y = (y+1)/s/Math.max(a, 1) - 1;
 			final double r = Math.hypot(x, y);
 			final double phi = (1 - m/2 - r)*Math.PI/m;
 			final double lam = Math.atan2(x, -y)/n;
@@ -345,20 +349,68 @@ public enum Projection {
 	},
 	
 	ALBERS("Albers", 0b1111, "equal-area") {
+		private double n, C, a, s;
+		private boolean reversed;
+		private double[] lastParams = null;
+		private void processParams(double[] params) {
+			double lat1 = Math.toRadians(params[0]);
+			double lat2 = Math.toRadians(params[1]);
+			reversed = lat1 + lat2 < 0;
+			if (reversed) {
+				lat1 = -lat1; lat2 = -lat2;
+			}
+			if (lat1 == -lat2) //degenerates into Equirectangular; indicate with n=0
+				n = 0;
+			else //normal conic
+				n = (Math.sin(lat1) + Math.sin(lat2))/2;
+			C = Math.pow(Math.cos(lat1), 2) + 2*n*Math.sin(lat1);
+			if (n == 0) {
+				a = Math.PI*Math.pow(Math.cos(lat1), 2);
+			}
+			else if (n >= .5) {
+				a = 2/(1 - Math.cos(Math.PI*n)); //TODO get rid of all 1-ns
+				s = n/Math.sqrt(C+2*n);
+			}
+			else {
+				a = 2*Math.sin(Math.PI*n)/(1 - Math.sqrt(C-2*n)/Math.sqrt(C+2*n)*Math.cos(Math.PI*n));
+				if (a >= 1) 	s = n/Math.sqrt(C+2*n)/Math.sin(Math.PI*n);
+				else 			s = 2/(Math.sqrt(C+2*n)/n - Math.sqrt(C-2*n)/n*Math.cos(Math.PI*n));
+			}
+			lastParams = params.clone();
+		}
 		public double[] project(double lat, double lon, double[] params) {
-			final double r = 2*Math.sqrt(1.2 - Math.sin(lat));
-			final double tht = lon/2 - Math.PI/2;
-			return new double[] { r*Math.cos(tht), r*Math.sin(tht) + Math.PI/2 };
+			if (!Arrays.equals(params, lastParams)) 	processParams(params);
+			if (n == 0) 	return E_A_CYLIND.project(lat, lon, params);
+			if (reversed) {
+				lat = -lat;
+				lon = -lon;
+			}
+			final double r = Math.sqrt(C - 2*n*Math.sin(lat))/n;
+			final double x = Math.PI*s*r*Math.sin(n*lon);
+			final double y = Math.PI*(s*Math.sqrt(C+2*n)/n-1/Math.max(a,1)) - Math.PI*s*r*Math.cos(n*lon);
+			if (reversed) 	return new double[] { -x, -y };
+			else 			return new double[] { x, y };
 		}
 		public double[] inverse(double x, double y, double[] params) {
-			y = (y-1)/2;
+			if (!Arrays.equals(params, lastParams)) 	processParams(params);
+			if (n == 0) 	return E_A_CYLIND.inverse(x, y, params);
+			if (reversed) {
+				x = -x;
+				y = -y;
+			}
+			x = x/s;
+			y = (y+1)/s/Math.max(a, 1) - Math.sqrt(C+2*n)/n; //TODO I can do without these lines
 			final double r = Math.hypot(x, y);
-			if (r < Math.sqrt(1/11.) || r > 1)	return null;
-			return new double[] {
-					Math.asin(1.2-2.2*Math.pow(r, 2)), 2*Math.atan2(y, x)+Math.PI };
+			final double phi = Math.asin((C - Math.pow(n*r,2))/(2*n));
+			final double lam = Math.atan2(x, -y)/n;
+			if (Math.abs(lam) > Math.PI || Double.isNaN(phi))
+				return null;
+			else if (reversed) 				return new double[] {-phi, -lam};
+			else 							return new double[] {phi, lam};
 		}
 		public double getAspectRatio(double[] params) {
-			return 2; //TODO: implement this
+			if (!Arrays.equals(params, lastParams)) 	processParams(params);
+			return a;
 		}
 	},
 	

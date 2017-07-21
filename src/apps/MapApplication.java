@@ -65,9 +65,9 @@ public abstract class MapApplication extends Application {
 	private static final String[] ASPECT_NAMES = { "Standard", "Transverse", "Center of Mass", "Jerusalem", "Point Nemo",
 			"Longest Line", "Longest Line Transverse", "Cylindrical", "Conic", "Tetrahedral", "Quincuncial", "Antipode", "Random" };
 	private static final double[][] ASPECT_VALS = {
-			{ 90., 0., 29.98, 31.78, 48.88, -28.52,-46.4883,-35.,  -10.,  47., 60. },
-			{  0., 0., 31.13, 35.22, 56.61, 141.45, 16.5305,-13.61, 65.,-173., -6. },
-			{  0., 0.,-32.,  -35.,  -45.,   161.5, 137.,    145., -150., 138.,-10. } };
+			{ 90., 0., 29.98, 31.78, 48.88, -28.52,-46.4883,-35.,  -17.,  47., 60. },
+			{  0., 0., 31.13, 35.22, 56.61, 141.45, 16.5305,-13.61, -7.,-173., -6. },
+			{  0., 0.,-32.,  -35.,  -45.,   161.5, 137.,    145.,  151., 138.,-10. } };
 	
 	
 	final private String name;

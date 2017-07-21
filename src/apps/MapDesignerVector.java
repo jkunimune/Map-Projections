@@ -244,7 +244,7 @@ public class MapDesignerVector extends MapApplication {
 			for (int i = 1; i < closedCurve.size()+1; i ++) {
 				double[] p0 = convCoordsToImg(closedCurve.get(i-1));
 				double[] p1 = convCoordsToImg(closedCurve.get(i%closedCurve.size()));
-				if (Math.hypot(p1[0]-p0[0], p1[1]-p0[1]) >= c.getWidth()/10) {
+				if (Math.hypot(p1[0]-p0[0], p1[1]-p0[1]) >= c.getWidth()/8) {
 					g.stroke();
 					g.beginPath();
 					g.moveTo(p1[0], p1[1]);
