@@ -209,7 +209,7 @@ public abstract class MapApplication extends Application {
 							sliders, spinners);
 					for (int i = 0; i < 3; i ++)
 						aspectArr[i] = Math.toRadians(sliders[i].getValue());
-					if (!suppressListeners.isSet())
+					if (!suppressListeners.isSet()) //TODO supress listeners here
 						aspectSetter.execute();
 				}
 			});
@@ -357,7 +357,7 @@ public abstract class MapApplication extends Application {
 	
 	
 	protected double[] getParams() {
-		return currentParams;
+		return currentParams.clone();
 	}
 	
 	

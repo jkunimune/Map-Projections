@@ -224,14 +224,14 @@ public class MapDesignerVector extends MapApplication {
 	
 	private void updateMap() {
 		final List<List<double[]>> transformed = this.getProjection().transform(
-				input, numVtx/DEF_MAX_VTX+1, this.getParams(), aspect, null);
+				input, numVtx/DEF_MAX_VTX+1, this.getParams(), aspect.clone(), null);
 		Platform.runLater(() -> drawImage(transformed, viewer));
 	}
 	
 	
 	private void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
 		final List<List<double[]>> transformed = this.getProjection().transform(
-				input, 1, this.getParams(), aspect, pBar::setProgress); //calculate
+				input, 1, this.getParams(), aspect.clone(), pBar::setProgress); //calculate
 		saveToSVG(transformed, file, pBar); //save
 	}
 	

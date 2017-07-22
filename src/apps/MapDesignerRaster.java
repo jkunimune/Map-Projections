@@ -158,8 +158,8 @@ public class MapDesignerRaster extends MapApplication {
 	
 	
 	private void updateMap() {
-		display.setImage(makeImage(
-				this.getProjection().map(IMG_WIDTH, this.getParams(), aspect)));
+		display.setImage(makeImage(this.getProjection().map(
+				IMG_WIDTH, this.getParams(), aspect.clone())));
 	}
 	
 	
@@ -175,7 +175,8 @@ public class MapDesignerRaster extends MapApplication {
 		final int[] outDims = configDialog.getDims();
 		final int smoothing = configDialog.getSmoothing();
 		double[][][] points =this.getProjection().map(
-				outDims[0]*smoothing, outDims[1]*smoothing, this.getParams(), aspect, pBar::setProgress);
+				outDims[0]*smoothing, outDims[1]*smoothing, this.getParams(),
+				aspect.clone(), pBar::setProgress);
 		pBar.setProgress(-1);
 		Image theMap = makeImage(points, smoothing); //calculate
 		

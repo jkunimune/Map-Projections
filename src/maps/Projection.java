@@ -236,7 +236,7 @@ public enum Projection {
 	},
 	
 	LAMBERT_CONIC("Conformal Conic", 0b0111, "conformal") {
-		private double n, F, r0;
+		private double n, F, r0, d;
 		private boolean reversed;
 		private double[] lastParams = null;
 		private void processParams(double[] params) {
@@ -252,15 +252,29 @@ public enum Projection {
 				n = Math.sin(lat1);
 			else //normal conic
 				n = Math.log(Math.cos(lat1)/Math.cos(lat2))/Math.log(Math.tan(Math.PI/4+lat2/2)/Math.tan(Math.PI/4+lat1/2));
-			F = Math.cos(lat1)*Math.pow(Math.tan(Math.PI/4+lat1/2), n)/n;
+			F = Math.cos(lat1)*Math.pow(Math.tan(Math.PI/4+lat1/2), n)/n/Math.PI;
 			r0 = F*Math.pow(Math.tan(Math.PI/4+(lat1+lat2)/4), -n);
+			if (n >= .5 && -Math.tan(Math.PI*n)*(1-r0) < 1)
+				d = 0;
+			else if (n >= .5)
+				d = 1 - r0 + 1/Math.tan(Math.PI*n);
+			else if (r0 >= 1 && Math.tan(Math.PI*n)*(1+r0) < 1)
+				d = - 1/(Math.tan(Math.PI*n)*(1+r0));
+			else if (r0 >= 1)
+				d = 0;
+			else
+				d = 1 - r0;
 			lastParams = params.clone();
 		}
 		public double[] project(double lat, double lon, double[] params) {
 			if (!Arrays.equals(params, lastParams)) 	processParams(params);
 			if (n == 0) 	return MERCATOR.project(lat, lon, params);
 			final double r = F*Math.pow(Math.tan(Math.PI/4+lat/2), -n);
-			return new double[] { r*Math.sin(n*lon), r0 - r*Math.cos(n*lon) };
+			final double x = Math.PI*r*Math.sin(n*lon);
+			final double y = Math.PI*(r0 - r*Math.cos(n*lon));
+			if (d > 0) 			return new double[] {x, y+Math.PI*d/2}; //TODO I think it may be time to switch coordinate systems
+			else if (d < 0) 	return new double[] {-d*x, -d*y};
+			else 				return new double[] {x, y};
 		}
 		public double[] inverse(double x, double y, double[] params) {
 			if (!Arrays.equals(params, lastParams)) 	processParams(params);
@@ -268,15 +282,21 @@ public enum Projection {
 			else if (reversed) {
 				x = -x; y = -y;
 			}
-			final double r = Math.hypot(x, r0/Math.PI-y)*Math.PI;
+			if (d > 0)
+				y = y*(1-d/2) - d/2;
+			else if (d < 0) {
+				x /= -d; y /= -d;
+			}
+			final double r = Math.hypot(x, r0-y);
 			final double phi = 2*Math.atan(Math.pow(F/r, 1/n)) - Math.PI/2;
-			final double lam = Math.atan2(x, r0/Math.PI-y)/n;
+			final double lam = Math.atan2(x, r0-y)/n;
 			if (Math.abs(lam) > Math.PI) 	return null;
 			else if (reversed) 				return new double[] {-phi, -lam};
 			else 							return new double[] {phi, lam};
 		}
 		public double getAspectRatio(double[] params) {
-			return 1; //TODO: implement this
+			if (!Arrays.equals(params, lastParams)) 	processParams(params);
+			return 2/(2 - Math.max(d, 0));
 		}
 	},
 	
