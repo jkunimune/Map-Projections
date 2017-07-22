@@ -69,8 +69,10 @@ public class MapDesignerVector extends MapApplication {
 			Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC,
 			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.SINUSOIDAL, Projection.MOLLWEIDE,
 			Projection.TOBLER, Projection.AITOFF, Projection.VAN_DER_GRINTEN, Projection.ROBINSON,
-			Projection.WINKEL_TRIPEL, Projection.PEIRCE_QUINCUNCIAL, Projection.GUYOU, Projection.MAGNIFIER,
-			Projection.EXPERIMENT, Projection.PSEUDOSTEREOGRAPHIC, Projection.HYPERELLIPOWER, Projection.TETRAPOWER, Projection.TETRAFILLET, Projection.TETRACHAMFER };
+			Projection.WINKEL_TRIPEL, Projection.PEIRCE_QUINCUNCIAL, Projection.GUYOU,
+			Projection.HAMMER_RETROAZIMUTHAL_FRONT, Projection.HAMMER_RETROAZIMUTHAL_BACK, Projection.MAGNIFIER,
+			Projection.EXPERIMENT, Projection.PSEUDOSTEREOGRAPHIC, Projection.HYPERELLIPOWER, Projection.TETRAPOWER,
+			Projection.TETRAFILLET, Projection.TETRACHAMFER };
 	
 	private static final int DEF_MAX_VTX = 5000;
 	

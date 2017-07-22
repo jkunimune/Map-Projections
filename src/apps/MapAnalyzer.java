@@ -89,7 +89,8 @@ public class MapAnalyzer extends MapApplication {
 			Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC,
 			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.SINUSOIDAL, Projection.MOLLWEIDE,
 			Projection.HAMMER, Projection.TOBLER, Projection.AITOFF, Projection.VAN_DER_GRINTEN, Projection.ROBINSON,
-			Projection.WINKEL_TRIPEL, Projection.PEIRCE_QUINCUNCIAL, Projection.GUYOU, Projection.MAGNIFIER,
+			Projection.WINKEL_TRIPEL, Projection.PEIRCE_QUINCUNCIAL, Projection.GUYOU,
+			Projection.HAMMER_RETROAZIMUTHAL_FRONT, Projection.HAMMER_RETROAZIMUTHAL_BACK, Projection.MAGNIFIER,
 			Projection.EXPERIMENT, Projection.PSEUDOSTEREOGRAPHIC, Projection.HYPERELLIPOWER, Projection.TETRAPOWER, Projection.TETRAFILLET, Projection.TETRACHAMFER };
 	
 	
@@ -270,6 +271,8 @@ public class MapAnalyzer extends MapApplication {
 			for (int x = 0; x < distortion[0][y].length; x ++) {
 				final double sizeDistort = distortion[0][y][x];
 				final double shapeDistort = distortion[1][y][x];
+				final double sizeContour = Math.round(
+						sizeDistort/(Math.log(10)/10))*Math.log(10)/10;
 				if (Double.isNaN(sizeDistort) || Double.isNaN(shapeDistort)) {
 					writer.setArgb(x, y, 0);
 					continue;
@@ -278,11 +281,11 @@ public class MapAnalyzer extends MapApplication {
 				final int r, g, b;
 				if (sizeDistort < 0) { //if compressing
 					r = (int)(255.9*Math.exp(-shapeDistort*.6));
-					g = (int)(255.9*Math.exp(-shapeDistort*.6)*Math.exp(sizeDistort*.6));
+					g = (int)(255.9*Math.exp(-shapeDistort*.6)*Math.exp(sizeContour*.6));
 					b = g;
 				}
 				else { //if dilating
-					r = (int)(255.9*Math.exp(-shapeDistort*.6)*Math.exp(-sizeDistort*.6));
+					r = (int)(255.9*Math.exp(-shapeDistort*.6)*Math.exp(-sizeContour*.6));
 					g = r; //I find .6 to ba a rather visually pleasing sensitivity
 					b = (int)(255.9*Math.exp(-shapeDistort*.6));
 				}

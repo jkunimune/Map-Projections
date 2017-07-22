@@ -738,8 +738,17 @@ public enum Projection {
 	
 	HAMMER_RETROAZIMUTHAL_FRONT("Hammer Retroazimuthal (front)", "The 'front' hemisphere of a map where bearing and distance to a reference point is preserved",
 			1., 0b1110, "quasiazimuthal", "retroazimuthal") {
+		public double[] project(double lat, double lon, double[] params, double[] pole) {
+			return project(lat, lon, pole); //the pole for this projection is like the parameters
+		}
 		public double[] project(double lat, double lon, double[] params) {
-			return null; //TODO: projection wishlist
+			if (Math.abs((lon-params[1]+2*Math.PI)%(2*Math.PI)-Math.PI) < Math.PI/2)
+				lon = params[1]+Math.PI/2;
+			final double[] relCoords = obliquifySphc(params[0],params[1],
+					new double[] {lat,lon,0});
+			final double r = Math.PI/2 - relCoords[0];
+			final double t = relCoords[1] + params[2];
+			return new double[] {-r*Math.sin(t), r*Math.cos(t)};
 		}
 		public double[] inverse(double x, double y, double[] params) {
 			return null; //TODO: projection wishlist
@@ -748,8 +757,17 @@ public enum Projection {
 	
 	HAMMER_RETROAZIMUTHAL_BACK("Hammer Retroazimuthal (back)", "The 'back' hemisphere of a map where bearing and distance to a reference point is preserved",
 			1., 0b1110, "quasiazimuthal", "retroazimuthal") {
+		public double[] project(double lat, double lon, double[] params, double[] pole) {
+			return project(lat, lon, pole); //the pole for this projection is like the parameters
+		}
 		public double[] project(double lat, double lon, double[] params) {
-			return null; //TODO: projection wishlist
+			if (Math.abs((lon-params[1]+2*Math.PI)%(2*Math.PI)-Math.PI) > Math.PI/2)
+				lon = params[1]+Math.PI/2;
+			final double[] relCoords = obliquifySphc(params[0],params[1],
+					new double[] {lat,lon,0});
+			final double r = Math.PI/2 - relCoords[0];
+			final double t = relCoords[1] + params[2];
+			return new double[] {-r*Math.sin(t), r*Math.cos(t)};
 		}
 		public double[] inverse(double x, double y, double[] params) {
 			return null; //TODO: projection wishlist
