@@ -899,7 +899,7 @@ public enum Projection {
 	
 	HYPERELLIPOWER("Hyperellipower", "A parametric projection that I'm still testing",
 			2., 0b1111, "pseudocylindrical", "compromise", new String[] {"k","n","a"},
-			new double[][] {{1,5,3.7308},{.5,2.,1.2027},{.5,2.,1.1443}}) {
+			new double[][] {{1,5,4.99},{.5,2.,1.20},{.5,2.,1.13}}) {
 		public double[] project(double lat, double lon, double[] params) {
 			final double k = params[0], n = params[1], a = params[2];
 			final double ynorm = (1-Math.pow(1-Math.abs(lat/(Math.PI/2)), n));
@@ -922,7 +922,7 @@ public enum Projection {
 	
 	TETRAPOWER("Tetrapower", "A parametric projection that I'm still testing",
 			Math.sqrt(3), 0b1111, "tetrahedral", "compromise", new String[] {"k1","k2","k3"},
-			new double[][] {{.25,4.,1.4586},{.25,4.,1.2891},{.25,4.,1.9583}}) {
+			new double[][] {{.25,4.,.87},{.25,4.,1.67},{.25,4.,1.00}}) {
 		public double[] project(double lat, double lon, double[] params) {
 			final double k1 = params[0], k2 = params[1], k3 = params[2];
 			return tetrahedralProjectionForward(lat, lon, (coordR) -> {

@@ -49,9 +49,8 @@ public class MapOptimizer extends Application {
 	
 	private static final Projection[] EXISTING_PROJECTIONS = { Projection.HOBO_DYER, Projection.ROBINSON,
 			Projection.PLATE_CARREE, Projection.PEIRCE_QUINCUNCIAL };
-	private static final Projection[] PROJECTIONS_TO_OPTIMIZE = {Projection.TOBLER};
-//	private static final Projection[] PROJECTIONS_TO_OPTIMIZE = { Projection.TOBLER, Projection.HYPERELLIPOWER,
-//			Projection.TETRAPOWER, Projection.TETRAFILLET, Projection.TETRACHAMFER };
+	private static final Projection[] PROJECTIONS_TO_OPTIMIZE = { Projection.TOBLER, Projection.HYPERELLIPOWER,
+			Projection.TETRAPOWER, Projection.TETRAFILLET, Projection.TETRACHAMFER };
 	private static final double[] WEIGHTS = { .083, .20, .33, .50, .71, 1.0, 1.4, 2.0, 3.0, 5.0, 12. };
 	private static final int NUM_DESCENT = 40;
 	private LineChart<Number, Number> chart;
