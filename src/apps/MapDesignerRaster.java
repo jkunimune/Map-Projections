@@ -35,7 +35,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Separator;
 import javafx.scene.image.Image;
@@ -63,9 +62,15 @@ public class MapDesignerRaster extends MapApplication {
 	
 	
 	
-	private static final FileChooser.ExtensionFilter[] RASTER_TYPES = {
+	private static final FileChooser.ExtensionFilter[] READABLE_TYPES = {
+			new FileChooser.ExtensionFilter("All image types", "*.png","*.jpg","*.jpeg","*.jpe","*.jfif","*.gif"),
+			new FileChooser.ExtensionFilter("PNG", "*.png"),
 			new FileChooser.ExtensionFilter("JPG", "*.jpg","*.jpeg","*.jpe","*.jfif"),
-			new FileChooser.ExtensionFilter("PNG", "*.png") };
+			new FileChooser.ExtensionFilter("GIF", "*.gif") };
+	private static final FileChooser.ExtensionFilter[] RASTER_TYPES = {
+			new FileChooser.ExtensionFilter("PNG", "*.png"),
+			new FileChooser.ExtensionFilter("JPG", "*.jpg","*.jpeg","*.jpe","*.jfif"),
+			new FileChooser.ExtensionFilter("GIF", "*.gif") };
 	
 	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.PLATE_CARREE, Projection.BEHRMANN,
 			Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
@@ -104,7 +109,7 @@ public class MapDesignerRaster extends MapApplication {
 	@Override
 	protected Node makeWidgets() {
 		this.aspect = new double[3];
-		final Node inputSelector = buildInputSelector(RASTER_TYPES,
+		final Node inputSelector = buildInputSelector(READABLE_TYPES,
 				RASTER_TYPES[0], this::setInput);
 		final Node projectionSelector = buildProjectionSelector(PROJ_ARR,
 				Projection.MERCATOR, Procedure.NONE);
@@ -113,7 +118,7 @@ public class MapDesignerRaster extends MapApplication {
 		final Node parameterSelector = buildParameterSelector(Procedure.NONE);
 		this.updateBtn = buildUpdateButton(this::updateMap);
 		this.saveMapBtn = buildSaveButton(true, "map", RASTER_TYPES,
-				RASTER_TYPES[1], this::collectFinalSettings, this::calculateAndSaveMap);
+				RASTER_TYPES[0], this::collectFinalSettings, this::calculateAndSaveMap);
 		final HBox buttons = new HBox(5, updateBtn, saveMapBtn);
 		buttons.setAlignment(Pos.CENTER);
 		
@@ -185,10 +190,8 @@ public class MapDesignerRaster extends MapApplication {
 		try {
 			ImageIO.write(SwingFXUtils.fromFXImage(theMap,null), extension, file); //save
 		} catch (IOException e) {
-			final Alert alert = new Alert(AlertType.ERROR);
-			alert.setHeaderText("Failure!");
-			alert.setContentText("Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
-			Platform.runLater(alert::showAndWait);
+			showError("Failure!",
+					"Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
 		}
 	}
 	

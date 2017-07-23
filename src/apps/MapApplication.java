@@ -19,6 +19,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
@@ -65,9 +66,9 @@ public abstract class MapApplication extends Application {
 	private static final String[] ASPECT_NAMES = { "Standard", "Transverse", "Center of Mass", "Jerusalem", "Point Nemo",
 			"Longest Line", "Longest Line Transverse", "Cylindrical", "Conic", "Tetrahedral", "Quincuncial", "Antipode", "Random" };
 	private static final double[][] ASPECT_VALS = {
-			{ 90., 0., 29.98, 31.78, 48.88, -28.52,-46.4883,-35.,  -17.,  47., 60. },
-			{  0., 0., 31.13, 35.22, 56.61, 141.45, 16.5305,-13.61, -7.,-173., -6. },
-			{  0., 0.,-32.,  -35.,  -45.,   161.5, 137.,    145.,  151., 138.,-10. } };
+			{ 90., 0., 29.98, 31.78, 48.88, -28.52,-46.4883,-35.,  -17.,  47.,  60. },
+			{  0., 0., 31.13, 35.22, 56.61, 141.45, 16.5305,-13.61, -7.,-173.,  -6. },
+			{  0., 0.,-32.,  -35.,  -45.,   161.5, 137.,    145.,  151., 138.,-100. } };
 	
 	
 	final private String name;
@@ -126,8 +127,15 @@ public abstract class MapApplication extends Application {
 				"Choose the image to determine the style of your map"));
 		loadButton.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
-				final File f = inputChooser.showOpenDialog(root);
-				if (f != null) {
+				File file;
+				try {
+					file = inputChooser.showOpenDialog(root);
+				} catch (IllegalArgumentException e) {
+					inputChooser.setInitialDirectory(new File("."));
+					file = inputChooser.showOpenDialog(root);
+				}
+				if (file != null) {
+					final File f = file;
 					trigger(loadButton, () -> inputSetter.accept(f));
 					inputLabel.setText(f.getName());
 				}
@@ -209,7 +217,7 @@ public abstract class MapApplication extends Application {
 							sliders, spinners);
 					for (int i = 0; i < 3; i ++)
 						aspectArr[i] = Math.toRadians(sliders[i].getValue());
-					if (!suppressListeners.isSet()) //TODO supress listeners here
+					if (!suppressListeners.isSet())
 						aspectSetter.execute();
 				}
 			});
@@ -302,12 +310,13 @@ public abstract class MapApplication extends Application {
 	
 	/**
 	 * Build a button that will save something
-	 * @param bindCtrlS true iff this button should have ^S bound to it
+	 * @param bindCtrlS Should ctrl+S trigger this button?
 	 * @param savee The name of the thing being saved
-	 * @param allowedExtensions The List of possible file types for the output
-	 * @param startSaving The method that will be called when the button is
-	 * 		pressed. This will generally be called from the main thread. maybe.
-	 * @return the button
+	 * @param allowedExtensions The allowed file formats that can be saved
+	 * @param defaultExtension The default file format to be saved
+	 * @param settingCollector A callback to run just before the saving happens that returns true if it should commence
+	 * @param calculateAndSaver The callback that saves the thing
+	 * @return the button, ready to be pressed
 	 */
 	protected Button buildSaveButton(boolean bindCtrlS, String savee,
 			FileChooser.ExtensionFilter[] allowedExtensions,
@@ -320,12 +329,23 @@ public abstract class MapApplication extends Application {
 		saver.setTitle("Save "+savee);
 		saver.getExtensionFilters().addAll(allowedExtensions);
 		saver.setSelectedExtensionFilter(defaultExtension);
+		try {
+			if (!saver.getInitialDirectory().exists())
+				saver.getInitialDirectory().mkdirs();
+		} catch (SecurityException e) {}
 		
 		final Button saveButton = new Button("Save "+savee+"...");
 		saveButton.setOnAction(new EventHandler<ActionEvent>() {
 			public void handle(ActionEvent event) {
-				final File f = saver.showSaveDialog(root);
-				if (f != null) {
+				File file;
+				try {
+					file = saver.showSaveDialog(root);
+				} catch(IllegalArgumentException e) {
+					saver.setInitialDirectory(new File("."));
+					file = saver.showSaveDialog(root);
+				}
+				if (file != null) {
+					final File f = file;
 					if (settingCollector.getAsBoolean()) {
 						final ProgressBarDialog pBar = new ProgressBarDialog();
 						pBar.setContentText("Finalizing "+savee+"...");
@@ -461,6 +481,16 @@ public abstract class MapApplication extends Application {
 					if (!now) 	spn.increment(0);
 				});
 		}
+	}
+	
+	
+	protected static void showError(String header, String message) { //a simple thread-safe error handling thing
+		Platform.runLater(() -> {
+				final Alert alert = new Alert(Alert.AlertType.ERROR);
+				alert.setHeaderText(header);
+				alert.setContentText(message);
+				alert.showAndWait();
+			});
 	}
 	
 	

@@ -37,7 +37,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.HBox;
@@ -139,15 +138,11 @@ public class MapDesignerVector extends MapApplication {
 		try {
 			input = loadSVG(file.getAbsolutePath());
 		} catch (IllegalArgumentException e) {
-			final Alert alert = new Alert(Alert.AlertType.ERROR);
-			alert.setHeaderText("Unreadable file!");
-			alert.setContentText("We couldn't read "+file.getAbsolutePath()+". It may be corrupt or an unreadable format.");
-			Platform.runLater(alert::showAndWait);
+			showError("Unreadable file!",
+					"We couldn't read "+file.getAbsolutePath()+". It may be corrupt or an unreadable format.");
 		} catch (IOException e) {
-			final Alert alert = new Alert(Alert.AlertType.ERROR);
-			alert.setHeaderText("File not found!");
-			alert.setContentText("Couldn't find "+file.getAbsolutePath()+".");
-			Platform.runLater(alert::showAndWait);
+			showError("File not found!",
+					"We couldn't find "+file.getAbsolutePath()+".");
 		} finally {
 			saveBtn.setDisable(false);
 		}
@@ -278,10 +273,8 @@ public class MapDesignerVector extends MapApplication {
 			out.close();
 			
 		} catch (IOException e) {
-			Alert alert = new Alert(Alert.AlertType.ERROR);
-			alert.setHeaderText("Failure!");
-			alert.setContentText("Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
-			Platform.runLater(alert::showAndWait);
+			showError("Failure!",
+					"Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
 		}
 		saveBtn.setDisable(false);
 	}

@@ -39,11 +39,9 @@ import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelWriter;
@@ -80,10 +78,11 @@ public class MapAnalyzer extends MapApplication {
 	private static final double GLOBE_RES = .01;
 	
 	private static final FileChooser.ExtensionFilter[] RASTER_TYPES = {
+			new FileChooser.ExtensionFilter("PNG", "*.png"),
 			new FileChooser.ExtensionFilter("JPG", "*.jpg","*.jpeg","*.jpe","*.jfif"),
-			new FileChooser.ExtensionFilter("PNG", "*.png") };
+			new FileChooser.ExtensionFilter("GIF", "*.gif") };
 	
-	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.PLATE_CARREE, Projection.GALL_PETERS,
+	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.EQUIRECTANGULAR, Projection.GALL_PETERS,
 			Projection.HOBO_DYER, Projection.BEHRMANN, Projection.LAMBERT_CYLIND, Projection.E_A_CYLIND,
 			Projection.MILLER, Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
 			Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC,
@@ -234,10 +233,8 @@ public class MapAnalyzer extends MapApplication {
 			while (out.getProgress() < 1) {}
 			ImageIO.write(SwingFXUtils.fromFXImage(out, null), extension, file); //save
 		} catch (IOException e) {
-			final Alert alert = new Alert(AlertType.ERROR);
-			alert.setHeaderText("Failure!");
-			alert.setContentText("Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
-			Platform.runLater(alert::showAndWait);
+			showError("Failure!",
+					"Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
 		}
 	}
 	
@@ -256,10 +253,8 @@ public class MapAnalyzer extends MapApplication {
 		try {
 			ImageIO.write(SwingFXUtils.fromFXImage(graphic,null), extension, file); //save
 		} catch (IOException e) {
-			final Alert alert = new Alert(AlertType.ERROR);
-			alert.setHeaderText("Failure!");
-			alert.setContentText("Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
-			Platform.runLater(alert::showAndWait);
+			showError("Failure!",
+					"Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
 		}
 	}
 	

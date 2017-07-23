@@ -133,7 +133,7 @@ public enum Projection {
 	
 	E_A_CYLIND("Equal-area cylindrical", "A generalized equal-area cylindrical projection",
 			1.977, 0b1111, "cylindrical", "equal-area",
-			new String[]{"Std. parallel"}, new double[][]{{0, 85, 37.5}}) {
+			new String[]{"Std. parallel"}, new double[][]{{0, 85, 30}}) {
 		public double[] project(double lat, double lon, double[] params) {
 			final double a = Math.pow(Math.cos(Math.toRadians(params[0])), 2);
 			if (a >= 1/Math.PI)
@@ -258,8 +258,8 @@ public enum Projection {
 				d = 0;
 			else if (n >= .5)
 				d = 1 - r0 + 1/Math.tan(Math.PI*n);
-			else if (r0 >= 1 && Math.tan(Math.PI*n)*(1+r0) < 1)
-				d = - 1/(Math.tan(Math.PI*n)*(1+r0));
+			else if (Math.tan(Math.PI*n)*(1+r0) < 1)
+				d = (1 - 1/Math.tan(Math.PI*n))/r0;
 			else if (r0 >= 1)
 				d = 0;
 			else
@@ -269,9 +269,13 @@ public enum Projection {
 		public double[] project(double lat, double lon, double[] params) {
 			if (!Arrays.equals(params, lastParams)) 	processParams(params);
 			if (n == 0) 	return MERCATOR.project(lat, lon, params);
+			if (reversed) {
+				lat = -lat; lon = -lon;
+			}
 			final double r = F*Math.pow(Math.tan(Math.PI/4+lat/2), -n);
-			final double x = Math.PI*r*Math.sin(n*lon);
-			final double y = Math.PI*(r0 - r*Math.cos(n*lon));
+			final double s = reversed ? -1 : 1;
+			final double x = s*Math.PI*r*Math.sin(n*lon);
+			final double y = s*Math.PI*(r0 - r*Math.cos(n*lon));
 			if (d > 0) 			return new double[] {x, y+Math.PI*d/2}; //TODO I think it may be time to switch coordinate systems
 			else if (d < 0) 	return new double[] {-d*x, -d*y};
 			else 				return new double[] {x, y};
@@ -322,7 +326,7 @@ public enum Projection {
 				a = 2*Math.cos(lat1);
 			}
 			else if (n >= .5) {
-				a = 2/(1 + Math.cos(Math.PI*(1-n)));
+				a = 2/(1 - Math.cos(Math.PI*n));
 				s = 1;
 			}
 			else {
@@ -336,8 +340,7 @@ public enum Projection {
 			if (!Arrays.equals(params, lastParams)) 	processParams(params);
 			if (m == 0) 	return EQUIRECTANGULAR.project(lat, lon, params);
 			if (reversed) {
-				lat = -lat;
-				lon = -lon;
+				lat = -lat; lon = -lon;
 			}
 			final double r = Math.PI - m*lat - Math.PI*m/2;
 			final double x = s*r*Math.sin(n*lon);
@@ -349,8 +352,7 @@ public enum Projection {
 			if (!Arrays.equals(params, lastParams)) 	processParams(params);
 			if (m == 0) 	return EQUIRECTANGULAR.inverse(x, y, params);
 			if (reversed) {
-				x = -x;
-				y = -y;
+				x = -x; y = -y;
 			}
 			x = x/s;
 			y = (y+1)/s/Math.max(a, 1) - 1;
@@ -388,7 +390,7 @@ public enum Projection {
 				a = Math.PI*Math.pow(Math.cos(lat1), 2);
 			}
 			else if (n >= .5) {
-				a = 2/(1 - Math.cos(Math.PI*n)); //TODO get rid of all 1-ns
+				a = 2/(1 - Math.cos(Math.PI*n));
 				s = n/Math.sqrt(C+2*n);
 			}
 			else {
@@ -402,8 +404,7 @@ public enum Projection {
 			if (!Arrays.equals(params, lastParams)) 	processParams(params);
 			if (n == 0) 	return E_A_CYLIND.project(lat, lon, params);
 			if (reversed) {
-				lat = -lat;
-				lon = -lon;
+				lat = -lat; lon = -lon;
 			}
 			final double r = Math.sqrt(C - 2*n*Math.sin(lat))/n;
 			final double x = Math.PI*s*r*Math.sin(n*lon);
@@ -415,11 +416,10 @@ public enum Projection {
 			if (!Arrays.equals(params, lastParams)) 	processParams(params);
 			if (n == 0) 	return E_A_CYLIND.inverse(x, y, params);
 			if (reversed) {
-				x = -x;
-				y = -y;
+				x = -x; y = -y;
 			}
 			x = x/s;
-			y = (y+1)/s/Math.max(a, 1) - Math.sqrt(C+2*n)/n; //TODO I can do without these lines
+			y = (y+1)/s/Math.max(a, 1) - Math.sqrt(C+2*n)/n;
 			final double r = Math.hypot(x, y);
 			final double phi = Math.asin((C - Math.pow(n*r,2))/(2*n));
 			final double lam = Math.atan2(x, -y)/n;
@@ -756,7 +756,7 @@ public enum Projection {
 		}
 	},
 	
-	HAMMER_RETROAZIMUTHAL_FRONT("Hammer Retroazimuthal (front)", "The 'front' hemisphere of a map where bearing and distance to a reference point is preserved",
+	HAMMER_RETROAZIMUTHAL_FRONT("Retroazimuthal (front)", "The 'front' hemisphere of a map where bearing and distance to a reference point is preserved",
 			1., 0b1110, "quasiazimuthal", "retroazimuthal") {
 		public double[] project(double lat, double lon, double[] params, double[] pole) {
 			return project(lat, lon, pole); //the pole for this projection is like the parameters
@@ -775,7 +775,7 @@ public enum Projection {
 		}
 	},
 	
-	HAMMER_RETROAZIMUTHAL_BACK("Hammer Retroazimuthal (back)", "The 'back' hemisphere of a map where bearing and distance to a reference point is preserved",
+	HAMMER_RETROAZIMUTHAL_BACK("Retroazimuthal (back)", "The 'back' hemisphere of a map where bearing and distance to a reference point is preserved",
 			1., 0b1110, "quasiazimuthal", "retroazimuthal") {
 		public double[] project(double lat, double lon, double[] params, double[] pole) {
 			return project(lat, lon, pole); //the pole for this projection is like the parameters
