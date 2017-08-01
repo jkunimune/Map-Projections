@@ -766,12 +766,24 @@ public enum Projection {
 				lon = params[1]+Math.PI/2;
 			final double[] relCoords = obliquifySphc(params[0],params[1],
 					new double[] {lat,lon,0});
-			final double r = Math.PI/2 - relCoords[0];
+			final double r = Math.PI/2 - relCoords[0]; //TODO try official equations
 			final double t = relCoords[1] + params[2];
 			return new double[] {-r*Math.sin(t), r*Math.cos(t)};
 		}
+		public double[] inverse(double lat, double lon, double[] params, double[] pole) {
+			return inverse(lat, lon, pole); //TODO: have these projections not have an aspect
+		}
 		public double[] inverse(double x, double y, double[] params) {
-			return null; //TODO: projection wishlist
+			final double PHI = params[0], LAM = params[1];
+			final double phi1 = Math.PI/2 - Math.hypot(x, y)*Math.PI;
+			if (phi1 < -Math.PI/2) 	return null;
+			final double lam1 = Math.atan2(x, -y);
+			final double phiP = Math.asin(Math.sin(PHI)/Math.hypot(Math.sin(phi1),Math.cos(phi1)*Math.cos(lam1))) - Math.atan2(Math.cos(phi1)*Math.cos(lam1),Math.sin(phi1));
+			if (Math.abs(phiP) > Math.PI/2) 	return null;
+			final double delL = Math.acos(Math.sin(phi1)/Math.cos(phiP)/Math.cos(PHI) - Math.tan(phiP)*Math.tan(PHI));
+			final double lamP = LAM + Math.signum(x)*delL;
+			if (Double.isNaN(phiP) || Double.isNaN(lamP)) 	return null;
+			return new double[] {phiP, lamP};
 		}
 	},
 	
@@ -789,8 +801,21 @@ public enum Projection {
 			final double t = relCoords[1] + params[2];
 			return new double[] {-r*Math.sin(t), r*Math.cos(t)};
 		}
+		public double[] inverse(double lat, double lon, double[] params, double[] pole) {
+			return inverse(lat, lon, pole); //TODO: have these projections not have an aspect
+		}
 		public double[] inverse(double x, double y, double[] params) {
-			return null; //TODO: projection wishlist
+			final double PHI = params[0], LAM = params[1];
+			final double phi1 = Math.PI/2 - Math.hypot(x, y)*Math.PI;
+			if (phi1 < -Math.PI/2) 	return null;
+			final double lam1 = Math.atan2(x, -y);
+			final double delP = Math.asin(Math.sin(PHI)/Math.hypot(Math.sin(phi1),Math.cos(phi1)*Math.cos(lam1))) + Math.atan2(Math.cos(phi1)*Math.cos(lam1),Math.sin(phi1));
+			final double phiP = -Math.signum(y)*Math.PI - delP;
+			if (Math.abs(phiP) > Math.PI/2) 	return null;
+			final double delL = Math.acos(Math.sin(phi1)/Math.cos(phiP)/Math.cos(PHI) - Math.tan(phiP)*Math.tan(PHI));
+			final double lamP = LAM + Math.signum(x)*delL;
+			if (Double.isNaN(phiP) || Double.isNaN(lamP)) 	return null;
+			return new double[] {phiP, lamP};
 		}
 	},
 	
