@@ -89,7 +89,7 @@ public class MapAnalyzer extends MapApplication {
 			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.SINUSOIDAL, Projection.MOLLWEIDE,
 			Projection.HAMMER, Projection.TOBLER, Projection.AITOFF, Projection.VAN_DER_GRINTEN, Projection.ROBINSON,
 			Projection.WINKEL_TRIPEL, Projection.PEIRCE_QUINCUNCIAL, Projection.GUYOU,
-			Projection.HAMMER_RETROAZIMUTHAL_FRONT, Projection.HAMMER_RETROAZIMUTHAL_BACK, Projection.MAGNIFIER,
+			Projection.HAMMER_RETROAZIMUTHAL, Projection.MAGNIFIER,
 			Projection.EXPERIMENT, Projection.PSEUDOSTEREOGRAPHIC, Projection.HYPERELLIPOWER, Projection.TETRAPOWER, Projection.TETRAFILLET, Projection.TETRACHAMFER };
 	
 	

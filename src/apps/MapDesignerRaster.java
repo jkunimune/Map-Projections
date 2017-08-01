@@ -78,7 +78,7 @@ public class MapDesignerRaster extends MapApplication {
 			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.AUTHAGRAPH, Projection.SINUSOIDAL,
 			Projection.MOLLWEIDE, Projection.TOBLER, Projection.AITOFF, Projection.VAN_DER_GRINTEN, Projection.ROBINSON,
 			Projection.WINKEL_TRIPEL, Projection.PEIRCE_QUINCUNCIAL, Projection.GUYOU,
-			Projection.HAMMER_RETROAZIMUTHAL_FRONT, Projection.HAMMER_RETROAZIMUTHAL_BACK, Projection.LEMONS,
+			Projection.HAMMER_RETROAZIMUTHAL, Projection.LEMONS,
 			Projection.MAGNIFIER, Projection.EXPERIMENT, Projection.PSEUDOSTEREOGRAPHIC, Projection.HYPERELLIPOWER,
 			Projection.TETRAPOWER, Projection.TETRAFILLET, Projection.TETRACHAMFER };
 	

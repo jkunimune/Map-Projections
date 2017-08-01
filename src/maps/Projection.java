@@ -192,7 +192,7 @@ public enum Projection {
 		}
 	},
 	
-	E_A_AZIMUTH("Azimuthalal Equal-Area", 1., 0b0111, "azimuthal", "equal-area") {
+	E_A_AZIMUTH("Azimuthal Equal-Area", 1., 0b0111, "azimuthal", "equal-area") {
 		public double[] project(double lat, double lon, double[] params) {
 			final double r = Math.PI*Math.cos((Math.PI/2+lat)/2);
 			return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
@@ -756,19 +756,21 @@ public enum Projection {
 		}
 	},
 	
-	HAMMER_RETROAZIMUTHAL_FRONT("Retroazimuthal (front)", "The 'front' hemisphere of a map where bearing and distance to a reference point is preserved",
+	HAMMER_RETROAZIMUTHAL("Hammer Retroazimuthal", "The full version of a map where bearing and distance to a reference point is preserved",
 			1., 0b1110, "quasiazimuthal", "retroazimuthal") {
 		public double[] project(double lat, double lon, double[] params, double[] pole) {
 			return project(lat, lon, pole); //the pole for this projection is like the parameters
 		}
 		public double[] project(double lat, double lon, double[] params) {
+			final double phi1 = params[0], lam0 = params[1];
+			final double z = Math.acos(Math.sin(phi1)*Math.sin(lat) + Math.cos(phi1)*Math.cos(lat)*Math.cos(lon-lam0));
+			final double K = z/Math.sin(z);
+			final double x = K*Math.cos(phi1)*Math.sin(lon-lam0);
+			final double y = -K*(Math.sin(phi1)*Math.cos(lat) - Math.cos(phi1)*Math.sin(lat)*Math.cos(lon-lam0));
 			if (Math.abs((lon-params[1]+2*Math.PI)%(2*Math.PI)-Math.PI) < Math.PI/2)
-				lon = params[1]+Math.PI/2;
-			final double[] relCoords = obliquifySphc(params[0],params[1],
-					new double[] {lat,lon,0});
-			final double r = Math.PI/2 - relCoords[0]; //TODO try official equations
-			final double t = relCoords[1] + params[2];
-			return new double[] {-r*Math.sin(t), r*Math.cos(t)};
+				return new double[] {-x, -y};
+			else
+				return new double[] {x, y};
 		}
 		public double[] inverse(double lat, double lon, double[] params, double[] pole) {
 			return inverse(lat, lon, pole); //TODO: have these projections not have an aspect
@@ -778,40 +780,9 @@ public enum Projection {
 			final double phi1 = Math.PI/2 - Math.hypot(x, y)*Math.PI;
 			if (phi1 < -Math.PI/2) 	return null;
 			final double lam1 = Math.atan2(x, -y);
-			final double phiP = Math.asin(Math.sin(PHI)/Math.hypot(Math.sin(phi1),Math.cos(phi1)*Math.cos(lam1))) - Math.atan2(Math.cos(phi1)*Math.cos(lam1),Math.sin(phi1));
-			if (Math.abs(phiP) > Math.PI/2) 	return null;
-			final double delL = Math.acos(Math.sin(phi1)/Math.cos(phiP)/Math.cos(PHI) - Math.tan(phiP)*Math.tan(PHI));
-			final double lamP = LAM + Math.signum(x)*delL;
-			if (Double.isNaN(phiP) || Double.isNaN(lamP)) 	return null;
-			return new double[] {phiP, lamP};
-		}
-	},
-	
-	HAMMER_RETROAZIMUTHAL_BACK("Retroazimuthal (back)", "The 'back' hemisphere of a map where bearing and distance to a reference point is preserved",
-			1., 0b1110, "quasiazimuthal", "retroazimuthal") {
-		public double[] project(double lat, double lon, double[] params, double[] pole) {
-			return project(lat, lon, pole); //the pole for this projection is like the parameters
-		}
-		public double[] project(double lat, double lon, double[] params) {
-			if (Math.abs((lon-params[1]+2*Math.PI)%(2*Math.PI)-Math.PI) > Math.PI/2)
-				lon = params[1]+Math.PI/2;
-			final double[] relCoords = obliquifySphc(params[0],params[1],
-					new double[] {lat,lon,0});
-			final double r = Math.PI/2 - relCoords[0];
-			final double t = relCoords[1] + params[2];
-			return new double[] {-r*Math.sin(t), r*Math.cos(t)};
-		}
-		public double[] inverse(double lat, double lon, double[] params, double[] pole) {
-			return inverse(lat, lon, pole); //TODO: have these projections not have an aspect
-		}
-		public double[] inverse(double x, double y, double[] params) {
-			final double PHI = params[0], LAM = params[1];
-			final double phi1 = Math.PI/2 - Math.hypot(x, y)*Math.PI;
-			if (phi1 < -Math.PI/2) 	return null;
-			final double lam1 = Math.atan2(x, -y);
-			final double delP = Math.asin(Math.sin(PHI)/Math.hypot(Math.sin(phi1),Math.cos(phi1)*Math.cos(lam1))) + Math.atan2(Math.cos(phi1)*Math.cos(lam1),Math.sin(phi1));
-			final double phiP = -Math.signum(y)*Math.PI - delP;
-			if (Math.abs(phiP) > Math.PI/2) 	return null;
+			double phiP = Math.asin(Math.sin(PHI)/Math.hypot(Math.sin(phi1),Math.cos(phi1)*Math.cos(lam1))) - Math.atan2(Math.cos(phi1)*Math.cos(lam1),Math.sin(phi1));
+			if (Math.abs(phiP) > Math.PI/2)
+				phiP = Math.signum(phiP)*Math.PI - phiP;
 			final double delL = Math.acos(Math.sin(phi1)/Math.cos(phiP)/Math.cos(PHI) - Math.tan(phiP)*Math.tan(PHI));
 			final double lamP = LAM + Math.signum(x)*delL;
 			if (Double.isNaN(phiP) || Double.isNaN(lamP)) 	return null;
