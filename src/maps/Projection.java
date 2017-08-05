@@ -79,7 +79,7 @@ public enum Projection {
 			new String[]{"Std. parallel"}, new double[][]{{0, 85, 0}}) {
 		public double[] project(double lat, double lon, double[] params) {
 			final double a = Math.cos(Math.toRadians(params[0]));
-			if (a >= 1)
+			if (a >= .5)
 				return new double[] {lon, lat/a};
 			else
 				return new double[] {2*lon*a, 2*lat};
@@ -757,26 +757,29 @@ public enum Projection {
 	},
 	
 	HAMMER_RETROAZIMUTHAL("Hammer Retroazimuthal", "The full version of a map where bearing and distance to a reference point is preserved",
-			1., 0b1110, "quasiazimuthal", "retroazimuthal") {
+			1., 0b1110, "quasiazimuthal", "retroazimuthal", new String[] {"Latitude","Longitude"},
+			new double[][] {{-89,89,21.4},{-180,180,39.8}}, false) {
 		public double[] project(double lat, double lon, double[] params, double[] pole) {
-			return project(lat, lon, pole); //the pole for this projection is like the parameters
+			return project(lat, lon, params);
 		}
 		public double[] project(double lat, double lon, double[] params) {
-			final double phi1 = params[0], lam0 = params[1];
-			final double z = Math.acos(Math.sin(phi1)*Math.sin(lat) + Math.cos(phi1)*Math.cos(lat)*Math.cos(lon-lam0));
+			final double phi1 = Math.toRadians(params[0]);
+			final double lam1 = Math.toRadians(params[1]);
+			final double z = Math.acos(Math.sin(phi1)*Math.sin(lat) + Math.cos(phi1)*Math.cos(lat)*Math.cos(lon-lam1));
 			final double K = z/Math.sin(z);
-			final double x = K*Math.cos(phi1)*Math.sin(lon-lam0);
-			final double y = -K*(Math.sin(phi1)*Math.cos(lat) - Math.cos(phi1)*Math.sin(lat)*Math.cos(lon-lam0));
-			if (Math.abs((lon-params[1]+2*Math.PI)%(2*Math.PI)-Math.PI) < Math.PI/2)
+			final double x = K*Math.cos(phi1)*Math.sin(lon-lam1);
+			final double y = -K*(Math.sin(phi1)*Math.cos(lat) - Math.cos(phi1)*Math.sin(lat)*Math.cos(lon-lam1));
+			if (Math.abs((lon-lam1+2*Math.PI)%(2*Math.PI)-Math.PI) < Math.PI/2)
 				return new double[] {-x, -y};
 			else
 				return new double[] {x, y};
 		}
-		public double[] inverse(double lat, double lon, double[] params, double[] pole) {
-			return inverse(lat, lon, pole); //TODO: have these projections not have an aspect
+		public double[] inverse(double x, double y, double[] params, double[] pole) {
+			return inverse(x, y, params);
 		}
 		public double[] inverse(double x, double y, double[] params) {
-			final double PHI = params[0], LAM = params[1];
+			final double PHI = Math.toRadians(params[0]);
+			final double LAM = Math.toRadians(params[1]);
 			final double phi1 = Math.PI/2 - Math.hypot(x, y)*Math.PI;
 			if (phi1 < -Math.PI/2) 	return null;
 			final double lam1 = Math.atan2(x, -y);
@@ -791,7 +794,8 @@ public enum Projection {
 	},
 	
 	TWO_POINT_EQUIDISTANT("Two-point Equidistant", "A map that preserves distances, but not angles, to two arbitrary points",
-			1., 0b1011, "quasiazimuthal", "equidistant") {
+			1., 0b1011, "quasiazimuthal", "equidistant", new String[] {"Latitude 1","Longitude 1","Latitude 2","Longitude 2"},
+			new double[][] {{-90,90,34.7},{-180,180,112.4},{-90,90,41.9},{-180,180,12.5}}, false) {
 		public double[] project(double lat, double lon, double[] params) {
 			return null; //TODO: projection wishlist
 		}
@@ -1037,16 +1041,18 @@ public enum Projection {
 	
 	
 	
-	private String name;
-	private String description;
-	private String[] paramNames;
-	private double[][] paramValues;
+	private String name; //typically the name of the dude credited for it
+	private String description; //a noun clause or sentence about it
+	
+	private String[] paramNames; //the name of each parameter
+	private double[][] paramValues; //the bounds and default value of each parameter
+	private boolean hasAspect; //is it spherically symmetrical?
 	
 	private double aspectRatio; //default W/H for the map
 	private boolean finite; //is it completely bounded?
 	private boolean invertable; //is the inverse solution closed-form?
 	private boolean solveable; //is the solution closed-form?
-	private boolean continuous; //can you see the whole earth without inerruption?
+	private boolean continuous; //can you see the whole earth without interruption?
 	private String type; //cylindrical, azimuthal, etc.
 	private String property; //what it is good for
 	
@@ -1074,12 +1080,19 @@ public enum Projection {
 		this(name, description, aspectRatio, fisc, type, property, new String[0], new double[0][]);
 	}
 	
-	private Projection(String name, String description, double aspectRatio,
-			int fisc, String type, String property, String[] paramNames, double[][] paramValues) {
+	private Projection(String name, String description, double aspectRatio, int fisc,
+			String type, String property, String[] paramNames, double[][] paramValues) {
+		this(name, description, aspectRatio, fisc, type, property, paramNames, paramValues, true);
+	}
+	
+	
+	private Projection(String name, String description, double aspectRatio, int fisc,
+			String type, String property, String[] paramNames, double[][] paramValues, boolean hasAspect) {
 		this.name = name;
 		this.description = description;
 		this.paramNames = paramNames;
 		this.paramValues = paramValues;
+		this.hasAspect = hasAspect;
 		this.aspectRatio = aspectRatio;
 		this.finite = (fisc&0b1000) > 0;
 		this.invertable = (fisc&0b0100) > 0;
@@ -1430,6 +1443,10 @@ public enum Projection {
 	
 	public double[][] getParameterValues() {
 		return this.paramValues;
+	}
+	
+	public boolean hasAspect() {
+		return this.hasAspect;
 	}
 	
 	public double getAspectRatio(double[] params) {

@@ -14,8 +14,6 @@ import dialogs.ProgressBarDialog;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -80,6 +78,7 @@ public abstract class MapApplication extends Application {
 	private Spinner<Double>[] paramSpinners;
 	private double[] currentParams;
 	
+	private Flag isChanging = new Flag();
 	private Flag suppressListeners = new Flag();
 	
 	
@@ -96,6 +95,10 @@ public abstract class MapApplication extends Application {
 		this.root.setTitle(this.name);
 		this.root.setScene(new Scene(new StackPane(makeWidgets())));
 		this.root.show();
+		
+		this.suppressListeners.set();
+		this.projectionChooser.setValue(Projection.MERCATOR);
+		this.suppressListeners.clear();
 	}
 	
 	
@@ -125,8 +128,7 @@ public abstract class MapApplication extends Application {
 		final Button loadButton = new Button("Choose input...");
 		loadButton.setTooltip(new Tooltip(
 				"Choose the image to determine the style of your map"));
-		loadButton.setOnAction(new EventHandler<ActionEvent>() {
-			public void handle(ActionEvent event) {
+		loadButton.setOnAction((event) -> {
 				File file;
 				try {
 					file = inputChooser.showOpenDialog(root);
@@ -139,8 +141,7 @@ public abstract class MapApplication extends Application {
 					trigger(loadButton, () -> inputSetter.accept(f));
 					inputLabel.setText(f.getName());
 				}
-			}
-		});
+			});
 		loadButton.setTooltip(new Tooltip(
 				"Change the input image"));
 		root.addEventHandler(KeyEvent.KEY_PRESSED, (event) -> {	// ctrl-O opens
@@ -162,23 +163,22 @@ public abstract class MapApplication extends Application {
 	 * @param defProj The default projection, before the user chooses anything
 	 * @return the full formatted Region
 	 */
-	protected Region buildProjectionSelector(Projection[] projections, Projection defProj, Procedure projectionSetter) {
+	protected Region buildProjectionSelector(Projection[] projections, Procedure projectionSetter) {
 		final Label label = new Label("Projection:");
 		projectionChooser =
 				new ComboBox<Projection>(FXCollections.observableArrayList(projections));
 		projectionChooser.setPrefWidth(210);
-		projectionChooser.setValue(defProj);
 		
-		final Text description = new Text(projectionChooser.getValue().getDescription());
+		final Text description = new Text();
 		description.setWrappingWidth(GUI_WIDTH);
 		
-		projectionChooser.setOnAction(new EventHandler<ActionEvent>() {
-			public void handle(ActionEvent event) {
-				description.setText(projectionChooser.getValue().getDescription());
-				revealParameters(projectionChooser.getValue());
-				projectionSetter.execute();
-			}
-		});
+		projectionChooser.setOnAction((event) -> {
+				final boolean suppressedListeners = suppressListeners.isSet(); //save this value, because
+				description.setText(projectionChooser.getValue().getDescription()); //revealParameters
+				revealParameters(projectionChooser.getValue()); //clears suppressListeners. That's fine,
+				if (!suppressedListeners) //because suppressListeners is only needed here for that one case.
+					projectionSetter.execute();
+			});
 		
 		return new VBox(5, new HBox(3, label, projectionChooser), description);
 	}
@@ -196,35 +196,35 @@ public abstract class MapApplication extends Application {
 		
 		final String[] labels = { "Latitude:", "Longitude:", "Ctr. Meridian:" };
 		final Slider[] sliders = new Slider[] {
-				new Slider(-90, 90, 90), //TODO: can we call setAspectByPreset("Standard") instead of this?
-				new Slider(-180,180,0),
-				new Slider(-180,180,0) };
-		final Spinner<Double> spin0 = new Spinner<Double>(-90, 90, 90.0); //yes, this is awkward. Java gets weird about arrays with generic types
+				new Slider(-90, 90, 0.), //TODO: can we call setAspectByPreset("Standard") instead of this?
+				new Slider(-180, 180, 0.),
+				new Slider(-180, 180, 0.) };
+		final Spinner<Double> spin0 = new Spinner<Double>(-90, 90, 0.); //yes, this is awkward. Java gets weird about arrays with generic types
 		@SuppressWarnings("unchecked")
 		final Spinner<Double>[] spinners = (Spinner<Double>[]) Array.newInstance(spin0.getClass(), 3);
 		spinners[0] = spin0;
-		spinners[1] = new Spinner<Double>(-180, 180, 0.0);
-		spinners[2] = new Spinner<Double>(-180, 180, 0.0);
+		spinners[1] = new Spinner<Double>(-180, 180, 0.);
+		spinners[2] = new Spinner<Double>(-180, 180, 0.);
 		
-		for (int i = 0; i < 3; i ++)
+		for (int i = 0; i < 3; i ++) {
 			aspectArr[i] = Math.toRadians(sliders[i].getValue());
+			link(sliders[i], spinners[i], i, aspectArr, Math::toRadians,
+					aspectSetter, isChanging, suppressListeners);
+		}
+		setAspectByPreset("Standard", sliders, spinners);
 		
 		for (String preset: ASPECT_NAMES) {
 			MenuItem m = new MenuItem(preset);
-			m.setOnAction(new EventHandler<ActionEvent>() {
-				public void handle(ActionEvent event) {
+			m.setOnAction((event) -> {
 					setAspectByPreset(((MenuItem) event.getSource()).getText(),
 							sliders, spinners);
 					for (int i = 0; i < 3; i ++)
 						aspectArr[i] = Math.toRadians(sliders[i].getValue());
 					if (!suppressListeners.isSet())
 						aspectSetter.execute();
-				}
-			});
+				});
 			presetChooser.getItems().add(m);
 		}
-		
-		link(sliders, spinners, aspectArr, Math::toRadians, aspectSetter, suppressListeners);
 		
 		final GridPane grid = new GridPane();
 		grid.setVgap(5);
@@ -253,19 +253,20 @@ public abstract class MapApplication extends Application {
 	 */
 	@SuppressWarnings("unchecked")
 	protected Node buildParameterSelector(Procedure parameterSetter) {
-		currentParams = new double[3];
-		paramLabels = new Label[] {
-				new Label(), new Label(), new Label() };
-		paramSliders = new Slider[] {
-				new Slider(), new Slider(), new Slider() }; // I don't think any projection has more than three parameters
-		
+		currentParams = new double[4];
+		paramLabels = new Label[4];
+		paramSliders = new Slider[4]; // I don't think any projection has more than four parameters
 		final Spinner<Double> spin0 = new Spinner<Double>(0.,0.,0.); //yes, this is awkward. Java gets weird about arrays with generic types
-		paramSpinners = (Spinner<Double>[]) Array.newInstance(spin0.getClass(), 3);
+		paramSpinners = (Spinner<Double>[]) Array.newInstance(spin0.getClass(), 4);
 		paramSpinners[0] = spin0;
-		paramSpinners[1] = new Spinner<Double>(0.,0.,0.);
-		paramSpinners[2] = new Spinner<Double>(0.,0.,0.);
 		
-		link(paramSliders, paramSpinners, currentParams, (d)->d, parameterSetter, suppressListeners);
+		for (int i = 0; i < 4; i ++) {
+			paramLabels[i] = new Label();
+			paramSliders[i] = new Slider();
+			if (i != 0)
+				paramSpinners[i] = new Spinner<Double>(0.,0.,0.);
+			link(paramSliders[i], paramSpinners[i], i, currentParams, (d)->d, parameterSetter, isChanging, suppressListeners);
+		}
 		
 		for (int i = 0; i < 3; i ++) {
 			GridPane.setHgrow(paramSliders[i], Priority.ALWAYS);
@@ -288,11 +289,9 @@ public abstract class MapApplication extends Application {
 	 */
 	protected Button buildUpdateButton(Runnable mapUpdater) {
 		final Button updateButton = new Button("Update map");
-		updateButton.setOnAction(new EventHandler<ActionEvent>() {
-			public void handle(ActionEvent event) {
+		updateButton.setOnAction((event) -> {
 				trigger(updateButton, mapUpdater);
-			}
-		});
+			});
 		updateButton.setTooltip(new Tooltip(
 				"Update the current map with your parameters"));
 		
@@ -335,8 +334,7 @@ public abstract class MapApplication extends Application {
 		} catch (SecurityException e) {}
 		
 		final Button saveButton = new Button("Save "+savee+"...");
-		saveButton.setOnAction(new EventHandler<ActionEvent>() {
-			public void handle(ActionEvent event) {
+		saveButton.setOnAction((event) -> {
 				File file;
 				try {
 					file = saver.showSaveDialog(root);
@@ -355,8 +353,7 @@ public abstract class MapApplication extends Application {
 								Platform.runLater(pBar::close); });
 					}
 				}
-			}
-		});
+			});
 		saveButton.setTooltip(new Tooltip("Save the "+savee+" with current settings"));
 		
 		if (bindCtrlS) // ctrl+S saves
@@ -378,6 +375,11 @@ public abstract class MapApplication extends Application {
 	
 	protected double[] getParams() {
 		return currentParams.clone();
+	}
+	
+	
+	protected boolean getParamsChanging() { //are the aspect or parameters actively changing?
+		return isChanging.isSet();
 	}
 	
 	
@@ -451,36 +453,34 @@ public abstract class MapApplication extends Application {
 	}
 	
 	
-	private static void link(Slider[] sliders, Spinner<Double>[] spinners, double[] doubles,
-			DoubleUnaryOperator converter, Procedure callback, Flag suppressListeners) {
-		for (int i = 0; i < doubles.length; i ++) {
-			final Slider sld = sliders[i];
-			final Spinner<Double> spn = spinners[i];
-			final int I = i;
-			
-			sld.valueChangingProperty().addListener((observable, prev, now) -> { //link spinner to slider
-					if (!now)
-						if (spn.getValue() != sld.getValue())
-							spn.getValueFactory().setValue(sld.getValue());
-				});
-			sld.valueProperty().addListener((observable, prev, now) -> {
-					if (!sld.valueChangingProperty().get())
-						if (spn.getValue() != sld.getValue())
-							spn.getValueFactory().setValue(sld.getValue());
-				});
-			
-			spn.valueProperty().addListener((observable, prev, now) -> { //link slider to spinner
+	private static void link(Slider sld, Spinner<Double> spn, int i, double[] doubles,
+		DoubleUnaryOperator converter, Procedure callback, Flag isChanging, Flag suppressListeners) {
+		sld.valueChangingProperty().addListener((observable, prev, now) -> { //link spinner to slider
+				isChanging.set(now);
+				if (!now) {
 					if (spn.getValue() != sld.getValue())
-						sld.setValue(spn.getValue());
-					doubles[I] = converter.applyAsDouble(spn.getValue());
+						spn.getValueFactory().setValue(sld.getValue());
+					doubles[i] = converter.applyAsDouble(sld.getValue());
 					if (!suppressListeners.isSet())
+						callback.execute();
+				}
+			});
+		sld.valueProperty().addListener((observable, prev, now) -> {
+				if (spn.getValue() != sld.getValue())
+					spn.getValueFactory().setValue(sld.getValue());
+				doubles[i] = converter.applyAsDouble(now.doubleValue());
+				if (!suppressListeners.isSet())
 					callback.execute();
-				});
-			
-			spn.focusedProperty().addListener((observable, prev, now) -> { //make spinner act rationally
-					if (!now) 	spn.increment(0);
-				});
-		}
+			});
+		
+		spn.valueProperty().addListener((observable, prev, now) -> { //link slider to spinner
+				if (spn.getValue() != sld.getValue())
+					sld.setValue(spn.getValue());
+			});
+		
+		spn.focusedProperty().addListener((observable, prev, now) -> { //make spinner act rationally
+				if (!now) 	spn.increment(0);
+			});
 	}
 	
 	
@@ -499,19 +499,31 @@ public abstract class MapApplication extends Application {
 		private boolean set;
 		
 		public Flag() {
-			set = false;
+			this(false);
+		}
+		
+		public Flag(boolean set) {
+			this.set = set;
 		}
 		
 		public boolean isSet() {
-			return set;
+			return this.set;
+		}
+		
+		public void set(boolean set) {
+			this.set = set;
 		}
 		
 		public void set() {
-			set = true;
+			this.set = true;
 		}
 		
 		public void clear() {
-			set = false;
+			this.set = false;
+		}
+		
+		public String toString() {
+			return "Flag("+this.set+")";
 		}
 	}
 

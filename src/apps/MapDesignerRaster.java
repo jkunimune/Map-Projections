@@ -72,7 +72,7 @@ public class MapDesignerRaster extends MapApplication {
 			new FileChooser.ExtensionFilter("JPG", "*.jpg","*.jpeg","*.jpe","*.jfif"),
 			new FileChooser.ExtensionFilter("GIF", "*.gif") };
 	
-	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.PLATE_CARREE, Projection.BEHRMANN,
+	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.EQUIRECTANGULAR, Projection.E_A_CYLIND,
 			Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
 			Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC,
 			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.AUTHAGRAPH, Projection.SINUSOIDAL,
@@ -83,6 +83,7 @@ public class MapDesignerRaster extends MapApplication {
 			Projection.TETRAPOWER, Projection.TETRAFILLET, Projection.TETRACHAMFER };
 	
 	
+	private Node aspectSelector;
 	private Button updateBtn, saveMapBtn;
 	private double[] aspect;
 	private Image input;
@@ -113,15 +114,15 @@ public class MapDesignerRaster extends MapApplication {
 		final Node inputSelector = buildInputSelector(READABLE_TYPES,
 				RASTER_TYPES[0], this::setInput);
 		final Node projectionSelector = buildProjectionSelector(PROJ_ARR,
-				Projection.MERCATOR, Procedure.NONE);
-		final Node aspectSelector = buildAspectSelector(this.aspect,
-				Procedure.NONE);
+				this::hideAspect);
+		this.aspectSelector = buildAspectSelector(this.aspect, Procedure.NONE);
 		final Node parameterSelector = buildParameterSelector(Procedure.NONE);
 		this.updateBtn = buildUpdateButton(this::updateMap);
 		this.saveMapBtn = buildSaveButton(true, "map", RASTER_TYPES,
 				RASTER_TYPES[0], this::collectFinalSettings, this::calculateAndSaveMap);
 		final HBox buttons = new HBox(5, updateBtn, saveMapBtn);
 		buttons.setAlignment(Pos.CENTER);
+		aspectSelector.managedProperty().bind(aspectSelector.visibleProperty());
 		
 		final VBox layout = new VBox(5,
 				inputSelector, new Separator(), projectionSelector,
@@ -160,6 +161,11 @@ public class MapDesignerRaster extends MapApplication {
 			updateBtn.setDisable(false);
 			saveMapBtn.setDisable(false);
 		}
+	}
+	
+	
+	private void hideAspect() {
+		aspectSelector.setVisible(this.getProjection().hasAspect());
 	}
 	
 	

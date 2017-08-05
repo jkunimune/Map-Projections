@@ -82,15 +82,16 @@ public class MapAnalyzer extends MapApplication {
 			new FileChooser.ExtensionFilter("JPG", "*.jpg","*.jpeg","*.jpe","*.jfif"),
 			new FileChooser.ExtensionFilter("GIF", "*.gif") };
 	
-	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.EQUIRECTANGULAR, Projection.GALL_PETERS,
-			Projection.HOBO_DYER, Projection.BEHRMANN, Projection.LAMBERT_CYLIND, Projection.E_A_CYLIND,
-			Projection.MILLER, Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
-			Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC,
-			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.SINUSOIDAL, Projection.MOLLWEIDE,
-			Projection.HAMMER, Projection.TOBLER, Projection.AITOFF, Projection.VAN_DER_GRINTEN, Projection.ROBINSON,
-			Projection.WINKEL_TRIPEL, Projection.PEIRCE_QUINCUNCIAL, Projection.GUYOU,
-			Projection.HAMMER_RETROAZIMUTHAL, Projection.MAGNIFIER,
-			Projection.EXPERIMENT, Projection.PSEUDOSTEREOGRAPHIC, Projection.HYPERELLIPOWER, Projection.TETRAPOWER, Projection.TETRAFILLET, Projection.TETRACHAMFER };
+	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.EQUIRECTANGULAR,
+			Projection.E_A_CYLIND, Projection.GALL_PETERS, Projection.HOBO_DYER, Projection.BEHRMANN,
+			Projection.LAMBERT_CYLIND, Projection.MILLER, Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR,
+			Projection.E_A_AZIMUTH, Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC,
+			Projection.E_D_CONIC, Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.SINUSOIDAL,
+			Projection.MOLLWEIDE, Projection.HAMMER, Projection.TOBLER, Projection.AITOFF, Projection.VAN_DER_GRINTEN,
+			Projection.ROBINSON, Projection.WINKEL_TRIPEL, Projection.PEIRCE_QUINCUNCIAL, Projection.GUYOU,
+			Projection.HAMMER_RETROAZIMUTHAL, Projection.MAGNIFIER, Projection.EXPERIMENT,
+			Projection.PSEUDOSTEREOGRAPHIC, Projection.HYPERELLIPOWER, Projection.TETRAPOWER, Projection.TETRAFILLET,
+			Projection.TETRACHAMFER };
 	
 	
 	private Button updateBtn;
@@ -118,7 +119,7 @@ public class MapAnalyzer extends MapApplication {
 	
 	@Override
 	protected Node makeWidgets() {
-		final Node projectionSelector = buildProjectionSelector(PROJ_ARR, Projection.MERCATOR, Procedure.NONE);
+		final Node projectionSelector = buildProjectionSelector(PROJ_ARR, Procedure.NONE);
 		final Node parameterSelector = buildParameterSelector(Procedure.NONE);
 		final Node textDisplay = buildTextDisplay();
 		this.updateBtn = buildUpdateButton(this::calculateAndUpdate);

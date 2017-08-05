@@ -20,4 +20,11 @@ public interface Procedure {
 	public static final Procedure NONE = ()->{};
 
 	public abstract void execute();
+	
+	public static Procedure concat(Procedure...procedures) {
+		return () -> {
+				for (Procedure p: procedures)
+					p.execute();
+			};
+	}
 }

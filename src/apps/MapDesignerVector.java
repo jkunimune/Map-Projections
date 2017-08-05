@@ -30,6 +30,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import dialogs.ProgressBarDialog;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -46,6 +47,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import maps.Projection;
 import util.Math2;
+import util.Procedure;
 
 /**
  * An application to make vector oblique aspects of map projections
@@ -63,19 +65,20 @@ public class MapDesignerVector extends MapApplication {
 	private static final FileChooser.ExtensionFilter[] VECTOR_TYPES = {
 			new FileChooser.ExtensionFilter("SVG", "*.svg") };
 	
-	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.PLATE_CARREE, Projection.BEHRMANN,
-			Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
+	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.EQUIRECTANGULAR,
+			Projection.E_A_CYLIND, Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
 			Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC,
 			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.SINUSOIDAL, Projection.MOLLWEIDE,
 			Projection.TOBLER, Projection.AITOFF, Projection.VAN_DER_GRINTEN, Projection.ROBINSON,
-			Projection.WINKEL_TRIPEL, Projection.PEIRCE_QUINCUNCIAL, Projection.GUYOU,
-			Projection.HAMMER_RETROAZIMUTHAL, Projection.MAGNIFIER,
-			Projection.EXPERIMENT, Projection.PSEUDOSTEREOGRAPHIC, Projection.HYPERELLIPOWER, Projection.TETRAPOWER,
-			Projection.TETRAFILLET, Projection.TETRACHAMFER };
+			Projection.WINKEL_TRIPEL, Projection.PEIRCE_QUINCUNCIAL, Projection.GUYOU, Projection.HAMMER_RETROAZIMUTHAL,
+			Projection.MAGNIFIER, Projection.EXPERIMENT, Projection.PSEUDOSTEREOGRAPHIC, Projection.HYPERELLIPOWER,
+			Projection.TETRAPOWER, Projection.TETRAFILLET, Projection.TETRACHAMFER };
 	
 	private static final int DEF_MAX_VTX = 5000;
+	private static final int FAST_MAX_VTX = 2000;
 	
 	
+	private Node aspectSelector;
 	private Button saveBtn;
 	private double[] aspect;
 	private List<String> format;
@@ -107,12 +110,12 @@ public class MapDesignerVector extends MapApplication {
 		final Node inputSelector = buildInputSelector(VECTOR_TYPES,
 				VECTOR_TYPES[0], this::setInput);
 		final Node projectionSelector = buildProjectionSelector(PROJ_ARR,
-				Projection.MERCATOR, this::updateMap);
-		final Node aspectSelector = buildAspectSelector(this.aspect,
-				this::updateMap);
+				Procedure.concat(this::updateMap, this::hideAspect));
+		this.aspectSelector = buildAspectSelector(this.aspect, this::updateMap);
 		final Node parameterSelector = buildParameterSelector(this::updateMap);
 		this.saveBtn = buildSaveButton(true, "map", VECTOR_TYPES,
 				VECTOR_TYPES[0], ()->true, this::calculateAndSaveMap);
+		aspectSelector.managedProperty().bind(aspectSelector.visibleProperty());
 		
 		final VBox layout = new VBox(5,
 				inputSelector, new Separator(), projectionSelector,
@@ -217,9 +220,15 @@ public class MapDesignerVector extends MapApplication {
 	}
 	
 	
+	private void hideAspect() {
+		aspectSelector.setVisible(this.getProjection().hasAspect());
+	}
+	
+	
 	private void updateMap() {
+		int maxVtx = this.getParamsChanging() ? FAST_MAX_VTX : DEF_MAX_VTX;
 		final List<List<double[]>> transformed = this.getProjection().transform(
-				input, numVtx/DEF_MAX_VTX+1, this.getParams(), aspect.clone(), null);
+				input, numVtx/maxVtx+1, this.getParams(), aspect.clone(), null);
 		Platform.runLater(() -> drawImage(transformed, viewer));
 	}
 	
