@@ -38,7 +38,6 @@ import util.Dixon;
 import util.Elliptic;
 import util.Math2;
 import util.NumericalAnalysis;
-import util.Vector;
 
 /**
  * Map projections!
@@ -769,7 +768,7 @@ public enum Projection {
 			final double K = z/Math.sin(z);
 			final double x = K*Math.cos(phi1)*Math.sin(lon-lam1);
 			final double y = -K*(Math.sin(phi1)*Math.cos(lat) - Math.cos(phi1)*Math.sin(lat)*Math.cos(lon-lam1));
-			if (Math.abs((lon-lam1+2*Math.PI)%(2*Math.PI)-Math.PI) < Math.PI/2)
+			if (Math.cos(lon-lam1) < 0)
 				return new double[] {-x, -y};
 			else
 				return new double[] {x, y};
@@ -796,8 +795,24 @@ public enum Projection {
 	TWO_POINT_EQUIDISTANT("Two-point Equidistant", "A map that preserves distances, but not angles, to two arbitrary points",
 			1., 0b1011, "quasiazimuthal", "equidistant", new String[] {"Latitude 1","Longitude 1","Latitude 2","Longitude 2"},
 			new double[][] {{-90,90,34.7},{-180,180,112.4},{-90,90,41.9},{-180,180,12.5}}, false) {
-		public double[] project(double lat, double lon, double[] params) {
-			return null; //TODO: projection wishlist
+		public double[] project(double lat, double lon, double[] params, double[] pole) {
+			return project(lat, lon, params);
+		}
+		public double[] project(double lat0, double lon0, double[] params) {
+			final double lat1 = Math.toRadians(params[0]);
+			final double lon1 = Math.toRadians(params[1]);
+			final double lat2 = Math.toRadians(params[2]);
+			final double lon2 = Math.toRadians(params[3]);
+			final double D = Math.acos(Math.sin(lat1)*Math.sin(lat2) + Math.cos(lat1)*Math.cos(lat2)*Math.cos(lon1-lon2));
+			final double d1 = Math.acos(Math.sin(lat0)*Math.sin(lat1) + Math.cos(lat0)*Math.cos(lat1)*Math.cos(lon0-lon1));
+			final double d2 = Math.acos(Math.sin(lat0)*Math.sin(lat2) + Math.cos(lat0)*Math.cos(lat2)*Math.cos(lon0-lon2));
+			final double s = Math.signum(Math.tan(lat0)*Math.sin(lon2-lon1) + Math.tan(lat1)*Math.sin(lon0-lon2) + Math.tan(lat2)*Math.sin(lon1-lon0));
+			return new double[] {
+					(d1*d1-d2*d2)/(2*D),
+					s*Math.sqrt(d1*d1 - Math.pow((d1*d1-d2*d2+D*D)/(2*D), 2)) };
+		}
+		public double[] inverse(double x, double y, double[] params, double[] pole) {
+			return inverse(x, y, params);
 		}
 		public double[] inverse(double x, double y, double[] params) {
 			return null; //TODO: projection wishlist
@@ -849,7 +864,7 @@ public enum Projection {
 			return new double[] { z.getReal(), z.getImaginary() };
 		}
 		public double[] inverse(double x, double y, double[] params) {
-			Complex z = new Complex(x*3, y*3);
+			Complex z = new Complex(x*Math.PI, y*Math.PI);
 			Complex ans = z.sin();
 			double p = 2 * Math.atan(ans.abs());
 			double theta = ans.getArgument();
@@ -1084,7 +1099,6 @@ public enum Projection {
 			String type, String property, String[] paramNames, double[][] paramValues) {
 		this(name, description, aspectRatio, fisc, type, property, paramNames, paramValues, true);
 	}
-	
 	
 	private Projection(String name, String description, double aspectRatio, int fisc,
 			String type, String property, String[] paramNames, double[][] paramValues, boolean hasAspect) {
@@ -1347,22 +1361,18 @@ public enum Projection {
 		final double lat0 = pole[0];
 		final double lon0 = pole[1];
 		final double tht0 = pole[2];
-		Vector r0 = new Vector (1, lat0, lon0);
-		Vector rF = new Vector (1, latF, lonF);
-		Vector r0XrF = r0.cross(rF);
-		Vector r0Xk = r0.cross(Vector.K);
 		
-		double lat1 = Math.asin(r0.dot(rF)); // relative latitude
+		double lat1 = Math.asin(Math.sin(lat0)*Math.sin(latF) + Math.cos(lat0)*Math.cos(latF)*Math.cos(lon0-lonF)); // relative latitude
 		double lon1;
 		if (lat0 == Math.PI/2) // accounts for all the 0/0 errors at the poles
 			lon1 = lonF-lon0;
 		else if (lat0 == -Math.PI/2)
 			lon1 = lon0-lonF+Math.PI;
 		else {
-			lon1 = Math.acos(r0XrF.dot(r0Xk)/(r0XrF.abs()*r0Xk.abs()))-Math.PI; // relative longitude
+			lon1 = Math.acos((Math.cos(lat0)*Math.sin(latF) - Math.sin(lat0)*Math.cos(latF)*Math.cos(lon0-lonF))/Math.cos(lat1))-Math.PI; // relative longitude
 			if (Double.isNaN(lon1))
 				lon1 = 0;
-			else if (r0XrF.cross(r0Xk).dot(r0)/(r0XrF.abs()*r0Xk.abs()) > 0) // it's a plus-or-minus arccos.
+			else if (Math.sin(lonF - lon0) > 0) // it's a plus-or-minus arccos.
 				lon1 = 2*Math.PI-lon1;
 		}
 		lon1 = lon1-tht0;
