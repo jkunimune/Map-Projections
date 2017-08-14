@@ -23,66 +23,89 @@
  */
 package maps;
 
+import utils.NumericalAnalysis;
+
 /**
  * All the useful Winkel Tripel equations and derivatives.
  * I tried solving for these equations myself, and I think I got them mostly
  * right, but the expressions were just too complicated. I got better results
- * by transcribing the below equations from Ipbüker and Bildirici's paper,
+ * by transcribing the below equations from Ipbï¿½ker and Bildirici's paper,
  * "A General Algorithm for the Inverse Transformation of Map Projections Using Jacobian Matrices"
  * 
- * Ipbüker, Cengizhan; Bildirici, I.Öztug (2002). "A General Algorithm for the
+ * Ipbï¿½ker, Cengizhan; Bildirici, I.ï¿½ztug (2002). "A General Algorithm for the
  *  	Inverse Transformation of Map Projections Using Jacobian Matrices".
  *  	Proceedings of the Third International Symposium Mathematical &
  *  	Computational Applications. Third International Symposium Mathematical &
  *  	Computational Applications September 4-6, 2002. Konya, Turkey. Selcuk,
- *  	Turkey. pp. 175–182. Archived from the original on 20 October 2014.
+ *  	Turkey. pp. 175ï¿½182. Archived from the original on 20 October 2014.
  * 
  * @author jkunimune
  */
 public final class WinkelTripel {
-
-	public static final double f1pX(double phi, double lam, double... consts) { //consts should contain cos(phi_0) and only cos(phi_0)
-		final double d = D(phi,lam);
-		final double c = C(phi,lam);
-		return 2*d/Math.sqrt(c)*Math.cos(phi)*Math.sin(lam/2) + lam*consts[0];
-	}
 	
-	public static final double f2pY(double phi, double lam, double... consts) {
-		final double d = D(phi,lam);
-		final double c = C(phi,lam);
-		return d/Math.sqrt(c)*Math.sin(phi) + phi;
-	}
-	
-	public static final double df1dphi(double phi, double lam, double... consts) {
-		final double d = D(phi,lam);
-		final double c = C(phi,lam);
-		return Math.sin(lam)*Math.sin(2*phi)/(4*c) - d/Math.pow(c,1.5)*Math.sin(phi)*Math.sin(lam/2);
-	}
-	
-	public static final double df1dlam(double phi, double lam, double... consts) {
-		final double d = D(phi,lam);
-		final double c = C(phi,lam);
-		return Math.pow(Math.cos(phi)*Math.sin(lam/2), 2)/c + d/Math.pow(c,1.5)*Math.cos(phi)*Math.cos(lam/2)*Math.pow(Math.sin(phi),2) + consts[0];
-	}
-	
-	public static final double df2dphi(double phi, double lam, double... consts) {
-		final double d = D(phi,lam);
-		final double c = C(phi,lam);
-		return Math.pow(Math.sin(phi),2)*Math.cos(lam/2)/c + d/Math.pow(c,1.5)*(1-Math.pow(Math.cos(lam/2),2))*Math.cos(phi) + 1;
-	}
-	
-	public static final double df2dlam(double phi, double lam, double... consts) {
-		final double d = D(phi,lam);
-		final double c = C(phi,lam);
-		return (Math.sin(2*phi)*Math.sin(lam/2)/c - d/Math.pow(c,1.5)*Math.sin(phi)*Math.pow(Math.cos(phi),2)*Math.sin(lam))/4.0;
-	}
-	
-	private static final double D(double phi, double lam) {
-		return Math.acos(Math.cos(phi)*Math.cos(lam/2));
-	}
-	
-	private static final double C(double phi, double lam) {
-		return 1 - Math.pow(Math.cos(phi)*Math.cos(lam/2), 2);
-	}
-
+	public static final Projection WINKEL_TRIPEL =
+			new Projection("Winkel Tripel", "National Geographic's compromise projection of choice",
+					0, 0b1011, "other", "compromise",
+					new String[] {"Std. Parallel"}, new double[][] {{0,90,50.4598}}) {
+		
+		public void setParameters(double... params) {
+			this.aspectRatio = 1 + Math.cos(Math.toRadians(params[0]));
+		}
+		
+		public double[] project(double lat, double lon) {
+			return new double[] { f1pX(lat,lon)/aspectRatio, f2pY(lat,lon)/aspectRatio };
+		}
+		
+		public double[] inverse(double x, double y) {
+			return NumericalAnalysis.newtonRaphsonApproximation(
+					x*Math.PI*aspectRatio, y*Math.PI,
+					y*Math.PI/2, x*Math.PI*(1 + Math.cos(y*Math.PI/2))/2,
+					this::f1pX, this::f2pY,
+					this::df1dphi, this::df1dlam, this::df2dphi, this::df2dlam, .002);
+		}
+		
+		private double f1pX(double phi, double lam) {
+			final double d = D(phi,lam);
+			final double c = C(phi,lam);
+			return 2*d/Math.sqrt(c)*Math.cos(phi)*Math.sin(lam/2) + lam*(aspectRatio-1);
+		}
+		
+		private double f2pY(double phi, double lam) {
+			final double d = D(phi,lam);
+			final double c = C(phi,lam);
+			return d/Math.sqrt(c)*Math.sin(phi) + phi;
+		}
+		
+		private double df1dphi(double phi, double lam) {
+			final double d = D(phi,lam);
+			final double c = C(phi,lam);
+			return Math.sin(lam)*Math.sin(2*phi)/(4*c) - d/Math.pow(c,1.5)*Math.sin(phi)*Math.sin(lam/2);
+		}
+		
+		private double df1dlam(double phi, double lam) {
+			final double d = D(phi,lam);
+			final double c = C(phi,lam);
+			return Math.pow(Math.cos(phi)*Math.sin(lam/2), 2)/c + d/Math.pow(c,1.5)*Math.cos(phi)*Math.cos(lam/2)*Math.pow(Math.sin(phi),2) + aspectRatio-1;
+		}
+		
+		private double df2dphi(double phi, double lam) {
+			final double d = D(phi,lam);
+			final double c = C(phi,lam);
+			return Math.pow(Math.sin(phi),2)*Math.cos(lam/2)/c + d/Math.pow(c,1.5)*(1-Math.pow(Math.cos(lam/2),2))*Math.cos(phi) + 1;
+		}
+		
+		private double df2dlam(double phi, double lam) {
+			final double d = D(phi,lam);
+			final double c = C(phi,lam);
+			return (Math.sin(2*phi)*Math.sin(lam/2)/c - d/Math.pow(c,1.5)*Math.sin(phi)*Math.pow(Math.cos(phi),2)*Math.sin(lam))/4.0;
+		}
+		
+		private double D(double phi, double lam) {
+			return Math.acos(Math.cos(phi)*Math.cos(lam/2));
+		}
+		
+		private double C(double phi, double lam) {
+			return 1 - Math.pow(Math.cos(phi)*Math.cos(lam/2), 2);
+		}
+	};
 }

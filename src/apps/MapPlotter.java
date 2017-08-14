@@ -46,7 +46,16 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import maps.Azimuthal;
+import maps.Conic;
+import maps.Cylindrical;
+import maps.Misc;
+import maps.MyProjections;
 import maps.Projection;
+import maps.Robinson;
+import maps.Tetrahedral;
+import maps.Tobler;
+import maps.WinkelTripel;
 
 /**
  * A simple script that creates an annotated ScatterPlot of map projections
@@ -56,14 +65,15 @@ import maps.Projection;
 public class MapPlotter extends Application {
 
 	
-	private static final Projection[] COMMON = { Projection.STEREOGRAPHIC, Projection.LAMBERT_CONIC,
-			Projection.MERCATOR, Projection.POLAR, Projection.E_D_CONIC, Projection.PLATE_CARREE,
-			Projection.E_A_AZIMUTH, Projection.ALBERS, Projection.GALL_PETERS, Projection.GALL,
-			Projection.VAN_DER_GRINTEN, Projection.ROBINSON, Projection.WINKEL_TRIPEL, Projection.ORTHOGRAPHIC };
-	private static final Projection[] UNCOMMON = { Projection.PEIRCE_QUINCUNCIAL, Projection.LEE, Projection.TOBLER,
-			Projection.BEHRMANN, Projection.AITOFF };
-	private static final Projection[] INVENTED = { Projection.PSEUDOSTEREOGRAPHIC, Projection.HYPERELLIPOWER, Projection.TETRAPOWER,
-			Projection.TETRAFILLET };
+	private static final Projection[] COMMON = { Azimuthal.STEREOGRAPHIC, Conic.LAMBERT,
+			Cylindrical.MERCATOR, Azimuthal.POLAR, Conic.EQUIDISTANT, Cylindrical.PLATE_CARREE,
+			Azimuthal.EQUAL_AREA, Conic.ALBERS, Cylindrical.GALL_PETERS, Cylindrical.GALL,
+			Misc.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
+			Azimuthal.ORTHOGRAPHIC };
+	private static final Projection[] UNCOMMON = { Misc.PEIRCE_QUINCUNCIAL, Tetrahedral.LEE,
+			Tobler.TOBLER, Cylindrical.BEHRMANN, Misc.AITOFF };
+	private static final Projection[] INVENTED = { MyProjections.PSEUDOSTEREOGRAPHIC,
+			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET };
 	
 	
 	private StackPane stack;

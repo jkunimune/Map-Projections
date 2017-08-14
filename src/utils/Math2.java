@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package util;
+package utils;
 
 /**
  * A class of some useful Math functions that seem like they could be in Math

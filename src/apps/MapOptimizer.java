@@ -37,7 +37,13 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
 import javafx.stage.Stage;
+import maps.Cylindrical;
+import maps.Misc;
+import maps.MyProjections;
 import maps.Projection;
+import maps.Robinson;
+import maps.Tetrahedral;
+import maps.Tobler;
 
 /**
  * An application to compare and optimize map projections
@@ -47,10 +53,10 @@ import maps.Projection;
 public class MapOptimizer extends Application {
 	
 	
-	private static final Projection[] EXISTING_PROJECTIONS = { Projection.HOBO_DYER, Projection.ROBINSON,
-			Projection.PLATE_CARREE, Projection.PEIRCE_QUINCUNCIAL };
-	private static final Projection[] PROJECTIONS_TO_OPTIMIZE = { Projection.TOBLER, Projection.HYPERELLIPOWER,
-			Projection.TETRAPOWER, Projection.TETRAFILLET, Projection.TETRACHAMFER };
+	private static final Projection[] EXISTING_PROJECTIONS = { Cylindrical.HOBO_DYER, Robinson.ROBINSON,
+			Cylindrical.PLATE_CARREE, Misc.PEIRCE_QUINCUNCIAL };
+	private static final Projection[] PROJECTIONS_TO_OPTIMIZE = { Tobler.TOBLER, MyProjections.HYPERELLIPOWER,
+			Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET, Tetrahedral.TETRACHAMFER };
 	private static final double[] WEIGHTS = { .083, .20, .33, .50, .71, 1.0, 1.4, 2.0, 3.0, 5.0, 12. };
 	private static final int NUM_DESCENT = 40;
 	private LineChart<Number, Number> chart;
@@ -90,10 +96,9 @@ public class MapOptimizer extends Application {
 	}
 	
 	
-	private static Series<Number, Number> analyzeAll(double[][][] points, Projection... projs) { // analyze and plot the specified preexisting map projections.
-																									// These projections must not be parametrized
+	private static Series<Number, Number> analyzeAll(double[][][] points, Projection... projs) { //analyze and plot the specified preexisting map projections.
 		System.out.println("Analyzing " + Arrays.toString(projs));
-		Series<Number, Number> output = new Series<Number, Number>();
+		Series<Number, Number> output = new Series<Number, Number>(); //These projections must not be parametrized
 		output.setName("Basic Projections");
 		
 		for (Projection proj : projs)
@@ -104,12 +109,11 @@ public class MapOptimizer extends Application {
 	}
 	
 	
-	private static Series<Number, Number> optimizeFamily(Projection proj, double[][][] points, PrintStream log) { // optimize and plot some maps of a given
-																													// family maps
+	private static Series<Number, Number> optimizeFamily(
+			Projection proj, double[][][] points, PrintStream log) { //optimize and plot some maps of a given family
 		System.out.println("Optimizing " + proj.getName());
-		final double[][] currentBest = new double[WEIGHTS.length][3 + proj.getNumParameters()]; // the 0-3 cols are the min distortions for each weight, the
-																								// other cols are the values of k and n that caused that
-		for (int k = 0; k < WEIGHTS.length; k++)
+		final double[][] currentBest = new double[WEIGHTS.length][3 + proj.getNumParameters()]; //the 0-3 cols are the min distortions for each weight, the
+		for (int k = 0; k < WEIGHTS.length; k++) //other cols are the values of k and n that caused that
 			currentBest[k][0] = Integer.MAX_VALUE;
 		
 		final double[][] bounds = proj.getParameterValues();
@@ -190,8 +194,7 @@ public class MapOptimizer extends Application {
 	
 	
 	private static Data<Number, Number> plotDistortion(double[][][] pts, Projection proj, double[] params) {
-		double[] distortion = proj.avgDistortion(pts, params);
+		double[] distortion = proj.avgDistortion(pts, proj.getDefaultParameters());
 		return new Data<Number, Number>(distortion[0], distortion[1]);
 	}
-	
 }

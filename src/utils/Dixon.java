@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package util;
+package utils;
 
 import mfc.field.Complex;
 
@@ -30,8 +30,8 @@ import mfc.field.Complex;
  * All the algorithms here came directly from L.P. Lee's paper,
  * "Some Conformal Projections Based on Elliptic Functions"
  * 
- * Lee, L. P. “Some Conformal Projections Based on Elliptic Functions.”
- *  	Geographical Review, vol. 55, no. 4, 1965, pp. 563–580. JSTOR, 
+ * Lee, L. P. ï¿½Some Conformal Projections Based on Elliptic Functions.ï¿½
+ *  	Geographical Review, vol. 55, no. 4, 1965, pp. 563ï¿½580. JSTOR, 
  *  	www.jstor.org/stable/212415.
  * 
  * @author jkunimune

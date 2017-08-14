@@ -45,9 +45,19 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import maps.Azimuthal;
+import maps.Conic;
+import maps.Cylindrical;
+import maps.Misc;
+import maps.MyProjections;
 import maps.Projection;
-import util.Math2;
-import util.Procedure;
+import maps.Pseudocylindrical;
+import maps.Robinson;
+import maps.Tetrahedral;
+import maps.Tobler;
+import maps.WinkelTripel;
+import utils.Math2;
+import utils.Procedure;
 
 /**
  * An application to make vector oblique aspects of map projections
@@ -65,14 +75,17 @@ public class MapDesignerVector extends MapApplication {
 	private static final FileChooser.ExtensionFilter[] VECTOR_TYPES = {
 			new FileChooser.ExtensionFilter("SVG", "*.svg") };
 	
-	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.EQUIRECTANGULAR,
-			Projection.E_A_CYLIND, Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR, Projection.E_A_AZIMUTH,
-			Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC, Projection.E_D_CONIC,
-			Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.SINUSOIDAL, Projection.MOLLWEIDE,
-			Projection.TOBLER, Projection.AITOFF, Projection.VAN_DER_GRINTEN, Projection.ROBINSON,
-			Projection.WINKEL_TRIPEL, Projection.PEIRCE_QUINCUNCIAL, Projection.GUYOU, Projection.TWO_POINT_EQUIDISTANT, Projection.HAMMER_RETROAZIMUTHAL,
-			Projection.MAGNIFIER, Projection.EXPERIMENT, Projection.PSEUDOSTEREOGRAPHIC, Projection.HYPERELLIPOWER,
-			Projection.TETRAPOWER, Projection.TETRAFILLET, Projection.TETRACHAMFER };
+	private static final Projection[] PROJ_ARR = { Cylindrical.MERCATOR,
+			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL,
+			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.ORTHOGRAPHIC,
+			Azimuthal.GNOMONIC, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Tetrahedral.LEE,
+			Tetrahedral.TETRAGRAPH, Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE,
+			Tobler.TOBLER, Misc.AITOFF, Misc.VAN_DER_GRINTEN, Robinson.ROBINSON,
+			WinkelTripel.WINKEL_TRIPEL, Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU,
+			Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, MyProjections.MAGNIFIER,
+			MyProjections.EXPERIMENT, MyProjections.PSEUDOSTEREOGRAPHIC,
+			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET,
+			Tetrahedral.TETRACHAMFER };
 	
 	private static final int DEF_MAX_VTX = 5000;
 	private static final int FAST_MAX_VTX = 2000;
@@ -226,16 +239,18 @@ public class MapDesignerVector extends MapApplication {
 	
 	
 	private void updateMap() {
+		loadParameters();
 		int maxVtx = this.getParamsChanging() ? FAST_MAX_VTX : DEF_MAX_VTX;
 		final List<List<double[]>> transformed = this.getProjection().transform(
-				input, numVtx/maxVtx+1, this.getParams(), aspect.clone(), null);
+				input, numVtx/maxVtx+1, aspect.clone(), null);
 		Platform.runLater(() -> drawImage(transformed, viewer));
 	}
 	
 	
 	private void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
+		loadParameters();
 		final List<List<double[]>> transformed = this.getProjection().transform(
-				input, 1, this.getParams(), aspect.clone(), pBar::setProgress); //calculate
+				input, 1, aspect.clone(), pBar::setProgress); //calculate
 		saveToSVG(transformed, file, pBar); //save
 	}
 	

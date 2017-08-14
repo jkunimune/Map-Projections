@@ -1,7 +1,7 @@
 /**
  * 
  */
-package util;
+package utils;
 
 
 /**

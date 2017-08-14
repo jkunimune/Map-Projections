@@ -43,8 +43,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import maps.Cylindrical;
 import maps.Projection;
-import util.Procedure;
+import utils.Procedure;
 
 
 /**
@@ -97,7 +98,7 @@ public abstract class MapApplication extends Application {
 		this.root.show();
 		
 		this.suppressListeners.set();
-		this.projectionChooser.setValue(Projection.MERCATOR);
+		this.projectionChooser.setValue(Cylindrical.MERCATOR);
 		this.suppressListeners.clear();
 	}
 	
@@ -350,7 +351,8 @@ public abstract class MapApplication extends Application {
 						pBar.show();
 						trigger(saveButton, () -> {
 								calculateAndSaver.accept(f, pBar);
-								Platform.runLater(pBar::close); });
+								Platform.runLater(pBar::close);
+							});
 					}
 				}
 			});
@@ -373,13 +375,13 @@ public abstract class MapApplication extends Application {
 	}
 	
 	
-	protected double[] getParams() {
-		return currentParams.clone();
+	protected boolean getParamsChanging() { //are the aspect or parameters actively changing?
+		return isChanging.isSet();
 	}
 	
 	
-	protected boolean getParamsChanging() { //are the aspect or parameters actively changing?
-		return isChanging.isSet();
+	protected void loadParameters() {
+		getProjection().setParameters(currentParams);
 	}
 	
 	

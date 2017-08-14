@@ -53,9 +53,19 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import maps.Azimuthal;
+import maps.Conic;
+import maps.Cylindrical;
+import maps.Misc;
+import maps.MyProjections;
 import maps.Projection;
-import util.Math2;
-import util.Procedure;
+import maps.Pseudocylindrical;
+import maps.Robinson;
+import maps.Tetrahedral;
+import maps.Tobler;
+import maps.WinkelTripel;
+import utils.Math2;
+import utils.Procedure;
 
 /**
  * An application to analyze the characteristics of map projections
@@ -82,16 +92,16 @@ public class MapAnalyzer extends MapApplication {
 			new FileChooser.ExtensionFilter("JPG", "*.jpg","*.jpeg","*.jpe","*.jfif"),
 			new FileChooser.ExtensionFilter("GIF", "*.gif") };
 	
-	private static final Projection[] PROJ_ARR = { Projection.MERCATOR, Projection.EQUIRECTANGULAR,
-			Projection.E_A_CYLIND, Projection.GALL_PETERS, Projection.HOBO_DYER, Projection.BEHRMANN,
-			Projection.LAMBERT_CYLIND, Projection.MILLER, Projection.GALL, Projection.STEREOGRAPHIC, Projection.POLAR,
-			Projection.E_A_AZIMUTH, Projection.ORTHOGRAPHIC, Projection.GNOMONIC, Projection.LAMBERT_CONIC,
-			Projection.E_D_CONIC, Projection.ALBERS, Projection.LEE, Projection.TETRAGRAPH, Projection.SINUSOIDAL,
-			Projection.MOLLWEIDE, Projection.HAMMER, Projection.TOBLER, Projection.AITOFF, Projection.VAN_DER_GRINTEN,
-			Projection.ROBINSON, Projection.WINKEL_TRIPEL, Projection.PEIRCE_QUINCUNCIAL, Projection.GUYOU,
-			Projection.HAMMER_RETROAZIMUTHAL, Projection.MAGNIFIER, Projection.EXPERIMENT,
-			Projection.PSEUDOSTEREOGRAPHIC, Projection.HYPERELLIPOWER, Projection.TETRAPOWER, Projection.TETRAFILLET,
-			Projection.TETRACHAMFER };
+	private static final Projection[] PROJ_ARR = { Cylindrical.MERCATOR, Cylindrical.EQUIRECTANGULAR,
+			Cylindrical.EQUAL_AREA, Cylindrical.GALL_PETERS, Cylindrical.HOBO_DYER, Cylindrical.BEHRMANN,
+			Cylindrical.LAMBERT, Cylindrical.GALL, Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR,
+			Azimuthal.EQUAL_AREA, Azimuthal.ORTHOGRAPHIC, Azimuthal.GNOMONIC, Conic.LAMBERT,
+			Conic.EQUIDISTANT, Conic.ALBERS, Tetrahedral.LEE, Tetrahedral.TETRAGRAPH, Pseudocylindrical.SINUSOIDAL,
+			Pseudocylindrical.MOLLWEIDE, Misc.HAMMER, Tobler.TOBLER, Misc.AITOFF, Misc.VAN_DER_GRINTEN,
+			Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL, Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU,
+			Misc.HAMMER_RETROAZIMUTHAL, MyProjections.MAGNIFIER, MyProjections.EXPERIMENT,
+			MyProjections.PSEUDOSTEREOGRAPHIC, MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET,
+			Tetrahedral.TETRACHAMFER };
 	
 	
 	private Button updateBtn;
@@ -201,15 +211,13 @@ public class MapAnalyzer extends MapApplication {
 			avgShapeDistort.setText("...");
 		});
 		
+		loadParameters();
 		final Projection proj = this.getProjection();
-		final double[] params = this.getParams();
-		final double[][][] distortionM = proj.calculateDistortion(
-				proj.map(ROUGH_SAMP_NUM,params), params);
+		final double[][][] distortionM = proj.calculateDistortion(proj.map(ROUGH_SAMP_NUM));
 		
 		mapDisplay.setImage(makeGraphic(distortionM));
 		
-		final double[][][] distortionG = proj.calculateDistortion(
-				Projection.globe(GLOBE_RES), params);
+		final double[][][] distortionG = proj.calculateDistortion(Projection.globe(GLOBE_RES));
 		
 		Platform.runLater(() -> {
 				sizeChart.getData().add(histogram(distortionG[0],
@@ -241,10 +249,9 @@ public class MapAnalyzer extends MapApplication {
 	
 	
 	private void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
+		loadParameters();
 		final Projection proj = this.getProjection();
-		final double[] params = this.getParams();
-		final double[][][] distortion = proj.calculateDistortion(
-				proj.map(FINE_SAMP_NUM,params), params, pBar); //calculate
+		final double[][][] distortion = proj.calculateDistortion(proj.map(FINE_SAMP_NUM), pBar); //calculate
 		Image graphic = makeGraphic(distortion);
 		
 		pBar.setProgress(-1);

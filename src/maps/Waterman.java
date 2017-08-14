@@ -21,35 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package util;
+package maps;
 
-import org.apache.commons.math3.complex.Complex;
 
 /**
- * Actually just the one incomplete integral. I honestly don't remember where I got this sequence from
+ * TODO: Write description
  * 
  * @author jkunimune
  */
-public class Elliptic {
-
-	public static final Complex F(Complex phi, final Complex k) { // series solution to incomplete elliptic integral of the first kind
-		final double TOLERANCE = 1e-3;
+public class Waterman {
+	
+	public static final Projection WATERMAN =
+			new Projection("Waterman Butterfly", "An aesthetically pleasing octohedral map arrangement",
+					0, 0b1110, "polyhedral", "compromise") {
 		
-		Complex sum = Complex.ZERO;
-		Complex i_n = phi;
-		Complex delt;
+		public double[] project(double lat, double lon) {
+			return null; //TODO: projection wishlist
+		}
 		
-		int n = 0;
-		do {
-			if (n > 0)
-				i_n = i_n.multiply((2.0 * n - 1) / (2.0 * n))
-						.subtract(phi.cos().multiply(phi.sin().pow(2.0 * n - 1)).divide(2.0 * n));
-			delt = i_n.multiply(Math.abs(Math2.combine(-.5, n))).multiply(k.pow(2.0 * n));
-			sum = sum.add(delt);
-			n ++;
-		} while (delt.abs() > TOLERANCE);
-		
-		return sum;
-	}
-
+		public double[] inverse(double x, double y) {
+			return null; //TODO: projection wishlist
+		}
+	};
+	
 }

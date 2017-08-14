@@ -23,35 +23,68 @@
  */
 package maps;
 
+import java.util.Arrays;
+
+import utils.Math2;
+import utils.NumericalAnalysis;
+
 /**
  * A class of values and functions used to approximate the Tobler projection
  * 
  * @author jkunimune
  */
 public class Tobler {
-
-	public static final double lam(double x, double y, double[] params) {
-		final double a = params[1];
-		return Math.PI * x / Math.abs(a + (1-a)*hyperEllipse(y, params));
-	}
 	
-	
-	public static final double X(double y, double lam, double[] params) {
-		final double a = params[1];
-		return lam * Math.abs(a + (1-a)*hyperEllipse(y, params));
-	}
-	
-	
-	public static final double dZdY(double y, double[] params) {
-		final double a = params[1], e = params[0];
-		return Math.abs((a + (1-a)*hyperEllipse(y, params))/
-				(a + (1-a)*e));
-	}
-	
-	
-	public static final double hyperEllipse(double y, double[] params) {
-		final double k = params[2];
-		return Math.pow(1 - Math.pow(Math.abs(y),k), 1/k);
-	}
-
+	public static final Projection TOBLER =
+			new Projection(
+					"Tobler", "An equal-area projection shaped like a hyperellipse (in case you're wondering about gamma, it's calculated automatically)",
+					2., 0b1001, "pseudocylindrical", "equal-area",
+					new String[]{"Std. Parallel","alpha","K"},
+					new double[][] {{0,89,37.5}, {0,1,0}, {1,8,2.5}}) {
+		
+		private static final int N = 10000;
+		private double alpha, kappa, epsilon; //epsilon is related to gamma, but defined somewhat differently
+		private double[] Z; //Z[i] = sin(phi) when y = i/(Z.length-1)
+		
+		public void setParameters(double... params) {
+			this.aspectRatio = Math.pow(Math.cos(Math.toRadians(params[0])),2)*Math.PI;
+			this.alpha = params[1];
+			this.kappa = params[2];
+			this.epsilon = NumericalAnalysis.simpsonIntegrate(
+					0, 1, this::hyperEllipse, 1./N);
+			this.Z = NumericalAnalysis.simpsonODESolve(
+					1, N, this::dZdY, 1./N);
+		}
+		
+		public double[] project(double lat, double lon) {
+			final double z0 = Math.abs(Math.sin(lat));
+			final int i = Arrays.binarySearch(Z, z0);
+			final double y;
+			if (i >= 0)
+				y = i/(Z.length-1.);
+			else if (-i-1 >= Z.length)
+				y = Z[Z.length-1];
+			else
+				y = Math2.linInterp(z0, Z[-i-2], Z[-i-1], -i-2, -i-1)/
+						(Z.length-1.);
+			return new double[] {
+					lon * Math.abs(alpha + (1-alpha)*hyperEllipse(y)),
+					y * Math.signum(lat)/aspectRatio*Math.PI };
+		}
+		
+		public double[] inverse(double x, double y) {
+			return new double[] {
+					Math.asin(Z[(int)Math.round(Math.abs(y)*(Z.length-1))])*Math.signum(y),
+					Math.PI * x / Math.abs(alpha + (1-alpha)*hyperEllipse(y)) };
+		}
+		
+		public double dZdY(double y) {
+			return Math.abs((alpha + (1-alpha)*hyperEllipse(y))/
+					(alpha + (1-alpha)*epsilon));
+		}
+		
+		public double hyperEllipse(double y) {
+			return Math.pow(1 - Math.pow(Math.abs(y),kappa), 1/kappa);
+		}
+	};
 }

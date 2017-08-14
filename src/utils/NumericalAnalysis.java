@@ -21,9 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package util;
+package utils;
 
 import java.util.Arrays;
+import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleUnaryOperator;
 
 /**
  * A whole class just for numeric approximation methods
@@ -32,6 +34,18 @@ import java.util.Arrays;
  */
 public class NumericalAnalysis {
 
+	/**
+	 * Performs a definite integral using Simpson's rule and a constant step size
+	 * @param a The start of the integration region
+	 * @param b The end of the integration region (must be greater than a)
+	 * @param f The integrand
+	 * @param h The step size (must be positive)
+	 * @return \int_a^b \! f(x) \, \mathrm{d}x
+	 */
+	public static final double simpsonIntegrate(double a, double b, DoubleUnaryOperator f, double h) {
+		return simpsonIntegrate(a, b, (x,consts) -> f.applyAsDouble(x), h);
+	}
+	
 	/**
 	 * Performs a definite integral using Simpson's rule and a constant step size
 	 * @param a The start of the integration region
@@ -52,6 +66,18 @@ public class NumericalAnalysis {
 		return sum;
 	}
 	
+	
+	/**
+	 * Solves a simple ODE using Simpson's rule and a constant step size
+	 * @param T The maximum time value at which to sample (must be positive)
+	 * @param n The desired number of spaces (or the number of samples minus 1)
+	 * @param f The derivative of y with respect to time
+	 * @param h The internal step size (must be positive)
+	 * @return the double[] y, where y[i] is the value of y at t=i*T/n
+	 */
+	public static final double[] simpsonODESolve(double T, int n, DoubleUnaryOperator f, double h) {
+		return simpsonODESolve(T, n, (x,consts) -> f.applyAsDouble(x), h);
+	}
 	
 	/**
 	 * Solves a simple ODE using Simpson's rule and a constant step size
@@ -87,9 +113,23 @@ public class NumericalAnalysis {
 	 * @param f The error in terms of x
 	 * @param dfdx The derivative of f with respect to x
 	 * @param tolerance The maximum error that this can return
+	 * @return The value of x that puts f near 0, or NaN if it does not converge in 5 iterations
+	 */
+	public static final double newtonRaphsonApproximation(
+			double y, double x0, DoubleUnaryOperator f, DoubleUnaryOperator dfdx, double tolerance) {
+		return newtonRaphsonApproximation(y, x0, (x,consts) -> f.applyAsDouble(x),
+				(x,consts) -> dfdx.applyAsDouble(x), tolerance);
+	}
+	
+	/**
+	 * Applies Newton's method in one dimension to solve for x such that f(x)=y
+	 * @param y Desired value for f
+	 * @param x0 Initial guess for x
+	 * @param f The error in terms of x
+	 * @param dfdx The derivative of f with respect to x
+	 * @param tolerance The maximum error that this can return
 	 * @param constants Constant parameters for the function
-	 * @return The value of x that puts f near 0, or NaN if it does not
-	 * 		converge in 5 iterations
+	 * @return The value of x that puts f near 0, or NaN if it does not converge in 5 iterations
 	 */
 	public static final double newtonRaphsonApproximation(
 			double y, double x0, ScalarFunction f, ScalarFunction dfdx,
@@ -107,6 +147,34 @@ public class NumericalAnalysis {
 			return x;
 	}
 	
+	
+	/**
+	 * Applies Newton's method in two dimensions to solve for phi and lam such
+	 * that f1(phi,lam)=x and f2(phi,lam)=y
+	 * @param x Desired value for f1
+	 * @param y Desired value for f2
+	 * @param phi0 Initial guess for phi
+	 * @param lam0 Initial guess for lam
+	 * @param f1 x-error in terms of phi and lam
+	 * @param f2 y-error in terms of phi and lam
+	 * @param df1dp The partial derivative of x with respect to phi
+	 * @param df1dl The partial derivative of x with respect to lam
+	 * @param df2dp The partial derivative of y with respect to phi
+	 * @param df2dl The partial derivative of y with respect to lam
+	 * @param tolerance The maximum error that this can return
+	 * @return the values of phi and lam that put f1 and f2 near 0, or
+	 * 			<code>null</code> if it does not converge in 5 iterations.
+	 */
+	public static final double[] newtonRaphsonApproximation(double x, double y,
+			double phi0, double lam0, DoubleBinaryOperator f1, DoubleBinaryOperator f2,
+			DoubleBinaryOperator df1dp, DoubleBinaryOperator df1dl, DoubleBinaryOperator df2dp,
+			DoubleBinaryOperator df2dl, double tolerance, double... constants) {
+		return newtonRaphsonApproximation(x, y, phi0, lam0,
+				(p,l,consts) -> f1.applyAsDouble(p,l), (p,l,consts) -> f2.applyAsDouble(p,l),
+				(p,l,consts) -> df1dp.applyAsDouble(p,l), (p,l,consts) -> df2dl.applyAsDouble(p,l),
+				(p,l,consts) -> df2dp.applyAsDouble(p,l), (p,l,consts) -> df2dl.applyAsDouble(p,l),
+				tolerance);
+	}
 	
 	/**
 	 * Applies Newton's method in two dimensions to solve for phi and lam such
