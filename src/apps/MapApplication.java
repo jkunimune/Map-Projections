@@ -269,7 +269,7 @@ public abstract class MapApplication extends Application {
 			link(paramSliders[i], paramSpinners[i], i, currentParams, (d)->d, parameterSetter, isChanging, suppressListeners);
 		}
 		
-		for (int i = 0; i < 3; i ++) {
+		for (int i = 0; i < 4; i ++) {
 			GridPane.setHgrow(paramSliders[i], Priority.ALWAYS);
 			paramSpinners[i].setEditable(true);
 		}

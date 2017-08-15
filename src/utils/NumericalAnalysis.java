@@ -168,7 +168,7 @@ public class NumericalAnalysis {
 	public static final double[] newtonRaphsonApproximation(double x, double y,
 			double phi0, double lam0, DoubleBinaryOperator f1, DoubleBinaryOperator f2,
 			DoubleBinaryOperator df1dp, DoubleBinaryOperator df1dl, DoubleBinaryOperator df2dp,
-			DoubleBinaryOperator df2dl, double tolerance, double... constants) {
+			DoubleBinaryOperator df2dl, double tolerance) {
 		return newtonRaphsonApproximation(x, y, phi0, lam0,
 				(p,l,consts) -> f1.applyAsDouble(p,l), (p,l,consts) -> f2.applyAsDouble(p,l),
 				(p,l,consts) -> df1dp.applyAsDouble(p,l), (p,l,consts) -> df2dl.applyAsDouble(p,l),
@@ -191,7 +191,7 @@ public class NumericalAnalysis {
 	 * @param df2dl The partial derivative of y with respect to lam
 	 * @param tolerance The maximum error that this can return
 	 * @param constants Constant parameters for the functions
-	 * @return the values of phi and lam that put f1 and f2 near 0, or
+	 * @return the values of phi and lam that put f1 and f2 near x and y, or
 	 * 			<code>null</code> if it does not converge in 5 iterations.
 	 */
 	public static final double[] newtonRaphsonApproximation(double x, double y,

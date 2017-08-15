@@ -27,6 +27,7 @@ import org.apache.commons.math3.complex.Complex;
 
 import ellipticFunctions.Jacobi;
 import utils.Elliptic;
+import utils.NumericalAnalysis;
 
 /**
  * All the projections that don't fit into any of the other categories.
@@ -238,15 +239,18 @@ public class Misc {
 					new double[][] {{-90,90,34.7},{-180,180,112.4},{-90,90,41.9},{-180,180,12.5}},
 					false) {
 		
-		private double lat1, lon1, lat2, lon2, D;
+		private double lat1, lon1, lat2, lon2, D, a, b, c;
 		
 		public void setParameters(double... params) {
-			this.lat1 = Math.toRadians(params[0]);
+			this.lat1 = Math.toRadians(params[0]); //coordinates of first reference
 			this.lon1 = Math.toRadians(params[1]);
-			this.lat2 = Math.toRadians(params[2]);
+			this.lat2 = Math.toRadians(params[2]); //coordinates of second reference
 			this.lon2 = Math.toRadians(params[3]);
-			this.D = Math.acos(Math.sin(lat1)*Math.sin(lat2) +
-					Math.cos(lat1)*Math.cos(lat2)*Math.cos(lon1-lon2));
+			this.D = Math.acos(cosD(lat1,lon1, lat2,lon2)); //distance between references
+			this.a = Math.PI - D/2; //semimajor axis
+			this.c = D/2; //semiminor axis
+			this.b = Math.sqrt(Math.pow(a, 2) - Math.pow(c, 2)); //focus distance
+			this.aspectRatio = a/b;
 		}
 		
 		public double[] project(double lat, double lon, double[] pole) {
@@ -254,12 +258,15 @@ public class Misc {
 		}
 		
 		public double[] project(double lat0, double lon0) {
-			final double d1 = Math.acos(Math.sin(lat0)*Math.sin(lat1) + Math.cos(lat0)*Math.cos(lat1)*Math.cos(lon0-lon1));
-			final double d2 = Math.acos(Math.sin(lat0)*Math.sin(lat2) + Math.cos(lat0)*Math.cos(lat2)*Math.cos(lon0-lon2));
-			final double s = Math.signum(Math.tan(lat0)*Math.sin(lon2-lon1) + Math.tan(lat1)*Math.sin(lon0-lon2) + Math.tan(lat2)*Math.sin(lon1-lon0));
+			final double d1 = Math.acos(cosD(lat0,lon0, lat1,lon1));
+			final double d2 = Math.acos(cosD(lat0,lon0, lat2,lon2));
+			final double s =Math.signum(
+					Math.tan(lat0)*Math.sin(lon2-lon1) +
+					Math.tan(lat1)*Math.sin(lon0-lon2) +
+					Math.tan(lat2)*Math.sin(lon1-lon0));
 			return new double[] {
-					(d1*d1-d2*d2)/(2*D),
-					s*Math.sqrt(d1*d1 - Math.pow((d1*d1-d2*d2+D*D)/(2*D), 2)) };
+					(d1*d1-d2*d2)/(2*D) * Math.PI/a,
+					s*Math.sqrt(d1*d1 - Math.pow((d1*d1-d2*d2+D*D)/(2*D), 2)) * Math.PI/a };
 		}
 		
 		public double[] inverse(double x, double y, double[] pole) {
@@ -267,7 +274,31 @@ public class Misc {
 		}
 		
 		public double[] inverse(double x, double y) {
-			return null; //TODO: projection wishlist
+			final double X = x * a;
+			final double Y = y * b;
+			return NumericalAnalysis.newtonRaphsonApproximation(
+					Math.cos(Math.hypot(X+c, Y)), Math.cos(Math.hypot(X-c, Y)),
+					0, 0,
+					(lat0,lon0) -> cosD(lat0,lon0, lat1,lon1),
+					(lat0,lon0) -> cosD(lat0,lon0, lat2,lon2),
+					(lat0,lon0) -> dcosDdp(lat0,lon0, lat1,lon1),
+					(lat0,lon0) -> dcosDdl(lat0,lon0, lat1,lon1),
+					(lat0,lon0) -> dcosDdp(lat0,lon0, lat2,lon2),
+					(lat0,lon0) -> dcosDdl(lat0,lon0, lat2,lon2), .01);
+		}
+		
+		private double cosD(double lat1, double lon1, double lat2, double lon2) {
+			return Math.sin(lat1)*Math.sin(lat2) +
+					Math.cos(lat1)*Math.cos(lat2)*Math.cos(lon1-lon2);
+		}
+		
+		private double dcosDdp(double lat1, double lon1, double lat2, double lon2) {
+			return Math.cos(lat1)*Math.sin(lat2) -
+					Math.sin(lat1)*Math.cos(lat2)*Math.cos(lon1-lon2);
+		}
+		
+		private double dcosDdl(double lat1, double lon1, double lat2, double lon2) {
+			return -Math.cos(lat1)*Math.cos(lat2)*Math.sin(lon1-lon2);
 		}
 	};
 }

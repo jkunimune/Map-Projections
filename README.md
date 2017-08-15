@@ -2,7 +2,7 @@
 A class to create custom maps of the Earth's surface. There are thousands of combinations of color-schemes, projections, and aspects. Includes Mercator, Gall-Peters, Orthographic, Peirce Quincuncial, and More!
 
 ## Installation
-If you are a fancy Windows user, I recommend the convenient [fancy Windows binaries](https://example.org). Double-click to install them and then keep pressing buttons until something good happens. If you see a map, you're in the right place.
+If you are a fancy Windows user, I recommend the convenient [fancy Windows binaries](https://example.org) (note: will upload Windows binaries in next release). Double-click to install them and then keep pressing buttons until something good happens. If you see a map, you're in the right place.
 
 If you are not on Windows or are otherwise not fancy enough to deserve such executables, simply double-click on the .jar files in the main directory and, if you have [Java](https://java.com/en/download/) installed (10/10 would recommend), it should just run without any set-up.
 
