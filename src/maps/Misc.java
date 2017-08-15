@@ -234,7 +234,7 @@ public class Misc {
 	
 	public static final Projection TWO_POINT_EQUIDISTANT =
 			new Projection("Two-point Equidistant", "A map that preserves distances, but not angles, to two arbitrary points",
-					1., 0b1011, "quasiazimuthal", "equidistant",
+					1., 0b1111, "quasiazimuthal", "equidistant",
 					new String[] {"Latitude 1","Longitude 1","Latitude 2","Longitude 2"},
 					new double[][] {{-90,90,34.7},{-180,180,112.4},{-90,90,41.9},{-180,180,12.5}},
 					false) {
@@ -246,7 +246,7 @@ public class Misc {
 			this.lon1 = Math.toRadians(params[1]);
 			this.lat2 = Math.toRadians(params[2]); //coordinates of second reference
 			this.lon2 = Math.toRadians(params[3]);
-			this.D = Math.acos(cosD(lat1,lon1, lat2,lon2)); //distance between references
+			this.D = dist(lat1,lon1, lat2,lon2); //distance between references
 			this.a = Math.PI - D/2; //semimajor axis
 			this.c = D/2; //semiminor axis
 			this.b = Math.sqrt(Math.pow(a, 2) - Math.pow(c, 2)); //focus distance
@@ -258,8 +258,8 @@ public class Misc {
 		}
 		
 		public double[] project(double lat0, double lon0) {
-			final double d1 = Math.acos(cosD(lat0,lon0, lat1,lon1));
-			final double d2 = Math.acos(cosD(lat0,lon0, lat2,lon2));
+			final double d1 = dist(lat0,lon0, lat1,lon1);
+			final double d2 = dist(lat0,lon0, lat2,lon2);
 			final double s =Math.signum(
 					Math.tan(lat0)*Math.sin(lon2-lon1) +
 					Math.tan(lat1)*Math.sin(lon0-lon2) +
@@ -270,35 +270,23 @@ public class Misc {
 		}
 		
 		public double[] inverse(double x, double y, double[] pole) {
-			return inverse(x, y);
+			return inverse(x, y); //TODO: there will be divergences and holes
 		}
 		
 		public double[] inverse(double x, double y) {
-			final double X = x * a;
-			final double Y = y * b;
-			return NumericalAnalysis.newtonRaphsonApproximation(
-					Math.cos(Math.hypot(X+c, Y)), Math.cos(Math.hypot(X-c, Y)),
-					0, 0,
-					(lat0,lon0) -> cosD(lat0,lon0, lat1,lon1),
-					(lat0,lon0) -> cosD(lat0,lon0, lat2,lon2),
-					(lat0,lon0) -> dcosDdp(lat0,lon0, lat1,lon1),
-					(lat0,lon0) -> dcosDdl(lat0,lon0, lat1,lon1),
-					(lat0,lon0) -> dcosDdp(lat0,lon0, lat2,lon2),
-					(lat0,lon0) -> dcosDdl(lat0,lon0, lat2,lon2), .01);
+			final double bearing = Math.PI+obliquifySphc(lat2, lon2, new double[] {lat1,lon1,0})[1]; //direction from P1 to P2
+			final double d1 = Math.hypot(a*x + c, b*y);
+			final double d2 = Math.hypot(a*x - c, b*y);
+			final double lat = Math.asin(Math.cos(d1));
+			final double lon = -Math.signum(y)*Math.acos(
+					(Math.cos(d1)*Math.cos(D) - Math.cos(d2))/(Math.sin(d1)*Math.sin(D)));
+			return obliquifyPlnr(new double[] {lat, lon}, new double[] {lat1,lon1,bearing});
 		}
 		
-		private double cosD(double lat1, double lon1, double lat2, double lon2) {
-			return Math.sin(lat1)*Math.sin(lat2) +
-					Math.cos(lat1)*Math.cos(lat2)*Math.cos(lon1-lon2);
-		}
-		
-		private double dcosDdp(double lat1, double lon1, double lat2, double lon2) {
-			return Math.cos(lat1)*Math.sin(lat2) -
-					Math.sin(lat1)*Math.cos(lat2)*Math.cos(lon1-lon2);
-		}
-		
-		private double dcosDdl(double lat1, double lon1, double lat2, double lon2) {
-			return -Math.cos(lat1)*Math.cos(lat2)*Math.sin(lon1-lon2);
+		private double dist(double lat1, double lon1, double lat2, double lon2) {
+			return Math.acos(
+					Math.sin(lat1)*Math.sin(lat2) +
+					Math.cos(lat1)*Math.cos(lat2)*Math.cos(lon1-lon2));
 		}
 	};
 }

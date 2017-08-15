@@ -171,7 +171,7 @@ public class NumericalAnalysis {
 			DoubleBinaryOperator df2dl, double tolerance) {
 		return newtonRaphsonApproximation(x, y, phi0, lam0,
 				(p,l,consts) -> f1.applyAsDouble(p,l), (p,l,consts) -> f2.applyAsDouble(p,l),
-				(p,l,consts) -> df1dp.applyAsDouble(p,l), (p,l,consts) -> df2dl.applyAsDouble(p,l),
+				(p,l,consts) -> df1dp.applyAsDouble(p,l), (p,l,consts) -> df1dl.applyAsDouble(p,l),
 				(p,l,consts) -> df2dp.applyAsDouble(p,l), (p,l,consts) -> df2dl.applyAsDouble(p,l),
 				tolerance);
 	}

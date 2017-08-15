@@ -144,7 +144,7 @@ public abstract class Projection {
 	}
 	
 	
-	public void setParameters(double... params) { //TODO
+	public void setParameters(double... params) {
 	}
 	
 	
@@ -272,7 +272,13 @@ public abstract class Projection {
 	}
 	
 	
-	protected static final double[] obliquifySphc(double latF, double lonF, double[] pole) { // go from polar coordinates to relative
+	/**
+	 * Calculate relative latitude and longitude for an oblique pole
+	 * @param coords the absolute coordinates
+	 * @param pole the pole location
+	 * @return { latr, lonr }
+	 */
+	protected static final double[] obliquifySphc(double latF, double lonF, double[] pole) {
 		final double lat0 = pole[0];
 		final double lon0 = pole[1];
 		final double tht0 = pole[2];
@@ -297,14 +303,17 @@ public abstract class Projection {
 	}
 	
 	
-	protected static final double[] obliquifyPlnr(double[] coords, double[] pole) { //go from relative coordinates to polar
+	/**
+	 * Calculate absolute latitude and longitude for an oblique pole
+	 * @param coords the relative coordinates
+	 * @param pole the pole location
+	 * @return { LAT, LON }
+	 */
+	protected static final double[] obliquifyPlnr(double[] coords, double[] pole) {
 		if (coords == null) 	return null;
 		
-		double lat1 = coords[0];
-		double lon1 = coords[1];
-		final double lat0 = pole[0];
-		final double lon0 = pole[1];
-		final double tht0 = pole[2];
+		double lat1 = coords[0], lon1 = coords[1];
+		final double lat0 = pole[0], lon0 = pole[1], tht0 = pole[2];
 		lon1 += tht0;
 		double latf = Math.asin(Math.sin(lat0)*Math.sin(lat1) - Math.cos(lat0)*Math.cos(lon1)*Math.cos(lat1));
 		double lonf;

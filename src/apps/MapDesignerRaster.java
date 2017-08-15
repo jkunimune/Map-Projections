@@ -91,8 +91,7 @@ public class MapDesignerRaster extends MapApplication {
 			Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL, Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU,
 			Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Pseudocylindrical.LEMONS,
 			MyProjections.MAGNIFIER, MyProjections.EXPERIMENT, MyProjections.PSEUDOSTEREOGRAPHIC,
-			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET,
-			Tetrahedral.TETRACHAMFER };
+			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET };
 	
 	
 	private Node aspectSelector;
