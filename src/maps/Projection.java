@@ -318,11 +318,11 @@ public abstract class Projection {
 		double latf = Math.asin(Math.sin(lat0)*Math.sin(lat1) - Math.cos(lat0)*Math.cos(lon1)*Math.cos(lat1));
 		double lonf;
 		double innerFunc = Math.sin(lat1)/Math.cos(lat0)/Math.cos(latf) - Math.tan(lat0)*Math.tan(latf);
-		if (lat0 == Math.PI / 2) // accounts for special case when lat0 = pi/2
+		if (lat0 == Math.PI/2) // accounts for special case when lat0 = pi/2
 			lonf = lon1+lon0;
-		else if (lat0 == -Math.PI / 2) // accounts for special case when lat0 = -pi/2
+		else if (lat0 == -Math.PI/2) // accounts for special case when lat0 = -pi/2
 			lonf = -lon1+lon0 + Math.PI;
-		else if (Math.abs(innerFunc) > 1) { // accounts for special case when cos(lat1) = --> 0
+		else if (Math.abs(innerFunc) > 1) { // accounts for special case when cos(lat1) -> 0
 			if ((lon1 == 0 && lat1 < -lat0) || (lon1 != 0 && lat1 < lat0))
 				lonf = lon0 + Math.PI;
 			else

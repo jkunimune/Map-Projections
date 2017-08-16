@@ -274,13 +274,16 @@ public class Misc {
 		}
 		
 		public double[] inverse(double x, double y) {
-			final double bearing = Math.PI+obliquifySphc(lat2, lon2, new double[] {lat1,lon1,0})[1]; //direction from P1 to P2
 			final double d1 = Math.hypot(a*x + c, b*y);
 			final double d2 = Math.hypot(a*x - c, b*y);
-			final double lat = Math.asin(Math.cos(d1));
-			final double lon = -Math.signum(y)*Math.acos(
-					(Math.cos(d1)*Math.cos(D) - Math.cos(d2))/(Math.sin(d1)*Math.sin(D)));
-			return obliquifyPlnr(new double[] {lat, lon}, new double[] {lat1,lon1,bearing});
+			if (d1 + d2 > 2*a) 	return null;
+			final double a = (Math.cos(lat1)*Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(lon1-lon2))/Math.sin(D);
+			final double b = (Math.cos(d1)*Math.cos(D) - Math.cos(d2))/(Math.sin(d1)*Math.sin(D));
+			final double csaab = a*b +Math.signum(y)* Math.sqrt((a*a - 1)*(b*b - 1));
+			final double s1 = Math.signum(Math.sin(Math.acos(a)-Math.signum(y)*Math.acos(b)));
+			final double PHI = Math.asin(Math.sin(lat1)*Math.cos(d1) - Math.cos(lat1)*Math.sin(d1)*csaab);
+			final double LAM = lon1 +s1* Math.acos((Math.cos(d1) - Math.sin(lat1)*Math.sin(PHI))/(Math.cos(lat1)*Math.cos(PHI)));
+			return new double[] {PHI,LAM};
 		}
 		
 		private double dist(double lat1, double lon1, double lat2, double lon2) {
