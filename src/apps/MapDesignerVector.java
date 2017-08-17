@@ -84,7 +84,7 @@ public class MapDesignerVector extends MapApplication {
 			WinkelTripel.WINKEL_TRIPEL, Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU,
 			Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, MyProjections.MAGNIFIER,
 			MyProjections.EXPERIMENT, MyProjections.PSEUDOSTEREOGRAPHIC,
-			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET };
+			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET, MyProjections.TWO_POINT_EQUALIZED };
 	
 	private static final int DEF_MAX_VTX = 5000;
 	private static final int FAST_MAX_VTX = 2000;

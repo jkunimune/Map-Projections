@@ -102,7 +102,7 @@ public class MapAnalyzer extends MapApplication {
 			WinkelTripel.WINKEL_TRIPEL, Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU,
 			Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, MyProjections.MAGNIFIER,
 			MyProjections.EXPERIMENT, MyProjections.PSEUDOSTEREOGRAPHIC,
-			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET, };
+			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET, MyProjections.TWO_POINT_EQUALIZED };
 	
 	
 	private Button updateBtn;
@@ -136,9 +136,9 @@ public class MapAnalyzer extends MapApplication {
 		this.updateBtn = buildUpdateButton(this::calculateAndUpdate);
 		this.updateBtn.setText("Calculate"); //I don't need to follow your darn conventions!
 		final Button saveMapBtn = buildSaveButton(true, "map", RASTER_TYPES,
-				RASTER_TYPES[1], ()->true, this::calculateAndSaveMap);
+				RASTER_TYPES[0], ()->true, this::calculateAndSaveMap);
 		final Button savePltBtn = buildSaveButton(true, "plots", RASTER_TYPES,
-				RASTER_TYPES[1], ()->true, this::calculateAndSavePlot);
+				RASTER_TYPES[0], ()->true, this::calculateAndSavePlot);
 		final HBox buttons = new HBox(5, updateBtn, saveMapBtn, savePltBtn);
 		buttons.setAlignment(Pos.CENTER);
 		
@@ -273,10 +273,11 @@ public class MapAnalyzer extends MapApplication {
 		PixelWriter writer = output.getPixelWriter();
 		for (int y = 0; y < distortion[0].length; y ++) {
 			for (int x = 0; x < distortion[0][y].length; x ++) {
-				final double sizeDistort = distortion[0][y][x];
-				final double shapeDistort = distortion[1][y][x];
+				final double sizeDistort = distortion[0][y][x], shapeDistort = distortion[1][y][x];
 				final double sizeContour = Math.round(
 						sizeDistort/(Math.log(10)/10))*Math.log(10)/10;
+				final double shapeContour = Math.exp(Math.round(
+						Math.log(shapeDistort)/(Math.log(10)/10))*Math.log(10)/10);
 				if (Double.isNaN(sizeDistort) || Double.isNaN(shapeDistort)) {
 					writer.setArgb(x, y, 0);
 					continue;
@@ -284,14 +285,14 @@ public class MapAnalyzer extends MapApplication {
 				
 				final int r, g, b;
 				if (sizeDistort < 0) { //if compressing
-					r = (int)(255.9*Math.exp(-shapeDistort*.6));
-					g = (int)(255.9*Math.exp(-shapeDistort*.6)*Math.exp(sizeContour*.6));
+					r = (int)(255.9*Math.exp(-shapeContour*.6));
+					g = (int)(255.9*Math.exp(-shapeContour*.6)*Math.exp(sizeContour*.6));
 					b = g;
 				}
 				else { //if dilating
-					r = (int)(255.9*Math.exp(-shapeDistort*.6)*Math.exp(-sizeContour*.6));
-					g = r; //I find .6 to ba a rather visually pleasing sensitivity
-					b = (int)(255.9*Math.exp(-shapeDistort*.6));
+					r = (int)(255.9*Math.exp(-shapeContour*.6)*Math.exp(-sizeContour*.6));
+					g = r; //I find .6 to be a rather visually pleasing sensitivity
+					b = (int)(255.9*Math.exp(-shapeContour*.6));
 				}
 				
 				final int argb = ((((((0xFF)<<8)+r)<<8)+g)<<8)+b;

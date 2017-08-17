@@ -129,24 +129,39 @@ public class MyProjections {
 	
 	
 	public static final Projection TWO_POINT_EQUALIZED =
-			new Projection("Two-Point Equalized", "A paramatric projection that I'm still testing",
+			new Projection("Two-Point Equalized", "A parametric projection that I'm still testing",
 					0, 0b1111, "other", "compromise", new String[] {"Width"},
 					new double[][] { {0, 180, 90} }) {
 		
-		private double theta;
+		private double theta, a, b;
 		
 		public void setParameters(double... params) {
 			theta = Math.toRadians(params[0])/2;
+			this.a = Math.PI - theta; //semimajor axis
+			this.b = Math.sqrt(Math.pow(Math.PI-theta, 2) - Math.pow(theta, 2)); //semiminor axis
+			this.aspectRatio = b/a*Math.sqrt(Math.tan(theta)/theta);
 		}
 		
 		public double[] project(double lat, double lon) {
-			// TODO: Implement this
-			return null;
+			final double d1 = Math.acos(
+					Math.sin(lat)*Math.cos(theta) - Math.cos(lat)*Math.sin(theta)*Math.cos(lon));
+			final double d2 = Math.acos(
+					Math.sin(lat)*Math.cos(theta) + Math.cos(lat)*Math.sin(theta)*Math.cos(lon));
+			final double k = Math.signum(lon)*Math.sqrt(Math.tan(theta)/theta);
+			final double s = Math.PI/(Math.PI-theta/2);
+			return new double[] {
+					s*k*Math.sqrt(d1*d1 - Math.pow((d1*d1-d2*d2+4*theta*theta)/(4*theta), 2)),
+					s*(d2*d2-d1*d1)/(4*theta) };
 		}
 		
 		public double[] inverse(double x, double y) {
-			// TODO: Implement this
-			return null;
+			final double d1 = Math.hypot(b*x, a*y - theta);
+			final double d2 = Math.hypot(b*x, a*y + theta);
+			if (d1 + d2 > 2*a) 	return null;
+			final double phi = Math.asin((Math.cos(d1)+Math.cos(d2))/(2*Math.cos(theta)));
+			final double lam = Math.signum(x)*
+					Math.acos((Math.sin(phi)*Math.cos(theta) - Math.cos(d1))/(Math.cos(phi)*Math.sin(theta)));
+			return new double[] { phi, lam };
 		}
 	};
 }

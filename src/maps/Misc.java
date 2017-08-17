@@ -27,7 +27,6 @@ import org.apache.commons.math3.complex.Complex;
 
 import ellipticFunctions.Jacobi;
 import utils.Elliptic;
-import utils.NumericalAnalysis;
 
 /**
  * All the projections that don't fit into any of the other categories.
@@ -248,8 +247,8 @@ public class Misc {
 			this.lon2 = Math.toRadians(params[3]);
 			this.D = dist(lat1,lon1, lat2,lon2); //distance between references
 			this.a = Math.PI - D/2; //semimajor axis
-			this.c = D/2; //semiminor axis
-			this.b = Math.sqrt(Math.pow(a, 2) - Math.pow(c, 2)); //focus distance
+			this.c = D/2; //focal distance
+			this.b = Math.sqrt(Math.pow(a, 2) - Math.pow(c, 2)); //semiminor axis
 			this.aspectRatio = a/b;
 		}
 		
@@ -270,18 +269,19 @@ public class Misc {
 		}
 		
 		public double[] inverse(double x, double y, double[] pole) {
-			return inverse(x, y); //TODO: there will be divergences and holes
+			return inverse(x, y);
 		}
 		
 		public double[] inverse(double x, double y) {
 			final double d1 = Math.hypot(a*x + c, b*y);
 			final double d2 = Math.hypot(a*x - c, b*y);
-			if (d1 + d2 > 2*a) 	return null;
+			if (d1 + d2 > 2*a) 	return null; //TODO find out why it throws a hissy fit when y=0
 			final double a = (Math.cos(lat1)*Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(lon1-lon2))/Math.sin(D);
-			final double b = (Math.cos(d1)*Math.cos(D) - Math.cos(d2))/(Math.sin(d1)*Math.sin(D));
-			final double csaab = a*b +Math.signum(y)* Math.sqrt((a*a - 1)*(b*b - 1));
+			double b = (Math.cos(d1)*Math.cos(D) - Math.cos(d2))/(Math.sin(d1)*Math.sin(D));
+			if (Math.abs(b) > 1) 	b = Math.signum(b);
+			final double casab = a*b +Math.signum(y)* Math.sqrt((a*a - 1)*(b*b - 1));
 			final double s1 = Math.signum(Math.sin(Math.acos(a)-Math.signum(y)*Math.acos(b)));
-			final double PHI = Math.asin(Math.sin(lat1)*Math.cos(d1) - Math.cos(lat1)*Math.sin(d1)*csaab);
+			final double PHI = Math.asin(Math.sin(lat1)*Math.cos(d1) - Math.cos(lat1)*Math.sin(d1)*casab);
 			final double LAM = lon1 +s1* Math.acos((Math.cos(d1) - Math.sin(lat1)*Math.sin(PHI))/(Math.cos(lat1)*Math.cos(PHI)));
 			return new double[] {PHI,LAM};
 		}

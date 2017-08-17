@@ -91,7 +91,7 @@ public class MapDesignerRaster extends MapApplication {
 			Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL, Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU,
 			Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Pseudocylindrical.LEMONS,
 			MyProjections.MAGNIFIER, MyProjections.EXPERIMENT, MyProjections.PSEUDOSTEREOGRAPHIC,
-			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET };
+			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET, MyProjections.TWO_POINT_EQUALIZED };
 	
 	
 	private Node aspectSelector;
@@ -260,16 +260,18 @@ public class MapDesignerRaster extends MapApplication {
 		int g_tot = 0;
 		int b_tot = 0;
 		for (int argb: colors) {
-			double a = ((argb >> 24) & 0xFF);
+			int a = ((argb >> 24)&0xFF);
 			a_tot += a;
-			r_tot += a*((argb >> 16) & 0xFF);
-			g_tot += a*((argb >> 8) & 0xFF);
-			b_tot += a*((argb >> 0) & 0xFF);
+			r_tot += a*(Math.pow((argb>>16)&0xFF, 2));
+			g_tot += a*(Math.pow((argb>> 8)&0xFF, 2));
+			b_tot += a*(Math.pow((argb>> 0)&0xFF, 2));
 		}
 		if (a_tot == 0)	return 0;
 		else
-			return (a_tot/colors.length<<24) +
-					(r_tot/a_tot<<16) + (g_tot/a_tot<<8) + (b_tot/a_tot);
+			return (a_tot/colors.length << 24) +
+					((int)Math.sqrt(r_tot/a_tot) << 16) +
+					((int)Math.sqrt(g_tot/a_tot) << 8) +
+					((int)Math.sqrt(b_tot/a_tot) << 0);
 	}
 
 }
