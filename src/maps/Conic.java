@@ -23,10 +23,12 @@
  */
 package maps;
 
+import maps.Projection.Property;
+
 public class Conic {
 	
 	public static final Projection LAMBERT =
-			new ConicProjection("Conformal Conic", 0b0111, "conformal") {
+			new ConicProjection("Conformal Conic", 0b0111, Property.CONFORMAL) {
 		
 		private double n, F, r0, d;
 		
@@ -89,7 +91,7 @@ public class Conic {
 	
 	
 	public static final Projection EQUIDISTANT =
-			new ConicProjection("Equidistant Conic", 0b1111, "equidistant") {
+			new ConicProjection("Equidistant Conic", 0b1111, Property.EQUIDISTANT) {
 		
 		private double m, n, s;
 		
@@ -148,7 +150,7 @@ public class Conic {
 	
 	
 	public static final Projection ALBERS =
-			new ConicProjection("Albers", 0b1111, "equal-area") {
+			new ConicProjection("Albers", 0b1111, Property.EQUAL_AREA) {
 		
 		private double n, C, s;
 		
@@ -211,8 +213,8 @@ public class Conic {
 		protected double lat1, lat2;
 		protected boolean reversed;
 		
-		ConicProjection(String name, int fisc, String property) {
-			super(name, "The "+property+" conic projection.", 0, fisc, "conic", property,
+		ConicProjection(String name, int fisc, Property property) {
+			super(name, "The "+property+" conic projection.", 0, fisc, Type.CONIC, property,
 					new String[] {"Std. Parallel 1", "Std. Parallel 2"},
 					new double[][] {{-89,89,15},{-89,89,45}});
 		}

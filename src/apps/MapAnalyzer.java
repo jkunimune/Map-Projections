@@ -95,14 +95,15 @@ public class MapAnalyzer extends MapApplication {
 	private static final Projection[] PROJ_ARR = { Cylindrical.MERCATOR,
 			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL_PETERS,
 			Cylindrical.HOBO_DYER, Cylindrical.BEHRMANN, Cylindrical.LAMBERT, Cylindrical.GALL,
-			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.ORTHOGRAPHIC,
-			Azimuthal.GNOMONIC, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Tetrahedral.LEE,
+			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
+			Azimuthal.ORTHOGRAPHIC, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Tetrahedral.LEE,
 			Tetrahedral.TETRAGRAPH, Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE,
 			Misc.HAMMER, Tobler.TOBLER, Misc.AITOFF, Misc.VAN_DER_GRINTEN, Robinson.ROBINSON,
 			WinkelTripel.WINKEL_TRIPEL, Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU,
 			Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, MyProjections.MAGNIFIER,
 			MyProjections.EXPERIMENT, MyProjections.PSEUDOSTEREOGRAPHIC,
-			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET, MyProjections.TWO_POINT_EQUALIZED };
+			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET,
+			MyProjections.TWO_POINT_EQUALIZED };
 	
 	
 	private Button updateBtn;
@@ -275,9 +276,9 @@ public class MapAnalyzer extends MapApplication {
 			for (int x = 0; x < distortion[0][y].length; x ++) {
 				final double sizeDistort = distortion[0][y][x], shapeDistort = distortion[1][y][x];
 				final double sizeContour = Math.round(
-						sizeDistort/(Math.log(10)/10))*Math.log(10)/10;
+						sizeDistort/(LN_10/10))*LN_10/10;
 				final double shapeContour = Math.exp(Math.round(
-						Math.log(shapeDistort)/(Math.log(10)/10))*Math.log(10)/10);
+						Math.log(shapeDistort)/(LN_10/10))*LN_10/10);
 				if (Double.isNaN(sizeDistort) || Double.isNaN(shapeDistort)) {
 					writer.setArgb(x, y, 0);
 					continue;

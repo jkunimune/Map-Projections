@@ -26,6 +26,8 @@ package maps;
 import org.apache.commons.math3.complex.Complex;
 
 import ellipticFunctions.Jacobi;
+import maps.Projection.Property;
+import maps.Projection.Type;
 import utils.Elliptic;
 
 /**
@@ -37,7 +39,7 @@ public class Misc {
 	
 	public static final Projection AITOFF =
 			new Projection("Aitoff", "A compromise projection shaped like an ellipse",
-					2., 0b1011, "pseudoazimuthal", "equal-area") {
+					2., 0b1011, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
 			final double a = Math.acos(Math.cos(lat)*Math.cos(lon/2));
@@ -57,7 +59,7 @@ public class Misc {
 	
 	public static final Projection HAMMER =
 			new Projection("Hammer", "An equal-area projection shaped like an ellipse",
-					2., 0b1111, "pseudoazimuthal", "equal-area") {
+					2., 0b1111, Type.PSEUDOAZIMUTHAL, Property.EQUAL_AREA) {
 		
 		public double[] project(double lat, double lon) {
 			return new double[] {
@@ -77,7 +79,7 @@ public class Misc {
 	
 	public static final Projection VAN_DER_GRINTEN =
 			new Projection("Van der Grinten", "A circular compromise map that is popular for some reason",
-					1., 0b1111, "other", "compromise") {
+					1., 0b1111, Type.OTHER, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
 			if (lat == 0) //special case 1: equator
@@ -118,7 +120,7 @@ public class Misc {
 	
 	public static final Projection PEIRCE_QUINCUNCIAL =
 			new Projection("Peirce Quincuncial", "A conformal projection that uses complex elliptic functions",
-					1., 0b1001, "other", "conformal") {
+					1., 0b1001, Type.OTHER, Property.CONFORMAL) {
 		
 		public double[] project(double lat, double lon) {
 			final double alat = Math.abs(lat);
@@ -156,7 +158,7 @@ public class Misc {
 	
 	public static final Projection GUYOU =
 			new Projection("Guyou", "Peirce Quincuncial, rearranged a bit", 2., 0b1001,
-					"other", "conformal") {
+					Type.OTHER, Property.CONFORMAL) {
 		
 		private final double[] POLE = {0, -Math.PI/2, Math.PI/4};
 		
@@ -186,7 +188,7 @@ public class Misc {
 	
 	public static final Projection HAMMER_RETROAZIMUTHAL =
 			new Projection("Hammer Retroazimuthal", "The full version of a map where bearing and distance to a reference point is preserved",
-					1., 0b1110, "quasiazimuthal", "Retroazimuthal",
+					1., 0b1110, Type.QUASIAZIMUTHAL, Property.RETROAZIMUTHAL,
 					new String[] {"Latitude","Longitude"},
 					new double[][] {{-89,89,21.4},{-180,180,39.8}}, false) {
 		
@@ -233,9 +235,9 @@ public class Misc {
 	
 	public static final Projection TWO_POINT_EQUIDISTANT =
 			new Projection("Two-point Equidistant", "A map that preserves distances, but not angles, to two arbitrary points",
-					1., 0b1111, "quasiazimuthal", "equidistant",
+					1., 0b1111, Type.QUASIAZIMUTHAL, Property.EQUIDISTANT,
 					new String[] {"Latitude 1","Longitude 1","Latitude 2","Longitude 2"},
-					new double[][] {{-90,90,34.7},{-180,180,112.4},{-90,90,41.9},{-180,180,12.5}},
+					new double[][] {{-90,90,41.9},{-180,180,12.5},{-90,90,34.7},{-180,180,112.4}},
 					false) {
 		
 		private double lat1, lon1, lat2, lon2, D, a, b, c;
@@ -276,11 +278,12 @@ public class Misc {
 			final double d1 = Math.hypot(a*x + c, b*y);
 			final double d2 = Math.hypot(a*x - c, b*y);
 			if (d1 + d2 > 2*a) 	return null; //TODO find out why it throws a hissy fit when y=0
-			final double a = (Math.cos(lat1)*Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(lon1-lon2))/Math.sin(D);
-			double b = (Math.cos(d1)*Math.cos(D) - Math.cos(d2))/(Math.sin(d1)*Math.sin(D));
-			if (Math.abs(b) > 1) 	b = Math.signum(b);
-			final double casab = a*b +Math.signum(y)* Math.sqrt((a*a - 1)*(b*b - 1));
-			final double s1 = Math.signum(Math.sin(Math.acos(a)-Math.signum(y)*Math.acos(b)));
+			final double t1 = -(Math.cos(lat1)*Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(lon1-lon2))/Math.sin(D);
+			double t2 = Math.signum(lon1-lon2)*(Math.cos(d1)*Math.cos(D) - Math.cos(d2))/(Math.sin(d1)*Math.sin(D));
+			if (Math.abs(t2) > 1) 	t2 = Math.signum(t2);
+			final double s0 = Math.signum(lon1-lon2)*Math.signum(y);
+			final double casab = t1*t2 +s0* Math.sqrt((t1*t1 - 1)*(t2*t2 - 1));
+			final double s1 = Math.signum(Math.sin(Math.acos(t1)-s0*Math.acos(t2)));
 			final double PHI = Math.asin(Math.sin(lat1)*Math.cos(d1) - Math.cos(lat1)*Math.sin(d1)*casab);
 			final double LAM = lon1 +s1* Math.acos((Math.cos(d1) - Math.sin(lat1)*Math.sin(PHI))/(Math.cos(lat1)*Math.cos(PHI)));
 			return new double[] {PHI,LAM};

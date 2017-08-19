@@ -23,12 +23,19 @@
  */
 package maps;
 
+import maps.Projection.Property;
+import maps.Projection.Type;
 
+/**
+ * Projections where y is a function of latitude
+ * 
+ * @author jkunimune
+ */
 public class Pseudocylindrical {
 	
 	public static final Projection SINUSOIDAL =
 			new Projection("Sinusoidal", "An equal-area map shaped like a sine-wave",
-					2., 0b1111, "pseudocylindrical", "equal-area") {
+					2., 0b1111, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA) {
 		
 		public double[] project(double lat, double lon) {
 			return new double[] { Math.cos(lat)*lon, lat };
@@ -42,7 +49,7 @@ public class Pseudocylindrical {
 	
 	public static final Projection MOLLWEIDE =
 			new Projection("Mollweide", "An equal-area projection shaped like an ellipse",
-					2., 0b1101, "pseudocylindrical", "equal-area") {
+					2., 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA) {
 		
 		public double[] project(double lat, double lon) {
 			double tht = lat;
@@ -63,7 +70,8 @@ public class Pseudocylindrical {
 	
 	public static final Projection LEMONS =
 			new Projection(
-					"Lemons", "BURN LIFE'S HOUSE DOWN!!!", 2., 0b1110, "pseudocylindrical", "?") {
+					"Lemons", "BURN LIFE'S HOUSE DOWN!!!", 2., 0b1110,
+					Type.PSEUDOCYLINDRICAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
 			return null; //TODO: projection wishlist

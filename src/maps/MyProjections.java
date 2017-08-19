@@ -25,6 +25,9 @@ package maps;
 
 import org.apache.commons.math3.complex.Complex;
 
+import maps.Projection.Property;
+import maps.Projection.Type;
+
 /**
  * All of the projections I invented, save the tetrahedral ones,
  * because those have so much in common with other tetrahedral projections.
@@ -35,7 +38,7 @@ public class MyProjections {
 	
 	public static final Projection MAGNIFIER =
 			new Projection("Magnifier", "A novelty map projection that blows up the center way out of proportion",
-					1., 0b1011, "azimuthal", "pointless") {
+					1., 0b1011, Type.AZIMUTHAL, Property.POINTLESS) {
 		
 		public double[] project(double lat, double lon) {
 			final double p = 1/2.0+lat/Math.PI;
@@ -58,7 +61,7 @@ public class MyProjections {
 	
 	public static final Projection EXPERIMENT =
 			new Projection("Experiment", "What happens when you apply a complex differentiable function to a stereographic projection?",
-					1., 0b0000, "?", "conformal") {
+					1., 0b0000, Type.OTHER, Property.CONFORMAL) {
 		
 		public double[] project(double lat, double lon) {
 			final double wMag = Math.tan(Math.PI/4-lat/2);
@@ -82,7 +85,7 @@ public class MyProjections {
 	
 	public static final Projection PSEUDOSTEREOGRAPHIC =
 			new Projection("Pseudostereographic", "The logical next step after Aitoff and Hammer",
-					2, 0b1111, "pseudocylindrical", "compromise") {
+					2, 0b1111, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
 			double[] transverse = Azimuthal.STEREOGRAPHIC.project(
@@ -101,7 +104,8 @@ public class MyProjections {
 	
 	public static final Projection HYPERELLIPOWER =
 			new Projection("Hyperellipower", "A parametric projection that I'm still testing",
-					2., 0b1111, "pseudocylindrical", "compromise", new String[] {"k","n","a"},
+					2., 0b1111, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE,
+					new String[] {"k","n","a"},
 					new double[][] {{1,5,4.99},{.5,2.,1.20},{.5,2.,1.13}}) {
 		
 		private double k, n, a;
@@ -130,8 +134,8 @@ public class MyProjections {
 	
 	public static final Projection TWO_POINT_EQUALIZED =
 			new Projection("Two-Point Equalized", "A parametric projection that I'm still testing",
-					0, 0b1111, "other", "compromise", new String[] {"Width"},
-					new double[][] { {0, 180, 90} }) {
+					0, 0b1111, Type.OTHER, Property.EQUIDISTANT, new String[] {"Width"},
+					new double[][] { {0, 180, 120} }) {
 		
 		private double theta, a, b;
 		
@@ -139,10 +143,13 @@ public class MyProjections {
 			theta = Math.toRadians(params[0])/2;
 			this.a = Math.PI - theta; //semimajor axis
 			this.b = Math.sqrt(Math.pow(Math.PI-theta, 2) - Math.pow(theta, 2)); //semiminor axis
-			this.aspectRatio = b/a*Math.sqrt(Math.tan(theta)/theta);
+			if (theta == 0) 				this.aspectRatio = 1;
+			else if (theta == Math.PI/2) 	this.aspectRatio = 1.3;
+			else 							this.aspectRatio = b/a*Math.sqrt(Math.tan(theta)/theta);
 		}
 		
 		public double[] project(double lat, double lon) {
+			if (theta == 0) 	return Azimuthal.POLAR.project(lat, lon);
 			final double d1 = Math.acos(
 					Math.sin(lat)*Math.cos(theta) - Math.cos(lat)*Math.sin(theta)*Math.cos(lon));
 			final double d2 = Math.acos(
@@ -155,6 +162,7 @@ public class MyProjections {
 		}
 		
 		public double[] inverse(double x, double y) {
+			if (theta == 0) 	return Azimuthal.POLAR.inverse(x, y);
 			final double d1 = Math.hypot(b*x, a*y - theta);
 			final double d2 = Math.hypot(b*x, a*y + theta);
 			if (d1 + d2 > 2*a) 	return null;

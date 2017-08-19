@@ -23,27 +23,43 @@
  */
 package maps;
 
-import maps.Projection.Property;
-import maps.Projection.Type;
 
 /**
- * TODO: Write description
+ * A projection that uses the same equations as another, but shifts the aspect
  * 
  * @author jkunimune
  */
-public class Waterman {
+public class Transverse extends Projection {
 	
-	public static final Projection WATERMAN =
-			new Projection("Waterman Butterfly", "An aesthetically pleasing octohedral map arrangement",
-					0, 0b1110, Type.POLYHEDRAL, Property.COMPROMISE) {
-		
-		public double[] project(double lat, double lon) {
-			return null; //TODO: projection wishlist
-		}
-		
-		public double[] inverse(double x, double y) {
-			return null; //TODO: projection wishlist
-		}
-	};
+	public static final double[] TRANSVERSE_AXIS = {0, 0, 0};
+	
+	private final Projection base;
+	
+	
+	
+	public Transverse(Projection base) {
+		super(base);
+		this.base = base;
+	}
+	
+	
+	
+	@Override
+	public double[] project(double lat, double lon) {
+		return base.project(obliquifySphc(lat, lon, TRANSVERSE_AXIS));
+	}
+	
+	
+	@Override
+	public double[] inverse(double x, double y) {
+		return obliquifyPlnr(base.inverse(x, y), TRANSVERSE_AXIS);
+	}
+	
+	
+	@Override
+	public void setParameters(double... params) {
+		base.setParameters(params);
+		this.aspectRatio = base.aspectRatio;
+	}
 	
 }

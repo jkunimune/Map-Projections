@@ -23,8 +23,10 @@
  */
 package apps;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+
 import javax.imageio.ImageIO;
 
 import dialogs.MapConfigurationDialog;
@@ -37,10 +39,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Separator;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelReader;
-import javafx.scene.image.WritableImage;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -57,6 +56,7 @@ import maps.Robinson;
 import maps.Tetrahedral;
 import maps.Tobler;
 import maps.WinkelTripel;
+import utils.ImageUtils;
 import utils.Procedure;
 
 /**
@@ -79,25 +79,26 @@ public class MapDesignerRaster extends MapApplication {
 			new FileChooser.ExtensionFilter("GIF", "*.gif") };
 	private static final FileChooser.ExtensionFilter[] RASTER_TYPES = {
 			new FileChooser.ExtensionFilter("PNG", "*.png"),
-			new FileChooser.ExtensionFilter("JPG", "*.jpg","*.jpeg","*.jpe","*.jfif"),
+			new FileChooser.ExtensionFilter("JPG", "*.jpg"),
 			new FileChooser.ExtensionFilter("GIF", "*.gif") };
 	
 	private static final Projection[] PROJ_ARR = { Cylindrical.MERCATOR,
 			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL,
-			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.ORTHOGRAPHIC,
-			Azimuthal.GNOMONIC, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Tetrahedral.LEE,
+			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
+			Azimuthal.ORTHOGRAPHIC, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Tetrahedral.LEE,
 			Tetrahedral.TETRAGRAPH, Tetrahedral.AUTHAGRAPH, Pseudocylindrical.SINUSOIDAL,
 			Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Misc.AITOFF, Misc.VAN_DER_GRINTEN,
 			Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL, Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU,
 			Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Pseudocylindrical.LEMONS,
 			MyProjections.MAGNIFIER, MyProjections.EXPERIMENT, MyProjections.PSEUDOSTEREOGRAPHIC,
-			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET, MyProjections.TWO_POINT_EQUALIZED };
+			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET,
+			MyProjections.TWO_POINT_EQUALIZED };
 	
 	
 	private Node aspectSelector;
 	private Button updateBtn, saveMapBtn;
 	private double[] aspect;
-	private Image input;
+	private BufferedImage input;
 	private ImageView display;
 	private MapConfigurationDialog configDialog;
 	
@@ -113,7 +114,7 @@ public class MapDesignerRaster extends MapApplication {
 	public void start(Stage root) {
 		super.start(root);
 		new Thread(() -> {
-			setInput(new File("input/basic.jpg")); //TODO: this should cause the buttons to grey out
+			setInput(new File("input/Basic.jpg")); //TODO: this should cause the buttons to grey out
 			updateMap();
 		}).start();
 	}
@@ -162,8 +163,8 @@ public class MapDesignerRaster extends MapApplication {
 		saveMapBtn.setDisable(true);
 		
 		try {
-			input = new Image(file.toURI().toString());
-		} catch (IllegalArgumentException e) {
+			input = ImageIO.read(file);
+		} catch (IOException e) {
 			final Alert alert = new Alert(Alert.AlertType.ERROR);
 			alert.setHeaderText("File not found!");
 			alert.setContentText("Couldn't find "+file.getAbsolutePath()+".");
@@ -182,7 +183,7 @@ public class MapDesignerRaster extends MapApplication {
 	
 	private void updateMap() {
 		loadParameters();
-		display.setImage(makeImage(this.getProjection().map(IMG_WIDTH, aspect.clone())));
+		display.setImage(SwingFXUtils.toFXImage(makeImage(), null));
 	}
 	
 	
@@ -198,16 +199,14 @@ public class MapDesignerRaster extends MapApplication {
 	private void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
 		final int[] outDims = configDialog.getDims();
 		final int smoothing = configDialog.getSmoothing();
-		double[][][] points =this.getProjection().map(
-				outDims[0]*smoothing, outDims[1]*smoothing,
-				aspect.clone(), pBar::setProgress);
+		BufferedImage theMap = makeImage(outDims[0], outDims[1], smoothing, pBar); //calculate
+		
 		pBar.setProgress(-1);
-		Image theMap = makeImage(points, smoothing); //calculate
 		
 		final String filename = file.getName();
 		final String extension = filename.substring(filename.lastIndexOf('.')+1);
 		try {
-			ImageIO.write(SwingFXUtils.fromFXImage(theMap,null), extension, file); //save
+			ImageIO.write(theMap, extension, file); //save
 		} catch (IOException e) {
 			showError("Failure!",
 					"Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
@@ -215,63 +214,29 @@ public class MapDesignerRaster extends MapApplication {
 	}
 	
 	
-	private Image makeImage(double[][][] points) {
-		return makeImage(points, 1);
+	private BufferedImage makeImage() {
+		return makeImage(IMG_WIDTH, (int)(IMG_WIDTH/this.getProjection().getAspectRatio()), 1, null);
 	}
 	
-	private Image makeImage(double[][][] points, int step) {
-		final PixelReader in = input.getPixelReader();
-		final WritableImage out = new WritableImage(points[0].length/step, points.length/step);
+	private BufferedImage makeImage(int width, int height, int step, ProgressBarDialog pBar) {
+		final double[] pole = aspect.clone();
+		final BufferedImage out = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 		for (int y = 0; y < out.getHeight(); y ++) {
+			if (pBar != null)
+				pBar.setProgress((double) y/out.getHeight());
 			for (int x = 0; x < out.getWidth(); x ++) {
 				int[] colors = new int[step*step];
 				for (int dy = 0; dy < step; dy ++) {
 					for (int dx = 0; dx < step; dx ++) {
-						colors[step*dy+dx] = getArgb(points[step*y+dy][step*x+dx], in, input.getWidth(), input.getHeight());
+						final double X = 2*(x+(dx+.5)/step)/out.getWidth()-1;
+						final double Y = 1-2*(y+(dy+.5)/step)/out.getHeight();
+						colors[step*dy+dx] = ImageUtils.getArgb(
+								this.getProjection().inverse(X, Y, pole), input);
 					}
 				}
-				out.getPixelWriter().setArgb(x, y, blend(colors));
+				out.setRGB(x, y, ImageUtils.blend(colors));
 			}
 		}
 		return out;
 	}
-	
-	
-	private static int getArgb(double[] coords, PixelReader in,
-			double inWidth, double inHeight) { // returns the color of any coordinate on earth
-		if (coords == null) 	return 0;
-		
-		double x = 1/2.0 + coords[1]/(2*Math.PI);
-		x = (x - Math.floor(x)) * inWidth;
-		
-		double y = inHeight/2.0 - coords[0]*inHeight/(Math.PI);
-		if (y < 0)
-			y = 0;
-		else if (y >= inHeight)
-			y = inHeight - 1;
-		
-		return in.getArgb((int) x, (int) y);
-	}
-	
-	
-	private static final int blend(int[] colors) {
-		int a_tot = 0;
-		int r_tot = 0;
-		int g_tot = 0;
-		int b_tot = 0;
-		for (int argb: colors) {
-			int a = ((argb >> 24)&0xFF);
-			a_tot += a;
-			r_tot += a*(Math.pow((argb>>16)&0xFF, 2));
-			g_tot += a*(Math.pow((argb>> 8)&0xFF, 2));
-			b_tot += a*(Math.pow((argb>> 0)&0xFF, 2));
-		}
-		if (a_tot == 0)	return 0;
-		else
-			return (a_tot/colors.length << 24) +
-					((int)Math.sqrt(r_tot/a_tot) << 16) +
-					((int)Math.sqrt(g_tot/a_tot) << 8) +
-					((int)Math.sqrt(b_tot/a_tot) << 0);
-	}
-
 }

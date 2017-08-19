@@ -25,6 +25,8 @@ package maps;
 
 import java.util.Arrays;
 
+import maps.Projection.Property;
+import maps.Projection.Type;
 import utils.NumericalAnalysis;
 
 /**
@@ -49,7 +51,7 @@ public class Robinson {
 	
 	public static final Projection ROBINSON =
 			new Projection("Robinson", "A visually pleasing piecewise compromise map",
-					1.9716, 0b1111, "pseudocylindrical", "compromise") {
+					1.9716, 0b1111, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
 			return new double[] {

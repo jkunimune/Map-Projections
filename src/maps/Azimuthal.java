@@ -23,11 +23,14 @@
  */
 package maps;
 
+import maps.Projection.Property;
+import maps.Projection.Type;
 
 public class Azimuthal {
 	
 	public static final Projection STEREOGRAPHIC =
-			new Projection("Stereographic", 1., 0b0111, "azimuthal", "conformal", "mathematically important") {
+			new Projection("Stereographic", 1., 0b0111, Type.AZIMUTHAL, Property.CONFORMAL,
+					"mathematically important") {
 		
 		public double[] project(double lat, double lon) {
 			final double r = Math.PI/2/(Math.tan(lat/2 + Math.PI/4));
@@ -42,7 +45,7 @@ public class Azimuthal {
 	
 	
 	public static final Projection POLAR =
-			new Projection("Polar", 1., 0b0111, "azimuthal", "equidistant") {
+			new Projection("Polar", 1., 0b1111, Type.AZIMUTHAL, Property.EQUIDISTANT) {
 		
 		public double[] project(double lat, double lon) {
 			final double r = Math.PI/2 - lat;
@@ -60,7 +63,8 @@ public class Azimuthal {
 	
 	
 	public static final Projection EQUAL_AREA =
-			new Projection("Azimuthal Equal-Area", 1., 0b0111, "azimuthal", "equal-area") {
+			new Projection(
+					"Azimuthal Equal-Area", 1., 0b1111, Type.AZIMUTHAL, Property.EQUAL_AREA) {
 		
 		public double[] project(double lat, double lon) {
 			final double r = Math.PI*Math.cos((Math.PI/2+lat)/2);
@@ -79,7 +83,7 @@ public class Azimuthal {
 	
 	public static final Projection ORTHOGRAPHIC =
 			new Projection("Orthographic", "A projection that mimics the Earth viewed from a great distance",
-					1., 0b1110, "azimuthal", "perspective") {
+					1., 0b1111, Type.AZIMUTHAL, Property.PERSPECTIVE) {
 		
 		public double[] project(double lat, double lon) {
 			if (lat < 0)	lat = 0;
@@ -98,8 +102,9 @@ public class Azimuthal {
 	
 	
 	public static final Projection GNOMONIC =
-			new Projection("Gnomonic", "A projection that draws all great circles as straight lines",
-					1., 0b0110, "azimuthal", "gnomonic") {
+			new Projection(
+					"Gnomonic", "A projection that draws all great circles as straight lines",
+					1., 0b0111, Type.AZIMUTHAL, Property.GNOMONIC) {
 		
 		public double[] project(double lat, double lon) {
 			if (lat <= 0)	lat = 1e-5;
@@ -110,6 +115,30 @@ public class Azimuthal {
 		public double[] inverse(double x, double y) {
 			return new double[] { Math.PI/2 - Math.atan(2*Math.hypot(x, y)),
 					Math.atan2(y, x) + Math.PI/2 };
+		}
+	};
+	
+	
+	public static final Projection PERSPECTIVE =
+			new Projection(
+					"Perspective", "A projection that mimics the actual appearance of the Earth",
+					1., 0b1111, Type.AZIMUTHAL, Property.PERSPECTIVE,
+					new String[] {"Percentage"}, new double[][] {{1,99}}) {
+		
+		private double amount;
+		
+		public void setParameters(double... params) {
+			this.amount = params[0]/100.;
+		}
+
+		public double[] project(double lat, double lon) {
+			// TODO: Projection wishlist
+			return null;
+		}
+
+		public double[] inverse(double x, double y) {
+			// TODO: Projection wishlist
+			return null;
 		}
 	};
 }

@@ -23,21 +23,23 @@
  */
 package maps;
 
+import maps.Projection.Property;
+import maps.Projection.Type;
 import utils.NumericalAnalysis;
 
 /**
  * All the useful Winkel Tripel equations and derivatives.
  * I tried solving for these equations myself, and I think I got them mostly
  * right, but the expressions were just too complicated. I got better results
- * by transcribing the below equations from Ipb�ker and Bildirici's paper,
+ * by transcribing the below equations from Ipb&uuml;ker and Bildirici's paper,
  * "A General Algorithm for the Inverse Transformation of Map Projections Using Jacobian Matrices"
  * 
- * Ipb�ker, Cengizhan; Bildirici, I.�ztug (2002). "A General Algorithm for the
+ * Ipb&uuml;ker, Cengizhan; Bildirici, I.&Ouml;ztug (2002). "A General Algorithm for the
  *  	Inverse Transformation of Map Projections Using Jacobian Matrices".
  *  	Proceedings of the Third International Symposium Mathematical &
  *  	Computational Applications. Third International Symposium Mathematical &
  *  	Computational Applications September 4-6, 2002. Konya, Turkey. Selcuk,
- *  	Turkey. pp. 175�182. Archived from the original on 20 October 2014.
+ *  	Turkey. pp. 175&mdash;182. Archived from the original on 20 October 2014.
  * 
  * @author jkunimune
  */
@@ -45,7 +47,7 @@ public final class WinkelTripel {
 	
 	public static final Projection WINKEL_TRIPEL =
 			new Projection("Winkel Tripel", "National Geographic's compromise projection of choice",
-					0, 0b1011, "other", "compromise",
+					0, 0b1011, Type.OTHER, Property.COMPROMISE,
 					new String[] {"Std. Parallel"}, new double[][] {{0,90,50.4598}}) {
 		
 		public void setParameters(double... params) {

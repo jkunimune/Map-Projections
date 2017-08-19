@@ -25,6 +25,8 @@ package maps;
 
 import java.util.Arrays;
 
+import maps.Projection.Property;
+import maps.Projection.Type;
 import utils.Math2;
 import utils.NumericalAnalysis;
 
@@ -38,7 +40,7 @@ public class Tobler {
 	public static final Projection TOBLER =
 			new Projection(
 					"Tobler", "An equal-area projection shaped like a hyperellipse (in case you're wondering about gamma, it's calculated automatically)",
-					2., 0b1001, "pseudocylindrical", "equal-area",
+					2., 0b1001, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA,
 					new String[]{"Std. Parallel","alpha","K"},
 					new double[][] {{0,89,37.5}, {0,1,0}, {1,8,2.5}}) {
 		

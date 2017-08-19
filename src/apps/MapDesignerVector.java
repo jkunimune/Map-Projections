@@ -29,7 +29,9 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.function.DoubleConsumer;
 
 import dialogs.ProgressBarDialog;
 import javafx.application.Platform;
@@ -77,14 +79,15 @@ public class MapDesignerVector extends MapApplication {
 	
 	private static final Projection[] PROJ_ARR = { Cylindrical.MERCATOR,
 			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL,
-			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.ORTHOGRAPHIC,
-			Azimuthal.GNOMONIC, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Tetrahedral.LEE,
+			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
+			Azimuthal.ORTHOGRAPHIC, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Tetrahedral.LEE,
 			Tetrahedral.TETRAGRAPH, Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE,
 			Tobler.TOBLER, Misc.AITOFF, Misc.VAN_DER_GRINTEN, Robinson.ROBINSON,
 			WinkelTripel.WINKEL_TRIPEL, Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU,
 			Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, MyProjections.MAGNIFIER,
 			MyProjections.EXPERIMENT, MyProjections.PSEUDOSTEREOGRAPHIC,
-			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET, MyProjections.TWO_POINT_EQUALIZED };
+			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET,
+			MyProjections.TWO_POINT_EQUALIZED };
 	
 	private static final int DEF_MAX_VTX = 5000;
 	private static final int FAST_MAX_VTX = 2000;
@@ -240,17 +243,36 @@ public class MapDesignerVector extends MapApplication {
 	private void updateMap() {
 		loadParameters();
 		int maxVtx = this.getParamsChanging() ? FAST_MAX_VTX : DEF_MAX_VTX;
-		final List<List<double[]>> transformed = this.getProjection().transform(
-				input, numVtx/maxVtx+1, aspect.clone(), null);
+		final List<List<double[]>> transformed = map(input, numVtx/maxVtx+1, aspect.clone(), null);
 		Platform.runLater(() -> drawImage(transformed, viewer));
 	}
 	
 	
 	private void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
 		loadParameters();
-		final List<List<double[]>> transformed = this.getProjection().transform(
-				input, 1, aspect.clone(), pBar::setProgress); //calculate
+		final List<List<double[]>> transformed = map(input, 1, aspect.clone(), pBar::setProgress); //calculate
 		saveToSVG(transformed, file, pBar); //save
+	}
+	
+	
+	public List<List<double[]>> map(List<List<double[]>> curves, int step,
+			double[] pole, DoubleConsumer tracker) {
+		List<List<double[]>> output = new LinkedList<List<double[]>>();
+		int i = 0;
+		for (List<double[]> curve0: curves) {
+			if (curve0.size() < step*3)	continue;
+			
+			List<double[]> curve1 = new ArrayList<double[]>(curve0.size()/step);
+			for (int j = 0; j < curve0.size(); j += step)
+				curve1.add(this.getProjection().project(curve0.get(j), pole));
+			output.add(curve1);
+			
+			if (tracker != null) {
+				i ++;
+				tracker.accept((double)i/curves.size());
+			}
+		}
+		return output;
 	}
 	
 	

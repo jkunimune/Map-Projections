@@ -23,12 +23,13 @@
  */
 package maps;
 
+import maps.Projection.Property;
 import utils.Dixon;
 
 public class Tetrahedral {
 	
 	public static final Projection LEE =
-			new TetrahedralProjection("Lee", Math.sqrt(3), 0b1001, "tetrahedral", "conformal",
+			new TetrahedralProjection("Lee", Math.sqrt(3), 0b1001, Property.CONFORMAL,
 					null, "that really deserves more attention") {
 		
 		public double[] innerProject(double lat, double lon) {
@@ -50,7 +51,7 @@ public class Tetrahedral {
 	
 	
 	public static final Projection TETRAGRAPH =
-			new TetrahedralProjection("TetraGraph", Math.sqrt(3), 0b1111, "tetrahedral", "equidistant",
+			new TetrahedralProjection("TetraGraph", Math.sqrt(3), 0b1111, Property.EQUIDISTANT,
 					null, "that I invented") {
 		
 		public double[] innerProject(double lat, double lon) {
@@ -73,7 +74,7 @@ public class Tetrahedral {
 	public static final Projection TETRAPOWER =
 			new TetrahedralProjection(
 					"Tetrapower", "A parametric projection that I'm still testing",
-					Math.sqrt(3), 0b1111, "tetrahedral", "compromise", new String[] {"k1","k2","k3"},
+					Math.sqrt(3), 0b1111, Property.COMPROMISE, new String[] {"k1","k2","k3"},
 					new double[][] {{.25,4.,.87},{.25,4.,1.67},{.25,4.,1.00}}) {
 		
 		private double k1, k2, k3;
@@ -112,8 +113,8 @@ public class Tetrahedral {
 	
 	
 	public static final Projection TETRAFILLET =
-			new TetrahedralProjection("Tetrafillet", "A parametric projection that I'm still testing",
-					Math.sqrt(3), 0b1111, "other", "compromise", new String[] {"k1","k2","k3"},
+			new TetrahedralProjection("TetraFillet", "A parametric projection that I'm still testing",
+					Math.sqrt(3), 0b1111, Property.COMPROMISE, new String[] {"k1","k2","k3"},
 					new double[][] {{.25,4.,1.1598},{.25,4.,.36295},{.25,4.,1.9553}}) {
 		
 		private double k1, k2, k3;
@@ -159,8 +160,8 @@ public class Tetrahedral {
 	
 	public static final Projection TETRACHAMFER =
 			new TetrahedralProjection(
-					"Tetrachamfer", "A parametric projection that I'm still testing", Math.sqrt(3),
-					0b1111, "pseudotetrahedral", "compromise", new String[] {"k1","k2","k3"},
+					"TetraChamfer", "A parametric projection that I'm still testing", Math.sqrt(3),
+					0b1111, Property.COMPROMISE, new String[] {"k1","k2","k3"},
 					new double[][] {{.25,4.,1.1598},{.25,4.,.36295},{.25,4.,1.9553}}) {
 		
 		private double k1, k2, k3;
@@ -200,8 +201,9 @@ public class Tetrahedral {
 	
 	
 	public static final Projection AUTHAGRAPH =
-			new TetrahedralProjection("AuthaGraph", "A hip new Japanese map that is almost authagraphic (this is an approximation; they won't give me their actual equations)",
-					4/Math.sqrt(3), 0b1001, "tetrahedral", "compromise") {
+			new TetrahedralProjection("AuthaGraph",
+					"A hip new Japanese map that is almost authagraphic (this is an approximation; they won't give me their actual equations)",
+					4/Math.sqrt(3), 0b1001, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
 			return null; //TODO Can I live with myself if I never implement this?
@@ -265,19 +267,20 @@ public class Tetrahedral {
 	private static abstract class TetrahedralProjection extends Projection {
 		
 		public TetrahedralProjection(
-				String name, double aspectRatio, int fisc, String type, String property, String adjective, String addendum) {
-			super(name, aspectRatio, fisc, type, property, adjective, addendum);
+				String name, double aspectRatio, int fisc, Property property, String adjective, String addendum) {
+			super(name, aspectRatio, fisc, Type.TETRAHEDRAL, property, adjective, addendum);
 		}
 		
 		public TetrahedralProjection(
-				String name, String description, double aspectRatio, int fisc, String type, String property) {
-			super(name, description, aspectRatio, fisc, type, property);
+				String name, String description, double aspectRatio, int fisc, Property property) {
+			super(name, description, aspectRatio, fisc, Type.TETRAHEDRAL, property);
 		}
 		
 		public TetrahedralProjection(
-				String name, String description, double aspectRatio, int fisc, String type, String property,
+				String name, String description, double aspectRatio, int fisc, Property property,
 				String[] paramNames, double[][] paramValues) {
-			super(name, description, aspectRatio, fisc, type, property, paramNames, paramValues);
+			super(name, description, aspectRatio, fisc, Type.TETRAHEDRAL, property, paramNames,
+					paramValues);
 		}
 		
 		

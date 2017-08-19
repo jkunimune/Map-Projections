@@ -24,9 +24,9 @@
 package maps;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.function.DoubleConsumer;
+
 import dialogs.ProgressBarDialog;
 import utils.Math2;
 
@@ -48,58 +48,73 @@ public abstract class Projection {
 	private final boolean invertable; //is the inverse solution closed-form?
 	private final boolean solveable; //is the solution closed-form?
 	private final boolean continuous; //can you see the whole earth without interruption?
-	private final String type; //cylindrical, azimuthal, etc.
-	private final String property; //what it is good for
+	private final Type type; //the geometry of the projection
+	private final Property property; //what it is good for
 	
 	protected double aspectRatio; //default W/H for the map
 	
 	
 	
 	protected Projection(
-			String name, double aspectRatio, int fisc, String type, String property) {
+			String name, double aspectRatio, int fisc, Type type, Property property) {
 		this(name, buildDescription(type,property,null,null), aspectRatio, fisc, type, property, new String[0], new double[0][]);
 	}
 	
 	protected Projection(
-			String name, double aspectRatio, int fisc, String type, String property, String adjective) {
+			String name, double aspectRatio, int fisc, Type type, Property property, String adjective) {
 		this(name, buildDescription(type,property,adjective,null), aspectRatio, fisc, type, property, new String[0], new double[0][]);
 	}
 	
 	protected Projection(
-			String name, double aspectRatio, int fisc, String type, String property, String adjective, String addendum) {
+			String name, double aspectRatio, int fisc, Type type, Property property, String adjective, String addendum) {
 		this(name, buildDescription(type,property,adjective,addendum), aspectRatio, fisc, type, property, new String[0], new double[0][]);
 	}
 	
 	protected Projection(
-			String name, String description, double aspectRatio, int fisc, String type, String property) {
+			String name, String description, double aspectRatio, int fisc, Type type, Property property) {
 		this(name, description, aspectRatio, fisc, type, property, new String[0], new double[0][]);
 	}
 	
 	protected Projection(
-			String name, String description, double aspectRatio, int fisc, String type, String property,
-			String[] paramNames, double[][] paramValues) {
+			String name, String description, double aspectRatio, int fisc, Type type,
+			Property property, String[] paramNames, double[][] paramValues) {
 		this(name, description, aspectRatio, fisc, type, property, paramNames, paramValues, true);
 	}
 	
 	protected Projection(
-			String name, String description, double aspectRatio, int fisc, String type, String property,
-			String[] paramNames, double[][] paramValues, boolean hasAspect) {
+			String name, String description, double aspectRatio, int fisc, Type type,
+			Property property, String[] paramNames, double[][] paramValues, boolean hasAspect) {
+		this(name, description, aspectRatio,
+				(fisc&0b1000) > 0, (fisc&0b0100) > 0, (fisc&0b0010) > 0, (fisc&0b0001) > 0,
+				type, property, paramNames, paramValues, hasAspect);
+	}
+	
+	protected Projection(Projection base) {
+		this(	base.name, base.description, base.aspectRatio, base.finite, base.invertable,
+				base.solveable, base.continuous, base.type, base.property, base.paramNames,
+				base.paramValues, base.hasAspect);
+	}
+	
+	protected Projection (
+			String name, String description, double aspectRatio, boolean f, boolean i, boolean s,
+			boolean c, Type type, Property property, String[] paramNames, double[][] paramValues,
+			boolean hasAspect) {
 		this.name = name;
 		this.description = description;
 		this.paramNames = paramNames;
 		this.paramValues = paramValues;
 		this.hasAspect = hasAspect;
 		this.aspectRatio = aspectRatio;
-		this.finite = (fisc&0b1000) > 0;
-		this.invertable = (fisc&0b0100) > 0;
-		this.solveable = (fisc&0b0010) > 0;
-		this.continuous = (fisc&0b0001) > 0;
+		this.finite = f;
+		this.invertable = i;
+		this.solveable = s;
+		this.continuous = c;
 		this.type = type;
 		this.property = property;
 	}
 	
 	
-	private static String buildDescription(String type, String property, String adjective, String addendum) { //these should all be lowercase
+	private static String buildDescription(Type type, Property property, String adjective, String addendum) { //these should all be lowercase
 		String description = property+" "+type+" projection";
 		if (adjective != null)
 			description = adjective+" "+description;
@@ -148,27 +163,6 @@ public abstract class Projection {
 	}
 	
 	
-	public List<List<double[]>> transform(List<List<double[]>> curves, int step,
-			double[] pole, DoubleConsumer tracker) {
-		List<List<double[]>> output = new LinkedList<List<double[]>>();
-		int i = 0;
-		for (List<double[]> curve0: curves) {
-			if (curve0.size() < step*3)	continue;
-			
-			List<double[]> curve1 = new ArrayList<double[]>(curve0.size()/step);
-			for (int j = 0; j < curve0.size(); j += step)
-				curve1.add(project(curve0.get(j), pole));
-			output.add(curve1);
-			
-			if (tracker != null) {
-				i ++;
-				tracker.accept((double)i/curves.size());
-			}
-		}
-		return output;
-	}
-	
-	
 	public double[][][] map(int size) {
 		return map(size, new double[] {Math.PI/2,0,0});
 	}
@@ -182,14 +176,13 @@ public abstract class Projection {
 	}
 	
 	public double[][][] map(double w, double h, double[] pole, DoubleConsumer tracker) { //generate a matrix of coordinates based on a map projection
-		double[][][] output = new double[(int) h][(int) w][2]; //the coordinate matrix
-		
-		for (int y = 0; y < output.length; y ++) {
-			for (int x = 0; x < output[y].length; x ++)
+		final double[][][] output = new double[(int) h][(int) w][2];
+		for (int y = 0; y < h; y ++) {
+			for (int x = 0; x < w; x ++)
 				output[y][x] = inverse((2*x+1)/w-1, 1-(2*y+1)/h, pole);
-			if (tracker != null) 	tracker.accept((double) y/output.length);
+			if (tracker != null)
+				tracker.accept((double)y / (int)h);
 		}
-		
 		return output;
 	}
 	
@@ -348,6 +341,11 @@ public abstract class Projection {
 	}
 	
 	
+	public final Projection transverse() {
+		return new Transverse(this);
+	}
+	
+	
 	public final String getName() {
 		return this.name;
 	}
@@ -399,15 +397,59 @@ public abstract class Projection {
 		return this.continuous;
 	}
 	
-	public final String getType() {
+	public final Type getType() {
 		return this.type;
 	}
 	
-	public final String getProperty() {
+	public final Property getProperty() {
 		return this.property;
 	}
 	
 	public final double getAspectRatio() {
 		return this.aspectRatio;
+	}
+	
+	
+	
+	public static enum Type {
+		CYLINDRICAL("Cylindrical"), CONIC("Conic"), AZIMUTHAL("Azimuthal"),
+		PSEUDOCYLINDRICAL("Pseudocylindrical"), PSEUDOAZIMUTHAL("Pseudoazimuthal"),
+		QUASIAZIMUTHAL("Quasiazimuthal"), TETRAHEDRAL("Tetrahedral"), POLYHEDRAL("Polyhedral"),
+		OTHER("Other");
+		
+		private String name;
+		
+		private Type(String name) {
+			this.name = name;
+		}
+		
+		public String toString() {
+			return this.name.toLowerCase();
+		}
+		
+		public String getName() {
+			return this.name;
+		}
+	}
+	
+	
+	public static enum Property {
+		CONFORMAL("Conformal"), EQUIDISTANT("Equidistant"), EQUAL_AREA("Equal-area"),
+		PERSPECTIVE("Perspective"), GNOMONIC("Gnomonic"), RETROAZIMUTHAL("Retroazimuthal"),
+		COMPROMISE("Compromise"), POINTLESS("Pointless");
+		
+		private String name;
+		
+		private Property(String name) {
+			this.name = name;
+		}
+		
+		public String toString() {
+			return this.name.toLowerCase();
+		}
+		
+		public String getName() {
+			return this.name;
+		}
 	}
 }

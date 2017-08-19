@@ -23,6 +23,8 @@
  */
 package maps;
 
+import maps.Projection.Property;
+import maps.Projection.Type;
 
 /**
  * Map projections where x is a linear function of longitude.
@@ -32,7 +34,8 @@ package maps;
 public class Cylindrical {
 	
 	public static final Projection MERCATOR =
-			new Projection("Mercator", 1., 0b0111, "cylindrical", "conformal", "very popular") {
+			new Projection(
+					"Mercator", 1., 0b0111, Type.CYLINDRICAL, Property.CONFORMAL, "very popular") {
 		
 		public double[] project(double lat, double lon) {
 			return new double[] {lon, Math.log(Math.tan(Math.PI/4+lat/2))};
@@ -44,8 +47,9 @@ public class Cylindrical {
 	};
 	
 	
-	public static final Projection PLATE_CARREE=new Projection("Plate Carr\u00B0e",2.,0b1111,
-			"cylindrical","equidistant",null,"focused on the equator"){
+	public static final Projection PLATE_CARREE=
+			new Projection("Plate Carr\u00E9e", 2., 0b1111,
+					Type.CYLINDRICAL, Property.EQUIDISTANT, null, "focused on the equator"){
 	
 		public double[] project(double lat, double lon) {
 			return new double[] {lon, lat};
@@ -58,8 +62,9 @@ public class Cylindrical {
 	
 	
 	public static final Projection EQUIRECTANGULAR =
-			new Projection("Equirectangular", "A linear mapping from longitude and latitude to x and y",
-					2, 0b1111, "cylindrical", "equidistant",
+			new Projection("Equirectangular",
+					"A linear mapping from longitude and latitude to x and y",
+					2, 0b1111, Type.CYLINDRICAL, Property.EQUIDISTANT,
 					new String[]{"Std. parallel"}, new double[][]{{0, 85, 0}}) {
 		
 		public void setParameters(double... params) {
@@ -81,7 +86,7 @@ public class Cylindrical {
 	
 	public static final Projection GALL_PETERS =
 			new Projection("Gall-Peters", 1.571, 0b1111,
-					"cylindrical", "equal-area","somewhat controversial") {
+					Type.CYLINDRICAL, Property.EQUAL_AREA, "somewhat controversial") {
 		
 		public double[] project(double lat, double lon) {
 			return new double[] {lon, Math.sin(lat)*Math.PI/1.571};
@@ -94,7 +99,7 @@ public class Cylindrical {
 	
 	
 	public static final Projection HOBO_DYER =
-			new Projection("Hobo-Dyer", 1.977, 0b1111, "cylindrical", "equal-area", null,
+			new Projection("Hobo-Dyer", 1.977, 0b1111, Type.CYLINDRICAL, Property.EQUAL_AREA, null,
 					"with least distortion at 37.5\u00B0") {
 		
 		public double[] project(double lat, double lon) {
@@ -108,7 +113,7 @@ public class Cylindrical {
 	
 	
 	public static final Projection BEHRMANN =
-			new Projection("Behrmann", 2.356, 0b1111, "cylindrical", "equal-area", null,
+			new Projection("Behrmann", 2.356, 0b1111, Type.CYLINDRICAL, Property.EQUAL_AREA, null,
 					"with least distortion at 30\u00B0") {
 		
 		public double[] project(double lat, double lon) {
@@ -122,8 +127,8 @@ public class Cylindrical {
 	
 	
 	public static final Projection LAMBERT =
-			new Projection("Lambert cylindrical", Math.PI, 0b1111, "cylindrical", "equal-area",
-					null, "with least distortion along the equator") {
+			new Projection("Lambert cylindrical", Math.PI, 0b1111, Type.CYLINDRICAL,
+					Property.EQUAL_AREA, null, "with least distortion along the equator") {
 		
 		public double[] project(double lat, double lon) {
 			return new double[] {lon, Math.sin(lat)};
@@ -137,7 +142,7 @@ public class Cylindrical {
 	
 	public static final Projection EQUAL_AREA =
 			new Projection("Equal-area cylindrical", "A generalized equal-area cylindrical projection",
-					0, 0b1111, "cylindrical", "equal-area",
+					0, 0b1111, Type.CYLINDRICAL, Property.EQUAL_AREA,
 					new String[]{"Std. parallel"}, new double[][]{{0, 85, 30}}) {
 		
 		public void setParameters(double... params) {
@@ -159,7 +164,8 @@ public class Cylindrical {
 	
 	
 	public static final Projection GALL =
-			new Projection("Gall Stereographic", 4/3., 0b1111, "cylindrical", "compromise") {
+			new Projection(
+					"Gall Stereographic", 4/3., 0b1111, Type.CYLINDRICAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
 			return new double[] {lon, Math.tan(lat/2)*(1+Math.sqrt(2))};
@@ -173,7 +179,7 @@ public class Cylindrical {
 	
 	public static final Projection MILLER =
 			new Projection("Miller", 4*Math.PI/5/Math.log(Math.tan(9*Math.PI/20)), 0b1111,
-					"cylindrical", "compromise") {
+					Type.CYLINDRICAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
 			return new double[] {lon, 1.25*Math.log(Math.tan(Math.PI/4+.8*lat/2))};
