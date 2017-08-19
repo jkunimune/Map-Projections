@@ -52,11 +52,11 @@ import maps.Tobler;
  */
 public class MapOptimizer extends Application {
 	
-	
-	private static final Projection[] EXISTING_PROJECTIONS = { Cylindrical.HOBO_DYER, Robinson.ROBINSON,
-			Cylindrical.PLATE_CARREE, Misc.PEIRCE_QUINCUNCIAL };
-	private static final Projection[] PROJECTIONS_TO_OPTIMIZE = { Tobler.TOBLER, MyProjections.HYPERELLIPOWER,
-			Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET, Tetrahedral.TETRACHAMFER };
+	private static final Projection[] EXISTING_PROJECTIONS = { Cylindrical.HOBO_DYER,
+			Robinson.ROBINSON, Cylindrical.PLATE_CARREE, Misc.PEIRCE_QUINCUNCIAL };
+	private static final Projection[] PROJECTIONS_TO_OPTIMIZE = { Tobler.TOBLER,
+			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET,
+			Tetrahedral.TETRACHAMFER };
 	private static final double[] WEIGHTS = { .083, .20, .33, .50, .71, 1.0, 1.4, 2.0, 3.0, 5.0, 12. };
 	private static final int NUM_DESCENT = 40;
 	private LineChart<Number, Number> chart;
@@ -120,7 +120,8 @@ public class MapOptimizer extends Application {
 		final double[] params = new double[proj.getNumParameters()];
 		for (int i = 0; i < params.length; i++)
 			params[i] = bounds[i][0]; // initialize params
-			
+		
+		bruteForceLoop:
 		while (true) { // start with brute force
 			double[] distortions = proj.avgDistortion(points, params);
 			System.out.println(Arrays.toString(params) + ": " + Arrays.toString(distortions));
@@ -135,7 +136,10 @@ public class MapOptimizer extends Application {
 			}
 			
 			int i;
-			for (i = 0; i < params.length; i++) { // iterate the parameters
+			for (i = 0; i <= params.length; i++) { // iterate the parameters
+				if (i == params.length)
+					break bruteForceLoop; // if you made it through all the parameters without breaking, you're done!
+				
 				final double step = (bounds[i][1] - bounds[i][0]) / Math.floor(Math.pow(16, 1. / params.length));
 				if (params[i] + step < bounds[i][1] + 1e-5) {
 					for (int j = 0; j < i; j++)
@@ -144,8 +148,6 @@ public class MapOptimizer extends Application {
 					break;
 				}
 			}
-			if (i == params.length)
-				break; // if you made it through the for loop without breaking (finding a parameter to increment), you're done!
 		}
 		
 		final double h = 1e-7;
