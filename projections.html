@@ -3,6 +3,10 @@
   <head>
     <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
     <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
     <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
@@ -10,6 +14,13 @@
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
+
+    <style>
+      dt, dd { float: left }
+      dt { clear:both }
+      .map { width:100% }
+    </style>
+
     <title>Map Projections: Challenging Pierceptions by jkunimune15</title>
   </head>
 
@@ -34,58 +45,891 @@
 
         <section id="main_content">
           <h1>
-<a id="map-projections" class="anchor" href="#map-projections" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Projections</h1>
+            <a id="map-projections" class="anchor" href="#map-projections" aria-hidden="true">
+              <span aria-hidden="true" class="octicon octicon-link"></span>
+            </a>
+            Projections
+          </h1>
 
-<p>Here I have a list of all of my projections with descriptions and examples.</p>
-<p><h2 style="color:Gray">Equirectangular</h2>A simple linear mapping of latitude vs longitude.</p>
-<img src="images/equirectangular.jpg" alt="Sorry. This image is not here at the moment. Please leave a message after the beep." title="Boring! It's not even a real projection.">
-<p><h2 style="color:Gray">Mercator</h2>An extremely common shape-preserving cylindrical map.</p>
-<img src="images/mercator.jpg" alt="Sorry. This image is not here at the moment. Please leave a message after the beep." title="It's only popular because it Mer-caters to the largest demographic.">
-<p><h2 style="color:Gray">Gall Stereographic</h2>A compromising cylindrical map.</p>
-<img src="images/gall.jpg" alt="Sorry. This image is not here at the moment. Please leave a message after the beep." title="A compromise projection? How galling.">
-<p><h2 style="color:Gray">Cyllindrical Equal-Area</h2>An equal-area cylindrical projection.</p>
-<img src="images/hobo-dyer.jpg" alt="Sorry. This image is not here at the moment. Please leave a message after the beep." title="What's that? You think I don't like the Peters map because I'm uncomfortable with having my cultural assumptions challenged? Are you sure you're not... ::puts on sunglasses:: ...projecting?">
-<p><h2 style="color:Gray">Polar</h2>An equidistant azimuthal projection.</p>
-<img src="images/polar.jpg" alt="Sorry. This image is not here at the moment. Please leave a message after the beep." title="Of course, this is what the earth actually looks like; that whole sphere nonsense is just a conspiracy.">
-<p><h2 style="color:Gray">Stereographic</h2>A shape-preserving azimuthal map.</p>
-<img src="images/stereographic.jpg" alt="Sorry. This image is not here at the moment. Please leave a message after the beep." title="Stereo: Two. Graph: Picture. Stereo+Graphic: an azimuthal conformal map projection. Logic.">
-<p><h2 style="color:Gray">Azimuthal Equal-Area</h2>An equal-area azimuthal projection.</p>
-<img src="images/az-eq-ar.jpg" alt="Sorry. This image is not here at the moment. Please leave a message after the beep." title="Yet another map projection named after Johann Heinrich Lambert.">
-<p><h2 style="color:Gray">Orthographic</h2>A realistic rendering of the Earth viewed from a great distance.</p>
-<img src="images/orthographic.jpg" alt="Sorry. This image is not here at the moment. Please leave a message after the beep." title="Orthographic? More like Orthogonal! <ba-dum, crash>">
-<p><h2 style="color:Gray">Gnomonic</h2>A projection where all great circles are straight lines.</p>
-<img src="images/gnomonic.jpg" alt="Sorry. This image is not here at the moment. Please leave a message after the beep." title="Gnomonic? More like Gnomic! <ba-dum crash>">
-<p><h2 style="color:Gray">Winkel Tripel</h2>A compromise projection used by National Geographic.</p>
-<img src="images/winkel-tripel.jpg" alt="Sorry. This image is not here at the moment. Please leave a message after the beep." title="So much better than the Winkel Singel and Winkel Doubel.">
-<p><h2 style="color:Gray">Van der Grinten</h2>A round map projection similar to Mercator.</p>
-<img src="images/vandergrinten.jpg" alt="Sorry. This image is not here at the moment. Please leave a message after the beep." title="It's like Mercator, only worse!">
-<p><h2 style="color:Gray">Mollweide</h2>An equal-area projection shaped like an ellipse.</p>
-<img src="images/mollweide.jpg" alt="Sorry. This image is not here at the moment. Please leave a message after the beep." title="This is no mall narrow. No, sir, this here is a maulbig.">
-<p><h2 style="color:Gray">Hammer</h2>Another equal-area projection shaped like an ellipse.</p>
-<img src="images/hammer.jpg" alt="Sorry. This image is not here at the moment. Please leave a message after the beep." title="STOP!                                                                                                                              Hammer Time.">
-<p><h2 style="color:Gray">Sinusoidal</h2>An equal-area projection shaped like a sinusoid.</p>
-<img src="images/sinusoidal.jpg" alt="Sorry. This image is not here at the moment. Please leave a message after the beep." title="I'll sign your soil! Ha ha haha. Ha.">
-<p><h2 style="color:Gray">Lemons</h2>The earth unfolded into a bunch of little lemon-shaped things.</p>
-<img src="images/lemons.jpg" alt="Sorry. This cake is not true at the moment. Please leave a message after the beep." title="BURN LIFE'S HOUSE DOWN!">
-<p><h2 style="color:Gray">Pierce Quincuncial</h2>A complex shape-preserving map shaped like a square.</p>
-<img src="images/pierce.jpg" alt="Sorry. This image is not here at the moment. Please leave a message after the beep." title="Challenging pierceptions since 1879.">
-<p><h2 style="color:Gray">Guyou Hemisphere-in-a-Square</h2>Pierce Quincuncial, but rearranged a little bit.</p>
-<img src="images/guyou.jpg" alt="Sorry. This image is not here at the moment. Please leave a message after the beep." title="Challenging pierceptions since 1887.">
-<p>
-<h2 style="color:Gray">AuthaGraph</h2> 
-A nearly-equal-area tetrahedral projection.
-<img src="images/authagraph.jpg" alt="Sorry. This image is not here at the moment. Please leave a message after the beep." title="Not to be confused with authagraphic projections, which is the cool kid map projection club that this one wishes it could be in.">
-<h2 style="color:Gray">Tetragraph</h2> 
-A compromising tetrahedral projection that I invented after being inspired by the AuthaGraph.
-<img src="images/tetragraph.jpg" alt="BEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEP." title="Yeah, I invented this one. It's a linear mapping from Justesian coordinates to cartolar coordinates.">
+          <p>A comprehensive list of all the projections you'll ever need to know about. I highly recommend reading all the way through &ndash; some of the coolest projections are at the bottom.</p>
+
+          <h2>Mercator</h2>
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>A very popular conformal cylindrical projection</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Cylindrical</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Conformal</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>No</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Mercator.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="It's only popular because it Mer-caters to the biggest demographic">
+            </div>
+          </div>
+          <br>
+          <h2>Plate Carrée</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>An equidistant cylindrical projection focused on the equator</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Cylindrical</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Equidistant</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Plate Carrée.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="Boring! It's not even a real projection. Next!">
+            </div>
+          </div>
+          <br>
+          <h2>Gall-Peters</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>A somewhat controversial equal-area cylindrical projection</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Cylindrical</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Equal-area</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Gall-Peters.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="What's that? You think I don't like the Peters map because I'm uncomfortable with having my cultural assumptions challenged? Are you sure you're not... ::puts on sunglasses:: ...projecting?">
+            </div>
+          </div>
+          <br>
+          <h2>Hobo-Dyer</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>An equal-area cylindrical projection with least distortion at 37.5°</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Cylindrical</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Equal-area</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Hobo-Dyer.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="It's like Gall-Peters, but objectively better!">
+            </div>
+          </div>
+                    <br>
+          <h2>Behrmann</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>An equal-area cylindrical projection with least distortion at 30°</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Cylindrical</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Equal-area</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Behrmann.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="It's like Hobo-Dyer, but objectively better!">
+            </div>
+          </div>
+          <br>
+          <h2>Lambert cylindrical</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>An equal-area cylindrical projection with least distortion along the equator</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Cylindrical</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Equal-area</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Lambert cylindrical.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="Not necessarily better than Behrmann depending on how you define your metrics, actually. The math does work out beautifully, though.">
+            </div>
+          </div>
+          <br>
+          <h2>Gall Stereographic</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>A compromise cylindrical projection</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Cylindrical</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Compromise</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Gall Stereographic.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="A compromise projection? How Galling.">
+            </div>
+          </div>
+          <br>
+          <h2>Stereographic</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>A mathematically important conformal azimuthal projection</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Azimuthal</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Conformal</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>No</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Stereographic.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="Stereo: Two. Graph: Picture. Stereo+Graphic: an azimuthal conformal map projection. Logic.">
+            </div>
+          </div>
+          <br>
+          <h2>Polar</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>An equidistant azimuthal projection</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Azimuthal</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Equidistant</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>No</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Polar.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="Of course, this is what the earth *actually* looks like; that whole sphere nonsense is just a conspiracy.">
+            </div>
+          </div>
+          <br>
+          <h2>Azimuthal Equal-Area</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>An equal-area azimuthal projection</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Azimuthal</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Equal-area</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>No</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Azimuthal Equal-Area.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="Ah, yes, another map projection named after Johann Heinrich Lambert.">
+            </div>
+          </div>
+          <br>
+          <h2>Gnomonic</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>A projection that draws all great circles as straight lines</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Azimuthal</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Gnomonic</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>No</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>No</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Gnomonic.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="Gnomonic? More like gnomic! <Ba-dum crash>">
+            </div>
+          </div>
+          <br>
+          <h2>Orthographic</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>A projection that mimics the Earth viewed from a great distance</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Azimuthal</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Orthographic</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>No</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Orthographic.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="Orthographic? More like orthogonal! <Ba-dum crash>">
+            </div>
+          </div>
+          <br>
+          <h2>Conformal Conic</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>The conformal conic projection.</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Conic</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Conformal</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>No</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Conformal Conic.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>Equidistant Conic</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>The equidistant conic projection.</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Conic</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Equidistant</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Equidistant Conic.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>Albers</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>The equal-area conic projection.</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Conic</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Equal-area</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Albers.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>Lee</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>A conformal tetrahedral projection that really deserves more attention</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Tetrahedral</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Conformal</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>No</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>No</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Lee.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>TetraGraph</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>An equidistant tetrahedral projection that I invented</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Tetrahedral</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Equidistant</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/TetraGraph.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>AuthaGraph</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>A hip new Japanese map that is almost authagraphic (this is an approximation; they won't give me their actual equations)</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Tetrahedral</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Compromise</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>No</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>No</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/AuthaGraph.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>Sinusoidal</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>An equal-area map shaped like a sine-wave</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Pseudocylindrical</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Equal-area</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Sinusoidal.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>Mollweide</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>An equal-area projection shaped like an ellipse</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Pseudocylindrical</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Equal-area</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>No</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Mollweide.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>Hammer</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>An equal-area projection shaped like an ellipse</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Pseudoazimuthal</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Equal-area</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Hammer.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>Tobler</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>An equal-area projection shaped like a hyperellipse (in case you're wondering about gamma, it's calculated automatically)</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Pseudocylindrical</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Equal-area</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>No</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>No</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Tobler.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>Aitoff</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>A compromise projection shaped like an ellipse</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Pseudoazimuthal</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Compromise</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>No</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Aitoff.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>Van der Grinten</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>A circular compromise map that is popular for some reason</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Other</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Compromise</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Van der Grinten.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>Robinson</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>A visually pleasing piecewise compromise map</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Pseudocylindrical</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Compromise</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Robinson.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>Winkel Tripel</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>National Geographic's compromise projection of choice</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Other</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Compromise</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>No</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Winkel Tripel.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>Peirce Quincuncial</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>A conformal projection that uses complex elliptic functions</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Other</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Conformal</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>No</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>No</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Peirce Quincuncial.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>Guyou</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>Peirce Quincuncial, rearranged a bit</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Other</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Conformal</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>No</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>No</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Guyou.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>Two-point Equidistant</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>A map that preserves distances, but not angles, to two arbitrary points</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Quasiazimuthal</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Equidistant</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Two-point Equidistant.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>Hammer Retroazimuthal</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>The full version of a map where bearing and distance to a reference point is preserved</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Quasiazimuthal</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Retroazimuthal</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>No</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Hammer Retroazimuthal.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>Pseudostereographic</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>The logical next step after Aitoff and Hammer</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Pseudoazimuthal</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Compromise</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Pseudostereographic.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>Hyperellipower</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>A parametric projection that I'm still testing</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Pseudocylindrical</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Compromise</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Hyperellipower.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>Tetrapower</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>A parametric projection that I'm still testing</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Tetrahedral</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Compromise</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Tetrapower.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>TetraFillet</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>A parametric projection that I'm still testing</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt>
+                <dd>Tetrahedral</dd>
+                <dt>Property:&nbsp;</dt>
+                <dd>Compromise</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/TetraFillet.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
+          <br>
+          <h2>Two-Point Equalized</h2>
+            
+          <div class=row>
+            <div class="col-xs-12 col-sm-5">
+              <p>A parametric projection that I'm still testing</p>
+              <dl>
+                <dt>Geometry:&nbsp;</dt><dd>Other</dd>
+                <dt>Property:&nbsp;</dt><dd>Equidistant</dd>
+                <dt>Continuous:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Shows entire world:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form solution:&nbsp;</dt>
+                <dd>Yes</dd>
+                <dt>Closed-form inverse:&nbsp;</dt>
+                <dd>Yes</dd>
+              </dl>
+            </div>
+            <div class="col-xs-12 col-sm-7">
+              <img src="images/Two-Point Equalized.gif" class="map" alt="Sorry. This map is not available at the moment. Please leave a message after the beep." title="I'll think of something to put here later.">
+            </div>
+          </div>
         </section>
 
         <footer>
           Map Projections: Challenging Pierceptions is maintained by <a href="https://github.com/jkunimune15">jkunimune15</a><br>
           This page was generated by <a href="https://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
         </footer>
-
-        
       </div>
     </div>
   </body>
