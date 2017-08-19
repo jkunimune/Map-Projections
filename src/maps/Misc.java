@@ -71,8 +71,9 @@ public class Misc {
 			final double X = x * Math.sqrt(8);
 			final double Y = y * Math.sqrt(2);
 			final double z = Math.sqrt(1 - Math.pow(X/4, 2) - Math.pow(Y/2, 2));
+			final double shift = (Math.hypot(x, y) > 1) ? 2*Math.PI*Math.signum(x) : 0;
 			return new double[] {
-					Math.asin(z * Y), 2*Math.atan(0.5*z*X / (2*z*z - 1))};
+					Math.asin(z * Y), 2*Math.atan(0.5*z*X / (2*z*z - 1)) + shift};
 		}
 	};
 	
@@ -234,7 +235,9 @@ public class Misc {
 	
 	
 	public static final Projection TWO_POINT_EQUIDISTANT =
-			new Projection("Two-point Equidistant", "A map that preserves distances, but not angles, to two arbitrary points",
+			new Projection(
+					"Two-point Equidistant",
+					"A map that preserves distances, but not azimuths, to two arbitrary points",
 					1., 0b1111, Type.QUASIAZIMUTHAL, Property.EQUIDISTANT,
 					new String[] {"Latitude 1","Longitude 1","Latitude 2","Longitude 2"},
 					new double[][] {{-90,90,41.9},{-180,180,12.5},{-90,90,34.7},{-180,180,112.4}},

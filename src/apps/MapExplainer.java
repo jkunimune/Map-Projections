@@ -79,21 +79,17 @@ public class MapExplainer {
 		final PrintStream out = System.out;
 		
 		for (Projection[] projs: ALL_PROJECTIONS) {
-			out.println("<h2>Map Projections</h2>");
+			out.println("<h1>Map Projections</h1>");
 			
 			for (Projection proj: projs) {
-				out.println("<div class=row>");
-				out.println("  <div class=\"col-xs-12 col-sm-10 col-md-8 col-lg-6\">");
-				out.println("    <h3>"+proj.getName()+"</h3>");
-				out.println("  </div>");
-				out.println("</div>");
+				out.println("<h2>"+proj.getName()+"</h2>");
 				
-				ImageIO.write(
-						makeImage(proj, proj.hasAspect() ? inputSkew : inputPole),
-						"gif", new File("images/"+proj+".gif"));
+//				ImageIO.write(
+//						makeImage(proj, proj.hasAspect() ? inputSkew : inputPole),
+//						"gif", new File("images/"+proj+".gif"));
 				
-				out.println("<div class=row>");
-				out.println("  <div class=\"col-xs-12 col-sm-10 col-md-4 col-lg-3\">");
+				out.println("<div class=\"row\">");
+				out.println("  <div class=\"col-left\">");
 				out.println("    <p>"+proj.getDescription()+"</p>");
 				
 				out.println("    <dl>");
@@ -112,13 +108,16 @@ public class MapExplainer {
 				out.println("    </dl>");
 				out.println("  </div>");
 				
-				out.println("  <div class=\"col-xs-12 col-sm-10 col-md-4 col-lg-3\">");
+				out.println("  <div class=\"col-right\">");
 				out.println("    <img src=\"images/"+proj+".gif\" class=\"map\" " +
 						"alt=\"Sorry. This map is not available at the moment. " +
 						"Please leave a message after the beep.\" " +
-						"title=\"I'll think of something to put here later.\">");
+						"title=\"TODO\">");
 				out.println("  </div>");
 				out.println("</div>");
+				
+				out.println("<br>");
+				out.println();
 			}
 		}
 		

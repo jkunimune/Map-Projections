@@ -275,10 +275,8 @@ public class MapAnalyzer extends MapApplication {
 		for (int y = 0; y < distortion[0].length; y ++) {
 			for (int x = 0; x < distortion[0][y].length; x ++) {
 				final double sizeDistort = distortion[0][y][x], shapeDistort = distortion[1][y][x];
-				final double sizeContour = Math.round(
-						sizeDistort/(LN_10/10))*LN_10/10;
-				final double shapeContour = Math.exp(Math.round(
-						Math.log(shapeDistort)/(LN_10/10))*LN_10/10);
+				final double sizeContour = Math.round(sizeDistort/(LN_10/10))*LN_10/10; //contour the size by decibels
+				final double shapeContour = Math.round(shapeDistort/(LN_10/20))*LN_10/20; //contour the size by semidecibels
 				if (Double.isNaN(sizeDistort) || Double.isNaN(shapeDistort)) {
 					writer.setArgb(x, y, 0);
 					continue;

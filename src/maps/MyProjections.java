@@ -88,9 +88,11 @@ public class MyProjections {
 					2, 0b1111, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
-			double[] transverse = Azimuthal.STEREOGRAPHIC.project(
-					obliquifySphc(lat, lon/2, new double[] {0,0,0}));
-			return new double[] {2*transverse[0], transverse[1]};
+			final double a = Math.PI - Math.acos(Math.cos(lat)*Math.cos(lon/2));
+			final double b = Math.acos(Math.sin(lat)/Math.sin(a));
+			return new double[] {
+					Math.PI*Math.signum(lon)/Math.tan(a/2)*Math.sin(b),
+					Math.PI/2/Math.tan(a/2)*Math.cos(b) };
 		}
 		
 		public double[] inverse(double x, double y) {
