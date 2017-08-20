@@ -73,17 +73,22 @@ public class Pseudocylindrical {
 					"Lemons", "BURN LIFE'S HOUSE DOWN!!!", 2., 0b1110,
 					Type.PSEUDOCYLINDRICAL, Property.COMPROMISE) {
 		
+		private static final int NUM_LEMONS = 12; //number of lemons
+		private static final double LEM_WIDTH = 2./NUM_LEMONS; //width of 1 lemon
+		private static final double LEM_SPAN = 2*Math.PI/NUM_LEMONS; //longitude span of 1 lemon
+		
 		public double[] project(double lat, double lon) {
-			return null; //TODO: projection wishlist
+			final int lemNum = (int)Math.floor(lon/LEM_SPAN);
+			final double dl = (lon+2*Math.PI) % LEM_SPAN - LEM_SPAN/2;
+			return new double[] { dl*Math.cos(lat) + lemNum*LEM_SPAN, lat };
 		}
 		
 		public double[] inverse(double x, double y) {
-			x = x+2;
-			final double lemWdt = 1/6.0;
-			if (Math.abs(x % lemWdt - lemWdt / 2.0) <= Math.cos(y*Math.PI/2) * lemWdt/2.0) // if it is in
-				return new double[] { y*Math.PI/2,	// a sine curve
-						Math.PI * (x%lemWdt - lemWdt/2.0) / (Math.cos(y*Math.PI/2))
-								+ (int)(x/lemWdt) * Math.PI/6 };
+			final int lemNum = (int)Math.floor(x/LEM_WIDTH);
+			final double dx = (x+2) % LEM_WIDTH - LEM_WIDTH/2;
+			if (Math.abs(dx) <= Math.cos(y*Math.PI/2) * LEM_WIDTH/2.0) //if it is in a sine curve
+				return new double[] {
+						y*Math.PI/2, dx*Math.PI/Math.cos(y*Math.PI/2) + lemNum*LEM_SPAN };
 			else
 				return null;
 		}

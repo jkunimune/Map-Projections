@@ -411,6 +411,10 @@ public abstract class Projection {
 	
 	
 	
+	/**
+	 * The most common geometric configurations of projections
+	 * @author jkunimune
+	 */
 	public static enum Type {
 		CYLINDRICAL("Cylindrical"), CONIC("Conic"), AZIMUTHAL("Azimuthal"),
 		PSEUDOCYLINDRICAL("Pseudocylindrical"), PSEUDOAZIMUTHAL("Pseudoazimuthal"),
@@ -433,6 +437,11 @@ public abstract class Projection {
 	}
 	
 	
+	
+	/**
+	 * The useful quantities that projections can preserve
+	 * @author jkunimune
+	 */
 	public static enum Property {
 		CONFORMAL("Conformal"), EQUIDISTANT("Equidistant"), EQUAL_AREA("Equal-area"),
 		PERSPECTIVE("Perspective"), GNOMONIC("Gnomonic"), RETROAZIMUTHAL("Retroazimuthal"),

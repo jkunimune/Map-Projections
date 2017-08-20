@@ -37,7 +37,8 @@ import maps.Projection.Type;
 public class MyProjections {
 	
 	public static final Projection MAGNIFIER =
-			new Projection("Magnifier", "A novelty map projection that blows up the center way out of proportion",
+			new Projection("Magnifier",
+					"A novelty map projection that blows up the center way out of proportion",
 					1., 0b1011, Type.AZIMUTHAL, Property.POINTLESS) {
 		
 		public double[] project(double lat, double lon) {

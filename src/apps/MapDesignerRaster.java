@@ -90,7 +90,7 @@ public class MapDesignerRaster extends MapApplication {
 			Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Misc.AITOFF, Misc.VAN_DER_GRINTEN,
 			Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL, Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU,
 			Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Pseudocylindrical.LEMONS,
-			MyProjections.MAGNIFIER, MyProjections.EXPERIMENT, MyProjections.PSEUDOSTEREOGRAPHIC,
+			MyProjections.EXPERIMENT, MyProjections.PSEUDOSTEREOGRAPHIC,
 			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET,
 			MyProjections.TWO_POINT_EQUALIZED };
 	

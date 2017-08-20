@@ -392,7 +392,6 @@ public abstract class MapApplication extends Application {
 		if (presetName.equals("Antipode")) {
 			sliders[0].setValue(-sliders[0].getValue());
 			sliders[1].setValue((sliders[1].getValue()+360)%360-180);
-			sliders[2].setValue(-sliders[2].getValue());
 		}
 		else if (presetName.equals("Random")) {
 			sliders[0].setValue(Math.toDegrees(Math.asin(Math.random()*2-1)));
@@ -498,7 +497,11 @@ public abstract class MapApplication extends Application {
 	
 	
 	
-	private class Flag { //because Java apparently doesn't already have a mutable Bullion
+	/**
+	 * Because Java apparently doesn't already have a mutable Bullion
+	 * @author jkunimune
+	 */
+	private class Flag {
 		private boolean set;
 		
 		public Flag() {

@@ -26,6 +26,11 @@ package maps;
 import maps.Projection.Property;
 import utils.Dixon;
 
+/**
+ * Projections created by projecting onto and then unfolding a regular tetrahedron
+ * 
+ * @author jkunimune
+ */
 public class Tetrahedral {
 	
 	public static final Projection LEE =
@@ -264,6 +269,11 @@ public class Tetrahedral {
 	
 	
 	
+	/**
+	 * A base for tetrahedral projections
+	 * 
+	 * @author jkunimune
+	 */
 	private static abstract class TetrahedralProjection extends Projection {
 		
 		public TetrahedralProjection(
