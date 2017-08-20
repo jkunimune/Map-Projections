@@ -44,7 +44,7 @@ public abstract class Projection {
 	private final double[][] paramValues; //the bounds and default value of each parameter
 	private final boolean hasAspect; //is it spherically symmetrical?
 	
-	private final boolean finite; //is it completely bounded?
+	private final boolean finite; //does it display the entire world?
 	private final boolean invertable; //is the inverse solution closed-form?
 	private final boolean solveable; //is the solution closed-form?
 	private final boolean continuous; //can you see the whole earth without interruption?
@@ -435,7 +435,6 @@ public abstract class Projection {
 			return this.name;
 		}
 	}
-	
 	
 	
 	/**

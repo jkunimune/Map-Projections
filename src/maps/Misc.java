@@ -126,7 +126,7 @@ public class Misc {
 		public double[] project(double lat, double lon) {
 			final double alat = Math.abs(lat);
 			final double wMag = Math.tan(Math.PI/4-alat/2);
-			final Complex w = new Complex(wMag*Math.sin(lon), -wMag*Math.cos(lon));
+			final Complex w = new Complex(wMag*Math.sin(lon), -wMag*Math.cos(lon)); //this Complex comes from Apache Commons
 			final Complex k = new Complex(Math.sqrt(0.5));
 			Complex z = Elliptic.F(w.acos(),k).multiply(Math.PI/1.854).subtract(Math.PI).negate();
 			if (z.isInfinite() || z.isNaN())	z = new Complex(0);
@@ -146,8 +146,8 @@ public class Misc {
 		}
 		
 		public double[] inverse(double x, double y) {
-			mfc.field.Complex u = new mfc.field.Complex(1.854*(x+1), 1.854*y); // 1.854 is approx K(sqrt(1/2)
-			mfc.field.Complex k = new mfc.field.Complex(Math.sqrt(0.5)); // the rest comes from some fancy complex calculus
+			mfc.field.Complex u = new mfc.field.Complex(1.854*(x+1), 1.854*y); //1.854 is approx K(sqrt(1/2)
+			mfc.field.Complex k = new mfc.field.Complex(Math.sqrt(0.5)); //the rest comes from some fancy complex calculus
 			mfc.field.Complex ans = Jacobi.cn(u, k);
 			double p = 2 * Math.atan(ans.abs());
 			double theta = ans.arg() - Math.PI/2;

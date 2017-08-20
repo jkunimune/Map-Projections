@@ -73,10 +73,10 @@ public class MyProjections {
 		}
 		
 		public double[] inverse(double x, double y) {
-			Complex z = new Complex(x*Math.PI, y*Math.PI);
+			Complex z = new Complex((x+1)*Math.PI, y*Math.PI);
 			Complex ans = z.sin();
 			double p = 2 * Math.atan(ans.abs());
-			double theta = ans.getArgument();
+			double theta = ans.getArgument() - Math.PI/2;
 			double lambda = Math.PI/2 - p;
 			return new double[] {lambda, theta};
 		}
