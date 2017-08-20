@@ -114,7 +114,7 @@ public class Tetrahedral {
 	
 	public static final Projection TETRAFILLET =
 			new TetrahedralProjection("TetraFillet", "A parametric projection that I'm still testing",
-					Math.sqrt(3), 0b1111, Property.COMPROMISE, new String[] {"k1","k2","k3"},
+					Math.sqrt(3), 0b1110, Property.COMPROMISE, new String[] {"k1","k2","k3"},
 					new double[][] {{.25,4.,1.1598},{.25,4.,.36295},{.25,4.,1.9553}}) {
 		
 		private double k1, k2, k3;
@@ -161,7 +161,7 @@ public class Tetrahedral {
 	public static final Projection TETRACHAMFER =
 			new TetrahedralProjection(
 					"TetraChamfer", "A parametric projection that I'm still testing", Math.sqrt(3),
-					0b1111, Property.COMPROMISE, new String[] {"k1","k2","k3"},
+					0b1110, Property.COMPROMISE, new String[] {"k1","k2","k3"},
 					new double[][] {{.25,4.,1.1598},{.25,4.,.36295},{.25,4.,1.9553}}) {
 		
 		private double k1, k2, k3;

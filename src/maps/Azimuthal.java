@@ -83,7 +83,7 @@ public class Azimuthal {
 	
 	public static final Projection ORTHOGRAPHIC =
 			new Projection("Orthographic", "A projection that mimics the Earth viewed from a great distance",
-					1., 0b1111, Type.AZIMUTHAL, Property.PERSPECTIVE) {
+					1., 0b0111, Type.AZIMUTHAL, Property.PERSPECTIVE) {
 		
 		public double[] project(double lat, double lon) {
 			if (lat < 0)	lat = 0;
@@ -122,23 +122,32 @@ public class Azimuthal {
 	public static final Projection PERSPECTIVE =
 			new Projection(
 					"Perspective", "A projection that mimics the actual appearance of the Earth",
-					1., 0b1111, Type.AZIMUTHAL, Property.PERSPECTIVE,
-					new String[] {"Percentage"}, new double[][] {{1,99}}) {
+					1., 0b0111, Type.AZIMUTHAL, Property.PERSPECTIVE,
+					new String[] {"Percentage"}, new double[][] {{1,99,33.3}}) {
 		
-		private double amount;
+		private double d; //viewing distance in sphere radii
 		
 		public void setParameters(double... params) {
-			this.amount = params[0]/100.;
+			this.d = 1/(1 - 2*params[0]/100);
 		}
-
+		
 		public double[] project(double lat, double lon) {
-			// TODO: Projection wishlist
-			return null;
+			if (Double.isInfinite(d)) 	return ORTHOGRAPHIC.project(lat, lon);
+			if (lat < Math.asin(1/d)) 	lat = Math.asin(1/d);
+			final double r = Math.abs(Math.cos(lat)/(d - Math.sin(lat))) * Math.PI*Math.sqrt(d*d-1);
+			return new double[] { r*Math.sin(lon), -r*Math.cos(lon) };
 		}
-
+		
 		public double[] inverse(double x, double y) {
-			// TODO: Projection wishlist
-			return null;
+			if (Double.isInfinite(d)) 	return ORTHOGRAPHIC.inverse(x, y);
+			final double h = Math.hypot(x, y);
+			if (h > 1) 	return null;
+			final double theta = Math.atan(h/Math.sqrt(d*d-1));
+			final double phi = Math.acos(d*Math.sin(theta)) + theta;
+			if (phi < Math.PI/2)
+				return new double[] { phi, Math.atan2(x, -y) };
+			else
+				return new double[] { Math.PI - phi, Math.atan2(x, -y) };
 		}
 	};
 }

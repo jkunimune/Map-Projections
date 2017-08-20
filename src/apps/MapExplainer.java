@@ -61,7 +61,7 @@ public class MapExplainer {
 					Azimuthal.GNOMONIC.transverse(), Azimuthal.ORTHOGRAPHIC.transverse(),
 					Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Tetrahedral.LEE,
 					Tetrahedral.TETRAGRAPH, Tetrahedral.AUTHAGRAPH, Pseudocylindrical.SINUSOIDAL,
-					Pseudocylindrical.MOLLWEIDE, Misc.HAMMER, Tobler.TOBLER, Misc.AITOFF,
+					Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Misc.HAMMER, Misc.AITOFF,
 					Misc.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
 					Misc.PEIRCE_QUINCUNCIAL.transverse(), Misc.GUYOU, Misc.TWO_POINT_EQUIDISTANT,
 					Misc.HAMMER_RETROAZIMUTHAL },
@@ -84,9 +84,9 @@ public class MapExplainer {
 			for (Projection proj: projs) {
 				out.println("<h2>"+proj.getName()+"</h2>");
 				
-//				ImageIO.write(
-//						makeImage(proj, proj.hasAspect() ? inputSkew : inputPole),
-//						"gif", new File("images/"+proj+".gif"));
+				ImageIO.write(
+						makeImage(proj, proj.hasAspect() ? inputSkew : inputPole),
+						"gif", new File("images/"+proj+".gif"));
 				
 				out.println("<div class=\"row\">");
 				out.println("  <div class=\"col-left\">");
@@ -106,6 +106,7 @@ public class MapExplainer {
 				out.println("      <dt>Closed-form inverse:&nbsp;</dt>");
 				out.println("      <dd>"+ (proj.isInvertable() ? "Yes":"No") +"</dd>");
 				out.println("    </dl>");
+				out.println("    <br>");
 				out.println("  </div>");
 				
 				out.println("  <div class=\"col-right\">");
@@ -116,7 +117,6 @@ public class MapExplainer {
 				out.println("  </div>");
 				out.println("</div>");
 				
-				out.println("<br>");
 				out.println();
 			}
 		}

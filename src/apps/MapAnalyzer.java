@@ -92,18 +92,18 @@ public class MapAnalyzer extends MapApplication {
 			new FileChooser.ExtensionFilter("JPG", "*.jpg","*.jpeg","*.jpe","*.jfif"),
 			new FileChooser.ExtensionFilter("GIF", "*.gif") };
 	
-	private static final Projection[] PROJ_ARR = { Cylindrical.MERCATOR,
-			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL_PETERS,
-			Cylindrical.HOBO_DYER, Cylindrical.BEHRMANN, Cylindrical.LAMBERT, Cylindrical.GALL,
+	private static final Projection[] PROJ_ARR = { Cylindrical.MERCATOR, Cylindrical.PLATE_CARREE,
+			Cylindrical.EQUIRECTANGULAR, Cylindrical.GALL_PETERS, Cylindrical.HOBO_DYER,
+			Cylindrical.BEHRMANN, Cylindrical.LAMBERT, Cylindrical.EQUAL_AREA, Cylindrical.GALL,
 			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
-			Azimuthal.ORTHOGRAPHIC, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Tetrahedral.LEE,
-			Tetrahedral.TETRAGRAPH, Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE,
-			Misc.HAMMER, Tobler.TOBLER, Misc.AITOFF, Misc.VAN_DER_GRINTEN, Robinson.ROBINSON,
-			WinkelTripel.WINKEL_TRIPEL, Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU,
-			Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, MyProjections.MAGNIFIER,
-			MyProjections.EXPERIMENT, MyProjections.PSEUDOSTEREOGRAPHIC,
-			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET,
-			MyProjections.TWO_POINT_EQUALIZED };
+			Azimuthal.ORTHOGRAPHIC, Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT,
+			Conic.ALBERS, Tetrahedral.LEE, Tetrahedral.TETRAGRAPH, Pseudocylindrical.SINUSOIDAL,
+			Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Misc.HAMMER, Misc.AITOFF,
+			Misc.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
+			Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU, Misc.TWO_POINT_EQUIDISTANT,
+			Misc.HAMMER_RETROAZIMUTHAL, MyProjections.MAGNIFIER, MyProjections.EXPERIMENT,
+			MyProjections.PSEUDOSTEREOGRAPHIC, MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER,
+			Tetrahedral.TETRAFILLET, MyProjections.TWO_POINT_EQUALIZED };
 	
 	
 	private Button updateBtn;

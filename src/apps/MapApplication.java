@@ -63,12 +63,12 @@ public abstract class MapApplication extends Application {
 	private static final KeyCombination ctrlEnter = new KeyCodeCombination(KeyCode.ENTER, KeyCodeCombination.CONTROL_DOWN);
 	
 	private static final String[] ASPECT_NAMES = { "Standard", "Transverse", "Cassini",
-			"Center of Mass", "Jerusalem", "Point Nemo", "Longest Line", "Longest Line Transverse",
+			"Center of Mass", "Jerusalem", "Point Nemo", "Longest Line",
 			"Cylindrical", "Conic", "Tetrahedral", "Quincuncial", "Antipode", "Random" };
 	private static final double[][] ASPECT_VALS = { //the aspect presets (in degrees)
-			{ 90., 0.,  0., 29.98, 31.78, 48.88, -28.52,-46.4883,-35.,  -17.,  47.,  60. },
-			{  0., 0., 90., 31.13, 35.22, 56.61, 141.45, 16.5305,-13.61, -7.,-173.,  -6. },
-			{  0., 0.,-90.,-32.,  -35.,  -45.,   161.5, 137.,    145.,  151., 138.,-100. } };
+			{ 90., 0.,  0., 29.98, 31.78, 48.88, -28.52,-35.,    47.,  60. },
+			{  0., 0., 90., 31.13, 35.22, 56.61, 141.45,-13.61,-173.,  -6. },
+			{  0., 0.,-90.,-32.,  -35.,  -45.,   161.5, 145.,   138.,-100. } };
 	
 	
 	final private String name;
