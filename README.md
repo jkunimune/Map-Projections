@@ -7,13 +7,14 @@ If you are a fancy Windows user, I recommend the convenient [fancy Windows binar
 If you are not on Windows or are otherwise not fancy enough to deserve such executables, simply double-click on the .jar files in the main directory and, if you have [Java](https://java.com/en/download/) installed (10/10 would recommend), it should just run without any set-up.
 
 ## Features
-There are three executable files and two other runnable Java scripts. These are:
+There are three executable files and three other runnable Java scripts. These are, in order:
 
-* MapDesignerRaster.jar – The original program. Create custom oblique raster images of the Earth's surface using a variety of algorithms called _projections_.  
-* MapDesignerVector.jar – The same idea, but working in vector images instead in case you want to cut a vinyl sticker or something.  
-* MapAnalyzer.jar – See graphs and figures quantifying the amount of scale and angular distortion present in each map projection.  
-* MapPlotter.java – Plot a large group of map projections by the amount of distortion they produce.  
-* MapOptimizer.java – Run gradient descent on parametric projections to minimize their distortion.  
+* `MapDesignerRaster.jar` &ndash; The original program. Create custom oblique raster images of the Earth's surface using a variety of algorithms called _projections_.  
+* `MapDesignerVector.jar` &ndash; The same idea, but working in vector images instead in case you want to cut a vinyl sticker or something.  
+* `MapAnalyzer.jar` &ndash; See graphs and figures quantifying the amount of scale and angular distortion present in each map projection.  
+* `MapPlotter.java` &ndash; Plot a large group of map projections by the amount of distortion they produce.  
+* `MapOptimizer.java` &ndash; Run gradient descent on parametric projections to minimize their distortion.  
+* `MapExplainer.java` &ndash; Generate an HTML blurb outlining and displaying every map projection.
 
 The executable applications all have similar layouts that let you select an input equirectangular map, a projection, an aspect (where the North Pole is situated with respect to the projection), and parameters if applicable. Go crazy! There are a practically unlimited number of combinations.
 
