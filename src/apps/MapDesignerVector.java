@@ -114,7 +114,7 @@ public class MapDesignerVector extends MapApplication {
 	public void start(Stage root) {
 		super.start(root);
 		new Thread(() -> {
-			setInput(new File("input/basic.svg")); //this automatically updates the map//TODO: this should cause the buttons to grey out
+			setInput(new File("input/Basic.svg")); //this automatically updates the map//TODO: this should cause the buttons to grey out
 		}).start();
 	}
 	
