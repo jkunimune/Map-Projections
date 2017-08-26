@@ -130,19 +130,19 @@ public class Misc {
 			final double wMag = Math.tan(Math.PI/4-alat/2);
 			final Complex w = new Complex(wMag*Math.sin(lon), -wMag*Math.cos(lon)); //this Complex comes from Apache Commons
 			final Complex k = new Complex(Math.sqrt(0.5));
-			Complex z = Elliptic.F(w.acos(),k).multiply(1/K_RT_HALF).subtract(Math.PI).negate();
+			Complex z = Elliptic.F(w.acos(),k).divide(K_RT_HALF).subtract(1).negate();
 			if (z.isInfinite() || z.isNaN())	z = new Complex(0);
 			double x = z.getReal(), y = z.getImaginary();
 			
 			if (lat < 0) {
 				if (x >= 0 && y >= 0)
-					z = new Complex(Math.PI-y, Math.PI-x);
+					z = new Complex(1-y, 1-x);
 				else if (x >= 0 && y < 0)
-					z = new Complex(Math.PI+y, -Math.PI+x);
+					z = new Complex(1+y, -1+x);
 				else if (y >= 0)
-					z = new Complex(-Math.PI+y, Math.PI+x);
+					z = new Complex(-1+y, 1+x);
 				else
-					z = new Complex(-Math.PI-y, -Math.PI-x);
+					z = new Complex(-1-y, -1-x);
 			}
 			return new double[] {z.getReal(), z.getImaginary()};
 		}
@@ -172,7 +172,8 @@ public class Misc {
 			final double wMag = Math.tan(Math.PI/4-alat/2);
 			final Complex w = new Complex(wMag*Math.sin(coords[1]), -wMag*Math.cos(coords[1]));
 			final Complex k = new Complex(Math.sqrt(0.5));
-			Complex z = Elliptic.F(w.acos(),k).multiply(2*K_RT_HALF).subtract(new Complex(0,0.5));
+			Complex z = Elliptic.F(w.acos(),k).divide(-2*K_RT_HALF)
+					.multiply(new Complex(1,1)).add(new Complex(0,0.5));
 			if (z.isInfinite() || z.isNaN()) 	z = new Complex(0);
 			if (coords[0] < 0) 	z = z.conjugate().negate();
 			return new double[] {z.getReal(), z.getImaginary()};

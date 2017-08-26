@@ -64,11 +64,11 @@ public abstract class MapApplication extends Application {
 	
 	private static final String[] ASPECT_NAMES = { "Standard", "Transverse", "Cassini",
 			"Center of Mass", "Jerusalem", "Point Nemo", "Longest Line",
-			"Cylindrical", "Conic", "Tetrahedral", "Quincuncial", "Antipode", "Random" };
+			"Cylindrical", "Tetrahedral", "Quincuncial", "Antipode", "Random" };
 	private static final double[][] ASPECT_VALS = { //the aspect presets (in degrees)
-			{ 90., 0.,  0., 29.98, 31.78, 48.88, -28.52,-35.,    47.,  60. },
-			{  0., 0., 90., 31.13, 35.22, 56.61, 141.45,-13.61,-173.,  -6. },
-			{  0., 0.,-90.,-32.,  -35.,  -45.,    30.,  145.,   138.,-100. } };
+			{ 90., 0.,  0., 29.98, 31.78, 48.88, -28.52,-35.,   35.5,  60. },
+			{  0., 0., 90., 31.13, 35.22, 56.61, 141.45,-13.61,-27.9,  -6. },
+			{  0., 0.,-90.,-32.,  -35.,  -45.,    30.,  145., -167.3,-100. } };
 	
 	
 	final private String name;

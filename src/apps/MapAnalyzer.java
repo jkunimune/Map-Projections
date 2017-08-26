@@ -100,10 +100,10 @@ public class MapAnalyzer extends MapApplication {
 			Conic.ALBERS, Tetrahedral.LEE, Tetrahedral.TETRAGRAPH, Pseudocylindrical.SINUSOIDAL,
 			Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Misc.HAMMER, Misc.AITOFF,
 			Misc.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
-			Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU, Misc.TWO_POINT_EQUIDISTANT,
-			Misc.HAMMER_RETROAZIMUTHAL, Pseudocylindrical.LEMONS, MyProjections.EXPERIMENT,
-			MyProjections.PSEUDOSTEREOGRAPHIC, MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER,
-			Tetrahedral.TETRAFILLET, MyProjections.TWO_POINT_EQUALIZED };
+			Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL,
+			Pseudocylindrical.LEMONS, MyProjections.EXPERIMENT, MyProjections.PSEUDOSTEREOGRAPHIC,
+			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET,
+			MyProjections.TWO_POINT_EQUALIZED };
 	
 	
 	private Button updateBtn;

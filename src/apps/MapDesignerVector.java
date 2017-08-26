@@ -58,6 +58,7 @@ import maps.Robinson;
 import maps.Tetrahedral;
 import maps.Tobler;
 import maps.WinkelTripel;
+import utils.Math2;
 import utils.Procedure;
 import utils.SVGMap;
 import utils.SVGMap.Command;
@@ -85,11 +86,10 @@ public class MapDesignerVector extends MapApplication {
 			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Tetrahedral.LEE,
 			Tetrahedral.TETRAGRAPH, Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE,
 			Tobler.TOBLER, Misc.AITOFF, Misc.VAN_DER_GRINTEN, Robinson.ROBINSON,
-			WinkelTripel.WINKEL_TRIPEL, Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU,
-			Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Pseudocylindrical.LEMONS,
-			MyProjections.EXPERIMENT, MyProjections.PSEUDOSTEREOGRAPHIC,
-			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET,
-			MyProjections.TWO_POINT_EQUALIZED };
+			WinkelTripel.WINKEL_TRIPEL, Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT,
+			Misc.HAMMER_RETROAZIMUTHAL, Pseudocylindrical.LEMONS, MyProjections.EXPERIMENT,
+			MyProjections.PSEUDOSTEREOGRAPHIC, MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER,
+			Tetrahedral.TETRAFILLET, MyProjections.TWO_POINT_EQUALIZED };
 	
 	private static final int DEF_MAX_VTX = 5000;
 	private static final int FAST_MAX_VTX = 2000;
@@ -201,8 +201,6 @@ public class MapDesignerVector extends MapApplication {
 		List<Path> output = new LinkedList<Path>();
 		int i = 0;
 		for (Path path0: input) {
-			if (path0.length() < step*3) 	continue;
-			
 			Path path1 = new Path();
 			int counter = 0;
 			for (Command cmd0: path0) {
@@ -229,12 +227,53 @@ public class MapDesignerVector extends MapApplication {
 	}
 	
 	
-	private void drawImage(Iterable<Path> paths, Canvas c) {
+	private void drawImage(Iterable<Path> paths, Canvas c) { //parse the SVG path, with a few modifications
 		GraphicsContext g = c.getGraphicsContext2D();
 		g.clearRect(0, 0, c.getWidth(), c.getHeight());
 		g.beginPath();
 		for (Path path: paths) {
-			g.appendSVGPath(path.toString(0, 0, IMG_WIDTH, IMG_WIDTH));
+			double startX = 0, startY = 0, lastX = 0, lastY = 0;
+			for (Command cmd: path) {
+				final double[] args = new double[cmd.args.length];
+				for (int i = 0; i < args.length; i ++)
+					if (i%2 == 0)
+						args[i] = Math2.linInterp(cmd.args[i], -1, 1, 0, IMG_WIDTH);
+					else
+						args[i] = Math2.linInterp(cmd.args[i], -1, 1, IMG_WIDTH, 0);
+				
+				switch (cmd.type) {
+				case 'M':
+					startX = args[0];
+					startY = args[1];
+					g.moveTo(args[0], args[1]);
+					break;
+				case 'L':
+				case 'T':
+					if (Math.hypot(args[0]-lastX, args[1]-lastY) < IMG_WIDTH/4) // break lines that are too long
+						g.lineTo(args[0], args[1]);
+					else
+						g.moveTo(args[0], args[1]);
+					break;
+				case 'Q':
+				case 'S':
+					g.quadraticCurveTo(args[0], args[1], args[2], args[3]);
+					break;
+				case 'C':
+					g.bezierCurveTo(args[0], args[1], args[2], args[3], args[4], args[5]);
+					break;
+				case 'Z':
+					if (Math.hypot(startX-lastX, startY-lastY) < IMG_WIDTH/4)
+						g.lineTo(startX, startY);
+					break;
+				default:
+					System.err.println("Unsupported movement type: "+cmd.type); //I don't do arcs; they just don't work well with projection
+				}
+				
+				if (args.length > 0) {
+					lastX = args[0];
+					lastY = args[1];
+				}
+			}
 		}
 		g.stroke();
 	}
