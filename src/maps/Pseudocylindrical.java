@@ -38,7 +38,7 @@ public class Pseudocylindrical {
 					2., 0b1111, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA) {
 		
 		public double[] project(double lat, double lon) {
-			return new double[] { Math.cos(lat)*lon, lat };
+			return new double[] { Math.cos(lat)*lon/Math.PI, lat/Math.PI };
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -56,7 +56,7 @@ public class Pseudocylindrical {
 			for (int i = 0; i < 10; i ++)
 				tht -= (2*tht+Math.sin(2*tht)-Math.PI*Math.sin(lat))/
 						(2+2*Math.cos(2*tht));
-			return new double[] { lon*Math.cos(tht), Math.PI/2*Math.sin(tht) };
+			return new double[] { lon*Math.cos(tht)/Math.PI, Math.sin(tht)/2 };
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -81,15 +81,17 @@ public class Pseudocylindrical {
 			final int lemNum = (int)Math.floor(lon/LEM_SPAN);
 			final double dl = (lon+2*Math.PI) % LEM_SPAN - LEM_SPAN/2;
 			return new double[] {
-					Math.asin(Math.cos(lat)*Math.sin(dl)) + (lemNum+.5)*LEM_SPAN,
-					Math.asin(Math.sin(lat)/Math.sqrt(1-Math.pow(Math.cos(lat)*Math.sin(dl), 2))) };
+					Math.asin(Math.cos(lat)*Math.sin(dl))/Math.PI + (lemNum+.5)*LEM_WIDTH,
+					Math.asin(Math.sin(lat)/Math.sqrt(1-Math.pow(Math.cos(lat)*Math.sin(dl), 2)))
+							/Math.PI };
 		}
 		
 		public double[] inverse(double x, double y) {
 			final int lemNum = (int)Math.floor(x/LEM_WIDTH);
 			final double dx = (x+2) % LEM_WIDTH * Math.PI - LEM_SPAN/2;
 			y = y*Math.PI/2;
-			final double dl = Math.asin(Math.sin(dx)/Math.sqrt(1-Math.pow(Math.cos(dx)*Math.sin(y), 2)));
+			final double dl = Math.asin(
+					Math.sin(dx)/Math.sqrt(1-Math.pow(Math.cos(dx)*Math.sin(y), 2)));
 			if (Math.abs(dl) > LEM_SPAN/2)
 				return null;
 			else

@@ -30,8 +30,8 @@ import mfc.field.Complex;
  * All the algorithms here came directly from L.P. Lee's paper,
  * "Some Conformal Projections Based on Elliptic Functions"
  * 
- * Lee, L. P. �Some Conformal Projections Based on Elliptic Functions.�
- *  	Geographical Review, vol. 55, no. 4, 1965, pp. 563�580. JSTOR, 
+ * Lee, L. P. "Some Conformal Projections Based on Elliptic Functions."
+ *  	Geographical Review, vol. 55, no. 4, 1965, pp. 563-580. JSTOR, 
  *  	www.jstor.org/stable/212415.
  * 
  * @author jkunimune

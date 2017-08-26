@@ -57,6 +57,7 @@ import maps.Tetrahedral;
 import maps.Tobler;
 import maps.WinkelTripel;
 import utils.ImageUtils;
+import utils.PixelMap;
 import utils.Procedure;
 
 /**
@@ -98,7 +99,7 @@ public class MapDesignerRaster extends MapApplication {
 	private Node aspectSelector;
 	private Button updateBtn, saveMapBtn;
 	private double[] aspect;
-	private BufferedImage input;
+	private PixelMap input;
 	private ImageView display;
 	private MapConfigurationDialog configDialog;
 	
@@ -163,7 +164,7 @@ public class MapDesignerRaster extends MapApplication {
 		saveMapBtn.setDisable(true);
 		
 		try {
-			input = ImageIO.read(file);
+			input = new PixelMap(file);
 		} catch (IOException e) {
 			final Alert alert = new Alert(Alert.AlertType.ERROR);
 			alert.setHeaderText("File not found!");
@@ -230,8 +231,9 @@ public class MapDesignerRaster extends MapApplication {
 					for (int dx = 0; dx < step; dx ++) {
 						final double X = 2*(x+(dx+.5)/step)/out.getWidth()-1;
 						final double Y = 1-2*(y+(dy+.5)/step)/out.getHeight();
-						colors[step*dy+dx] = ImageUtils.getArgb(
-								this.getProjection().inverse(X, Y, pole), input);
+						final double[] coords = this.getProjection().inverse(X, Y, pole);
+						if (coords != null) //if it is null, the default (0:transparent) is used
+							colors[step*dy+dx] = input.getArgb(coords[0], coords[1]);
 					}
 				}
 				out.setRGB(x, y, ImageUtils.blend(colors));

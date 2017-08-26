@@ -33,7 +33,7 @@ public class Azimuthal {
 					"mathematically important") {
 		
 		public double[] project(double lat, double lon) {
-			final double r = Math.PI/2/(Math.tan(lat/2 + Math.PI/4));
+			final double r = .5/(Math.tan(lat/2 + Math.PI/4));
 			return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
 		}
 		
@@ -48,7 +48,7 @@ public class Azimuthal {
 			new Projection("Polar", 1., 0b1111, Type.AZIMUTHAL, Property.EQUIDISTANT) {
 		
 		public double[] project(double lat, double lon) {
-			final double r = Math.PI/2 - lat;
+			final double r = .5 - lat/Math.PI;
 			return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
 		}
 		
@@ -67,7 +67,7 @@ public class Azimuthal {
 					"Azimuthal Equal-Area", 1., 0b1111, Type.AZIMUTHAL, Property.EQUAL_AREA) {
 		
 		public double[] project(double lat, double lon) {
-			final double r = Math.PI*Math.cos((Math.PI/2+lat)/2);
+			final double r = Math.cos((Math.PI/2+lat)/2);
 			return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
 		}
 		
@@ -87,8 +87,7 @@ public class Azimuthal {
 		
 		public double[] project(double lat, double lon) {
 			if (lat < 0)	lat = 0;
-			final double r = Math.PI*Math.cos(lat);
-			return new double[] { r*Math.sin(lon), -r*Math.cos(lon) };
+			return new double[] { Math.cos(lat)*Math.sin(lon), -Math.cos(lat)*Math.cos(lon) };
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -108,7 +107,7 @@ public class Azimuthal {
 		
 		public double[] project(double lat, double lon) {
 			if (lat <= 0)	lat = 1e-5;
-			final double r = Math.tan(Math.PI/2 - lat);
+			final double r = Math.tan(Math.PI/2 - lat)/2;
 			return new double[] { r*Math.sin(lon), -r*Math.cos(lon)};
 		}
 		
@@ -134,7 +133,7 @@ public class Azimuthal {
 		public double[] project(double lat, double lon) {
 			if (Double.isInfinite(d)) 	return ORTHOGRAPHIC.project(lat, lon);
 			if (lat < Math.asin(1/d)) 	lat = Math.asin(1/d);
-			final double r = Math.abs(Math.cos(lat)/(d - Math.sin(lat))) * Math.PI*Math.sqrt(d*d-1);
+			final double r = Math.abs(Math.cos(lat)/(d - Math.sin(lat))) * Math.sqrt(d*d-1);
 			return new double[] { r*Math.sin(lon), -r*Math.cos(lon) };
 		}
 		

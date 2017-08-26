@@ -41,7 +41,7 @@ public class Tetrahedral {
 			final mfc.field.Complex z = mfc.field.Complex.fromPolar(
 					Math.pow(2, 5/6.)*Math.tan(Math.PI/4-lat/2), lon);
 			final mfc.field.Complex w = Dixon.invFunc(z);
-			return new double[] { w.abs()*1.186, w.arg() };
+			return new double[] { w.abs()*.3775, w.arg() };
 		}
 		
 		public double[] innerInverse(double r, double tht) {
@@ -62,7 +62,7 @@ public class Tetrahedral {
 		public double[] innerProject(double lat, double lon) {
 			final double tht = lon - Math.floor(lon/(2*Math.PI/3))*(2*Math.PI/3) - Math.PI/3;
 			return new double[] {
-					Math.atan(1/Math.tan(lat)*Math.cos(tht))/Math.cos(tht)*Math.PI/3/Math.atan(Math.sqrt(2)),
+					Math.atan(1/Math.tan(lat)*Math.cos(tht))/Math.cos(tht)/3/Math.atan(Math.sqrt(2)),
 					lon };
 		}
 		
@@ -98,7 +98,7 @@ public class Tetrahedral {
 			final double rmax = .5/Math.cos(thtP); //the max normalized radius of this triangle (in the plane)
 			final double rtgf = Math.atan(1/Math.tan(lat)*Math.cos(tht))/Math.atan(Math.sqrt(2))*rmax;
 			return new double[] {
-					(1 - Math.pow(1-rtgf,kRad))/(1 - Math.pow(1-rmax,kRad))*rmax*2*Math.PI/3,
+					(1 - Math.pow(1-rtgf,kRad))/(1 - Math.pow(1-rmax,kRad))*rmax*2/3,
 					thtP + t0 };
 		}
 		
@@ -140,7 +140,7 @@ public class Tetrahedral {
 			else 	rmax = .75 - 1.5972774*Math.pow(Math.PI/3-Math.abs(thtP),2)/2;
 			final double rtgf = Math.atan(1/Math.tan(lat)*Math.cos(tht))/Math.atan(Math.sqrt(2))*rmax; //normalized tetragraph radius
 			return new double[] {
-					(1 - Math.pow(1-rtgf,kRad))/(1 - Math.pow(1-rmax,kRad))*rmax*2*Math.PI/3,
+					(1 - Math.pow(1-rtgf,kRad))/(1 - Math.pow(1-rmax,kRad))*rmax*2/3,
 					thtP + t0
 			};
 		}
@@ -185,7 +185,7 @@ public class Tetrahedral {
 			final double rmax = Math.min(.5/Math.cos(thtP), .75/Math.cos(Math.PI/3-Math.abs(thtP))); //the max normalized radius of this triangle (in the plane)
 			final double rtgf = Math.atan(1/Math.tan(lat)*Math.cos(tht))/Math.atan(Math.sqrt(2))*rmax; //normalized tetragraph radius
 			return new double[] {
-					(1 - Math.pow(1-rtgf,kRad))/(1 - Math.pow(1-rmax,kRad))*rmax*2*Math.PI/3,
+					(1 - Math.pow(1-rtgf,kRad))/(1 - Math.pow(1-rmax,kRad))*rmax*2/3,
 					thtP + t0 };
 		}
 		
@@ -322,23 +322,23 @@ public class Tetrahedral {
 			case 0:
 				if (Math.sin(lon) < 0)
 					return new double[]
-							{-2*Math.PI/3 + rtht[0]*Math.sin(rtht[1]-Math.PI/6), -Math.PI/Math.sqrt(3) - rtht[0]*Math.cos(rtht[1]-Math.PI/6)}; // lower left
+							{-2/3. + rtht[0]*Math.sin(rtht[1]-Math.PI/6), -1/Math.sqrt(3) - rtht[0]*Math.cos(rtht[1]-Math.PI/6)}; // lower left
 				else
 					return new double[]
-							{2*Math.PI/3 - rtht[0]*Math.sin(rtht[1]-Math.PI/6), -Math.PI/Math.sqrt(3) + rtht[0]*Math.cos(rtht[1]-Math.PI/6)}; // lower right
+							{2/3. - rtht[0]*Math.sin(rtht[1]-Math.PI/6), -1/Math.sqrt(3) + rtht[0]*Math.cos(rtht[1]-Math.PI/6)}; // lower right
 			case 1:
 				if (Math.sin(lon) < 0)
 					return new double[]
-							{-2*Math.PI/3 + rtht[0]*Math.sin(rtht[1]-Math.PI/6), Math.PI/Math.sqrt(3) - rtht[0]*Math.cos(rtht[1]-Math.PI/6)}; // upper left
+							{-2/3. + rtht[0]*Math.sin(rtht[1]-Math.PI/6), 1/Math.sqrt(3) - rtht[0]*Math.cos(rtht[1]-Math.PI/6)}; // upper left
 				else
 					return new double[]
-							{2*Math.PI/3 - rtht[0]*Math.sin(rtht[1]-Math.PI/6), Math.PI/Math.sqrt(3) + rtht[0]*Math.cos(rtht[1]-Math.PI/6)}; // upper right
+							{2/3. - rtht[0]*Math.sin(rtht[1]-Math.PI/6), 1/Math.sqrt(3) + rtht[0]*Math.cos(rtht[1]-Math.PI/6)}; // upper right
 			case 2:
 				return new double[]
-						{Math.PI/3 + rtht[0]*Math.cos(rtht[1]), rtht[0]*Math.sin(rtht[1])}; // right
+						{1/3. + rtht[0]*Math.cos(rtht[1]), rtht[0]*Math.sin(rtht[1])}; // right
 			case 3:
 				return new double[]
-						{-Math.PI/3 - rtht[0]*Math.cos(rtht[1]), -rtht[0]*Math.sin(rtht[1])}; // left
+						{-1/3. - rtht[0]*Math.cos(rtht[1]), -rtht[0]*Math.sin(rtht[1])}; // left
 			default:
 				return null;
 			}

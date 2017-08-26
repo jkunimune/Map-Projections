@@ -38,7 +38,7 @@ public class Cylindrical {
 					"Mercator", 1., 0b0111, Type.CYLINDRICAL, Property.CONFORMAL, "very popular") {
 		
 		public double[] project(double lat, double lon) {
-			return new double[] {lon, Math.log(Math.tan(Math.PI/4+lat/2))};
+			return new double[] {lon/Math.PI, Math.log(Math.tan(Math.PI/4+lat/2))/Math.PI};
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -52,7 +52,7 @@ public class Cylindrical {
 					Type.CYLINDRICAL, Property.EQUIDISTANT, null, "focused on the equator"){
 	
 		public double[] project(double lat, double lon) {
-			return new double[] {lon, lat};
+			return new double[] {lon/Math.PI, lat/Math.PI};
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -73,9 +73,9 @@ public class Cylindrical {
 		
 		public double[] project(double lat, double lon) {
 			if (aspectRatio >= 1)
-				return new double[] {lon, lat/aspectRatio*2};
+				return new double[] {lon/Math.PI, 2*lat/Math.PI/aspectRatio};
 			else
-				return new double[] {lon*aspectRatio, 2*lat};
+				return new double[] {lon/Math.PI*aspectRatio, 2*lat/Math.PI};
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -85,11 +85,11 @@ public class Cylindrical {
 	
 	
 	public static final Projection GALL_PETERS =
-			new Projection("Gall-Peters", 1.571, 0b1111,
+			new Projection("Gall-Peters", Math.PI/2, 0b1111,
 					Type.CYLINDRICAL, Property.EQUAL_AREA, "somewhat controversial") {
 		
 		public double[] project(double lat, double lon) {
-			return new double[] {lon, Math.sin(lat)*Math.PI/1.571};
+			return new double[] {lon/Math.PI, Math.sin(lat)/aspectRatio};
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -103,7 +103,7 @@ public class Cylindrical {
 					"with least distortion at 37.5\u00B0") {
 		
 		public double[] project(double lat, double lon) {
-			return new double[] {lon, Math.sin(lat)*Math.PI/1.977};
+			return new double[] {lon/Math.PI, Math.sin(lat)/aspectRatio};
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -117,7 +117,7 @@ public class Cylindrical {
 					"with least distortion at 30\u00B0") {
 		
 		public double[] project(double lat, double lon) {
-			return new double[] {lon, Math.sin(lat)*Math.PI/2.356};
+			return new double[] {lon/Math.PI, Math.sin(lat)/aspectRatio};
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -131,7 +131,7 @@ public class Cylindrical {
 					Property.EQUAL_AREA, null, "with least distortion along the equator") {
 		
 		public double[] project(double lat, double lon) {
-			return new double[] {lon, Math.sin(lat)};
+			return new double[] {lon/Math.PI, Math.sin(lat)/aspectRatio};
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -152,9 +152,9 @@ public class Cylindrical {
 		
 		public double[] project(double lat, double lon) {
 			if (aspectRatio >= 1)
-				return new double[] {lon, Math.sin(lat)/aspectRatio*Math.PI};
+				return new double[] {lon/Math.PI, Math.sin(lat)/aspectRatio};
 			else
-				return new double[] {lon*aspectRatio, Math.sin(lat)*Math.PI};
+				return new double[] {lon*aspectRatio/Math.PI, Math.sin(lat)};
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -168,7 +168,7 @@ public class Cylindrical {
 					"Gall Stereographic", 4/3., 0b1111, Type.CYLINDRICAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
-			return new double[] {lon, Math.tan(lat/2)*(1+Math.sqrt(2))};
+			return new double[] {lon/Math.PI, Math.tan(lat/2)*(1+Math.sqrt(2))/Math.PI};
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -182,7 +182,7 @@ public class Cylindrical {
 					Type.CYLINDRICAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
-			return new double[] {lon, 1.25*Math.log(Math.tan(Math.PI/4+.8*lat/2))};
+			return new double[] {lon/Math.PI, 1.25*Math.log(Math.tan(Math.PI/4+.8*lat/2))/Math.PI};
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -190,4 +190,3 @@ public class Cylindrical {
 		}
 	};
 }
-

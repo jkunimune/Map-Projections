@@ -23,30 +23,12 @@
  */
 package utils;
 
-import java.awt.image.BufferedImage;
-
 /**
  * A collection of (currently just one) methods for dealing with images and coordinates
  * 
  * @author jkunimune
  */
 public class ImageUtils {
-	
-	public static int getArgb(double[] coords, BufferedImage input) { // returns the color of any coordinate on earth
-		if (coords == null) 	return 0;
-		
-		double x = 1/2.0 + coords[1]/(2*Math.PI);
-		x = (x - Math.floor(x)) * input.getWidth();
-		
-		double y = input.getHeight()*(.5 - coords[0]/Math.PI);
-		if (y < 0)
-			y = 0;
-		else if (y >= input.getHeight())
-			y = input.getHeight() - 1;
-		
-		return (0xFF000000) | input.getRGB((int) x, (int) y);
-	}
-	
 	
 	public static final int blend(int[] colors) {
 		return blend(colors, 2.2);

@@ -63,9 +63,9 @@ public class Conic {
 			}
 			final double r = F*Math.pow(Math.tan(Math.PI/4+lat/2), -n);
 			final double s = reversed ? -1 : 1;
-			final double x = s*Math.PI*r*Math.sin(n*lon);
-			final double y = s*Math.PI*(r0 - r*Math.cos(n*lon));
-			if (d > 0) 			return new double[] {x, y+Math.PI*d/2};
+			final double x = s*r*Math.sin(n*lon);
+			final double y = s*(r0 - r*Math.cos(n*lon));
+			if (d > 0) 			return new double[] {x, y+d/2};
 			else if (d < 0) 	return new double[] {-d*x, -d*y};
 			else 				return new double[] {x, y};
 		}
@@ -96,8 +96,10 @@ public class Conic {
 		private double m, n, s;
 		
 		public void setSpecificParameters() {
-			if (lat1 == -lat2) //degenerates into Equirectangular; indicate with m=0
+			if (lat1 == -lat2) { //degenerates into Equirectangular; indicate with m=0
 				this.m = 0;
+				Cylindrical.EQUIRECTANGULAR.setParameters(lat1);
+			}
 			else if (lat1 == lat2) //equation becomes indeterminate; use limit
 				this.m = 1/(1/Math.tan(lat1)/Math.PI + lat1/Math.PI + .5);
 			else //normal conic
@@ -124,9 +126,9 @@ public class Conic {
 			if (reversed) {
 				lat = -lat; lon = -lon;
 			}
-			final double r = Math.PI - m*lat - Math.PI*m/2;
+			final double r = 1 - m*lat/Math.PI - m/2;
 			final double x = s*r*Math.sin(n*lon);
-			final double y = Math.PI*(s-1/Math.max(aspectRatio,1)) - s*r*Math.cos(n*lon);
+			final double y = (s-1/Math.max(aspectRatio,1)) - s*r*Math.cos(n*lon);
 			if (reversed) 	return new double[] { -x, -y };
 			else 			return new double[] { x, y };
 		}
@@ -155,8 +157,10 @@ public class Conic {
 		private double n, C, s;
 		
 		public void setSpecificParameters() {
-			if (lat1 == -lat2) //degenerates into Equirectangular; indicate with n=0
+			if (lat1 == -lat2) { //degenerates into Equirectangular; indicate with n=0
 				this.n = 0;
+				Cylindrical.EQUAL_AREA.setParameters(lat1);
+			}
 			else //normal conic
 				this.n = (Math.sin(lat1) + Math.sin(lat2))/2;
 			
@@ -183,8 +187,8 @@ public class Conic {
 				lat = -lat; lon = -lon;
 			}
 			final double r = Math.sqrt(C - 2*n*Math.sin(lat))/n;
-			final double x = Math.PI*s*r*Math.sin(n*lon);
-			final double y = Math.PI*(s*Math.sqrt(C+2*n)/n-1/Math.max(aspectRatio,1)) - Math.PI*s*r*Math.cos(n*lon);
+			final double x = s*r*Math.sin(n*lon);
+			final double y = s*Math.sqrt(C+2*n)/n - 1/Math.max(aspectRatio,1) - s*r*Math.cos(n*lon);
 			if (reversed) 	return new double[] { -x, -y };
 			else 			return new double[] { x, y };
 		}

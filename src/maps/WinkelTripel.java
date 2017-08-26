@@ -36,10 +36,10 @@ import utils.NumericalAnalysis;
  * 
  * Ipb&uuml;ker, Cengizhan; Bildirici, I.&Ouml;ztug (2002). "A General Algorithm for the
  *  	Inverse Transformation of Map Projections Using Jacobian Matrices".
- *  	Proceedings of the Third International Symposium Mathematical &
- *  	Computational Applications. Third International Symposium Mathematical &
+ *  	Proceedings of the Third International Symposium Mathematical &amp;
+ *  	Computational Applications. Third International Symposium Mathematical &amp;
  *  	Computational Applications September 4-6, 2002. Konya, Turkey. Selcuk,
- *  	Turkey. pp. 175&mdash;182. Archived from the original on 20 October 2014.
+ *  	Turkey. pp. 175-182. Archived from the original on 20 October 2014.
  * 
  * @author jkunimune
  */
@@ -60,8 +60,7 @@ public final class WinkelTripel {
 		
 		public double[] inverse(double x, double y) {
 			return NumericalAnalysis.newtonRaphsonApproximation(
-					x*Math.PI*aspectRatio, y*Math.PI,
-					y*Math.PI/2, x*Math.PI*(1 + Math.cos(y*Math.PI/2))/2,
+					x*aspectRatio, y, y/2, x*(1 + Math.cos(y*Math.PI/2))/2,
 					this::f1pX, this::f2pY,
 					this::df1dphi, this::df1dlam, this::df2dphi, this::df2dlam, .002);
 		}
@@ -69,13 +68,14 @@ public final class WinkelTripel {
 		private double f1pX(double phi, double lam) {
 			final double d = D(phi,lam);
 			final double c = C(phi,lam);
-			return 2*d/Math.sqrt(c)*Math.cos(phi)*Math.sin(lam/2) + lam*(aspectRatio-1);
+			return 2/Math.PI*d/Math.sqrt(c)*Math.cos(phi)*Math.sin(lam/2)
+					+ lam/Math.PI*(aspectRatio-1);
 		}
 		
 		private double f2pY(double phi, double lam) {
 			final double d = D(phi,lam);
 			final double c = C(phi,lam);
-			return d/Math.sqrt(c)*Math.sin(phi) + phi;
+			return d/Math.sqrt(c)*Math.sin(phi)/Math.PI + phi/Math.PI;
 		}
 		
 		private double df1dphi(double phi, double lam) {

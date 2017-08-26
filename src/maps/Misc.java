@@ -44,8 +44,8 @@ public class Misc {
 		public double[] project(double lat, double lon) {
 			final double a = Math.acos(Math.cos(lat)*Math.cos(lon/2));
 			return new double[] {
-					2*Math.cos(lat)*Math.sin(lon/2)*a/Math.sin(a),
-					Math.sin(lat)*a/Math.sin(a)};
+					2*Math.cos(lat)*Math.sin(lon/2)*a/Math.sin(a)/Math.PI,
+					Math.sin(lat)*a/Math.sin(a)/Math.PI};
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -63,8 +63,8 @@ public class Misc {
 		
 		public double[] project(double lat, double lon) {
 			return new double[] {
-					Math.PI*Math.cos(lat)*Math.sin(lon/2)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2)),
-					Math.PI/2*Math.sin(lat)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2)) };
+					Math.cos(lat)*Math.sin(lon/2)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2)),
+					1/2.*Math.sin(lat)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2)) };
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -94,8 +94,8 @@ public class Misc {
 			final double P = G*(2/Math.sin(t) - 1);
 			final double Q = A*A + G;
 			return new double[] {
-					Math.PI*Math.signum(lon)*(A*(G-P*P)+Math.sqrt(A*A*(G-P*P)*(G-P*P)-(P*P+A*A)*(G*G-P*P)))/(P*P+A*A),
-					Math.PI*Math.signum(lat)*(P*Q-A*Math.sqrt((A*A+1)*(P*P+A*A)-Q*Q))/(P*P+A*A)};
+					Math.signum(lon)*(A*(G-P*P)+Math.sqrt(A*A*(G-P*P)*(G-P*P)-(P*P+A*A)*(G*G-P*P)))/(P*P+A*A),
+					Math.signum(lat)*(P*Q-A*Math.sqrt((A*A+1)*(P*P+A*A)-Q*Q))/(P*P+A*A)};
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -123,12 +123,14 @@ public class Misc {
 			new Projection("Peirce Quincuncial", "A conformal projection that uses complex elliptic functions",
 					1., 0b1001, Type.OTHER, Property.CONFORMAL) {
 		
+		private static final double K_RT_HALF = 1.854; //1.854 is approx K(sqrt(1/2))
+		
 		public double[] project(double lat, double lon) {
 			final double alat = Math.abs(lat);
 			final double wMag = Math.tan(Math.PI/4-alat/2);
 			final Complex w = new Complex(wMag*Math.sin(lon), -wMag*Math.cos(lon)); //this Complex comes from Apache Commons
 			final Complex k = new Complex(Math.sqrt(0.5));
-			Complex z = Elliptic.F(w.acos(),k).multiply(Math.PI/1.854).subtract(Math.PI).negate();
+			Complex z = Elliptic.F(w.acos(),k).multiply(1/K_RT_HALF).subtract(Math.PI).negate();
 			if (z.isInfinite() || z.isNaN())	z = new Complex(0);
 			double x = z.getReal(), y = z.getImaginary();
 			
@@ -146,7 +148,7 @@ public class Misc {
 		}
 		
 		public double[] inverse(double x, double y) {
-			mfc.field.Complex u = new mfc.field.Complex(1.854*(x+1), 1.854*y); //1.854 is approx K(sqrt(1/2)
+			mfc.field.Complex u = new mfc.field.Complex(K_RT_HALF*(x+1), K_RT_HALF*y);
 			mfc.field.Complex k = new mfc.field.Complex(Math.sqrt(0.5)); //the rest comes from some fancy complex calculus
 			mfc.field.Complex ans = Jacobi.cn(u, k);
 			double p = 2 * Math.atan(ans.abs());
@@ -161,6 +163,7 @@ public class Misc {
 			new Projection("Guyou", "Peirce Quincuncial, rearranged a bit", 2., 0b1001,
 					Type.OTHER, Property.CONFORMAL) {
 		
+		private final double K_RT_HALF = 1.854; //1.854 is approx K(sqrt(1/2))
 		private final double[] POLE = {0, -Math.PI/2, Math.PI/4};
 		
 		public double[] project(double lat, double lon) {
@@ -169,15 +172,15 @@ public class Misc {
 			final double wMag = Math.tan(Math.PI/4-alat/2);
 			final Complex w = new Complex(wMag*Math.sin(coords[1]), -wMag*Math.cos(coords[1]));
 			final Complex k = new Complex(Math.sqrt(0.5));
-			Complex z = Elliptic.F(w.acos(),k).multiply(new Complex(Math.PI/3.708,Math.PI/3.708)).subtract(new Complex(0,Math.PI/2));
+			Complex z = Elliptic.F(w.acos(),k).multiply(2*K_RT_HALF).subtract(new Complex(0,0.5));
 			if (z.isInfinite() || z.isNaN()) 	z = new Complex(0);
 			if (coords[0] < 0) 	z = z.conjugate().negate();
 			return new double[] {z.getReal(), z.getImaginary()};
 		}
 		
 		public double[] inverse(double x, double y) {
-			mfc.field.Complex u = new mfc.field.Complex(1.8558*(x - y/2 - 0.5), 1.8558*(x + y/2 + 0.5)); // don't ask me where 3.7116 comes from
-			mfc.field.Complex k = new mfc.field.Complex(Math.sqrt(0.5)); // the rest comes from some fancy complex calculus
+			mfc.field.Complex u = new mfc.field.Complex(x-y/2-.5, x+y/2+.5).times(K_RT_HALF);
+			mfc.field.Complex k = new mfc.field.Complex(Math.sqrt(0.5)); //just some fancy complex calculus stuff
 			mfc.field.Complex ans = Jacobi.cn(u, k);
 			double p = 2 * Math.atan(ans.abs());
 			double theta = ans.arg();
@@ -205,10 +208,12 @@ public class Misc {
 		}
 		
 		public double[] project(double lat, double lon) {
-			final double z = Math.acos(Math.sin(phi0)*Math.sin(lat) + Math.cos(phi0)*Math.cos(lat)*Math.cos(lon-lam0));
-			final double K = z/Math.sin(z);
+			final double z = Math.acos(Math.sin(phi0)*Math.sin(lat) +
+					Math.cos(phi0)*Math.cos(lat)*Math.cos(lon-lam0));
+			final double K = z/Math.sin(z)/Math.PI;
 			final double x = K*Math.cos(phi0)*Math.sin(lon-lam0);
-			final double y = -K*(Math.sin(phi0)*Math.cos(lat) - Math.cos(phi0)*Math.sin(lat)*Math.cos(lon-lam0));
+			final double y = -K*(Math.sin(phi0)*Math.cos(lat) -
+					Math.cos(phi0)*Math.sin(lat)*Math.cos(lon-lam0));
 			if (Math.cos(lon-lam0) < 0)
 				return new double[] {-x, -y};
 			else
@@ -269,8 +274,8 @@ public class Misc {
 					Math.tan(lat1)*Math.sin(lon0-lon2) +
 					Math.tan(lat2)*Math.sin(lon1-lon0));
 			return new double[] {
-					(d1*d1-d2*d2)/(2*D) * Math.PI/a,
-					s*Math.sqrt(d1*d1 - Math.pow((d1*d1-d2*d2+D*D)/(2*D), 2)) * Math.PI/a };
+					(d1*d1-d2*d2)/(2*D)/a,
+					s*Math.sqrt(d1*d1 - Math.pow((d1*d1-d2*d2+D*D)/(2*D), 2))/a };
 		}
 		
 		public double[] inverse(double x, double y, double[] pole) {

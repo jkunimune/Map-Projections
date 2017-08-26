@@ -21,11 +21,9 @@ The executable applications all have similar layouts that let you select an inpu
 ## Dependencies
 While the excecutables are standalone, and the Jars require only Java, the source code makes use of several external libraries. These are
 
-* Apache commons `math3`
-* "mfc"
-* "ellipticFunctions"
-
-To be perfectly honest, I don't remember where I got most of these. Oops. It looks like they might be German. I would recommend looking the `de.jtem` package from (math.tu-berlin.de)[www3.math.tu.berlin.de/jtem/].
+* [Apache Commons Mathematics Library](https://commons.apache.org/proper/commons-math/)
+* [Java Tools for Experimental Mathematics "ellipticFunctions" package](http://www3.math.tu-berlin.de/jtem/ellipticFunctions/), which requires their ["mfc" package](http://www3.math.tu-berlin.de/jtem/mfc/)
+* [Apache Batik Java SVG Toolkit](https://xmlgraphics.apache.org/batik/)
 
 ## Wherefore?
 I'll write a little blurb here later.

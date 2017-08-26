@@ -42,6 +42,7 @@ import maps.Tetrahedral;
 import maps.Tobler;
 import maps.WinkelTripel;
 import utils.ImageUtils;
+import utils.PixelMap;
 
 /**
  * A program to generate and output an HTML snippet listing and explaining all of my maps
@@ -74,8 +75,8 @@ public class MapExplainer {
 	public static void main(String[] args) throws IOException {
 		
 		new File("images").mkdirs();
-		final BufferedImage inputSkew = ImageIO.read(new File("input/Tissot-alt2.jpg"));
-		final BufferedImage inputPole = ImageIO.read(new File("input/Tissot-alt1.jpg"));
+		final PixelMap inputSkew = new PixelMap(new File("input/Tissot-alt2.jpg"));
+		final PixelMap inputPole = new PixelMap(new File("input/Tissot-alt1.jpg"));
 		final PrintStream out = System.out;
 		
 		for (Projection[] projs: ALL_PROJECTIONS) {
@@ -124,7 +125,7 @@ public class MapExplainer {
 	}
 	
 	
-	private static BufferedImage makeImage(Projection proj, BufferedImage input) {
+	private static BufferedImage makeImage(Projection proj, PixelMap input) {
 		proj.setParameters(proj.getDefaultParameters());
 		final BufferedImage out = new BufferedImage(
 				IMG_WIDTH, (int) (IMG_WIDTH/proj.getAspectRatio()), BufferedImage.TYPE_INT_ARGB);
@@ -135,8 +136,9 @@ public class MapExplainer {
 					for (int dx = 0; dx < SMOOTHING; dx ++) {
 						final double X = 2*(x+(dx+.5)/SMOOTHING)/out.getWidth()-1;
 						final double Y = 1-2*(y+(dy+.5)/SMOOTHING)/out.getHeight();
-						colors[SMOOTHING*dy+dx] = ImageUtils.getArgb(
-								proj.inverse(X, Y), input);
+						final double[] coords = proj.inverse(X, Y);
+						if (coords != null)
+							colors[SMOOTHING*dy+dx] = input.getArgb(coords[0], coords[1]);
 					}
 				}
 				out.setRGB(x, y, ImageUtils.blend(colors));

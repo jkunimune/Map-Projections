@@ -29,8 +29,8 @@ import maps.Projection.Property;
 import maps.Projection.Type;
 
 /**
- * All of the projections I invented, save the tetrahedral ones,
- * because those have so much in common with other tetrahedral projections.
+ * All of the projections I invented, save the tetrahedral ones, because
+ * those have so much in common with other tetrahedral projections.
  * 
  * @author jkunimune
  */
@@ -44,8 +44,7 @@ public class MyProjections {
 		public double[] project(double lat, double lon) {
 			final double p = 1/2.0+lat/Math.PI;
 			final double fp = 1 - 0.1*p - 0.9*Math.pow(p,7);
-			final double r = Math.PI*fp;
-			return new double[] { r*Math.sin(lon), -r*Math.cos(lon) };
+			return new double[] { fp*Math.sin(lon), -fp*Math.cos(lon) };
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -67,13 +66,13 @@ public class MyProjections {
 		public double[] project(double lat, double lon) {
 			final double wMag = Math.tan(Math.PI/4-lat/2);
 			final Complex w = new Complex(wMag*Math.sin(lon), -wMag*Math.cos(lon));
-			Complex z = w.asin();
+			Complex z = w.asin().divide(3);
 			if (z.isInfinite() || z.isNaN())	z = new Complex(0);
 			return new double[] { z.getReal(), z.getImaginary() };
 		}
 		
 		public double[] inverse(double x, double y) {
-			Complex z = new Complex((x+1)*Math.PI, y*Math.PI);
+			Complex z = new Complex(3*x+3, y*3);
 			Complex ans = z.sin();
 			double p = 2 * Math.atan(ans.abs());
 			double theta = ans.getArgument() - Math.PI/2;
@@ -92,8 +91,8 @@ public class MyProjections {
 			final double a = Math.PI - Math.acos(Math.cos(lat)*Math.cos(lon/2));
 			final double b = Math.acos(Math.sin(lat)/Math.sin(a));
 			return new double[] {
-					Math.PI*Math.signum(lon)/Math.tan(a/2)*Math.sin(b),
-					Math.PI/2/Math.tan(a/2)*Math.cos(b) };
+					Math.signum(lon)/Math.tan(a/2)*Math.sin(b),
+					Math.cos(b)/Math.tan(a/2)/2 };
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -123,8 +122,8 @@ public class MyProjections {
 		public double[] project(double lat, double lon) {
 			final double ynorm = (1-Math.pow(1-Math.abs(lat/(Math.PI/2)), n));
 			return new double[] {
-					Math.pow(1 - Math.pow(ynorm, k),1/k)*lon,
-					ynorm*Math.PI/2/Math.sqrt(n)*a*Math.signum(lat) };
+					Math.pow(1 - Math.pow(ynorm, k),1/k)*lon/Math.PI,
+					ynorm/2/Math.sqrt(n)*a*Math.signum(lat) };
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -158,7 +157,7 @@ public class MyProjections {
 			final double d2 = Math.acos(
 					Math.sin(lat)*Math.cos(theta) + Math.cos(lat)*Math.sin(theta)*Math.cos(lon));
 			final double k = Math.signum(lon)*Math.sqrt(Math.tan(theta)/theta);
-			final double s = Math.PI/(Math.PI-theta/2);
+			final double s = 1/(Math.PI-theta/2);
 			return new double[] {
 					s*k*Math.sqrt(d1*d1 - Math.pow((d1*d1-d2*d2+4*theta*theta)/(4*theta), 2)),
 					s*(d2*d2-d1*d1)/(4*theta) };

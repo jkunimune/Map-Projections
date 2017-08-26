@@ -55,8 +55,8 @@ public class Robinson {
 		
 		public double[] project(double lat, double lon) {
 			return new double[] {
-					lon*smartInterpolate(Math.toDegrees(lat), TABLE[0], TABLE[1], ORDER),
-					Math.PI/2*smartInterpolate(Math.toDegrees(lat), TABLE[0], TABLE[2], ORDER) };
+					lon/Math.PI*smartInterpolate(Math.toDegrees(lat), TABLE[0], TABLE[1], ORDER),
+					.5*smartInterpolate(Math.toDegrees(lat), TABLE[0], TABLE[2], ORDER) };
 		}
 		
 		public double[] inverse(double x, double y) {

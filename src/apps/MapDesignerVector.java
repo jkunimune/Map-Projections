@@ -22,16 +22,16 @@
  * SOFTWARE.
  */
 package apps;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.DoubleConsumer;
+
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.xml.sax.SAXException;
 
 import dialogs.ProgressBarDialog;
 import javafx.application.Platform;
@@ -58,8 +58,10 @@ import maps.Robinson;
 import maps.Tetrahedral;
 import maps.Tobler;
 import maps.WinkelTripel;
-import utils.Math2;
 import utils.Procedure;
+import utils.SVGMap;
+import utils.SVGMap.Command;
+import utils.SVGMap.Path;
 
 /**
  * An application to make vector oblique aspects of map projections
@@ -96,10 +98,7 @@ public class MapDesignerVector extends MapApplication {
 	private Node aspectSelector;
 	private Button saveBtn;
 	private double[] aspect;
-	private List<String> format;
-	private List<List<double[]>> input;
-	private double minX, maxX, minY, maxY;
-	private int numVtx;
+	private SVGMap input;
 	private Canvas viewer;
 	
 	
@@ -154,13 +153,16 @@ public class MapDesignerVector extends MapApplication {
 		saveBtn.setDisable(true);
 		
 		try {
-			input = loadSVG(file.getAbsolutePath());
-		} catch (IllegalArgumentException e) {
-			showError("Unreadable file!",
-					"We couldn't read "+file.getAbsolutePath()+". It may be corrupt or an unreadable format.");
+			input = new SVGMap(file);
 		} catch (IOException e) {
 			showError("File not found!",
 					"We couldn't find "+file.getAbsolutePath()+".");
+		} catch (SAXException e) {
+			showError("Unreadable file!",
+					"We couldn't read "+file.getAbsolutePath()+". It may be corrupt or an unreadable format.");
+		} catch (ParserConfigurationException e) {
+			// TODO: Handle this
+			e.printStackTrace();
 		} finally {
 			saveBtn.setDisable(false);
 		}
@@ -168,71 +170,6 @@ public class MapDesignerVector extends MapApplication {
 		updateMap();
 	}
 	
-	
-	private List<List<double[]>> loadSVG(String filename) throws IOException { // this method is just awful.
-		input = new ArrayList<List<double[]>>();
-		format = new ArrayList<String>();
-		minX = minY = Integer.MAX_VALUE;
-		maxX = maxY = Integer.MIN_VALUE;
-		numVtx = 0;
-		
-		BufferedReader in = new BufferedReader(new FileReader(filename));
-		String formatStuff = "";
-		int c = in.read();
-		
-		do {
-			formatStuff += (char)c;
-			if (formatStuff.length() >= 4 &&
-					formatStuff.substring(formatStuff.length()-4).equals(" d=\"")) {
-				format.add(formatStuff);
-				formatStuff = "";
-				List<double[]> currentShape = new ArrayList<double[]>();
-				c = in.read();
-				do {
-					if (c == 'Z') {
-						input.add(currentShape);
-						currentShape = new ArrayList<double[]>();
-						format.add("");
-					}
-					if (isDigit((char) c)) {
-						String num = Character.toString((char)c);
-						while (isDigit((char) (c = in.read())))
-							num += (char) c;
-						double x = Double.parseDouble(num);
-						if (x < minX)	minX = x;
-						if (x > maxX)	maxX = x;
-						c = in.read();
-						num = Character.toString((char)c);
-						while (isDigit((char) (c = in.read())))
-							num += (char) c;
-						double y = Double.parseDouble(num);
-						if (y < minY)	minY = y;
-						if (y > maxY)	maxY = y;
-						currentShape.add(new double[] {x,y});
-						numVtx ++;
-					}
-					else {
-						c = in.read();
-					}
-				} while (c != '"');
-			}
-			else {
-				c = in.read();
-			}
-		} while (c >= 0);
-		
-		format.add(formatStuff);
-		in.close();
-		
-		for (List<double[]> curve: input) {
-			for (double[] coords: curve) {
-				final double[] radCoords = convCoordsToMathy(coords);
-				coords[0] = radCoords[0];
-				coords[1] = radCoords[1];
-			}
-		}
-		return input;
-	}
 	
 	
 	private void hideAspect() {
@@ -243,112 +180,63 @@ public class MapDesignerVector extends MapApplication {
 	private void updateMap() {
 		loadParameters();
 		int maxVtx = this.getParamsChanging() ? FAST_MAX_VTX : DEF_MAX_VTX;
-		final List<List<double[]>> transformed = map(input, numVtx/maxVtx+1, aspect.clone(), null);
-		Platform.runLater(() -> drawImage(transformed, viewer));
+		final Iterable<Path> transformed = map(input, input.size()/maxVtx+1, aspect.clone(), null);
+		drawImage(transformed, viewer);
 	}
 	
 	
 	private void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
 		loadParameters();
-		final List<List<double[]>> transformed = map(input, 1, aspect.clone(), pBar::setProgress); //calculate
-		saveToSVG(transformed, file, pBar); //save
+		final Iterable<Path> transformed = map(input, 1, aspect.clone(), pBar::setProgress); //calculate
+		try {
+			input.save(transformed, file, pBar::setProgress); //save
+		} catch (IOException e) {
+			showError("Failure!",
+					"Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
+		}
 	}
 	
 	
-	public List<List<double[]>> map(List<List<double[]>> curves, int step,
-			double[] pole, DoubleConsumer tracker) {
-		List<List<double[]>> output = new LinkedList<List<double[]>>();
+	public Iterable<Path> map(SVGMap input, int step, double[] pole, DoubleConsumer tracker) {
+		List<Path> output = new LinkedList<Path>();
 		int i = 0;
-		for (List<double[]> curve0: curves) {
-			if (curve0.size() < step*3)	continue;
+		for (Path path0: input) {
+			if (path0.length() < step*3) 	continue;
 			
-			List<double[]> curve1 = new ArrayList<double[]>(curve0.size()/step);
-			for (int j = 0; j < curve0.size(); j += step)
-				curve1.add(this.getProjection().project(curve0.get(j), pole));
-			output.add(curve1);
+			Path path1 = new Path();
+			int counter = 0;
+			for (Command cmd0: path0) {
+				counter --;
+				if (counter > 0 && cmd0.type != 'M' && cmd0.type != 'Z') 	continue;
+				counter = step;
+				
+				Command cmd1 = new Command(cmd0.type, new double[cmd0.args.length]);
+				for (int k = 0; k < cmd0.args.length; k += 2) {
+					System.arraycopy(
+							this.getProjection().project(cmd0.args[k+1], cmd0.args[k], pole), 0,
+							cmd1.args, k, 2);
+				}
+				path1.add(cmd1);
+			}
+			output.add(path1);
 			
 			if (tracker != null) {
 				i ++;
-				tracker.accept((double)i/curves.size());
+				tracker.accept((double)i/input.numCurves());
 			}
 		}
 		return output;
 	}
 	
 	
-	private void drawImage(List<List<double[]>> img, Canvas c) {
+	private void drawImage(Iterable<Path> paths, Canvas c) {
 		GraphicsContext g = c.getGraphicsContext2D();
 		g.clearRect(0, 0, c.getWidth(), c.getHeight());
-		for (List<double[]> closedCurve: img) {
-			final double[] start = convCoordsToImg(closedCurve.get(0));
-			g.beginPath();
-			g.moveTo(start[0], start[1]);
-			for (int i = 1; i < closedCurve.size()+1; i ++) {
-				double[] p0 = convCoordsToImg(closedCurve.get(i-1));
-				double[] p1 = convCoordsToImg(closedCurve.get(i%closedCurve.size()));
-				if (Math.hypot(p1[0]-p0[0], p1[1]-p0[1]) >= c.getWidth()/8) {
-					g.stroke();
-					g.beginPath();
-					g.moveTo(p1[0], p1[1]);
-				}
-				else
-					g.lineTo(p1[0], p1[1]);
-			}
-			g.stroke();
+		g.beginPath();
+		for (Path path: paths) {
+			g.appendSVGPath(path.toString(0, 0, IMG_WIDTH, IMG_WIDTH));
 		}
-	}
-	
-	
-	private void saveToSVG(List<List<double[]>> curves, File file,
-			ProgressBarDialog pBar) {
-		try {
-			BufferedWriter out = new BufferedWriter(new FileWriter(file));
-			
-			for (int i = 0; i < curves.size(); i ++) {
-				out.write(format.get(i));
-				String curveCode = "M";
-				for (double[] r: curves.get(i)) {
-					final double[] p = convCoordsToSVG(r);
-					curveCode += p[0]+" "+p[1]+"L";
-				}
-				out.write(curveCode.substring(0,curveCode.length()-2)+"Z");
-				pBar.setProgress((double)i/curves.size());
-			}
-			out.write(format.get(curves.size()));
-			out.close();
-			
-		} catch (IOException e) {
-			showError("Failure!",
-					"Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
-		}
-		saveBtn.setDisable(false);
-	}
-	
-	
-	private double[] convCoordsToMathy(double... coords) { // changes svg coordinates to radians
-		final double NORTHMOST = 1.459095; //TODO: use image height and width
-		final double SOUTHMOST = -1.4868809;
-		final double EASTMOST = -Math.PI;
-		final double WESTMOST = Math.PI;
-		return new double[] {Math2.linInterp(coords[1], minY,maxY, SOUTHMOST,NORTHMOST),
-				Math2.linInterp(coords[0], minX,maxX, EASTMOST,WESTMOST)};
-	}
-	
-	
-	private double[] convCoordsToImg(double... coords) { // changes [-1,1] coordinates to image coordinates
-		return new double[] {Math2.linInterp(coords[0], -Math.PI,Math.PI, 0,IMG_WIDTH),
-				Math2.linInterp(coords[1], -Math.PI,Math.PI, IMG_WIDTH,0)};
-	}
-	
-	
-	private double[] convCoordsToSVG(double... coords) { // changes image coordinates to svg coordinates
-		return new double[] {Math2.linInterp(coords[0], -Math.PI,Math.PI, -180,180), //TODO: use image height and width
-				Math2.linInterp(coords[1], -Math.PI,Math.PI, -180,180)};
-	}
-	
-	
-	private static final boolean isDigit(char c) {
-		return c >= '-' && c <= '9';
+		g.stroke();
 	}
 
 }

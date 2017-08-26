@@ -70,8 +70,8 @@ public class Tobler {
 				y = Math2.linInterp(z0, Z[-i-2], Z[-i-1], -i-2, -i-1)/
 						(Z.length-1.);
 			return new double[] {
-					lon * Math.abs(alpha + (1-alpha)*hyperEllipse(y)),
-					y * Math.signum(lat)/aspectRatio*Math.PI };
+					lon * Math.abs(alpha + (1-alpha)*hyperEllipse(y))/Math.PI,
+					y * Math.signum(lat)/aspectRatio };
 		}
 		
 		public double[] inverse(double x, double y) {

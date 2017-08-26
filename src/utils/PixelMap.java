@@ -21,30 +21,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package maps;
+package utils;
 
-import maps.Projection.Property;
-import maps.Projection.Type;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
 
 /**
- * A polyhedral projection that's so interrupted it can get away with gnomonic
+ * An input equirectangular map based on a raster image file
  * 
  * @author jkunimune
  */
-public class Waterman {
+public class PixelMap {
 	
-	public static final Projection WATERMAN =
-			new Projection(
-					"Waterman Butterfly", "An aesthetically pleasing octohedral map arrangement",
-					0, 0b1110, Type.POLYHEDRAL, Property.COMPROMISE) {
-		
-		public double[] project(double lat, double lon) {
-			return null; //TODO: projection wishlist
-		}
-		
-		public double[] inverse(double x, double y) {
-			return null; //TODO: projection wishlist
-		}
-	};
+	private BufferedImage pixels;
 	
+	
+	public PixelMap(File f) throws IOException {
+		pixels = ImageIO.read(f);
+	}
+	
+	
+	public int getArgb(double lat, double lon) {
+		double x = 1/2.0 + lon/(2*Math.PI);
+		x = (x - Math.floor(x)) * pixels.getWidth();
+		
+		double y = pixels.getHeight()*(.5 - lat/Math.PI);
+		if (y < 0)
+			y = 0;
+		else if (y >= pixels.getHeight())
+			y = pixels.getHeight() - 1;
+		
+		return (0xFF000000) | pixels.getRGB((int) x, (int) y);
+	}
 }
