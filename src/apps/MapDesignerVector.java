@@ -249,17 +249,21 @@ public class MapDesignerVector extends MapApplication {
 					break;
 				case 'L':
 				case 'T':
-					if (Math.hypot(args[0]-lastX, args[1]-lastY) < IMG_WIDTH/4) // break lines that are too long
-						g.lineTo(args[0], args[1]);
-					else
-						g.moveTo(args[0], args[1]);
+					for (int i = 0; i < args.length; i += 2)
+						if (Math.hypot(args[i+0]-lastX, args[i+1]-lastY) < IMG_WIDTH/4) // break lines that are too long
+							g.lineTo(args[i+0], args[i+1]);
+						else
+							g.moveTo(args[i+0], args[i+1]);
 					break;
 				case 'Q':
 				case 'S':
-					g.quadraticCurveTo(args[0], args[1], args[2], args[3]);
+					for (int i = 0; i < args.length; i += 4)
+						g.quadraticCurveTo(args[i+0], args[i+1], args[i+2], args[i+3]);
 					break;
 				case 'C':
-					g.bezierCurveTo(args[0], args[1], args[2], args[3], args[4], args[5]);
+					for (int i = 0; i < args.length; i += 6)
+						g.bezierCurveTo(
+								args[i+0], args[i+1], args[i+2], args[i+3], args[i+4], args[i+5]);
 					break;
 				case 'Z':
 					if (Math.hypot(startX-lastX, startY-lastY) < IMG_WIDTH/4)

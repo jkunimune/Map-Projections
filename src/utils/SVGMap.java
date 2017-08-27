@@ -58,7 +58,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 	
 	private List<Path> paths; //the set of closed curves in this image
 	private List<String> format; //the stuff that goes between the curve descriptions, probably important for something.
-	private int minX, minY, width, height; //the SVG viewBox
+	private double minX, minY, width, height; //the SVG viewBox
 	private int size; //the total number of path commands, for optimization purposes
 	
 	
@@ -114,11 +114,13 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			}
 			
 			private void parseViewBox(String viewBox) {
-				String[] values = viewBox.split("\\s", 4);
-				minX = Integer.parseInt(values[0]);
-				minY = Integer.parseInt(values[1]);
-				width = Integer.parseInt(values[2]);
-				height = Integer.parseInt(values[3]);
+				if (viewBox != null) {
+					String[] values = viewBox.split("\\s", 4);
+					minX = Double.parseDouble(values[0]);
+					minY = Double.parseDouble(values[1]);
+					width = Double.parseDouble(values[2]);
+					height = Double.parseDouble(values[3]);
+				}
 			}
 			
 			private void parseTransform() {
@@ -245,13 +247,35 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 					i ++;
 					argString += d.charAt(i);
 				}
+				i ++;
 				
 				String[] argStrings;
-				if (argString.isEmpty()) 	argStrings = new String[0];
-				else 						argStrings = argString.trim().split("[\\s,]+");
-				double[] args = new double[argStrings.length];
+				if (argString.trim().isEmpty()) 	argStrings = new String[0];
+				else 								argStrings = argString.trim().split("[\\s,]+");
+				final double[] args;
+				
+				if (type == 'h' || type == 'H' || type == 'v' || type == 'V') { //convert these to 'L'
+					final int chgIdx = (type%32 == 8) ? 0 : 1;
+					args = new double[] {last[0], last[1]};
+					if (type <= 'Z') 	args[chgIdx] = Double.parseDouble(argStrings[0]); //uppercase (absolute)
+					else 				args[chgIdx] += Double.parseDouble(argStrings[0]); //lowercase (relative)
+					last[chgIdx] = args[chgIdx];
+					type = 'L';
+				}
+				else {
+					args = new double[argStrings.length];
+					for (int j = 0; j < args.length; j ++) {
+						args[j] = Double.parseDouble(argStrings[j]); //parse the coordinate
+						
+						if (type >= 'a')
+							args[j] += last[j%2]; //account for relative commands
+						last[j%2] = args[j];
+					}
+					if (type >= 'a') //make all letters uppercase
+						type -= 32;
+				}
+				
 				for (int j = 0; j < args.length; j ++) {
-					args[j] = Double.parseDouble(argStrings[j]); //parse the coordinate
 					if (j%2 == 0) {
 						args[j] = args[j]*transform[0] + transform[2]; //apply the transformation
 						args[j] = Math2.linInterp(args[j], vbMinX, vbMinX+vbWidth,
@@ -263,18 +287,8 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 								-Math.PI/2, Math.PI/2); //not latitude-longitude, as they are elsewhere
 					}
 				}
-				if (type >= 'a') { //make all letters uppercase
-					type -= 32;
-					for (int j = 0; j < args.length; j ++)
-						args[j] += last[j%2];
-				}
-				if (args.length >= 2) {
-					last[0] = args[args.length-2];
-					last[1] = args[args.length-1];
-				}
 				
 				commands.add(new Command(type, args));
-				i ++;
 			}
 		}
 		
