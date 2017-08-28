@@ -31,7 +31,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -44,6 +43,7 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
+import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
@@ -76,12 +76,39 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			
 			@Override
 			public InputSource resolveEntity(String publicId, String systemId) {
-				return new InputSource(new StringReader("")); //ignore all external references - we don't need them
+				return new InputSource(new StringReader("")); //ignore all external references - we don't need to validate
 			}
 			
 			@Override
-			public void startElement(String uri, String localName, String qName, Attributes attributes) {
+			public void notationDecl(String name, String publicId, String systemId) {
+				System.out.println("notatien: "+name+", "+publicId+", "+systemId);
+			}
+			
+			@Override
+			public void setDocumentLocator(Locator locator) {
+				System.out.println("The locator is now "+locator);
+			}
+			
+			@Override
+			public void startDocument() {
+				System.out.println("begin!");
+			}
+			
+			@Override
+			public void unparsedEntityDecl(
+					String name, String publicId, String systemId, String notationName) {
+				System.out.println("unparsed entity: "+name+", "+publicId+", "+systemId+", "+notationName);
+			}
+			
+			@Override
+			public void startElement(
+					String uri, String localName, String qName, Attributes attributes) {
 				currentFormatString += "<"+qName;
+				
+				if (attributes.getIndex("transform") >= 0)
+					parseTransform(attributes.getValue("transform"));
+				else
+					parseTransform();
 				
 				if (qName.equals("path"))
 					parsePath(attributes.getValue("d"));
@@ -92,13 +119,8 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 					if (!attributes.getQName(i).equals("d") && //d is already taken care of
 							!attributes.getQName(i).equals("transform")) //there shall be no transforms in the final output
 						currentFormatString +=
-								" "+attributes.getQName(i)+"="+attributes.getValue(i);
-				currentFormatString += ">\n";
-				
-				if (attributes.getIndex("transform") >= 0)
-					parseTransform(attributes.getValue("transform"));
-				else
-					parseTransform();
+								" "+attributes.getQName(i)+"=\""+attributes.getValue(i)+"\"";
+				currentFormatString += ">";
 			}
 			
 			@Override
@@ -111,6 +133,11 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			public void characters(char[] ch, int start, int length) {
 				for (int i = 0; i < length; i ++)
 					currentFormatString += ch[start+i];
+			}
+			
+			@Override
+			public void endDocument() {
+				format.add(currentFormatString);
 			}
 			
 			private void parseViewBox(String viewBox) {
@@ -197,16 +224,18 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 	}
 	
 	
-	public void save(Iterable<Path> paths, File file, DoubleConsumer tracker) throws IOException {
+	public void save(List<Path> paths, File file, DoubleConsumer tracker) throws IOException {
 		BufferedWriter out = new BufferedWriter(new FileWriter(file));
 		
+		int i = 0;
 		final Iterator<String> formatIterator = format.iterator();
 		final Iterator<Path> curveIterator = paths.iterator();
 		while (curveIterator.hasNext()) {
 			out.write(formatIterator.next());
 			out.write(curveIterator.next().toString(
 					minX, minY, Math.min(width, height), Math.min(width, height)));
-//			tracker.accept((double)i/curves.size());
+			tracker.accept((double)i/paths.size());
+			i ++;
 		}
 		out.write(formatIterator.next());
 		out.close();
@@ -254,6 +283,10 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 				else 								argStrings = argString.trim().split("[\\s,]+");
 				final double[] args;
 				
+				if (type == 'a' || type == 'A') {
+					type += 11;
+					argStrings = new String[] {argStrings[3], argStrings[4]};
+				}
 				if (type == 'h' || type == 'H' || type == 'v' || type == 'V') { //convert these to 'L'
 					final int chgIdx = (type%32 == 8) ? 0 : 1;
 					args = new double[] {last[0], last[1]};

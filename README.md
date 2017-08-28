@@ -6,7 +6,12 @@ If you are a fancy Windows user, I recommend the convenient [fancy Windows binar
 
 If you are not on Windows or are otherwise not fancy enough to deserve such executables, simply double-click on the .jar files in the main directory and, if you have [Java](https://java.com/en/download/) installed (10/10 would recommend), it should just run without any set-up.
 
-## Features
+You could also compile and run the source code, but if you do, there are a few dependencies. All of them can be obtained as .jar files:
+
+* [Apache Commons Mathematics Library](http://commons.apache.org/proper/commons-math/download_math.cgi)
+* [Java Tools for Experimental Mathematics "ellipticFunctions" package](http://www3.math.tu-berlin.de/jtem/downloads.html), which requires their "mfc" package
+
+## Usage
 There are three executable files and three other runnable Java scripts. These are, in order:
 
 * `MapDesignerRaster.jar` &ndash; The original program. Create custom oblique raster images of the Earth's surface using a variety of algorithms called _projections_.  
@@ -18,14 +23,21 @@ There are three executable files and three other runnable Java scripts. These ar
 
 The executable applications all have similar layouts that let you select an input equirectangular map, a projection, an aspect (where the North Pole is situated with respect to the projection), and parameters if applicable. Go crazy! There are a practically unlimited number of combinations.
 
-## Dependencies
-While the excecutables are standalone, and the Jars require only Java, the source code makes use of several external libraries. These are
-
-* [Apache Commons Mathematics Library](https://commons.apache.org/proper/commons-math/)
-* [Java Tools for Experimental Mathematics "ellipticFunctions" package](http://www3.math.tu-berlin.de/jtem/ellipticFunctions/), which requires their ["mfc" package](http://www3.math.tu-berlin.de/jtem/mfc/)
-* [Apache Batik Java SVG Toolkit](https://xmlgraphics.apache.org/batik/)
+The runnable scripts just kind of work on their own. Those ones aren't really meant for mass consumption.
 
 ## Wherefore?
 I'll write a little blurb here later.
 
-For more information go to [jkunimune15.github.io/Map-Projections](https://jkunimune15.github.io/Map-Projections).
+For some examples, check out the `output` folder. For more information, go to [jkunimune15.github.io/Map-Projections](https://jkunimune15.github.io/Map-Projections).
+
+## Credits
+While I wrote all of the code in this repository myself, and I created several of the simpler images from scratch, other people did help. Here's a comprehensive list.
+* *The NASA* for [Basic.jpg](https://visibleearth.nasa.gov/view.php?id=57730), [Satellite.jpg](https://visibleearth.nasa.gov/view.php?id=57752), and [Altitude.jpg](https://asterweb.jpl.nasa.gov/gdem.asp)
+* *Tom Patterson* for [Pastel.jpg](http://www.shadedrelief.com/natural3/pages/textures.html) and [Rivers.jpg](http://www.shadedrelief.com/natural3/pages/extra.html)
+* *RokerHRO* for [the indicatrix layer of Tissot.jpg](https://commons.wikimedia.org/wiki/File:Tissot_10deg.png)
+* *The CIA* for [Basic.svg](https://commons.wikimedia.org/wiki/File:BlankMap-World6-Equirectangular.svg)
+* *Crates* for [Landmasses.svg](https://commons.wikimedia.org/wiki/File:World_map_blank_without_borders.svg)
+* *Eric Gaba* for [Tissot.svg](https://commons.wikimedia.org/wiki/File:Tissot_indicatrix_world_map_equirectangular_proj.svg)
+* *The Apache Commons* for their [complex mathematics code](https://commons.apache.org/proper/commons-math/)
+* *Technische Universit&auml;t Berlin* for their [complex mathematics code](http://www3.math.tu-berlin.de/jtem/ellipticFunctions/)
+* Wikipedia for their [impressive collection of map projection information and equations](https://en.wikipedia.org/wiki/List_of_map_projections)

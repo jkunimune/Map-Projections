@@ -24,7 +24,6 @@
 package apps;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.DoubleConsumer;
@@ -34,7 +33,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 
 import dialogs.ProgressBarDialog;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -187,7 +185,7 @@ public class MapDesignerVector extends MapApplication {
 	
 	private void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
 		loadParameters();
-		final Iterable<Path> transformed = map(input, 1, aspect.clone(), pBar::setProgress); //calculate
+		final List<Path> transformed = map(input, 1, aspect.clone(), pBar::setProgress); //calculate
 		try {
 			input.save(transformed, file, pBar::setProgress); //save
 		} catch (IOException e) {
@@ -197,7 +195,7 @@ public class MapDesignerVector extends MapApplication {
 	}
 	
 	
-	public Iterable<Path> map(SVGMap input, int step, double[] pole, DoubleConsumer tracker) {
+	public List<Path> map(SVGMap input, int step, double[] pole, DoubleConsumer tracker) {
 		List<Path> output = new LinkedList<Path>();
 		int i = 0;
 		for (Path path0: input) {
