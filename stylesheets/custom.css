@@ -22,17 +22,22 @@ dt {
 
 .col-left {
 	float:left;
-	position:relative;
-	min-height:1px;
 	width:100%;
 }
 .col-right {
 	float:right;
-	position:relative;
-	min-height:1px;
 	width:100%;
 }
-@media (min-width: 768px) {}
+@media (min-width: 480px) {
+	.col-left {
+		width: 100%;
+	}
+	.col-right {
+		float:left;
+		width: 80%;
+	}
+}
+@media (min-width: 560px) {
 	.col-left {
 		width: 40%;
 	}
