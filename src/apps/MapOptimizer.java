@@ -53,12 +53,14 @@ import maps.Tobler;
 public class MapOptimizer extends Application {
 	
 	private static final Projection[] EXISTING_PROJECTIONS = { Cylindrical.HOBO_DYER,
-			Robinson.ROBINSON, Cylindrical.PLATE_CARREE, Misc.PEIRCE_QUINCUNCIAL };
-	private static final Projection[] PROJECTIONS_TO_OPTIMIZE = { Tobler.TOBLER,
-			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET,
-			Tetrahedral.TETRACHAMFER };
-	private static final double[] WEIGHTS = { .083, .20, .33, .50, .71, 1.0, 1.4, 2.0, 3.0, 5.0, 12. };
-	private static final int NUM_DESCENT = 40;
+			Robinson.ROBINSON, Tetrahedral.TETRAGRAPH, Misc.PEIRCE_QUINCUNCIAL };
+	private static final Projection[] PROJECTIONS_TO_OPTIMIZE = {
+			Tobler.TOBLER, MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER,
+			Tetrahedral.TETRAFILLET, Tetrahedral.TETRACHAMFER };
+	private static final double[] WEIGHTS = { 0., .125, .25, .375, .5, .625, .75, .875, 1. };
+	private static final int NUM_BRUTE_FORCE = 520;
+	private static final int NUM_DESCENT = 50;
+	private static final double DEL_X = 0.01;
 	private LineChart<Number, Number> chart;
 	
 	
@@ -72,8 +74,8 @@ public class MapOptimizer extends Application {
 	public void start(Stage stage) throws Exception {
 		final long startTime = System.currentTimeMillis();
 		
-		chart = new LineChart<Number, Number>(new NumberAxis("Size distortion", 0, 1, 0.2),
-				new NumberAxis("Shape distortion", 0, 1, 0.2));
+		chart = new LineChart<Number, Number>(new NumberAxis("Size distortion", 0, .6, 0.1),
+				new NumberAxis("Shape distortion", 0, .6, 0.1));
 		chart.setCreateSymbols(true);
 		chart.setAxisSortingPolicy(SortingPolicy.NONE);
 		double[][][] globe = Projection.globe(0.01);
@@ -83,7 +85,7 @@ public class MapOptimizer extends Application {
 		for (Projection p: PROJECTIONS_TO_OPTIMIZE)
 			chart.getData().add(optimizeFamily(p, globe, log));
 		
-		System.out.println("Total time elapsed: " + (System.currentTimeMillis() - startTime) / 1000. + "s");
+		System.out.println("Total time elapsed: " + (System.currentTimeMillis() - startTime) / 60000. + "m");
 		
 		stage.setTitle("Map Projections");
 		stage.setScene(new Scene(chart));
@@ -140,9 +142,10 @@ public class MapOptimizer extends Application {
 				if (i == params.length)
 					break bruteForceLoop; // if you made it through all the parameters without breaking, you're done!
 				
-				final double step = (bounds[i][1] - bounds[i][0]) / Math.floor(Math.pow(16, 1. / params.length));
+				final double step = (bounds[i][1] - bounds[i][0]) /
+						Math.floor(Math.pow(NUM_BRUTE_FORCE, 1./params.length));
 				if (params[i] + step < bounds[i][1] + 1e-5) {
-					for (int j = 0; j < i; j++)
+					for (int j = 0; j < i; j ++)
 						params[j] = bounds[j][0];
 					params[i] += step;
 					break;
@@ -151,7 +154,6 @@ public class MapOptimizer extends Application {
 		}
 		
 		final double h = 1e-7;
-		final double delX = 5e-2;
 		for (int k = 0; k < WEIGHTS.length; k++) { // now do gradient descent
 			System.arraycopy(currentBest[k], 3, params, 0, params.length);
 			System.out.println("Starting gradient descent with weight " + WEIGHTS[k] + " and initial parameters "
@@ -159,19 +161,26 @@ public class MapOptimizer extends Application {
 			double fr0 = currentBest[k][0];
 			double[] frd = new double[params.length];
 			for (int i = 0; i < NUM_DESCENT; i++) {
-				if (i > 0)
-					fr0 = weighDistortion(WEIGHTS[k], proj.avgDistortion(points, params)); // calculate the distortion here
 				System.out.println(Arrays.toString(params) + " -> " + fr0);
 				for (int j = 0; j < params.length; j++) {
 					params[j] += h;
-					frd[j] = weighDistortion(WEIGHTS[k], proj.avgDistortion(points, params)); // and the distortion nearby
+					frd[j] = weighDistortion(WEIGHTS[k], proj.avgDistortion(points, params)); // calculate the distortion nearby
 					params[j] -= h;
 				}
 				for (int j = 0; j < params.length; j++)
-					params[j] -= (frd[j] - fr0) / h * delX; // use that to approximate the gradient and go in that direction
+					params[j] -= (frd[j] - fr0)/h * Math.pow(bounds[j][1]-bounds[j][0],2) * DEL_X; // use that to approximate the gradient and go in the other direction
+				
+				final double[] distsHere = proj.avgDistortion(points, params);
+				fr0 = weighDistortion(WEIGHTS[k], distsHere); // calculate the distortion here
+				
+				if (fr0 <= currentBest[k][0]) { // make sure we are still descending
+					currentBest[k][0] = fr0; // and save the current datum
+					System.arraycopy(distsHere, 0, currentBest[k], 1, 2);
+					System.arraycopy(params, 0, currentBest[k], 3, params.length);
+				}
+				else
+					break;
 			}
-			System.arraycopy(params, 0, currentBest[k], 3, params.length);
-			System.arraycopy(proj.avgDistortion(points, params), 0, currentBest[k], 1, 2);
 		}
 		
 		final Series<Number, Number> output = new Series<Number, Number>();
@@ -191,7 +200,7 @@ public class MapOptimizer extends Application {
 	
 	
 	private static final double weighDistortion(double weight, double... distortions) {
-		return Math.pow(distortions[0], 1.5) + weight * Math.pow(distortions[1], 1.5);
+		return distortions[0]*weight + distortions[1]*(1-weight);
 	}
 	
 	

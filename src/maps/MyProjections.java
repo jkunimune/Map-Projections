@@ -60,7 +60,8 @@ public class MyProjections {
 	
 	
 	public static final Projection EXPERIMENT =
-			new Projection("Experiment", "What happens when you apply a complex differentiable function to a stereographic projection?",
+			new Projection("Experiment",
+					"What happens when you apply a complex differentiable function to a stereographic projection?",
 					1., 0b0000, Type.OTHER, Property.CONFORMAL) {
 		
 		public double[] project(double lat, double lon) {
@@ -108,7 +109,7 @@ public class MyProjections {
 			new Projection("Hyperellipower", "A parametric projection that I'm still testing",
 					2., 0b1111, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE,
 					new String[] {"k","n","a"},
-					new double[][] {{1,5,4.99},{.5,2.,1.20},{.5,2.,1.13}}) {
+					new double[][] {{1,3,5},{.5,2.,1.20},{.5,2.,1.13}}) {
 		
 		private double k, n, a;
 		

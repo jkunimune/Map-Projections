@@ -47,7 +47,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import maps.Azimuthal;
-import maps.Conic;
 import maps.Cylindrical;
 import maps.Misc;
 import maps.MyProjections;
@@ -65,15 +64,15 @@ import maps.WinkelTripel;
 public class MapPlotter extends Application {
 
 	
-	private static final Projection[] COMMON = { Azimuthal.STEREOGRAPHIC, Conic.LAMBERT,
-			Cylindrical.MERCATOR, Azimuthal.POLAR, Conic.EQUIDISTANT, Cylindrical.PLATE_CARREE,
-			Azimuthal.EQUAL_AREA, Conic.ALBERS, Cylindrical.GALL_PETERS, Cylindrical.GALL,
-			Misc.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
-			Azimuthal.ORTHOGRAPHIC };
+	private static final Projection[] COMMON = { Azimuthal.STEREOGRAPHIC, Cylindrical.MERCATOR,
+			Azimuthal.POLAR, Cylindrical.PLATE_CARREE, Azimuthal.EQUAL_AREA,
+			Cylindrical.GALL_PETERS, Cylindrical.GALL, Misc.VAN_DER_GRINTEN, Robinson.ROBINSON,
+			WinkelTripel.WINKEL_TRIPEL, Azimuthal.ORTHOGRAPHIC };
 	private static final Projection[] UNCOMMON = { Misc.PEIRCE_QUINCUNCIAL, Tetrahedral.LEE,
 			Tobler.TOBLER, Cylindrical.BEHRMANN, Misc.AITOFF };
 	private static final Projection[] INVENTED = { MyProjections.PSEUDOSTEREOGRAPHIC,
-			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET };
+			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET,
+			MyProjections.TWO_POINT_EQUALIZED };
 	
 	
 	private StackPane stack;
