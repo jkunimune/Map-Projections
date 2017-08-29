@@ -1,0 +1,42 @@
+/* CSS created by me, Justin Kunimune, to go with the stylesheets provided by Github */
+
+dt, dd {
+	float: left;
+}
+
+dt {
+	clear:both;
+}
+
+.map {
+	width:100%;
+}
+
+.row:before, .row:after {
+	display:table;
+	content:" ";
+}
+.row:after {
+	clear:both;
+}
+
+.col-left {
+	float:left;
+	position:relative;
+	min-height:1px;
+	width:100%;
+}
+.col-right {
+	float:right;
+	position:relative;
+	min-height:1px;
+	width:100%;
+}
+@media (min-width: 768px) {}
+	.col-left {
+		width: 40%;
+	}
+	.col-right {
+		width: 55%;
+	}
+}
