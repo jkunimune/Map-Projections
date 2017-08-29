@@ -55,12 +55,14 @@ public final class WinkelTripel {
 		}
 		
 		public double[] project(double lat, double lon) {
-			return new double[] { f1pX(lat,lon)/aspectRatio, f2pY(lat,lon)/aspectRatio };
+			return new double[] {
+					f1pX(lat,lon)/aspectRatio/Math.PI, f2pY(lat,lon)/aspectRatio/Math.PI };
 		}
 		
 		public double[] inverse(double x, double y) {
 			return NumericalAnalysis.newtonRaphsonApproximation(
-					x*aspectRatio, y, y/2, x*(1 + Math.cos(y*Math.PI/2))/2,
+					x*Math.PI*aspectRatio, y*Math.PI,
+					y*Math.PI/2, x*Math.PI*(1 + Math.cos(y*Math.PI/2))/2,
 					this::f1pX, this::f2pY,
 					this::df1dphi, this::df1dlam, this::df2dphi, this::df2dlam, .002);
 		}
@@ -68,14 +70,13 @@ public final class WinkelTripel {
 		private double f1pX(double phi, double lam) {
 			final double d = D(phi,lam);
 			final double c = C(phi,lam);
-			return 2/Math.PI*d/Math.sqrt(c)*Math.cos(phi)*Math.sin(lam/2)
-					+ lam/Math.PI*(aspectRatio-1);
+			return 2*d/Math.sqrt(c)*Math.cos(phi)*Math.sin(lam/2) + lam*(aspectRatio-1);
 		}
 		
 		private double f2pY(double phi, double lam) {
 			final double d = D(phi,lam);
 			final double c = C(phi,lam);
-			return d/Math.sqrt(c)*Math.sin(phi)/Math.PI + phi/Math.PI;
+			return d/Math.sqrt(c)*Math.sin(phi) + phi;
 		}
 		
 		private double df1dphi(double phi, double lam) {

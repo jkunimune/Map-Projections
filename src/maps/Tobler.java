@@ -42,7 +42,7 @@ public class Tobler {
 					"Tobler", "An equal-area projection shaped like a hyperellipse (in case you're wondering about gamma, it's calculated automatically)",
 					2., 0b1001, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA,
 					new String[]{"Std. Parallel","alpha","K"},
-					new double[][] {{0,89,30.6}, {0,1,.5}, {1,8,3.63}}) {
+					new double[][] {{0,89,37}, {0,1,0}, {1,8,3.6}}) { //optimal parameters are 30.6,.50,3.63, but these defaults are more recognizably Tobler
 		
 		private static final int N = 10000;
 		private double alpha, kappa, epsilon; //epsilon is related to gamma, but defined somewhat differently

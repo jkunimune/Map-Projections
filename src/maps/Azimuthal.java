@@ -45,7 +45,8 @@ public class Azimuthal {
 	
 	
 	public static final Projection POLAR =
-			new Projection("Polar", 1., 0b1111, Type.AZIMUTHAL, Property.EQUIDISTANT) {
+			new Projection(
+					"Azimuthal Equidistant", 1., 0b1111, Type.AZIMUTHAL, Property.EQUIDISTANT) {
 		
 		public double[] project(double lat, double lon) {
 			final double r = .5 - lat/Math.PI;

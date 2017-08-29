@@ -85,7 +85,8 @@ public class MyProjections {
 	
 	
 	public static final Projection PSEUDOSTEREOGRAPHIC =
-			new Projection("Pseudostereographic", "The logical next step after Aitoff and Hammer",
+			new Projection(
+					"Pseudostereographic", "The logical next step after Aitoff and Hammer",
 					2, 0b1111, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
@@ -106,7 +107,8 @@ public class MyProjections {
 	
 	
 	public static final Projection HYPERELLIPOWER =
-			new Projection("Hyperellipower", "A parametric projection that I'm still testing",
+			new Projection(
+					"Hyperellipower", "A parametrised pseudocylindrical projection that I invented",
 					2., 0b1111, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE,
 					new String[] {"k","n","a"},
 					new double[][] {{1,3,5},{.5,2.,1.20},{.5,2.,1.13}}) {
@@ -136,7 +138,8 @@ public class MyProjections {
 	
 	
 	public static final Projection TWO_POINT_EQUALIZED =
-			new Projection("Two-Point Equalized", "A parametric projection that I'm still testing",
+			new Projection("Two-Point Equalized",
+					"A projection I invented specifically for viewing small elliptical regions of the Earth",
 					0, 0b1111, Type.OTHER, Property.EQUIDISTANT, new String[] {"Width"},
 					new double[][] { {0, 180, 120} }) {
 		

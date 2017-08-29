@@ -78,7 +78,7 @@ public class Tetrahedral {
 	
 	public static final Projection TETRAPOWER =
 			new TetrahedralProjection(
-					"Tetrapower", "A parametric projection that I'm still testing",
+					"Tetrapower", "A parameterised tetrahedral projection that I invented.",
 					Math.sqrt(3), 0b1111, Property.COMPROMISE, new String[] {"k1","k2","k3"},
 					new double[][] {{.01,2.,.98},{.01,2.,1.2},{.01,2.,.98}}) {
 		
@@ -118,7 +118,8 @@ public class Tetrahedral {
 	
 	
 	public static final Projection TETRAFILLET =
-			new TetrahedralProjection("TetraFillet", "A parametric projection that I'm still testing",
+			new TetrahedralProjection("TetraFillet",
+					"A parameterised tetrahedral projection I invented with the corners filleted off",
 					Math.sqrt(3), 0b1110, Property.COMPROMISE, new String[] {"k1","k2","k3"},
 					new double[][] {{.01,2.,.78},{.01,2.,.99},{.01,2.,1.3}}) {
 		
@@ -165,8 +166,9 @@ public class Tetrahedral {
 	
 	public static final Projection TETRACHAMFER =
 			new TetrahedralProjection(
-					"TetraChamfer", "A parametric projection that I'm still testing", Math.sqrt(3),
-					0b1110, Property.COMPROMISE, new String[] {"k1","k2","k3"},
+					"TetraChamfer",
+					"A parameterised tetrahedral projection I invented with the corners chamfered off",
+					Math.sqrt(3), 0b1110, Property.COMPROMISE, new String[] {"k1","k2","k3"},
 					new double[][] {{.01,2.,.78},{.01,2.,.99},{.01,2.,1.3}}) {
 		
 		private double k1, k2, k3;

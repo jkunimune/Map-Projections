@@ -39,7 +39,7 @@ public class Misc {
 	
 	public static final Projection AITOFF =
 			new Projection("Aitoff", "A compromise projection shaped like an ellipse",
-					2., 0b1011, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE) {
+					2., 0b1111, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
 			final double a = Math.acos(Math.cos(lat)*Math.cos(lon/2));

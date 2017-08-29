@@ -64,7 +64,7 @@ public class MapExplainer {
 					Tetrahedral.TETRAGRAPH, Tetrahedral.AUTHAGRAPH, Pseudocylindrical.SINUSOIDAL,
 					Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Misc.HAMMER, Misc.AITOFF,
 					Misc.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
-					Misc.PEIRCE_QUINCUNCIAL.transverse(), Misc.GUYOU, Misc.TWO_POINT_EQUIDISTANT,
+					Misc.PEIRCE_QUINCUNCIAL.transverse(), Misc.TWO_POINT_EQUIDISTANT,
 					Misc.HAMMER_RETROAZIMUTHAL },
 			
 			{ MyProjections.PSEUDOSTEREOGRAPHIC, MyProjections.HYPERELLIPOWER,
@@ -117,6 +117,7 @@ public class MapExplainer {
 						"title=\"TODO\">");
 				out.println("  </div>");
 				out.println("</div>");
+				out.println("<br>");
 				
 				out.println();
 			}
