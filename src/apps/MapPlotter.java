@@ -63,6 +63,7 @@ import maps.WinkelTripel;
  */
 public class MapPlotter extends Application {
 
+	private static final double GLOBE_RES = .002;
 	
 	private static final Projection[] COMMON = { Azimuthal.STEREOGRAPHIC, Cylindrical.MERCATOR,
 			Azimuthal.POLAR, Cylindrical.PLATE_CARREE, Azimuthal.EQUAL_AREA,
@@ -95,7 +96,7 @@ public class MapPlotter extends Application {
 		
 		final List<Label> labels = new LinkedList<Label>();
 		final List<Data<Number,Number>> data = new LinkedList<Data<Number,Number>>();
-		final double[][][] points = Projection.globe(.02);
+		final double[][][] points = Projection.globe(GLOBE_RES);
 		
 		plotProjections(plot, overlay, labels, data, COMMON, "Common", points);
 		plotProjections(plot, overlay, labels, data, UNCOMMON, "Hipster", points);
@@ -112,7 +113,7 @@ public class MapPlotter extends Application {
 						drawLabelsAndSave(plot, labels, data);
 					}
 				};
-				timer.schedule(task, 200);
+				timer.schedule(task, 1000);
 			}
 		};
 		plot.widthProperty().addListener(listener);

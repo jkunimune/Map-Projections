@@ -80,27 +80,6 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			}
 			
 			@Override
-			public void notationDecl(String name, String publicId, String systemId) {
-				System.out.println("notatien: "+name+", "+publicId+", "+systemId);
-			}
-			
-			@Override
-			public void setDocumentLocator(Locator locator) {
-				System.out.println("The locator is now "+locator);
-			}
-			
-			@Override
-			public void startDocument() {
-				System.out.println("begin!");
-			}
-			
-			@Override
-			public void unparsedEntityDecl(
-					String name, String publicId, String systemId, String notationName) {
-				System.out.println("unparsed entity: "+name+", "+publicId+", "+systemId+", "+notationName);
-			}
-			
-			@Override
 			public void startElement(
 					String uri, String localName, String qName, Attributes attributes) {
 				currentFormatString += "<"+qName;
