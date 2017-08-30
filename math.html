@@ -34,15 +34,147 @@
 
         <section id="main_content">
           <h1>
-<a id="map-projections" class="anchor" href="#map-projections" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Math</h1>
+            <a id="map-projections" class="anchor" href="#map-projections" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Math
+          </h1>
 
-<p>This program makes use of some pretty cool math, if I do say so myself. Most of the equations came straight from Wikipedia, except for the ones where I had to find the inverses myself, and the oblique map projection equations, which I could not find anywhere and had to derive myself:</p>
-<p><img src="http://latex.codecogs.com/svg.latex?\Phi=\arcsin\left[\sin\phi_P\,\sin\phi_1+\mathrm{cos}\phi_P\,\cos\phi_1\,\cos\left(\lambda_1-\lambda_0\right)\right]" border="0"/></p>
-<p><img src="http://latex.codecogs.com/svg.latex?\Lambda=\lambda_P\pm\arccos\left(\frac{\sin\phi_1}{\cos\phi_P\,\cos\Phi}-\tan\phi_P\,\tan\Phi\right)" border="0"/></p>
-<p>I guess I should also mention the Tetragraph equations, since I invented that one myself, and the equations are therefore not on Wikipedia. It's a tetrahedral projection that projects the faces with some simple polar transformations:</p>
-<p><img src="http://latex.codecogs.com/svg.latex?R=\arctan(\cot\phi\cos\lambda_\mathrm{M})\sec\lambda_\mathrm{M}" border="0"/></p>
-<p><img src="http://latex.codecogs.com/svg.latex?\Theta=\lambda" border="0"/></p>
-<p><img src="http://latex.codecogs.com/svg.latex?\lambda_\mathrm{M}=\lambda-\mathrm{floor}\left(\frac{\lambda+\frac{\pi}{3}}{\frac{2\pi}{3}}\right)*\frac{2\pi}{3}-\frac{\pi}{3}" border="0"/></p>
+          <p>This program makes use of some pretty cool math, if I do say so myself. Most of the equations came straight from Wikipedia, but many of the more complicated ones I had to derive myself. Here I detail all of my equations. As a convention, I always use &phi; and &lambda; for latitude and longitude respectively in radians measured from the equator where north and east are positive, r and &theta; for planar polar coordinates where &theta; is in radians measured clockwise from the bottom of the unit circle, and x and y for general cartesian coordinates.</p>
+
+          <h2>Oblique aspect equations</h2>
+          <p>
+            The first thing I derived was the oblique map projection equation, used to transform a latitude and longitude to be relative to an arbitrary pole. There are a lot of holes and signs that you have to keep track of when computing it, but for the sake of simplicity, I'll just give you the basic equations. First, the forward equations, used to get relative spherical coordinates given absolute spherical coordinates and the pole:
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?\phi_r=\arcsin\left[\sin\phi_P\sin\Phi+\cos\phi_P\cos\Phi\cos\left(\lambda_P-\Lambda\right)\right]" alt="phir = asin(sin(phiP)sin(Phi) + cos(phiP)cos(Phi)cos(lamP-Lam))" border="0">
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?\lambda_r=\pm\arccos\left[\frac{\sin\phi_P\cos\Phi\cos\left(\lambda_P-\Lambda\right)-\cos\phi_P\sin\Phi}{\cos\phi_r}\right]" alt="lamr = +-acos(sin(phiP)cos(Phi)cos(lamP-Lam) - (cos(phiP)sin(Phi))/cos(phir)" border="0">
+          </p>
+          <p>
+            For raster maps, you need the inverse of these equations, which gives the absolute coordinates given some relative spherical coordinates and the pole:
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?\Phi=\arcsin\left[\sin\phi_P\,\sin\phi_r+\cos\phi_P\,\cos\phi_r\,\cos\left(\lambda_P-\lambda_r\right)\right]" alt="Phi = asin(sin(phiP)sin(phir) + cos(phiP)cos(phir)cos(lamP-lamr))" border="0">
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?\Lambda=\lambda_P\pm\arccos\left(\frac{\sin\phi_1}{\cos\phi_P\,\cos\Phi}-\tan\phi_P\,\tan\Phi\right)" alt="Lam = lamP +- acos(sin(phi1)/(cos(phiP)cos(Phi)) - tan(phiP)tan(Phi))" border="0">
+          </p>
+
+          <h2>Projection analysis</h2>
+          <p>
+            The MapAnalyzer, MapPlotter, and MapOptimizer all use the same formulae for quantifying the distortion in a map. I concocted these metrics myself, but I think anyone will find that they are logical ways to rank a map projection, and they fit pretty nicely with my intuition of how good a map projection is.
+          </p>
+          <p>
+            Characterising size distortion is quite simple. The scale at any point on the sphere is given by
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?\frac{A}{a}=\left(\frac{\partial{x}}{\partial{\lambda}}\frac{\partial{y}}{\partial{\phi}}-\frac{\partial{x}}{\partial{\phi}}\frac{\partial{y}}{\partial{\lambda}}\right)\sec{\phi}" alt="A/a = (dx/dlam*dy/dphi - dx/dphi*dy/dlam) sec(phi)" border="0">
+          </p>
+          <p>
+            The average size distortion, then, is given by the standard deviation of the log of scale,
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?D_\mathrm{size}=\sqrt{\left<\left(\ln{\frac{A}{a}}-\left<\ln{\frac{A}{a}}\right>\right)^2\right>}" alt="sqrt(<( ln(A/a) - <ln(A/a)> )^2>" border="0">
+          </p>
+          <p>
+            The shape distortion is measured in a similar fashion. The stretch factor at any point is given by the formula
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?\sigma_1+\sigma_2=\sqrt{\left(\frac{\partial{x}}{\partial{\lambda}}\sec{\phi}+\frac{\partial{y}}{\partial{\phi}}\right)^2+\left(\frac{\partial{x}}{\partial{\phi}}-\frac{\partial{y}}{\partial{\lambda}}\sec{\phi}\right)^2}" alt="s1+s2 = hypot(dx/dlam*sec(phi)+dy/dphi, dx/dphi*sec(phi)-dy/dlam*sec(phi))" border="0">
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?\sigma_1-\sigma_2=\sqrt{\left(\frac{\partial{x}}{\partial{\lambda}}\sec{\phi}-\frac{\partial{y}}{\partial{\phi}}\right)^2+\left(\frac{\partial{x}}{\partial{\phi}}+\frac{\partial{y}}{\partial{\lambda}}\sec{\phi}\right)^2}" alt="s1+s2 = hypot(dx/dlam*sec(phi)-dy/dphi, dx/dphi+dy/dlam*sec(phi))" border="0">
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?\frac{\sigma_1}{\sigma_2}=\frac{(\sigma_1+\sigma_2)+(\sigma_1-\sigma_2)}{(\sigma_1+\sigma_2)-(\sigma_1-\sigma_2)}" alt="s1/s2 = ((s1+s2) + (s1-s2))/((s1+s2) - (s1-s2))" border="0">
+          </p>
+          <p>
+            The average shape distortion is then defined as the mean of the log of stretch,
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?D_\mathrm{shape}=\left<\left|\ln{\frac{\sigma_1}{\sigma_2}}\right|\right>" alt="<|ln(s1/s2)|>" border="0">
+          </p>
+
+          <h2>Invented projections</h2>
+          <p>
+            Now for the projections I've invented. As before, I will let it be known that these equations are riddled with holes. I don't want to explain all of them, so if it matters to you, you can solve the limits yourself.
+          </p>
+          <p>
+            First is Pseudostereographic. If you are familiar with Hammer and Aitoff, this will probably be quite simple for you:<br>
+            <img src="http://latex.codecogs.com/svg.latex?x=stuff" alt="" border="0"><br>
+            <img src="http://latex.codecogs.com/svg.latex?y=stuff" alt="" border="0">
+          </p>
+          <p>
+            Slightly more complicated is the Hyperellipower projection. It is a pseudocylindrical projection with the shape of a hyperellipse and a power function controlling the parallel distance from equator. The equations work out to
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?x=stuff" alt="" border="0">
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?y=stuff" alt="" border="0">
+          </p>
+          <p>
+            Next is the TetraGraph, an equidistant tetrahedral projection. Before applying the projection, one must first divide the sphere into four equally spaced, equally sized, and equally shaped quadrants &ndash; one for each face. Each quadrant must then be divided into three sectors depending on to which other face each point is closest. This projection is derived with a linear mapping from a &gamma;-&lambda; coordinate system on the sphere to an x-&theta; coordinate system on the plane.
+          </p>
+          <p>
+            What are &gamma; and &lambda;, you ask? &lambda; is the azimuthal angle from the pole, or longitude, and &gamma; is the azimuthal angle from a point transverse to the pole, which I call the Justitude. This coordinate system, which I dub Justesian coordinates, breaks down on the orthodrome containing the pole and the Justimuth. Luckily, TetraGraph does not use this part of the sphere, because for a given sector, the azimuth is defined as the center of that sector's quadrant, and the Justimuth is defined equidistant from the centers of the two nearest quadrants. Furthermore, &lambda; is zero on the orthodrome connecting the centers of the two nearest quadrants and &gamma; is zero on the orthodrome connecting the pole and the Justimuth. With this coordinate system in mind (and the hopefully self-explanatory x-&theta; coordinate system), the projection inside each sector is defined as
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?x=\gamma" alt="x = gam" border="0">
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?\theta=\lambda" alt="tht = lam" border="0">
+          </p>
+          <p>
+            This renders each sector as an obtuse isoceles triangle. Three sector triangles tesselate into an equilateral triangle, and these quadrant triangles can the be tesselated however the cartographer sees fit. If you would prefer latitude to Justitude and r to x, use the expansion
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?r=\arctan(\cot\phi\cos\lambda)\sec\lambda" alt="r = atan(cot(phi)cos(lam))sec(lam)" border="0">
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?\phi=\tan\left(r\cos\lambda\right)\sec\lambda" alt="phi = tan(rcos(lam))sec(lam)" border="0">
+          </p>
+          <p>
+            Next is TetraPower, almost identical to TetraGraph save some power functions thrown in to make it more optimisable. The forward equations work out to
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?r=stuff" alt="" border="0">
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?\theta=stuff" alt="" border="0">
+          </p>
+          <p>
+            The inverse equations are
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?\phi=stuff" alt="" border="0">
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?\lambda=stuff" alt="" border="0">
+          </p>
+          <p>
+            TetraFillet is similar to TetraPower, but the quadrants on the plane render as piecewise curves rather than simple triangles. The equations are the same as those for TetraPower, save the following substitution:
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?r_\mathrm{max} = " alt="rmax = tht<.888 ? sec(tht)/2 : parabola" border="0">
+          </p>
+          <p>
+            Finally, we have Two-point Equalised, based heavily on Two-point Equidistant. The forward equations work out as follows:
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?x=stuff" alt="" border="0">
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?y=stuff" alt="" border="0">
+          </p>
+          <p>
+            The inverse is:
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?\phi=stuff" alt="" border="0">
+          </p>
+          <p>
+            <img src="http://latex.codecogs.com/svg.latex?\lambda=stuff" alt="" border="0">
+          </p>
         </section>
 
         <footer>
