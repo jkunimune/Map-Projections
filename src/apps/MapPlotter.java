@@ -132,6 +132,7 @@ public class MapPlotter extends Application {
 		series.setName(name);
 		
 		for (Projection projection: projections) {
+			System.out.print(projection+": ");
 			final double[] params = projection.getDefaultParameters();
 			final double distortion[] = projection.avgDistortion(points, params);
 			final Data<Number, Number> datum = new Data<Number, Number>(distortion[0], distortion[1]);
@@ -140,6 +141,7 @@ public class MapPlotter extends Application {
 			overlay.getChildren().add(lbl);
 			labels.add(lbl);
 			data.add(datum);
+			System.out.println(distortion[0]+", "+distortion[1]);
 		}
 		
 		chart.getData().add(series);

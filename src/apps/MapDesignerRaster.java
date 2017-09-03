@@ -216,7 +216,11 @@ public class MapDesignerRaster extends MapApplication {
 	
 	
 	private BufferedImage makeImage() {
-		return makeImage(IMG_WIDTH, (int)(IMG_WIDTH/this.getProjection().getAspectRatio()), 1, null);
+		final double aspRat = this.getProjection().getAspectRatio();
+		if (aspRat >= 1)
+			return makeImage(IMG_WIDTH, (int)Math.max(IMG_WIDTH/aspRat,1), 1, null);
+		else
+			return makeImage((int)Math.max(IMG_WIDTH*aspRat,1), IMG_WIDTH, 1, null);
 	}
 	
 	private BufferedImage makeImage(int width, int height, int step, ProgressBarDialog pBar) {

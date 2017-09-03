@@ -43,19 +43,19 @@
 			<arg line="-deploy -native exe -srcfiles MapDesignerRaster.jar;LICENSE.md;input -appclass apps.MapDesignerRaster -outdir build -outfile MapDesignerRaster"/>
 			<arg line="-name &quot;Map Designer Raster&quot; -title &quot;Map Designer (Raster)&quot; -description &quot;Design oblique raster world maps in different projections&quot;"/>
 			<arg line="-vendor &quot;Justin Kunimune&quot; -Bcopyright=&quot;Copyright (c) 2017 Justin Kunimune&quot;"/>
-			<arg line="-BappVersion=3.0 -Bicon=res\raster.ico -BlicenseFile=LICENSE.md"/>
+			<arg line="-BappVersion=3.1 -Bicon=res\raster.ico -BlicenseFile=LICENSE.md"/>
 		</exec>
 		<exec executable="javapackager">
 			<arg line="-deploy -native exe -srcfiles MapDesignerVector.jar;LICENSE.md;input -appclass apps.MapDesignerVector -outdir build -outfile MapDesignerVector"/>
 			<arg line="-name &quot;Map Designer Vector&quot; -title &quot;Map Designer (Vector)&quot; -description &quot;Design oblique vector world maps in different projections&quot;"/>
 			<arg line="-vendor &quot;Justin Kunimune&quot; -Bcopyright=&quot;Copyright (c) 2017 Justin Kunimune&quot;"/>
-			<arg line="-BappVersion=3.0 -Bicon=res\vector.ico -BlicenseFile=LICENSE.md"/>
+			<arg line="-BappVersion=3.1 -Bicon=res\vector.ico -BlicenseFile=LICENSE.md"/>
 		</exec>
 		<exec executable="javapackager">
 			<arg line="-deploy -native exe -srcfiles MapAnalyzer.jar;LICENSE.md;input -appclass apps.MapAnalyzer -outdir build -outfile MapAnalyzer"/>
 			<arg line="-name &quot;Map Analyzer&quot; -title &quot;Map Analyzer&quot; -description &quot;Compare distortion graphs and metrics for different map projections.&quot;"/>
 			<arg line="-vendor &quot;Justin Kunimune&quot; -Bcopyright=&quot;Copyright (c) 2017 Justin Kunimune&quot;"/>
-			<arg line="-BappVersion=3.0 -Bicon=res\analyz.ico -BlicenseFile=LICENSE.md"/>
+			<arg line="-BappVersion=3.1 -Bicon=res\analyz.ico -BlicenseFile=LICENSE.md"/>
 		</exec>
 	</target>
 	

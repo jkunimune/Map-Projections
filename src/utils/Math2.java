@@ -55,7 +55,7 @@ public class Math2 {
 				}
 			}
 		}
-		return Math.sqrt(ss/n - s*s/n*n);
+		return Math.sqrt(ss/n - s*s/(n*n));
 	}
 	
 	

@@ -212,6 +212,10 @@ public class Conic {
 	
 	
 	
+	/**
+	 * A base for all conic projections
+	 * @author jkunimune
+	 */
 	private static abstract class ConicProjection extends Projection {
 		
 		protected double lat1, lat2;
@@ -230,7 +234,7 @@ public class Conic {
 			if (reversed) {
 				lat1 = -lat1; lat2 = -lat2;
 			}
-			setSpecificParameters();
+			setSpecificParameters(); //this is where subclasses interpret lat1 and lat2
 		}
 		
 		protected abstract void setSpecificParameters(); //a way to require subclasses to set lat1 and lat2

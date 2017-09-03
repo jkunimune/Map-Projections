@@ -78,7 +78,7 @@ public class Tetrahedral {
 	
 	public static final Projection TETRAPOWER =
 			new TetrahedralProjection(
-					"Tetrapower", "A parameterised tetrahedral projection that I invented.",
+					"TetraPower", "A parameterised tetrahedral projection that I invented.",
 					Math.sqrt(3), 0b1111, Property.COMPROMISE, new String[] {"k1","k2","k3"},
 					new double[][] {{.01,2.,.98},{.01,2.,1.2},{.01,2.,.98}}) {
 		
@@ -296,9 +296,9 @@ public class Tetrahedral {
 		}
 		
 		
-		protected abstract double[] innerProject(double lon, double lat);
+		protected abstract double[] innerProject(double lat, double lon); //the projection from spherical to polar within a face
 		
-		protected abstract double[] innerInverse(double x, double y);
+		protected abstract double[] innerInverse(double x, double y); //I think you can guess
 		
 		
 		public double[] project(double lat, double lon) {

@@ -138,7 +138,7 @@ public class MyProjections {
 	
 	
 	public static final Projection TWO_POINT_EQUALIZED =
-			new Projection("Two-Point Equalized",
+			new Projection("Two-Point Equalised",
 					"A projection I invented specifically for viewing small elliptical regions of the Earth",
 					0, 0b1111, Type.OTHER, Property.EQUIDISTANT, new String[] {"Width"},
 					new double[][] { {0, 180, 120} }) {
