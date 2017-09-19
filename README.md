@@ -2,7 +2,7 @@
 A class to create custom maps of the Earth's surface. There are thousands of combinations of color-schemes, projections, and aspects. Includes Mercator, Gall-Peters, Orthographic, Peirce Quincuncial, and More!
 
 ## Installation
-If you are a fancy Windows user, I recommend the convenient [fancy Windows binaries](https://example.org) (note: will upload Windows binaries in next release). Double-click to install them and then keep pressing buttons until something good happens. If you see a map, you're in the right place.
+If you are a fancy Windows user, I recommend the convenient [fancy Windows binaries](https://github.com/jkunimune15/Map-Projections/releases). Double-click to install them and then keep pressing buttons until something good happens. If you see a map, you're in the right place.
 
 If you are not on Windows or are otherwise not fancy enough to deserve such executables, simply double-click on the .jar files in the main directory and, if you have [Java](https://java.com/en/download/) installed (10/10 would recommend), it should just run without any set-up.
 
@@ -32,12 +32,12 @@ For some examples, check out the `output` folder. For more information, go to [j
 
 ## Credits
 While I wrote all of the code in this repository myself, and I created several of the simpler images from scratch, other people did help. Here's a comprehensive list.
-* *The NASA* for [Basic.jpg](https://visibleearth.nasa.gov/view.php?id=57730), [Satellite.jpg](https://visibleearth.nasa.gov/view.php?id=57752), and [Altitude.jpg](https://asterweb.jpl.nasa.gov/gdem.asp)
-* *Tom Patterson* for [Pastel.jpg](http://www.shadedrelief.com/natural3/pages/textures.html) and [Rivers.jpg](http://www.shadedrelief.com/natural3/pages/extra.html)
-* *RokerHRO* for [the indicatrix layer of Tissot.jpg](https://commons.wikimedia.org/wiki/File:Tissot_10deg.png)
-* *The CIA* for [Basic.svg](https://commons.wikimedia.org/wiki/File:BlankMap-World6-Equirectangular.svg)
-* *Crates* for [Landmasses.svg](https://commons.wikimedia.org/wiki/File:World_map_blank_without_borders.svg)
-* *Eric Gaba* for [Tissot.svg](https://commons.wikimedia.org/wiki/File:Tissot_indicatrix_world_map_equirectangular_proj.svg)
-* *The Apache Commons* for their [complex mathematics code](https://commons.apache.org/proper/commons-math/)
-* *Technische Universit&auml;t Berlin* for their [complex mathematics code](http://www3.math.tu-berlin.de/jtem/ellipticFunctions/)
-* Wikipedia for their [impressive collection of map projection information and equations](https://en.wikipedia.org/wiki/List_of_map_projections)
+* **The NASA** for [Basic.jpg](https://visibleearth.nasa.gov/view.php?id=57730), [Satellite.jpg](https://visibleearth.nasa.gov/view.php?id=57752), and [Altitude.jpg](https://asterweb.jpl.nasa.gov/gdem.asp)
+* **Tom Patterson** for [Pastel.jpg](http://www.shadedrelief.com/natural3/pages/textures.html) and [Rivers.jpg](http://www.shadedrelief.com/natural3/pages/extra.html)
+* **RokerHRO** for [the indicatrix layer of Tissot.jpg](https://commons.wikimedia.org/wiki/File:Tissot_10deg.png)
+* **The CIA** for [Basic.svg](https://commons.wikimedia.org/wiki/File:BlankMap-World6-Equirectangular.svg)
+* **Crates** for [Landmasses.svg](https://commons.wikimedia.org/wiki/File:World_map_blank_without_borders.svg)
+* **Eric Gaba** for [Tissot.svg](https://commons.wikimedia.org/wiki/File:Tissot_indicatrix_world_map_equirectangular_proj.svg)
+* **The Apache Commons** for their [complex mathematics code](https://commons.apache.org/proper/commons-math/)
+* **Technische Universit&auml;t Berlin** for their [complex mathematics code](http://www3.math.tu-berlin.de/jtem/ellipticFunctions/)
+* **Wikipedia** for their [impressive collection of map projection information and equations](https://en.wikipedia.org/wiki/List_of_map_projections)
