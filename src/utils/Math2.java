@@ -123,5 +123,10 @@ public class Math2 {
 				m = d;
 		return m;
 	}
+	
+	
+	public static double round(double x, int numPlaces) {
+		return Math.round(x*Math.pow(10, numPlaces))/Math.pow(10, numPlaces);
+	}
 
 }

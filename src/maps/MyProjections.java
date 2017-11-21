@@ -38,7 +38,7 @@ public class MyProjections {
 	
 	public static final Projection MAGNIFIER =
 			new Projection("Magnifier",
-					"A novelty map projection that blows up the center way out of proportion",
+					"A novelty map projection that blows up the center way out of proportion.",
 					2, 2, 0b1011, Type.AZIMUTHAL, Property.POINTLESS) {
 		
 		public double[] project(double lat, double lon) {
@@ -60,8 +60,8 @@ public class MyProjections {
 	
 	
 	public static final Projection EXPERIMENT =
-			new Projection("Complex Sine",
-					"What happens when you apply a complex differentiable function to a stereographic projection?",
+			new Projection(
+					"Complex Sine", "What happens when you apply a complex differentiable function to a stereographic projection?",
 					6, 6, 0b0000, Type.OTHER, Property.CONFORMAL) {
 		
 		public double[] project(double lat, double lon) {
@@ -86,7 +86,7 @@ public class MyProjections {
 	
 	public static final Projection PSEUDOSTEREOGRAPHIC =
 			new Projection(
-					"Pseudostereographic", "The logical next step after Aitoff and Hammer",
+					"Pseudostereographic", "The logical next step after Aitoff and Hammer.",
 					2, 1, 0b1111, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
@@ -108,7 +108,7 @@ public class MyProjections {
 	
 	public static final Projection HYPERELLIPOWER =
 			new Projection(
-					"Hyperellipower", "A parametrised pseudocylindrical projection that I invented",
+					"Hyperellipower", "A parametrised pseudocylindrical projection that I invented.",
 					2, 0, 0b1111, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE,
 					new String[] {"k","n","a"},
 					new double[][] {{1,5,3},{.5,2.,1.20},{.5,2.,1.13}}) {
@@ -139,7 +139,7 @@ public class MyProjections {
 	
 	public static final Projection TWO_POINT_EQUALIZED =
 			new Projection("Two-Point Equalised",
-					"A projection I invented specifically for viewing small elliptical regions of the Earth",
+					"A projection I invented specifically for viewing small elliptical regions of the Earth.",
 					0, 0, 0b1111, Type.OTHER, Property.EQUIDISTANT, new String[] {"Width"},
 					new double[][] { {0, 180, 120} }) {
 		

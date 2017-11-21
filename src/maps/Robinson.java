@@ -52,7 +52,7 @@ public class Robinson {
 	
 	
 	public static final Projection ROBINSON =
-			new Projection("Robinson", "A visually pleasing piecewise compromise map",
+			new Projection("Robinson", "A visually pleasing piecewise compromise map.",
 					2, 2*Y_MAX, 0b1111, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {

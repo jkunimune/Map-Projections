@@ -38,7 +38,7 @@ import utils.Elliptic;
 public class Misc {
 	
 	public static final Projection AITOFF =
-			new Projection("Aitoff", "A compromise projection shaped like an ellipse",
+			new Projection("Aitoff", "A compromise projection shaped like an ellipse.",
 					2*Math.PI, Math.PI, 0b1111, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
@@ -58,7 +58,7 @@ public class Misc {
 	
 	
 	public static final Projection HAMMER =
-			new Projection("Hammer", "An equal-area projection shaped like an ellipse",
+			new Projection("Hammer", "An equal-area projection shaped like an ellipse.",
 					4, 2, 0b1111, Type.PSEUDOAZIMUTHAL, Property.EQUAL_AREA) {
 		
 		public double[] project(double lat, double lon) {
@@ -78,7 +78,8 @@ public class Misc {
 	
 	
 	public static final Projection VAN_DER_GRINTEN =
-			new Projection("Van der Grinten", "A circular compromise map that is popular for some reason",
+			new Projection(
+					"Van der Grinten", "A circular compromise map that is popular for some reason.",
 					2, 2, 0b1111, Type.OTHER, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
@@ -119,7 +120,8 @@ public class Misc {
 	
 	
 	public static final Projection PEIRCE_QUINCUNCIAL =
-			new Projection("Peirce Quincuncial", "A conformal projection that uses complex elliptic functions",
+			new Projection(
+					"Peirce Quincuncial", "A conformal projection that uses complex elliptic functions.",
 					2, 2, 0b1001, Type.OTHER, Property.CONFORMAL) {
 		
 		private static final double K_RT_HALF = 1.85407; //this is approx K(sqrt(1/2))
@@ -159,7 +161,8 @@ public class Misc {
 	
 	
 	public static final Projection GUYOU =
-			new Projection("Guyou", "Peirce Quincuncial, rearranged a bit", 2., 1, 0b1001,
+			new Projection(
+					"Guyou", "Peirce Quincuncial, rearranged a bit.", 2., 1, 0b1001,
 					Type.OTHER, Property.CONFORMAL) {
 		
 		private static final double K_RT_HALF = 1.854; //this is approx K(sqrt(1/2))
@@ -192,7 +195,7 @@ public class Misc {
 	
 	public static final Projection HAMMER_RETROAZIMUTHAL =
 			new Projection(
-					"Hammer Retroazimuthal", "The full version of a map where bearing and distance to a reference point is preserved",
+					"Hammer Retroazimuthal", "The full version of a map where bearing and distance to a reference point is preserved.",
 					2*Math.PI, 2*Math.PI, 0b1110, Type.QUASIAZIMUTHAL, Property.RETROAZIMUTHAL,
 					new String[] {"Latitude","Longitude"},
 					new double[][] {{-89,89,21.4},{-180,180,39.8}}, false) {
@@ -242,8 +245,7 @@ public class Misc {
 	
 	public static final Projection TWO_POINT_EQUIDISTANT =
 			new Projection(
-					"Two-point Equidistant",
-					"A map that preserves distances, but not azimuths, to two arbitrary points",
+					"Two-point Equidistant", "A map that preserves distances, but not azimuths, to two arbitrary points.",
 					0, 0, 0b1111, Type.QUASIAZIMUTHAL, Property.EQUIDISTANT,
 					new String[] {"Latitude 1","Longitude 1","Latitude 2","Longitude 2"},
 					new double[][] {{-90,90,41.9},{-180,180,12.5},{-90,90,34.7},{-180,180,112.4}},

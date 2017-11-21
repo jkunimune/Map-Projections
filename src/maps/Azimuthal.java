@@ -85,7 +85,8 @@ public class Azimuthal {
 	
 	
 	public static final Projection ORTHOGRAPHIC =
-			new Projection("Orthographic", "A projection that mimics the Earth viewed from a great distance",
+			new Projection(
+					"Orthographic", "A projection that mimics the Earth viewed from a great distance.",
 					2, 2, 0b0111, Type.AZIMUTHAL, Property.PERSPECTIVE) {
 		
 		public double[] project(double lat, double lon) {
@@ -105,7 +106,7 @@ public class Azimuthal {
 	
 	public static final Projection GNOMONIC =
 			new Projection(
-					"Gnomonic", "A projection that draws all great circles as straight lines",
+					"Gnomonic", "A projection that draws all great circles as straight lines.",
 					4, 4, 0b0111, Type.AZIMUTHAL, Property.GNOMONIC) {
 		
 		public double[] project(double lat, double lon) {
@@ -123,7 +124,7 @@ public class Azimuthal {
 	
 	public static final Projection PERSPECTIVE =
 			new Projection(
-					"Perspective", "A projection that mimics the actual appearance of the Earth",
+					"Perspective", "A projection that mimics the actual appearance of the Earth.",
 					0, 0, 0b0111, Type.AZIMUTHAL, Property.PERSPECTIVE,
 					new String[] {"Percentage"}, new double[][] {{1,99,33.3}}) {
 		

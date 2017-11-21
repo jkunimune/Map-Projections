@@ -34,7 +34,7 @@ import maps.Projection.Type;
 public class Pseudocylindrical {
 	
 	public static final Projection SINUSOIDAL =
-			new Projection("Sinusoidal", "An equal-area map shaped like a sine-wave",
+			new Projection("Sinusoidal", "An equal-area map shaped like a sine-wave.",
 					2*Math.PI, Math.PI, 0b1111, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA) {
 		
 		public double[] project(double lat, double lon) {
@@ -48,7 +48,7 @@ public class Pseudocylindrical {
 	
 	
 	public static final Projection MOLLWEIDE =
-			new Projection("Mollweide", "An equal-area projection shaped like an ellipse",
+			new Projection("Mollweide", "An equal-area projection shaped like an ellipse.",
 					2*Math.PI, Math.PI, 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA) {
 		
 		public double[] project(double lat, double lon) {
@@ -73,7 +73,7 @@ public class Pseudocylindrical {
 					"Lemons", "BURN LIFE'S HOUSE DOWN!!!", 2*Math.PI, Math.PI, 0b1110,
 					Type.OTHER, Property.COMPROMISE) {
 		
-		private static final int NUM_LEMONS = 4; //number of lemons
+		private static final int NUM_LEMONS = 12; //number of lemons
 		private static final double LEM_WIDTH = 2*Math.PI/NUM_LEMONS; //longitude span of 1 lemon
 		
 		public double[] project(double lat, double lon) {

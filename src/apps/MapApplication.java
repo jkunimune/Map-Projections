@@ -45,6 +45,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import maps.Cylindrical;
 import maps.Projection;
+import utils.Math2;
 import utils.Procedure;
 
 
@@ -462,7 +463,7 @@ public abstract class MapApplication extends Application {
 				if (!now) {
 					if (spn.getValue() != sld.getValue())
 						spn.getValueFactory().setValue(sld.getValue());
-					doubles[i] = converter.applyAsDouble(sld.getValue());
+					doubles[i] = converter.applyAsDouble(Math2.round(sld.getValue(),3));
 					if (!suppressListeners.isSet())
 						callback.execute();
 				}
@@ -470,7 +471,7 @@ public abstract class MapApplication extends Application {
 		sld.valueProperty().addListener((observable, prev, now) -> {
 				if (spn.getValue() != sld.getValue())
 					spn.getValueFactory().setValue(sld.getValue());
-				doubles[i] = converter.applyAsDouble(now.doubleValue());
+				doubles[i] = converter.applyAsDouble(Math2.round(now.doubleValue(),3));
 				if (!suppressListeners.isSet())
 					callback.execute();
 			});

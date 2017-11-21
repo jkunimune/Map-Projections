@@ -65,7 +65,7 @@ public class Cylindrical {
 	
 	public static final Projection EQUIRECTANGULAR =
 			new Projection("Equirectangular",
-					"A linear mapping from longitude and latitude to x and y",
+					"A linear mapping from longitude and latitude to x and y.",
 					2*Math.PI, 0., 0b1111, Type.CYLINDRICAL, Property.EQUIDISTANT,
 					new String[]{"Std. parallel"}, new double[][]{{0, 89, 0}}) {
 		
@@ -148,7 +148,7 @@ public class Cylindrical {
 	
 	public static final Projection EQUAL_AREA =
 			new Projection(
-					"Cylindrical Equal-area", "A generalized equal-area cylindrical projection",
+					"Cylindrical Equal-area", "A generalized equal-area cylindrical projection.",
 					2*Math.PI, 0, 0b1111, Type.CYLINDRICAL, Property.EQUAL_AREA,
 					new String[]{"Std. parallel"}, new double[][]{{0, 89, 30}}) {
 		

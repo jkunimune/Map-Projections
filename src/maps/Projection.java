@@ -124,9 +124,9 @@ public abstract class Projection {
 		if (addendum != null)
 			description += " "+addendum;
 		if (description.charAt(0) == 'a' || description.charAt(0) == 'e' || description.charAt(0) == 'i' || description.charAt(0) == 'o' || description.charAt(0) == 'u')
-			return "An "+description;
+			return "An "+description+".";
 		else
-			return "A "+description;
+			return "A "+description+".";
 	}
 	
 	

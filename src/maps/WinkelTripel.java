@@ -46,7 +46,7 @@ import utils.NumericalAnalysis;
 public final class WinkelTripel {
 	
 	public static final Projection WINKEL_TRIPEL =
-			new Projection("Winkel Tripel", "National Geographic's compromise projection of choice",
+			new Projection("Winkel Tripel", "National Geographic's compromise projection of choice.",
 					0, 2*Math.PI, 0b1011, Type.OTHER, Property.COMPROMISE,
 					new String[] {"Std. Parallel"}, new double[][] {{0,90,50.4598}}) {
 		

@@ -118,7 +118,7 @@ public class Tetrahedral {
 	
 	public static final Projection TETRAFILLET =
 			new TetrahedralProjection("TetraFillet",
-					"A parameterised tetrahedral projection I invented with the corners filleted off",
+					"A parameterised tetrahedral projection I invented with the corners filleted off.",
 					0b1110, Property.COMPROMISE, new String[] {"k1","k2","k3"},
 					new double[][] {{.01,2.,.78},{.01,2.,.99},{.01,2.,1.3}}) {
 		
@@ -165,7 +165,7 @@ public class Tetrahedral {
 	public static final Projection TETRACHAMFER =
 			new TetrahedralProjection(
 					"TetraChamfer",
-					"A parameterised tetrahedral projection I invented with the corners chamfered off",
+					"A parameterised tetrahedral projection I invented with the corners chamfered off.",
 					0b1110, Property.COMPROMISE, new String[] {"k1","k2","k3"},
 					new double[][] {{.01,2.,.78},{.01,2.,.99},{.01,2.,1.3}}) {
 		
@@ -206,7 +206,7 @@ public class Tetrahedral {
 	
 	public static final Projection AUTHAGRAPH =
 			new TetrahedralProjection("AuthaGraph",
-					"A hip new Japanese map that is almost authagraphic (this is an approximation; they won't give me their actual equations)",
+					"A hip new Japanese map that is almost authagraphic (this is an approximation; they won't give me their actual equations).",
 					0b1001, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
