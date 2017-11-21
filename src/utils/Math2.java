@@ -30,6 +30,7 @@ package utils;
  */
 public class Math2 {
 
+	public static final double PHI = (1+Math.sqrt(5))/2;
 	public static final double mean(double[][] values) {
 		double s = 0, n = 0;
 		for (double[] row: values) {
@@ -103,6 +104,24 @@ public class Math2 {
 		for (int i = 0; i < ds.length; i ++)
 			ds[i] *= -1;
 		return ds;
+	}
+	
+	
+	public static double max(double... ds) {
+		double m = Double.NEGATIVE_INFINITY;
+		for (double d: ds)
+			if (d > m)
+				m = d;
+		return m;
+	}
+	
+	
+	public static double min(double... ds) {
+		double m = Double.POSITIVE_INFINITY;
+		for (double d: ds)
+			if (d < m)
+				m = d;
+		return m;
 	}
 
 }

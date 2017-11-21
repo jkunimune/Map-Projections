@@ -36,7 +36,7 @@ public class Waterman {
 	public static final Projection WATERMAN =
 			new Projection(
 					"Waterman Butterfly", "An aesthetically pleasing octohedral map arrangement",
-					0, 0b1110, Type.POLYHEDRAL, Property.COMPROMISE) {
+					0, 0, 0b1110, Type.POLYHEDRAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
 			return null; //TODO: projection wishlist

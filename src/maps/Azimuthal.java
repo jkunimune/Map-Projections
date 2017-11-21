@@ -29,16 +29,17 @@ import maps.Projection.Type;
 public class Azimuthal {
 	
 	public static final Projection STEREOGRAPHIC =
-			new Projection("Stereographic", 1., 0b0111, Type.AZIMUTHAL, Property.CONFORMAL,
+			new Projection("Stereographic", 4, 4, 0b0111, Type.AZIMUTHAL, Property.CONFORMAL,
 					"mathematically important") {
 		
 		public double[] project(double lat, double lon) {
-			final double r = .5/(Math.tan(lat/2 + Math.PI/4));
+			final double r = 1/(Math.tan(lat/2 + Math.PI/4));
 			return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
 		}
 		
 		public double[] inverse(double x, double y) {
-			return new double[] { Math.PI/2 - 2*Math.atan(2*Math.hypot(x, y)),
+			return new double[] {
+					Math.PI/2 - 2*Math.atan(Math.hypot(x, y)),
 					Math.atan2(y, x) + Math.PI/2 };
 		}
 	};
@@ -46,15 +47,16 @@ public class Azimuthal {
 	
 	public static final Projection POLAR =
 			new Projection(
-					"Azimuthal Equidistant", 1., 0b1111, Type.AZIMUTHAL, Property.EQUIDISTANT) {
+					"Azimuthal Equidistant", 2*Math.PI, 2*Math.PI, 0b1111,
+					Type.AZIMUTHAL, Property.EQUIDISTANT) {
 		
 		public double[] project(double lat, double lon) {
-			final double r = .5 - lat/Math.PI;
+			final double r = Math.PI/2 - lat;
 			return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
 		}
 		
 		public double[] inverse(double x, double y) {
-			double phi = Math.PI/2 - Math.PI * Math.hypot(x, y);
+			double phi = Math.PI/2 - Math.hypot(x, y);
 			if (phi > -Math.PI/2)
 				return new double[] {phi, Math.atan2(y, x) + Math.PI/2};
 			else
@@ -65,7 +67,7 @@ public class Azimuthal {
 	
 	public static final Projection EQUAL_AREA =
 			new Projection(
-					"Azimuthal Equal-Area", 1., 0b1111, Type.AZIMUTHAL, Property.EQUAL_AREA) {
+					"Azimuthal Equal-Area", 2, 2, 0b1111, Type.AZIMUTHAL, Property.EQUAL_AREA) {
 		
 		public double[] project(double lat, double lon) {
 			final double r = Math.cos((Math.PI/2+lat)/2);
@@ -84,7 +86,7 @@ public class Azimuthal {
 	
 	public static final Projection ORTHOGRAPHIC =
 			new Projection("Orthographic", "A projection that mimics the Earth viewed from a great distance",
-					1., 0b0111, Type.AZIMUTHAL, Property.PERSPECTIVE) {
+					2, 2, 0b0111, Type.AZIMUTHAL, Property.PERSPECTIVE) {
 		
 		public double[] project(double lat, double lon) {
 			if (lat < 0)	lat = 0;
@@ -104,16 +106,16 @@ public class Azimuthal {
 	public static final Projection GNOMONIC =
 			new Projection(
 					"Gnomonic", "A projection that draws all great circles as straight lines",
-					1., 0b0111, Type.AZIMUTHAL, Property.GNOMONIC) {
+					4, 4, 0b0111, Type.AZIMUTHAL, Property.GNOMONIC) {
 		
 		public double[] project(double lat, double lon) {
 			if (lat <= 0)	lat = 1e-5;
-			final double r = Math.tan(Math.PI/2 - lat)/2;
+			final double r = Math.tan(Math.PI/2 - lat);
 			return new double[] { r*Math.sin(lon), -r*Math.cos(lon)};
 		}
 		
 		public double[] inverse(double x, double y) {
-			return new double[] { Math.PI/2 - Math.atan(2*Math.hypot(x, y)),
+			return new double[] { Math.PI/2 - Math.atan(Math.hypot(x, y)),
 					Math.atan2(y, x) + Math.PI/2 };
 		}
 	};
@@ -122,27 +124,28 @@ public class Azimuthal {
 	public static final Projection PERSPECTIVE =
 			new Projection(
 					"Perspective", "A projection that mimics the actual appearance of the Earth",
-					1., 0b0111, Type.AZIMUTHAL, Property.PERSPECTIVE,
+					0, 0, 0b0111, Type.AZIMUTHAL, Property.PERSPECTIVE,
 					new String[] {"Percentage"}, new double[][] {{1,99,33.3}}) {
 		
 		private double d; //viewing distance in sphere radii
 		
 		public void setParameters(double... params) {
 			this.d = 1/(1 - 2*params[0]/100);
+			this.width = this.height = 2/Math.sqrt(d*d-1);
 		}
 		
 		public double[] project(double lat, double lon) {
 			if (Double.isInfinite(d)) 	return ORTHOGRAPHIC.project(lat, lon);
 			if (lat < Math.asin(1/d)) 	lat = Math.asin(1/d);
-			final double r = Math.abs(Math.cos(lat)/(d - Math.sin(lat))) * Math.sqrt(d*d-1);
+			final double r = Math.abs(Math.cos(lat)/(d - Math.sin(lat)));
 			return new double[] { r*Math.sin(lon), -r*Math.cos(lon) };
 		}
 		
 		public double[] inverse(double x, double y) {
 			if (Double.isInfinite(d)) 	return ORTHOGRAPHIC.inverse(x, y);
 			final double h = Math.hypot(x, y);
-			if (h > 1) 	return null;
-			final double theta = Math.atan(h/Math.sqrt(d*d-1));
+			if (h > this.width/2) 	return null;
+			final double theta = Math.atan(h);
 			final double phi = Math.acos(d*Math.sin(theta)) + theta;
 			if (phi < Math.PI/2)
 				return new double[] { phi, Math.atan2(x, -y) };

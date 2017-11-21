@@ -25,7 +25,7 @@ package maps;
 
 import org.apache.commons.math3.complex.Complex;
 
-import ellipticFunctions.Jacobi;
+import de.jtem.ellipticFunctions.Jacobi;
 import maps.Projection.Property;
 import maps.Projection.Type;
 import utils.Elliptic;
@@ -39,17 +39,17 @@ public class Misc {
 	
 	public static final Projection AITOFF =
 			new Projection("Aitoff", "A compromise projection shaped like an ellipse",
-					2., 0b1111, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE) {
+					2*Math.PI, Math.PI, 0b1111, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
 			final double a = Math.acos(Math.cos(lat)*Math.cos(lon/2));
 			return new double[] {
-					2*Math.cos(lat)*Math.sin(lon/2)*a/Math.sin(a)/Math.PI,
-					Math.sin(lat)*a/Math.sin(a)/Math.PI};
+					2*Math.cos(lat)*Math.sin(lon/2)*a/Math.sin(a),
+					Math.sin(lat)*a/Math.sin(a)};
 		}
 		
 		public double[] inverse(double x, double y) {
-			final double[] intermediate = Azimuthal.POLAR.inverse(x/2, y/2);
+			final double[] intermediate = Azimuthal.POLAR.inverse(x/2, y);
 			double[] transverse = obliquifyPlnr(intermediate, new double[] {0,0,0});
 			if (transverse != null) 	transverse[1] *= 2;
 			return transverse;
@@ -59,34 +59,33 @@ public class Misc {
 	
 	public static final Projection HAMMER =
 			new Projection("Hammer", "An equal-area projection shaped like an ellipse",
-					2., 0b1111, Type.PSEUDOAZIMUTHAL, Property.EQUAL_AREA) {
+					4, 2, 0b1111, Type.PSEUDOAZIMUTHAL, Property.EQUAL_AREA) {
 		
 		public double[] project(double lat, double lon) {
 			return new double[] {
-					Math.cos(lat)*Math.sin(lon/2)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2)),
-					1/2.*Math.sin(lat)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2)) };
+					2*Math.cos(lat)*Math.sin(lon/2)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2)),
+					Math.sin(lat)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2)) };
 		}
 		
 		public double[] inverse(double x, double y) {
-			final double X = x * Math.sqrt(8);
-			final double Y = y * Math.sqrt(2);
-			final double z = Math.sqrt(1 - Math.pow(X/4, 2) - Math.pow(Y/2, 2));
-			final double shift = (Math.hypot(x, y) > 1) ? 2*Math.PI*Math.signum(x) : 0;
+			final double z = Math.sqrt(1 - x*x/8 - y*y/2);
+			final double shift = (Math.hypot(x/2, y) > 1) ? 2*Math.PI*Math.signum(x) : 0;
 			return new double[] {
-					Math.asin(z * Y), 2*Math.atan(0.5*z*X / (2*z*z - 1)) + shift};
+					Math.asin(z*y*Math.sqrt(2)),
+					2*Math.atan(Math.sqrt(.5)*z*x / (2*z*z - 1)) + shift};
 		}
 	};
 	
 	
 	public static final Projection VAN_DER_GRINTEN =
 			new Projection("Van der Grinten", "A circular compromise map that is popular for some reason",
-					1., 0b1111, Type.OTHER, Property.COMPROMISE) {
+					2, 2, 0b1111, Type.OTHER, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
 			if (lat == 0) //special case 1: equator
-				return new double[] {lon, 0};
+				return new double[] {lon/Math.PI, 0};
 			if (lon == 0 || lat >= Math.PI/2 || lat <= -Math.PI/2) //special case 3: prime meridian
-				return new double[] {0, Math.PI*Math.tan(Math.asin(2*lat/Math.PI)/2)};
+				return new double[] {0, Math.tan(Math.asin(2*lat/Math.PI)/2)};
 			
 			final double t = Math.abs(Math.asin(2*lat/Math.PI));
 			final double A = Math.abs(Math.PI/lon - lon/Math.PI)/2;
@@ -121,16 +120,16 @@ public class Misc {
 	
 	public static final Projection PEIRCE_QUINCUNCIAL =
 			new Projection("Peirce Quincuncial", "A conformal projection that uses complex elliptic functions",
-					1., 0b1001, Type.OTHER, Property.CONFORMAL) {
+					2, 2, 0b1001, Type.OTHER, Property.CONFORMAL) {
 		
-		private static final double K_RT_HALF = 1.854; //1.854 is approx K(sqrt(1/2))
+		private static final double K_RT_HALF = 1.85407; //this is approx K(sqrt(1/2))
 		
 		public double[] project(double lat, double lon) {
 			final double alat = Math.abs(lat);
 			final double wMag = Math.tan(Math.PI/4-alat/2);
 			final Complex w = new Complex(wMag*Math.sin(lon), -wMag*Math.cos(lon)); //this Complex comes from Apache Commons
 			final Complex k = new Complex(Math.sqrt(0.5));
-			Complex z = Elliptic.F(w.acos(),k).divide(K_RT_HALF).subtract(1).negate();
+			Complex z = Elliptic.F(w.acos(),k).divide(K_RT_HALF).subtract(Complex.ONE).negate();
 			if (z.isInfinite() || z.isNaN())	z = new Complex(0);
 			double x = z.getReal(), y = z.getImaginary();
 			
@@ -148,9 +147,9 @@ public class Misc {
 		}
 		
 		public double[] inverse(double x, double y) {
-			mfc.field.Complex u = new mfc.field.Complex(K_RT_HALF*(x+1), K_RT_HALF*y);
-			mfc.field.Complex k = new mfc.field.Complex(Math.sqrt(0.5)); //the rest comes from some fancy complex calculus
-			mfc.field.Complex ans = Jacobi.cn(u, k);
+			de.jtem.mfc.field.Complex u = new de.jtem.mfc.field.Complex(K_RT_HALF*(x+1), K_RT_HALF*y);
+			de.jtem.mfc.field.Complex k = new de.jtem.mfc.field.Complex(Math.sqrt(0.5)); //the rest comes from some fancy complex calculus
+			de.jtem.mfc.field.Complex ans = Jacobi.cn(u, k);
 			double p = 2 * Math.atan(ans.abs());
 			double theta = ans.arg() - Math.PI/2;
 			double lambda = Math.PI/2 - p;
@@ -160,10 +159,10 @@ public class Misc {
 	
 	
 	public static final Projection GUYOU =
-			new Projection("Guyou", "Peirce Quincuncial, rearranged a bit", 2., 0b1001,
+			new Projection("Guyou", "Peirce Quincuncial, rearranged a bit", 2., 1, 0b1001,
 					Type.OTHER, Property.CONFORMAL) {
 		
-		private final double K_RT_HALF = 1.854; //1.854 is approx K(sqrt(1/2))
+		private static final double K_RT_HALF = 1.854; //this is approx K(sqrt(1/2))
 		private final double[] POLE = {0, -Math.PI/2, Math.PI/4};
 		
 		public double[] project(double lat, double lon) {
@@ -180,9 +179,9 @@ public class Misc {
 		}
 		
 		public double[] inverse(double x, double y) {
-			mfc.field.Complex u = new mfc.field.Complex(x-y/2-.5, x+y/2+.5).times(K_RT_HALF);
-			mfc.field.Complex k = new mfc.field.Complex(Math.sqrt(0.5)); //just some fancy complex calculus stuff
-			mfc.field.Complex ans = Jacobi.cn(u, k);
+			de.jtem.mfc.field.Complex u = new de.jtem.mfc.field.Complex(x-y-.5, x+y+.5).times(K_RT_HALF);
+			de.jtem.mfc.field.Complex k = new de.jtem.mfc.field.Complex(Math.sqrt(0.5)); //just some fancy complex calculus stuff
+			de.jtem.mfc.field.Complex ans = Jacobi.cn(u, k);
 			double p = 2 * Math.atan(ans.abs());
 			double theta = ans.arg();
 			double lambda = Math.PI/2 - p;
@@ -192,8 +191,9 @@ public class Misc {
 	
 	
 	public static final Projection HAMMER_RETROAZIMUTHAL =
-			new Projection("Hammer Retroazimuthal", "The full version of a map where bearing and distance to a reference point is preserved",
-					1., 0b1110, Type.QUASIAZIMUTHAL, Property.RETROAZIMUTHAL,
+			new Projection(
+					"Hammer Retroazimuthal", "The full version of a map where bearing and distance to a reference point is preserved",
+					2*Math.PI, 2*Math.PI, 0b1110, Type.QUASIAZIMUTHAL, Property.RETROAZIMUTHAL,
 					new String[] {"Latitude","Longitude"},
 					new double[][] {{-89,89,21.4},{-180,180,39.8}}, false) {
 		
@@ -211,7 +211,7 @@ public class Misc {
 		public double[] project(double lat, double lon) {
 			final double z = Math.acos(Math.sin(phi0)*Math.sin(lat) +
 					Math.cos(phi0)*Math.cos(lat)*Math.cos(lon-lam0));
-			final double K = z/Math.sin(z)/Math.PI;
+			final double K = z/Math.sin(z);
 			final double x = K*Math.cos(phi0)*Math.sin(lon-lam0);
 			final double y = -K*(Math.sin(phi0)*Math.cos(lat) -
 					Math.cos(phi0)*Math.sin(lat)*Math.cos(lon-lam0));
@@ -226,7 +226,7 @@ public class Misc {
 		}
 		
 		public double[] inverse(double x, double y) {
-			final double phi1 = Math.PI/2 - Math.hypot(x, y)*Math.PI;
+			final double phi1 = Math.PI/2 - Math.hypot(x, y);
 			if (phi1 < -Math.PI/2) 	return null;
 			final double lam1 = Math.atan2(x, -y);
 			double phiP = Math.asin(Math.sin(phi0)/Math.hypot(Math.sin(phi1),Math.cos(phi1)*Math.cos(lam1))) - Math.atan2(Math.cos(phi1)*Math.cos(lam1),Math.sin(phi1));
@@ -244,7 +244,7 @@ public class Misc {
 			new Projection(
 					"Two-point Equidistant",
 					"A map that preserves distances, but not azimuths, to two arbitrary points",
-					1., 0b1111, Type.QUASIAZIMUTHAL, Property.EQUIDISTANT,
+					0, 0, 0b1111, Type.QUASIAZIMUTHAL, Property.EQUIDISTANT,
 					new String[] {"Latitude 1","Longitude 1","Latitude 2","Longitude 2"},
 					new double[][] {{-90,90,41.9},{-180,180,12.5},{-90,90,34.7},{-180,180,112.4}},
 					false) {
@@ -260,7 +260,8 @@ public class Misc {
 			this.a = Math.PI - D/2; //semimajor axis
 			this.c = D/2; //focal distance
 			this.b = Math.sqrt(Math.pow(a, 2) - Math.pow(c, 2)); //semiminor axis
-			this.aspectRatio = a/b;
+			this.width = 2*a;
+			this.height = 2*b;
 		}
 		
 		public double[] project(double lat, double lon, double[] pole) {
@@ -275,8 +276,8 @@ public class Misc {
 					Math.tan(lat1)*Math.sin(lon0-lon2) +
 					Math.tan(lat2)*Math.sin(lon1-lon0));
 			return new double[] {
-					(d1*d1-d2*d2)/(2*D)/a,
-					s*Math.sqrt(d1*d1 - Math.pow((d1*d1-d2*d2+D*D)/(2*D), 2))/a };
+					(d1*d1-d2*d2)/(2*D),
+					s*Math.sqrt(d1*d1 - Math.pow((d1*d1-d2*d2+D*D)/(2*D), 2)) };
 		}
 		
 		public double[] inverse(double x, double y, double[] pole) {
@@ -284,8 +285,8 @@ public class Misc {
 		}
 		
 		public double[] inverse(double x, double y) {
-			final double d1 = Math.hypot(a*x + c, b*y);
-			final double d2 = Math.hypot(a*x - c, b*y);
+			final double d1 = Math.hypot(x + c, y);
+			final double d2 = Math.hypot(x - c, y);
 			if (d1 + d2 > 2*a) 	return null; //TODO find out why it throws a hissy fit when y=0
 			final double t1 = -(Math.cos(lat1)*Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(lon1-lon2))/Math.sin(D);
 			double t2 = Math.signum(lon1-lon2)*(Math.cos(d1)*Math.cos(D) - Math.cos(d2))/(Math.sin(d1)*Math.sin(D));
@@ -295,7 +296,7 @@ public class Misc {
 			final double s1 = Math.signum(Math.sin(Math.acos(t1)-s0*Math.acos(t2)));
 			final double PHI = Math.asin(Math.sin(lat1)*Math.cos(d1) - Math.cos(lat1)*Math.sin(d1)*casab);
 			final double LAM = lon1 +s1* Math.acos((Math.cos(d1) - Math.sin(lat1)*Math.sin(PHI))/(Math.cos(lat1)*Math.cos(PHI)));
-			return new double[] {PHI,LAM};
+			return new double[] {PHI, LAM};
 		}
 		
 		private double dist(double lat1, double lon1, double lat2, double lon2) {

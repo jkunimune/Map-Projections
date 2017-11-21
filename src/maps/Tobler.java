@@ -40,16 +40,16 @@ public class Tobler {
 	public static final Projection TOBLER =
 			new Projection(
 					"Tobler", "An equal-area projection shaped like a hyperellipse (in case you're wondering about gamma, it's calculated automatically)",
-					2., 0b1001, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA,
+					2*Math.PI, 0, 0b1001, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA,
 					new String[]{"Std. Parallel","alpha","K"},
-					new double[][] {{0,89,37}, {0,1,0}, {1,6,3.6}}) { //optimal parameters are 30.6,.50,3.63, but these defaults are more recognizably Tobler
+					new double[][] {{0,89,37}, {0,1,0}, {1,5,3.6}}) { //optimal parameters are 30.6,.50,3.63, but these defaults are more recognizably Tobler
 		
 		private static final int N = 10000;
 		private double alpha, kappa, epsilon; //epsilon is related to gamma, but defined somewhat differently
 		private double[] Z; //Z[i] = sin(phi) when y = i/(Z.length-1)
 		
 		public void setParameters(double... params) {
-			this.aspectRatio = Math.pow(Math.cos(Math.toRadians(params[0])),2)*Math.PI;
+			this.height = 2/Math.pow(Math.cos(Math.toRadians(params[0])),2);
 			this.alpha = params[1];
 			this.kappa = params[2];
 			this.epsilon = NumericalAnalysis.simpsonIntegrate(
@@ -70,14 +70,14 @@ public class Tobler {
 				y = Math2.linInterp(z0, Z[-i-2], Z[-i-1], -i-2, -i-1)/
 						(Z.length-1.);
 			return new double[] {
-					lon * Math.abs(alpha + (1-alpha)*hyperEllipse(y))/Math.PI,
-					y * Math.signum(lat)/aspectRatio };
+					lon * Math.abs(alpha + (1-alpha)*hyperEllipse(y)),
+					y * Math.signum(lat)*height/2 };
 		}
 		
 		public double[] inverse(double x, double y) {
 			return new double[] {
-					Math.asin(Z[(int)Math.round(Math.abs(y)*(Z.length-1))])*Math.signum(y),
-					Math.PI * x / Math.abs(alpha + (1-alpha)*hyperEllipse(y)) };
+					Math.asin(Z[(int)Math.round(Math.abs(2*y/height)*(Z.length-1))])*Math.signum(y),
+					x / Math.abs(alpha + (1-alpha)*hyperEllipse(2*y/height)) };
 		}
 		
 		public double dZdY(double y) {

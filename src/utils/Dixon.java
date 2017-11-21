@@ -23,7 +23,7 @@
  */
 package utils;
 
-import mfc.field.Complex;
+import de.jtem.mfc.field.Complex;
 
 /**
  * A class with a few handy Dixon elliptic functions as they pertain to the Lee conformal projection.

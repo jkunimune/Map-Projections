@@ -39,7 +39,7 @@ public class MyProjections {
 	public static final Projection MAGNIFIER =
 			new Projection("Magnifier",
 					"A novelty map projection that blows up the center way out of proportion",
-					1., 0b1011, Type.AZIMUTHAL, Property.POINTLESS) {
+					2, 2, 0b1011, Type.AZIMUTHAL, Property.POINTLESS) {
 		
 		public double[] project(double lat, double lon) {
 			final double p = 1/2.0+lat/Math.PI;
@@ -60,23 +60,23 @@ public class MyProjections {
 	
 	
 	public static final Projection EXPERIMENT =
-			new Projection("Experiment",
+			new Projection("Complex Sine",
 					"What happens when you apply a complex differentiable function to a stereographic projection?",
-					1., 0b0000, Type.OTHER, Property.CONFORMAL) {
+					6, 6, 0b0000, Type.OTHER, Property.CONFORMAL) {
 		
 		public double[] project(double lat, double lon) {
 			final double wMag = Math.tan(Math.PI/4-lat/2);
 			final Complex w = new Complex(wMag*Math.sin(lon), -wMag*Math.cos(lon));
-			Complex z = w.asin().divide(3);
+			Complex z = w.asin();
 			if (z.isInfinite() || z.isNaN())	z = new Complex(0);
 			return new double[] { z.getReal(), z.getImaginary() };
 		}
 		
 		public double[] inverse(double x, double y) {
-			Complex z = new Complex(3*x+3, y*3);
+			Complex z = new Complex(x, y);
 			Complex ans = z.sin();
 			double p = 2 * Math.atan(ans.abs());
-			double theta = ans.getArgument() - Math.PI/2;
+			double theta = ans.getArgument() + Math.PI/2;
 			double lambda = Math.PI/2 - p;
 			return new double[] {lambda, theta};
 		}
@@ -87,7 +87,7 @@ public class MyProjections {
 	public static final Projection PSEUDOSTEREOGRAPHIC =
 			new Projection(
 					"Pseudostereographic", "The logical next step after Aitoff and Hammer",
-					2, 0b1111, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE) {
+					2, 1, 0b1111, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
 			final double a = Math.PI - Math.acos(Math.cos(lat)*Math.cos(lon/2));
@@ -99,7 +99,7 @@ public class MyProjections {
 		
 		public double[] inverse(double x, double y) {
 			double[] transverse = obliquifyPlnr(
-					Azimuthal.STEREOGRAPHIC.inverse(x/2, y/2), new double[] {0,0,0});
+					Azimuthal.STEREOGRAPHIC.inverse(x, 2*y), new double[] {0,0,0});
 			if (transverse == null) 	return null;
 			else 	return new double[] {transverse[0], 2*transverse[1]};
 		}
@@ -109,9 +109,9 @@ public class MyProjections {
 	public static final Projection HYPERELLIPOWER =
 			new Projection(
 					"Hyperellipower", "A parametrised pseudocylindrical projection that I invented",
-					2., 0b1111, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE,
+					2, 0, 0b1111, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE,
 					new String[] {"k","n","a"},
-					new double[][] {{1,3,5},{.5,2.,1.20},{.5,2.,1.13}}) {
+					new double[][] {{1,5,3},{.5,2.,1.20},{.5,2.,1.13}}) {
 		
 		private double k, n, a;
 		
@@ -119,11 +119,11 @@ public class MyProjections {
 			this.k = params[0];
 			this.n = params[1];
 			this.a = params[2];
-			this.aspectRatio = 2*Math.sqrt(n)/a;
+			this.height = a/Math.sqrt(n);
 		}
 		
 		public double[] project(double lat, double lon) {
-			final double ynorm = (1-Math.pow(1-Math.abs(lat/(Math.PI/2)), n));
+			final double ynorm = 1-Math.pow(1-Math.abs(lat/(Math.PI/2)), n);
 			return new double[] {
 					Math.pow(1 - Math.pow(ynorm, k),1/k)*lon/Math.PI,
 					ynorm/2/Math.sqrt(n)*a*Math.signum(lat) };
@@ -131,8 +131,8 @@ public class MyProjections {
 		
 		public double[] inverse(double x, double y) {
 			return new double[] {
-					(1 - Math.pow(1-Math.abs(y), 1/n))*Math.PI/2*Math.signum(y),
-					x/Math.pow(1 - Math.pow(Math.abs(y),k),1/k)*Math.PI };
+					(1 - Math.pow(1-Math.abs(2*y/this.height), 1/n)) * Math.PI/2 * Math.signum(y),
+					x/Math.pow(1 - Math.pow(Math.abs(2*y/this.height),k),1/k) * Math.PI };
 		}
 	};
 	
@@ -140,18 +140,18 @@ public class MyProjections {
 	public static final Projection TWO_POINT_EQUALIZED =
 			new Projection("Two-Point Equalised",
 					"A projection I invented specifically for viewing small elliptical regions of the Earth",
-					0, 0b1111, Type.OTHER, Property.EQUIDISTANT, new String[] {"Width"},
+					0, 0, 0b1111, Type.OTHER, Property.EQUIDISTANT, new String[] {"Width"},
 					new double[][] { {0, 180, 120} }) {
 		
-		private double theta, a, b;
+		private double theta;
 		
 		public void setParameters(double... params) {
 			theta = Math.toRadians(params[0])/2;
-			this.a = Math.PI - theta; //semimajor axis
-			this.b = Math.sqrt(Math.pow(Math.PI-theta, 2) - Math.pow(theta, 2)); //semiminor axis
-			if (theta == 0) 				this.aspectRatio = 1;
-			else if (theta == Math.PI/2) 	this.aspectRatio = 1.3;
-			else 							this.aspectRatio = b/a*Math.sqrt(Math.tan(theta)/theta);
+			this.height = 2*Math.PI - 2*theta; //major axis
+			this.width = 2*Math.sqrt(Math.pow(Math.PI-theta, 2) - Math.pow(theta, 2)) *
+					Math.sqrt(Math.tan(theta)/theta); //minor axis
+			if (theta == 0)
+				this.width = this.height = 2*Math.PI;
 		}
 		
 		public double[] project(double lat, double lon) {
@@ -161,20 +161,19 @@ public class MyProjections {
 			final double d2 = Math.acos(
 					Math.sin(lat)*Math.cos(theta) + Math.cos(lat)*Math.sin(theta)*Math.cos(lon));
 			final double k = Math.signum(lon)*Math.sqrt(Math.tan(theta)/theta);
-			final double s = 1/(Math.PI-theta/2);
 			return new double[] {
-					s*k*Math.sqrt(d1*d1 - Math.pow((d1*d1-d2*d2+4*theta*theta)/(4*theta), 2)),
-					s*(d2*d2-d1*d1)/(4*theta) };
+					k*Math.sqrt(d1*d1 - Math.pow((d1*d1-d2*d2+4*theta*theta)/(4*theta), 2)),
+					(d2*d2-d1*d1)/(4*theta) };
 		}
 		
 		public double[] inverse(double x, double y) {
 			if (theta == 0) 	return Azimuthal.POLAR.inverse(x, y);
-			final double d1 = Math.hypot(b*x, a*y - theta);
-			final double d2 = Math.hypot(b*x, a*y + theta);
-			if (d1 + d2 > 2*a) 	return null;
+			final double d1 = Math.hypot(x/Math.sqrt(Math.tan(theta)/theta), y - theta);
+			final double d2 = Math.hypot(x/Math.sqrt(Math.tan(theta)/theta), y + theta);
+			if (d1 + d2 > height) 	return null;
 			final double phi = Math.asin((Math.cos(d1)+Math.cos(d2))/(2*Math.cos(theta)));
-			final double lam = Math.signum(x)*
-					Math.acos((Math.sin(phi)*Math.cos(theta) - Math.cos(d1))/(Math.cos(phi)*Math.sin(theta)));
+			final double lam = Math.signum(x)*Math.acos(
+					(Math.sin(phi)*Math.cos(theta) - Math.cos(d1))/(Math.cos(phi)*Math.sin(theta)));
 			return new double[] { phi, lam };
 		}
 	};

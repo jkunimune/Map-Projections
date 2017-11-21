@@ -47,22 +47,24 @@ public final class WinkelTripel {
 	
 	public static final Projection WINKEL_TRIPEL =
 			new Projection("Winkel Tripel", "National Geographic's compromise projection of choice",
-					0, 0b1011, Type.OTHER, Property.COMPROMISE,
+					0, 2*Math.PI, 0b1011, Type.OTHER, Property.COMPROMISE,
 					new String[] {"Std. Parallel"}, new double[][] {{0,90,50.4598}}) {
 		
+		private double stdParallel;
+		
 		public void setParameters(double... params) {
-			this.aspectRatio = 1 + Math.cos(Math.toRadians(params[0]));
+			this.stdParallel = Math.toRadians(params[0]);
+			this.width = 2*Math.PI*(1 + Math.cos(stdParallel));
 		}
 		
 		public double[] project(double lat, double lon) {
-			return new double[] {
-					f1pX(lat,lon)/aspectRatio/Math.PI, f2pY(lat,lon)/aspectRatio/Math.PI };
+			return new double[] { f1pX(lat,lon), f2pY(lat,lon) };
 		}
 		
 		public double[] inverse(double x, double y) {
 			return NumericalAnalysis.newtonRaphsonApproximation(
-					x*Math.PI*aspectRatio, y*Math.PI,
-					y*Math.PI/2, x*Math.PI*(1 + Math.cos(y*Math.PI/2))/2,
+					x, y,
+					y/2, x*(1 + Math.cos(y*Math.PI/2))/(2 + 2*Math.cos(stdParallel)),
 					this::f1pX, this::f2pY,
 					this::df1dphi, this::df1dlam, this::df2dphi, this::df2dlam, .002);
 		}
@@ -70,7 +72,7 @@ public final class WinkelTripel {
 		private double f1pX(double phi, double lam) {
 			final double d = D(phi,lam);
 			final double c = C(phi,lam);
-			return 2*d/Math.sqrt(c)*Math.cos(phi)*Math.sin(lam/2) + lam*(aspectRatio-1);
+			return 2*d/Math.sqrt(c)*Math.cos(phi)*Math.sin(lam/2) + lam*Math.cos(stdParallel);
 		}
 		
 		private double f2pY(double phi, double lam) {
@@ -88,7 +90,7 @@ public final class WinkelTripel {
 		private double df1dlam(double phi, double lam) {
 			final double d = D(phi,lam);
 			final double c = C(phi,lam);
-			return Math.pow(Math.cos(phi)*Math.sin(lam/2), 2)/c + d/Math.pow(c,1.5)*Math.cos(phi)*Math.cos(lam/2)*Math.pow(Math.sin(phi),2) + aspectRatio-1;
+			return Math.pow(Math.cos(phi)*Math.sin(lam/2), 2)/c + d/Math.pow(c,1.5)*Math.cos(phi)*Math.cos(lam/2)*Math.pow(Math.sin(phi),2) + Math.cos(stdParallel);
 		}
 		
 		private double df2dphi(double phi, double lam) {

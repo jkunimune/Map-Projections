@@ -37,6 +37,8 @@ import utils.NumericalAnalysis;
  */
 public class Robinson {
 	
+	private static final double Y_MAX = 0.5072;
+	
 	private static final double[][] TABLE = {
 			{ -90,-85,-80,-75,-70,-65,-60,-55,-50,-45,-40,-35,-30,-25,-20,-15,-10,-05, 00,
 				05, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90 }, //Latitude
@@ -51,18 +53,18 @@ public class Robinson {
 	
 	public static final Projection ROBINSON =
 			new Projection("Robinson", "A visually pleasing piecewise compromise map",
-					1.9716, 0b1111, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE) {
+					2, 2*Y_MAX, 0b1111, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
 			return new double[] {
 					lon/Math.PI*smartInterpolate(Math.toDegrees(lat), TABLE[0], TABLE[1], ORDER),
-					.5*smartInterpolate(Math.toDegrees(lat), TABLE[0], TABLE[2], ORDER) };
+					Y_MAX*smartInterpolate(Math.toDegrees(lat), TABLE[0], TABLE[2], ORDER) };
 		}
 		
 		public double[] inverse(double x, double y) {
 			return new double[] {
-					Math.toRadians(smartInterpolate(y, TABLE[2], TABLE[0], ORDER)),
-					x*Math.PI/smartInterpolate(y, TABLE[2], TABLE[1], ORDER) };
+					Math.toRadians(smartInterpolate(y/Y_MAX, TABLE[2], TABLE[0], ORDER)),
+					Math.PI*x/smartInterpolate(y/Y_MAX, TABLE[2], TABLE[1], ORDER) };
 		}
 	};
 	

@@ -150,6 +150,7 @@ public class MapDesignerRaster extends MapApplication {
 		this.display.setPreserveRatio(true);
 		final StackPane pane = new StackPane(display);
 		pane.setMinWidth(IMG_WIDTH);
+		pane.setMinHeight(IMG_WIDTH);
 		
 		final HBox gui = new HBox(10, layout, pane);
 		gui.setAlignment(Pos.CENTER);
@@ -225,6 +226,7 @@ public class MapDesignerRaster extends MapApplication {
 	
 	private BufferedImage makeImage(int width, int height, int step, ProgressBarDialog pBar) {
 		final double[] pole = aspect.clone();
+		final Projection pjc = this.getProjection();
 		final BufferedImage out = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 		for (int y = 0; y < out.getHeight(); y ++) {
 			if (pBar != null)
@@ -233,8 +235,8 @@ public class MapDesignerRaster extends MapApplication {
 				int[] colors = new int[step*step];
 				for (int dy = 0; dy < step; dy ++) {
 					for (int dx = 0; dx < step; dx ++) {
-						final double X = 2*(x+(dx+.5)/step)/out.getWidth()-1;
-						final double Y = 1-2*(y+(dy+.5)/step)/out.getHeight();
+						final double X = ((x+(dx+.5)/step)/out.getWidth() - 1/2.) *pjc.getWidth();
+						final double Y = (1/2. - (y+(dy+.5)/step)/out.getHeight()) *pjc.getHeight();
 						final double[] coords = this.getProjection().inverse(X, Y, pole);
 						if (coords != null) //if it is null, the default (0:transparent) is used
 							colors[step*dy+dx] = input.getArgb(coords[0], coords[1]);

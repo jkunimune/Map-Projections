@@ -51,60 +51,63 @@ public abstract class Projection {
 	private final Type type; //the geometry of the projection
 	private final Property property; //what it is good for
 	
-	protected double aspectRatio; //default W/H for the map
+	protected double width, height; //max(x)-min(x) and max(y)-min(y)
 	
 	
 	
 	protected Projection(
-			String name, double aspectRatio, int fisc, Type type, Property property) {
-		this(name, buildDescription(type,property,null,null), aspectRatio, fisc, type, property, new String[0], new double[0][]);
+			String name, double width, double height, int fisc, Type type, Property property) {
+		this(name, buildDescription(type,property,null,null), width, height, fisc, type, property, new String[0], new double[0][]);
 	}
 	
 	protected Projection(
-			String name, double aspectRatio, int fisc, Type type, Property property, String adjective) {
-		this(name, buildDescription(type,property,adjective,null), aspectRatio, fisc, type, property, new String[0], new double[0][]);
+			String name, double width, double height, int fisc, Type type, Property property, String adjective) {
+		this(name, buildDescription(type,property,adjective,null), width, height, fisc, type, property, new String[0], new double[0][]);
 	}
 	
 	protected Projection(
-			String name, double aspectRatio, int fisc, Type type, Property property, String adjective, String addendum) {
-		this(name, buildDescription(type,property,adjective,addendum), aspectRatio, fisc, type, property, new String[0], new double[0][]);
+			String name, double width, double height, int fisc, Type type, Property property,
+			String adjective, String addendum) {
+		this(name, buildDescription(type,property,adjective,addendum), width, height, fisc, type, property, new String[0], new double[0][]);
 	}
 	
 	protected Projection(
-			String name, String description, double aspectRatio, int fisc, Type type, Property property) {
-		this(name, description, aspectRatio, fisc, type, property, new String[0], new double[0][]);
+			String name, String description, double width, double height, int fisc,
+			Type type, Property property) {
+		this(name, description, width, height, fisc, type, property, new String[0], new double[0][]);
 	}
 	
 	protected Projection(
-			String name, String description, double aspectRatio, int fisc, Type type,
+			String name, String description, double width, double height, int fisc, Type type,
 			Property property, String[] paramNames, double[][] paramValues) {
-		this(name, description, aspectRatio, fisc, type, property, paramNames, paramValues, true);
+		this(name, description, width, height, fisc, type, property, paramNames, paramValues, true);
 	}
 	
 	protected Projection(
-			String name, String description, double aspectRatio, int fisc, Type type,
+			String name, String description, double width, double height, int fisc, Type type,
 			Property property, String[] paramNames, double[][] paramValues, boolean hasAspect) {
-		this(name, description, aspectRatio,
+		this(name, description, width, height,
 				(fisc&0b1000) > 0, (fisc&0b0100) > 0, (fisc&0b0010) > 0, (fisc&0b0001) > 0,
 				type, property, paramNames, paramValues, hasAspect);
 	}
 	
 	protected Projection(Projection base) {
-		this(	base.name, base.description, base.aspectRatio, base.finite, base.invertable,
+		this(	base.name, base.description, base.width, base.height, base.finite, base.invertable,
 				base.solveable, base.continuous, base.type, base.property, base.paramNames,
 				base.paramValues, base.hasAspect);
 	}
 	
 	protected Projection (
-			String name, String description, double aspectRatio, boolean f, boolean i, boolean s,
-			boolean c, Type type, Property property, String[] paramNames, double[][] paramValues,
-			boolean hasAspect) {
+			String name, String description, double width, double height,
+			boolean f, boolean i, boolean s, boolean c, Type type, Property property,
+			String[] paramNames, double[][] paramValues, boolean hasAspect) {
 		this.name = name;
 		this.description = description;
 		this.paramNames = paramNames;
 		this.paramValues = paramValues;
 		this.hasAspect = hasAspect;
-		this.aspectRatio = aspectRatio;
+		this.width = width;
+		this.height = height;
 		this.finite = f;
 		this.invertable = i;
 		this.solveable = s;
@@ -168,18 +171,18 @@ public abstract class Projection {
 	}
 	
 	public double[][][] map(int size, double[] pole) {
-		final double ratio = this.getAspectRatio();
-		if (ratio < 1)
-			return map(Math.max(Math.round(size*ratio),1), size, pole, null);
+		if (width >= height)
+			return map(size, Math.max(Math.round(size*height/width),1), pole, null);
 		else
-			return map(size, Math.max(Math.round(size/ratio),1), pole, null);
+			return map(Math.max(Math.round(size*width/height),1), size, pole, null);
 	}
 	
 	public double[][][] map(double w, double h, double[] pole, DoubleConsumer tracker) { //generate a matrix of coordinates based on a map projection
 		final double[][][] output = new double[(int) h][(int) w][2];
 		for (int y = 0; y < h; y ++) {
 			for (int x = 0; x < w; x ++)
-				output[y][x] = inverse((2*x+1)/w-1, 1-(2*y+1)/h, pole);
+				output[y][x] = inverse(
+						((x+0.5)/w-1/2.)*width, (1/2.-(y+0.5)/h)*height, pole);
 			if (tracker != null)
 				tracker.accept((double)y / (int)h);
 		}
@@ -405,8 +408,16 @@ public abstract class Projection {
 		return this.property;
 	}
 	
+	public final double getWidth() {
+		return this.width;
+	}
+	
+	public final double getHeight() {
+		return this.height;
+	}
+	
 	public final double getAspectRatio() {
-		return this.aspectRatio;
+		return this.width/this.height;
 	}
 	
 	

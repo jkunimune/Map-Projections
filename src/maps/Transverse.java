@@ -59,7 +59,8 @@ public class Transverse extends Projection {
 	@Override
 	public void setParameters(double... params) {
 		base.setParameters(params);
-		this.aspectRatio = base.aspectRatio;
+		this.width = base.width;
+		this.height = base.height;
 	}
 	
 }

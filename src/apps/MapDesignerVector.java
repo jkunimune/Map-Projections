@@ -137,9 +137,12 @@ public class MapDesignerVector extends MapApplication {
 		layout.setAlignment(Pos.CENTER);
 		layout.setPrefWidth(GUI_WIDTH);
 		
-		viewer = new Canvas(IMG_WIDTH, IMG_WIDTH);
+		viewer = new Canvas(1,1);
+		final StackPane pane = new StackPane(viewer);
+		pane.setMinWidth(IMG_WIDTH);
+		pane.setMinHeight(IMG_WIDTH);
 		
-		final HBox gui = new HBox(10, layout, viewer);
+		final HBox gui = new HBox(10, layout, pane);
 		gui.setAlignment(Pos.CENTER);
 		StackPane.setMargin(gui, new Insets(10));
 		
@@ -179,6 +182,15 @@ public class MapDesignerVector extends MapApplication {
 		loadParameters();
 		int maxVtx = this.getParamsChanging() ? FAST_MAX_VTX : DEF_MAX_VTX;
 		final Iterable<Path> transformed = map(input, input.size()/maxVtx+1, aspect.clone(), null);
+		
+		if (this.getProjection().getWidth() > this.getProjection().getHeight()) {
+			viewer.setWidth(IMG_WIDTH);
+			viewer.setHeight(IMG_WIDTH/this.getProjection().getAspectRatio());
+		}
+		else {
+			viewer.setWidth(IMG_WIDTH*this.getProjection().getAspectRatio());
+			viewer.setHeight(IMG_WIDTH);
+		}
 		drawImage(transformed, viewer);
 	}
 	
@@ -225,7 +237,10 @@ public class MapDesignerVector extends MapApplication {
 	}
 	
 	
-	private void drawImage(Iterable<Path> paths, Canvas c) { //parse the SVG path, with a few modifications
+	private void drawImage(
+			Iterable<Path> paths, Canvas c) { //parse the SVG path, with a few modifications
+		final double mX = this.getProjection().getWidth()/2;
+		final double mY = this.getProjection().getHeight()/2;
 		GraphicsContext g = c.getGraphicsContext2D();
 		g.clearRect(0, 0, c.getWidth(), c.getHeight());
 		g.beginPath();
@@ -235,9 +250,9 @@ public class MapDesignerVector extends MapApplication {
 				final double[] args = new double[cmd.args.length];
 				for (int i = 0; i < args.length; i ++)
 					if (i%2 == 0)
-						args[i] = Math2.linInterp(cmd.args[i], -1, 1, 0, IMG_WIDTH);
+						args[i] = Math2.linInterp(cmd.args[i], -mX, mX, 0, c.getWidth());
 					else
-						args[i] = Math2.linInterp(cmd.args[i], -1, 1, IMG_WIDTH, 0);
+						args[i] = Math2.linInterp(cmd.args[i], -mY, mY, c.getHeight(), 0);
 				
 				switch (cmd.type) {
 				case 'M':
