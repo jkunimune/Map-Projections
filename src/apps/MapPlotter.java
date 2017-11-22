@@ -51,6 +51,7 @@ import maps.Cylindrical;
 import maps.Misc;
 import maps.MyProjections;
 import maps.Projection;
+import maps.Pseudocylindrical;
 import maps.Robinson;
 import maps.Tetrahedral;
 import maps.Tobler;
@@ -65,15 +66,28 @@ public class MapPlotter extends Application {
 
 	private static final double GLOBE_RES = .002;
 	
-	private static final Projection[] COMMON = { Azimuthal.STEREOGRAPHIC, Cylindrical.MERCATOR,
-			Azimuthal.POLAR, Cylindrical.PLATE_CARREE, Azimuthal.EQUAL_AREA,
-			Cylindrical.GALL_PETERS, Cylindrical.GALL, Misc.VAN_DER_GRINTEN, Robinson.ROBINSON,
-			WinkelTripel.WINKEL_TRIPEL, Azimuthal.ORTHOGRAPHIC };
-	private static final Projection[] UNCOMMON = { Misc.PEIRCE_QUINCUNCIAL, Tetrahedral.LEE,
-			Tobler.TOBLER, Cylindrical.BEHRMANN, Misc.AITOFF };
-	private static final Projection[] INVENTED = { MyProjections.PSEUDOSTEREOGRAPHIC,
-			MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER, Tetrahedral.TETRAFILLET,
-			MyProjections.TWO_POINT_EQUALIZED };
+	private static final Projection[] CYLINDRICAL = { Cylindrical.MERCATOR,
+			Cylindrical.PLATE_CARREE, Cylindrical.BEHRMANN, Cylindrical.GALL };
+	private static final Projection[] AZIMUTHAL = { Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR,
+			Azimuthal.EQUAL_AREA };
+	private static final Projection[] PSEUDOCYL = { Pseudocylindrical.MOLLWEIDE,
+			Robinson.ROBINSON, Tobler.TOBLER, MyProjections.HYPERELLIPOWER };
+	private static final Projection[] PSEUDOAZM = { Misc.AITOFF,
+			MyProjections.PSEUDOSTEREOGRAPHIC };
+	private static final Projection[] TETRAHEDRAL = { Tetrahedral.LEE, Tetrahedral.TETRAGRAPH,
+			Tetrahedral.ACTAAUTHAGRAPH, Tetrahedral.TETRAPOWER };
+	private static final Projection[] OTHER = { Misc.VAN_DER_GRINTEN, WinkelTripel.WINKEL_TRIPEL,
+			Misc.PEIRCE_QUINCUNCIAL };
+	
+//	private static final Projection[] COMMON = { Azimuthal.STEREOGRAPHIC, Cylindrical.MERCATOR,
+//			Azimuthal.POLAR, Cylindrical.PLATE_CARREE, Azimuthal.EQUAL_AREA,
+//			Cylindrical.GALL_PETERS, Cylindrical.GALL, Misc.VAN_DER_GRINTEN, Robinson.ROBINSON,
+//			WinkelTripel.WINKEL_TRIPEL, Azimuthal.ORTHOGRAPHIC };
+//	private static final Projection[] UNCOMMON = { Misc.PEIRCE_QUINCUNCIAL, Tetrahedral.LEE,
+//			Tobler.TOBLER, Cylindrical.BEHRMANN, Misc.AITOFF };
+//	private static final Projection[] INVENTED = { MyProjections.PSEUDOSTEREOGRAPHIC,
+//			MyProjections.HYPERELLIPOWER, Tetrahedral.ACTAAUTHAGRAPH, Tetrahedral.TETRAPOWER,
+//			Tetrahedral.TETRAFILLET, MyProjections.TWO_POINT_EQUALIZED };
 	
 	
 	private StackPane stack;
@@ -98,9 +112,16 @@ public class MapPlotter extends Application {
 		final List<Data<Number,Number>> data = new LinkedList<Data<Number,Number>>();
 		final double[][][] points = Projection.globe(GLOBE_RES);
 		
-		plotProjections(plot, overlay, labels, data, COMMON, "Common", points);
-		plotProjections(plot, overlay, labels, data, UNCOMMON, "Hipster", points);
-		plotProjections(plot, overlay, labels, data, INVENTED, "Mine", points);
+		plotProjections(plot, overlay, labels, data, CYLINDRICAL, "Cylindrical", points);
+		plotProjections(plot, overlay, labels, data, AZIMUTHAL, "Azimuthal", points);
+		plotProjections(plot, overlay, labels, data, PSEUDOCYL, "Pseudocylindrical", points);
+		plotProjections(plot, overlay, labels, data, PSEUDOAZM, "Pseudoazimuthal", points);
+		plotProjections(plot, overlay, labels, data, TETRAHEDRAL, "Tetrahedral", points);
+		plotProjections(plot, overlay, labels, data, OTHER, "Other", points);
+		
+//		plotProjections(plot, overlay, labels, data, COMMON, "Common", points);
+//		plotProjections(plot, overlay, labels, data, UNCOMMON, "Hipster", points);
+//		plotProjections(plot, overlay, labels, data, INVENTED, "Mine", points);
 		
 		final ChangeListener<Number> listener = new ChangeListener<Number>() {
 			final Timer timer = new Timer();

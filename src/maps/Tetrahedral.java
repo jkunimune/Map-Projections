@@ -76,6 +76,28 @@ public class Tetrahedral {
 	};
 	
 	
+	public static final Projection ACTAAUTHAGRAPH =
+			new TetrahedralProjection(
+					"Equahedral", 0b1011, Property.EQUAL_AREA, null, "to put AuthaGraph to shame.") {
+		
+		public double[] innerProject(double lat, double lon) {
+			final double Lam = Math.floor(lon/(2*Math.PI/3))*(2*Math.PI/3) + Math.PI/3;
+			final double lam = lon - Lam;
+			final double tht = Math.atan((lam - Math.asin(Math.sin(lam)/Math.sqrt(3)))/Math.PI*Math.sqrt(108));
+			return new double[] {
+					Math.sqrt((1 - Math.sin(lat))/(1 - 1/Math.sqrt(1+2/Math.cos(lam))))/Math.cos(tht),
+//					(Math.PI/2-lat)/Math.atan(Math.sqrt(2)/Math.cos(lam))/Math.cos(tht),
+					Lam + tht };
+		}
+		
+		public double[] innerInverse(double x, double y) {
+			// TODO: Implement this
+			return null;
+		}
+		
+	};
+	
+	
 	public static final Projection TETRAPOWER =
 			new TetrahedralProjection(
 					"TetraPower", "A parameterised tetrahedral projection that I invented.",
@@ -200,69 +222,6 @@ public class Tetrahedral {
 			return new double[] {
 					Math.atan(Math.cos(lamS)/Math.tan(rtgf/rmax*Math.atan(Math.sqrt(2)))),
 					t0 + lamS };
-		}
-	};
-	
-	
-	public static final Projection AUTHAGRAPH =
-			new TetrahedralProjection("AuthaGraph",
-					"A hip new Japanese map that is almost authagraphic (this is an approximation; they won't give me their actual equations).",
-					0b1001, Property.COMPROMISE) {
-		
-		public double[] project(double lat, double lon) {
-			return null; //TODO Can I live with myself if I never implement this?
-		}
-		
-		public double[] innerProject(double lat, double lon) {
-			return null;
-		}
-		
-		public double[] inverse(double x, double y) {
-			final double[] faceCenter;
-			final double dt, xp, yp;
-			if (y-1 < 4*x && y-1 < -4*x) {
-				faceCenter = new double[] { Math.PI/2-Math.asin(Math.sqrt(8)/3), 0, 0};
-				dt = 0;
-				xp = 4/Math.sqrt(3)*x;
-				yp = y+1/3.0;
-			}
-			else if (y-1 < -4*(x+1)) {
-				faceCenter = new double[] { -Math.PI/2, Math.PI, 0 };
-				dt = 0;
-				xp = 4/Math.sqrt(3)*(x+1);
-				yp = y+1/3.0;
-			}
-			else if (y-1 < 4*(x-1)) {
-				faceCenter = new double[] { -Math.PI/2, Math.PI, 0 };
-				dt = 0;
-				xp = 4/Math.sqrt(3)*(x-1);
-				yp = y+1/3.0;
-			}
-			else if (x < 0) {
-				faceCenter = new double[] { Math.PI/2-Math.asin(Math.sqrt(8)/3), 4*Math.PI/3, 0 };
-				dt = Math.PI/3;
-				xp = 4/Math.sqrt(3)*(x+0.5);
-				yp = y-1/3.0;
-			}
-			else {
-				faceCenter = new double[] { Math.PI/2-Math.asin(Math.sqrt(8)/3), 2*Math.PI/3, 0 };
-				dt = -Math.PI/3;
-				xp = 4/Math.sqrt(3)*(x-0.5);
-				yp = y-1/3.0;
-			}
-			
-			return obliquifyPlnr(
-					innerInverse(Math.hypot(xp, yp), Math.atan2(yp, xp)+dt), faceCenter);
-		}
-		
-		protected double[] innerInverse(double r, double tht) {
-			final double t0 = Math.floor((tht+Math.PI/2)/(2*Math.PI/3)+0.5)*(2*Math.PI/3) - Math.PI/2;
-			final double dt = tht-t0;
-			final double z = 2.49*r*Math.cos(dt);
-			final double g = 0.03575*z*z*z + 0.0219*z*z + 0.4441*z;
-			return new double[] {
-					Math.PI/2 - Math.atan(Math.tan(g)/Math.cos(dt)),
-					Math.PI/2 + t0 + dt };
 		}
 	};
 	
