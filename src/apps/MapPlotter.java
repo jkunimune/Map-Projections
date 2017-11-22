@@ -77,7 +77,7 @@ public class MapPlotter extends Application {
 	private static final Projection[] TETRAHEDRAL = { Tetrahedral.LEE, Tetrahedral.TETRAGRAPH,
 			Tetrahedral.ACTAAUTHAGRAPH, Tetrahedral.TETRAPOWER };
 	private static final Projection[] OTHER = { Misc.VAN_DER_GRINTEN, WinkelTripel.WINKEL_TRIPEL,
-			Misc.PEIRCE_QUINCUNCIAL };
+			Misc.PEIRCE_QUINCUNCIAL, Pseudocylindrical.LEMONS };
 	
 //	private static final Projection[] COMMON = { Azimuthal.STEREOGRAPHIC, Cylindrical.MERCATOR,
 //			Azimuthal.POLAR, Cylindrical.PLATE_CARREE, Azimuthal.EQUAL_AREA,

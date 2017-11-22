@@ -46,7 +46,7 @@ public class Tetrahedral {
 		
 		public double[] innerInverse(double r, double tht) {
 			final de.jtem.mfc.field.Complex w = de.jtem.mfc.field.Complex.fromPolar(
-					r/1.132, tht - Math.PI/2);
+					r/1.132, tht - Math.PI);
 			final de.jtem.mfc.field.Complex ans = Dixon.leeFunc(w).times(Math.pow(2, -5/6.));
 			return new double[] {
 					Math.PI/2 - 2*Math.atan(ans.abs()),
@@ -60,14 +60,14 @@ public class Tetrahedral {
 					null, "that I invented") {
 		
 		public double[] innerProject(double lat, double lon) {
-			final double tht = lon - Math.floor(lon/(2*Math.PI/3))*(2*Math.PI/3) - Math.PI/3;
+			final double tht = lon - Math.floor((lon+Math.PI/3)/(2*Math.PI/3))*(2*Math.PI/3);
 			return new double[] {
 					Math.atan(1/Math.tan(lat)*Math.cos(tht))/Math.cos(tht) /Math.atan(Math.sqrt(2)),
 					lon };
 		}
 		
 		public double[] innerInverse(double r, double tht) {
-			final double t0 = Math.floor((tht+Math.PI/2)/(2*Math.PI/3)+0.5)*(2*Math.PI/3) - Math.PI/2;
+			final double t0 = Math.floor((tht+Math.PI/3)/(2*Math.PI/3))*(2*Math.PI/3);
 			final double dt = tht-t0;
 			return new double[] {
 					Math.PI/2 - Math.atan(Math.tan(r*Math.cos(dt)*Math.atan(Math.sqrt(2)))/Math.cos(dt)),
@@ -86,13 +86,16 @@ public class Tetrahedral {
 			final double tht = Math.atan((lam - Math.asin(Math.sin(lam)/Math.sqrt(3)))/Math.PI*Math.sqrt(108));
 			return new double[] {
 					Math.sqrt((1 - Math.sin(lat))/(1 - 1/Math.sqrt(1+2/Math.cos(lam))))/Math.cos(tht),
-//					(Math.PI/2-lat)/Math.atan(Math.sqrt(2)/Math.cos(lam))/Math.cos(tht),
 					Lam + tht };
 		}
 		
-		public double[] innerInverse(double x, double y) {
-			// TODO: Implement this
-			return null;
+		public double[] innerInverse(double r, double th) {
+			final double R = r * Math.cos((Math.PI-Math.atan(Math.sqrt(2)))/2); //TODO: this is a placeholder, not real
+			final double t0 = Math.floor((th+Math.PI/3)/(2*Math.PI/3))*(2*Math.PI/3);
+			if (Math.acos(1 - 2*R*R) > Math.atan(Math.sqrt(2)/Math.cos(th-t0)))
+				return null;
+			else
+				return new double[] { Math.asin(1 - 2*R*R), th };
 		}
 		
 	};
@@ -125,7 +128,7 @@ public class Tetrahedral {
 		}
 		
 		public double[] innerInverse(double r, double tht) {
-			final double t0 = Math.floor((tht+Math.PI/2)/(2*Math.PI/3)+0.5)*(2*Math.PI/3) - Math.PI/2;
+			final double t0 = Math.floor((tht+Math.PI/3)/(2*Math.PI/3))*(2*Math.PI/3);
 			final double thtP = tht-t0;
 			final double lamS = (1-Math.pow(1-Math.abs(thtP)*(1-1/Math.pow(3,k1))/(Math.PI/3), 1/k1))*Math.PI/2*Math.signum(thtP);
 			final double kRad = k3*Math.abs(thtP)/(Math.PI/3) + k2*(1-Math.abs(thtP)/(Math.PI/3));
@@ -168,7 +171,7 @@ public class Tetrahedral {
 		}
 		
 		public double[] innerInverse(double r, double tht) {
-			final double t0 = Math.floor((tht+Math.PI/2)/(2*Math.PI/3)+0.5)*(2*Math.PI/3) - Math.PI/2;
+			final double t0 = Math.floor((tht+Math.PI/3)/(2*Math.PI/3))*(2*Math.PI/3);
 			final double thtP = tht-t0;
 			final double lamS = (1-Math.pow(1-Math.abs(thtP)*(1-1/Math.pow(3,k1))/(Math.PI/3), 1/k1))*Math.PI/2*Math.signum(thtP);
 			final double kRad = k3*Math.abs(thtP)/(Math.PI/3) + k2*(1-Math.abs(thtP)/(Math.PI/3));
@@ -212,7 +215,7 @@ public class Tetrahedral {
 		}
 		
 		public double[] innerInverse(double r, double tht) {
-			final double t0 = Math.floor((tht+Math.PI/2)/(2*Math.PI/3)+0.5)*(2*Math.PI/3) - Math.PI/2;
+			final double t0 = Math.floor((tht+Math.PI/3)/(2*Math.PI/3))*(2*Math.PI/3);
 			final double thtP = tht-t0;
 			final double lamS = (1-Math.pow(1-Math.abs(thtP)*(1-1/Math.pow(3,k1))/(Math.PI/3), 1/k1))*Math.PI/2*Math.signum(thtP);
 			final double kRad = k3*Math.abs(thtP)/(Math.PI/3) + k2*(1-Math.abs(thtP)/(Math.PI/3));
@@ -284,24 +287,18 @@ public class Tetrahedral {
 			switch (poleIdx) {
 			case 0:
 				if (Math.sin(lon) < 0)
-					return new double[]
-							{-2+r*Math.sin(th), -Math.sqrt(3)-r*Math.cos(th)}; // lower left
+					return new double[] {-2 + r*Math.sin(th), -Math.sqrt(3) - r*Math.cos(th)}; // lower left
 				else
-					return new double[]
-							{ 2-r*Math.sin(th), -Math.sqrt(3)+r*Math.cos(th)}; // lower right
+					return new double[] { 2 - r*Math.sin(th), -Math.sqrt(3) + r*Math.cos(th)}; // lower right
 			case 1:
 				if (Math.sin(lon) < 0)
-					return new double[]
-							{-2+r*Math.sin(th),  Math.sqrt(3)-r*Math.cos(th)}; // lower left
+					return new double[] {-2 + r*Math.sin(th),  Math.sqrt(3) - r*Math.cos(th)}; // lower left
 				else
-					return new double[]
-							{ 2-r*Math.sin(th),  Math.sqrt(3)+r*Math.cos(th)}; // lower right
+					return new double[] { 2 - r*Math.sin(th),  Math.sqrt(3) + r*Math.cos(th)}; // lower right
 			case 2:
-				return new double[]
-						{ 1 + r*Math.cos(th),  r*Math.sin(th)}; // right
+				return new double[] { 1 + r*Math.cos(th),  r*Math.sin(th)}; // right
 			case 3:
-				return new double[]
-						{-1 - r*Math.cos(th), -r*Math.sin(th)}; // left
+				return new double[] {-1 - r*Math.cos(th), -r*Math.sin(th)}; // left
 			default:
 				return null;
 			}
@@ -312,38 +309,38 @@ public class Tetrahedral {
 			final double[] faceCenter;
 			final double dt, xp, yp;
 			if (3 + Math.sqrt(3)*y < x) { //lower right
-				faceCenter = new double[] { -Math.PI/2, 0, Math.PI/2 };
-				dt = -Math.PI/2;
+				faceCenter = new double[] { -Math.PI/2, 0, 0 };
+				dt = 0;
 				xp = x - 2;
 				yp = y + Math.sqrt(3);
 			}
 			else if (3 + Math.sqrt(3)*y < -x) { //lower left
-				faceCenter = new double[] { -Math.PI/2, 0, Math.PI/2 };
-				dt = Math.PI/2;
+				faceCenter = new double[] { -Math.PI/2, 0, 0 };
+				dt = Math.PI;
 				xp = x + 2;
 				yp = y + Math.sqrt(3);
 			}
 			else if (3 - Math.sqrt(3)*y < x) { //upper right
-				faceCenter = new double[] { PHI_0, Math.PI, Math.PI/2 };
-				dt = -Math.PI/2;
+				faceCenter = new double[] { PHI_0, Math.PI, 0 };
+				dt = 0;
 				xp = x - 2;
 				yp = y - Math.sqrt(3);
 			}
 			else if (3 - Math.sqrt(3)*y < -x) { //upper left
-				faceCenter = new double[] { PHI_0, Math.PI, Math.PI/2 };
-				dt = Math.PI/2;
+				faceCenter = new double[] { PHI_0, Math.PI, 0 };
+				dt = Math.PI;
 				xp = x + 2;
 				yp = y - Math.sqrt(3);
 			}
 			else if (x < 0) { //left
-				faceCenter = new double[] { PHI_0, -Math.PI/3, Math.PI/2 };
-				dt = Math.PI/6;
+				faceCenter = new double[] { PHI_0, -Math.PI/3, 2*Math.PI/3 };
+				dt = 0;
 				xp = x + 1;
 				yp = y;
 			}
 			else { //right
-				faceCenter = new double[] { PHI_0, Math.PI/3, Math.PI/2 };
-				dt = -Math.PI/6;
+				faceCenter = new double[] { PHI_0, Math.PI/3, -2*Math.PI/3 };
+				dt = Math.PI;
 				xp = x - 1;
 				yp = y;
 			}

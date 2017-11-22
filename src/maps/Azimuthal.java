@@ -75,9 +75,9 @@ public class Azimuthal {
 		}
 		
 		public double[] inverse(double x, double y) {
-			double R = Math.hypot(x, y);
-			if (R <= 1)
-				return new double[] {Math.asin(1-2*R*R), Math.atan2(y,x)+Math.PI/2};
+			double r = Math.hypot(x, y);
+			if (r <= 1)
+				return new double[] {Math.asin(1-2*r*r), Math.atan2(y,x)+Math.PI/2};
 			else
 				return null;
 		}
