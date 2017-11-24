@@ -56,7 +56,7 @@ public class MapOptimizer extends Application {
 			Robinson.ROBINSON, Tetrahedral.TETRAGRAPH, Misc.PEIRCE_QUINCUNCIAL };
 	private static final Projection[] PROJECTIONS_TO_OPTIMIZE = {
 			Tobler.TOBLER, MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER,
-			Tetrahedral.TETRAFILLET, Tetrahedral.TETRACHAMFER };
+			Tetrahedral.TETRAFILLET };
 	private static final double[] WEIGHTS = { 0., .125, .25, .375, .5, .625, .75, .875, 1. };
 	private static final int NUM_BRUTE_FORCE = 520;
 	private static final int NUM_DESCENT = 50;

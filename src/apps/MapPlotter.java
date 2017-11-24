@@ -75,7 +75,7 @@ public class MapPlotter extends Application {
 	private static final Projection[] PSEUDOAZM = { Misc.AITOFF,
 			MyProjections.PSEUDOSTEREOGRAPHIC };
 	private static final Projection[] TETRAHEDRAL = { Tetrahedral.LEE, Tetrahedral.TETRAGRAPH,
-			Tetrahedral.ACTAAUTHAGRAPH, Tetrahedral.TETRAPOWER };
+			Tetrahedral.ACTUAUTHAGRAPH, Tetrahedral.AUTHAGRAPH };
 	private static final Projection[] OTHER = { Misc.VAN_DER_GRINTEN, WinkelTripel.WINKEL_TRIPEL,
 			Misc.PEIRCE_QUINCUNCIAL, Pseudocylindrical.LEMONS };
 	
