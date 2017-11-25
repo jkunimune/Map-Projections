@@ -26,6 +26,7 @@ package apps;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.Arrays;
+
 import javax.imageio.ImageIO;
 
 import javafx.application.Application;
@@ -39,11 +40,11 @@ import javafx.scene.chart.XYChart.Series;
 import javafx.stage.Stage;
 import maps.Cylindrical;
 import maps.Misc;
-import maps.MyProjections;
 import maps.Projection;
 import maps.Robinson;
 import maps.Tetrahedral;
 import maps.Tobler;
+import maps.WinkelTripel;
 
 /**
  * An application to compare and optimize map projections
@@ -53,13 +54,12 @@ import maps.Tobler;
 public class MapOptimizer extends Application {
 	
 	private static final Projection[] EXISTING_PROJECTIONS = { Cylindrical.HOBO_DYER,
-			Robinson.ROBINSON, Tetrahedral.TETRAGRAPH, Misc.PEIRCE_QUINCUNCIAL };
-	private static final Projection[] PROJECTIONS_TO_OPTIMIZE = {
-			Tobler.TOBLER, MyProjections.HYPERELLIPOWER, Tetrahedral.TETRAPOWER,
-			Tetrahedral.TETRAFILLET };
+			Robinson.ROBINSON, Misc.VAN_DER_GRINTEN, Misc.PEIRCE_QUINCUNCIAL };
+	private static final Projection[] PROJECTIONS_TO_OPTIMIZE = { Tobler.TOBLER,
+			WinkelTripel.WINKEL_TRIPEL, Tetrahedral.TETRAPOWER, Tetrahedral.AUTHAPOWER };
 	private static final double[] WEIGHTS = { 0., .125, .25, .375, .5, .625, .75, .875, 1. };
-	private static final int NUM_BRUTE_FORCE = 520;
-	private static final int NUM_DESCENT = 50;
+	private static final int NUM_BRUTE_FORCE = 100;
+	private static final int NUM_DESCENT = 30;
 	private static final double DEL_X = 0.01;
 	private LineChart<Number, Number> chart;
 	

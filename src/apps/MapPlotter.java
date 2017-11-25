@@ -70,12 +70,12 @@ public class MapPlotter extends Application {
 			Cylindrical.PLATE_CARREE, Cylindrical.BEHRMANN, Cylindrical.GALL };
 	private static final Projection[] AZIMUTHAL = { Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR,
 			Azimuthal.EQUAL_AREA };
-	private static final Projection[] PSEUDOCYL = { Pseudocylindrical.MOLLWEIDE,
-			Robinson.ROBINSON, Tobler.TOBLER, MyProjections.HYPERELLIPOWER };
+	private static final Projection[] PSEUDOCYL = { Pseudocylindrical.MOLLWEIDE, Robinson.ROBINSON,
+			Tobler.TOBLER };
 	private static final Projection[] PSEUDOAZM = { Misc.AITOFF,
 			MyProjections.PSEUDOSTEREOGRAPHIC };
-	private static final Projection[] TETRAHEDRAL = { Tetrahedral.LEE, Tetrahedral.TETRAGRAPH,
-			Tetrahedral.ACTUAUTHAGRAPH, Tetrahedral.AUTHAGRAPH };
+	private static final Projection[] TETRAHEDRAL = { Tetrahedral.LEE, Tetrahedral.ACTUAUTHAGRAPH,
+			Tetrahedral.AUTHAPOWER, Tetrahedral.TETRAPOWER };
 	private static final Projection[] OTHER = { Misc.VAN_DER_GRINTEN, WinkelTripel.WINKEL_TRIPEL,
 			Misc.PEIRCE_QUINCUNCIAL, Pseudocylindrical.LEMONS };
 	
@@ -103,8 +103,8 @@ public class MapPlotter extends Application {
 	public void start(Stage root) {
 		final ScatterChart<Number, Number> plot =
 				new ScatterChart<Number, Number>(
-				new NumberAxis("Size distortion", 0, 2.4, 0.2),
-				new NumberAxis("Shape distortion", 0, 1.2, 0.2));
+				new NumberAxis("Size distortion", 0, 1.6, 0.2),
+				new NumberAxis("Shape distortion", 0, 0.8, 0.2));
 		final AnchorPane overlay = new AnchorPane();
 		stack = new StackPane(plot, overlay);
 		
@@ -112,10 +112,10 @@ public class MapPlotter extends Application {
 		final List<Data<Number,Number>> data = new LinkedList<Data<Number,Number>>();
 		final double[][][] points = Projection.globe(GLOBE_RES);
 		
-		plotProjections(plot, overlay, labels, data, CYLINDRICAL, "Cylindrical", points);
 		plotProjections(plot, overlay, labels, data, AZIMUTHAL, "Azimuthal", points);
-		plotProjections(plot, overlay, labels, data, PSEUDOCYL, "Pseudocylindrical", points);
+		plotProjections(plot, overlay, labels, data, CYLINDRICAL, "Cylindrical", points);
 		plotProjections(plot, overlay, labels, data, PSEUDOAZM, "Pseudoazimuthal", points);
+		plotProjections(plot, overlay, labels, data, PSEUDOCYL, "Pseudocylindrical", points);
 		plotProjections(plot, overlay, labels, data, TETRAHEDRAL, "Tetrahedral", points);
 		plotProjections(plot, overlay, labels, data, OTHER, "Other", points);
 		

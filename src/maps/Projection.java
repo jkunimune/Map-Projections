@@ -131,9 +131,9 @@ public abstract class Projection {
 	
 	
 	
-	public abstract double[] project(double lat, double lon);
+	public abstract double[] project(double lat, double lon); //convert spherical coordinates to Cartesian
 	
-	public abstract double[] inverse(double x, double y);
+	public abstract double[] inverse(double x, double y); //convert Cartesian coordinates to spherical
 	
 	
 	public double[] project(double[] coords) {
@@ -257,7 +257,7 @@ public abstract class Projection {
 		final double dA = 
 				(p1[0]-p0[0])*(p2[1]-p0[1]) - (p1[1]-p0[1])*(p2[0]-p0[0]);
 		output[0] = Math.log(Math.abs(dA/(dx*dx))); //the zeroth output is the size (area) distortion
-		if (Math.abs(output[0]) > 25)
+		if (Math.abs(output[0]) > 15)
 			output[0] = Double.NaN; //discard outliers
 		
 		final double s1ps2 = Math.hypot((p1[0]-p0[0])+(p2[1]-p0[1]), (p1[1]-p0[1])-(p2[0]-p0[0]));

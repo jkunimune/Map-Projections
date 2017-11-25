@@ -106,37 +106,6 @@ public class MyProjections {
 	};
 	
 	
-	public static final Projection HYPERELLIPOWER =
-			new Projection(
-					"Hyperellipower", "A parametrised pseudocylindrical projection that I invented.",
-					2, 0, 0b1111, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE,
-					new String[] {"k","n","a"},
-					new double[][] {{1,5,3},{.5,2.,1.20},{.5,2.,1.13}}) {
-		
-		private double k, n, a;
-		
-		public void setParameters(double... params) {
-			this.k = params[0];
-			this.n = params[1];
-			this.a = params[2];
-			this.height = a/Math.sqrt(n);
-		}
-		
-		public double[] project(double lat, double lon) {
-			final double ynorm = 1-Math.pow(1-Math.abs(lat/(Math.PI/2)), n);
-			return new double[] {
-					Math.pow(1 - Math.pow(ynorm, k),1/k)*lon/Math.PI,
-					ynorm/2/Math.sqrt(n)*a*Math.signum(lat) };
-		}
-		
-		public double[] inverse(double x, double y) {
-			return new double[] {
-					(1 - Math.pow(1-Math.abs(2*y/this.height), 1/n)) * Math.PI/2 * Math.signum(y),
-					x/Math.pow(1 - Math.pow(Math.abs(2*y/this.height),k),1/k) * Math.PI };
-		}
-	};
-	
-	
 	public static final Projection TWO_POINT_EQUALIZED =
 			new Projection("Two-Point Equalised",
 					"A projection I invented specifically for viewing small elliptical regions of the Earth.",

@@ -107,11 +107,11 @@ public class Tetrahedral {
 	};
 	
 	
-	public static final Projection AUTHAPOWER = //yes, these names are getting a bit redonkadonk. I have a lot of map projections, okay? I'll prune this when I finish my optimiser
+	public static final Projection AUTHAPOWER =
 			new TetrahedralProjection(
 					"AuthaPower", "A parametrised, rearranged version of my AuthaGraph approximation",
 					0b1011, Configuration.WIDE_VERTEX, Property.COMPROMISE,
-					new String[] {"Power"}, new double[][] {{0,1,.7}}) {
+					new String[] {"Power"}, new double[][] {{.25,1,.7}}) {
 		
 		private double k;
 		
@@ -142,25 +142,33 @@ public class Tetrahedral {
 	
 	public static final Projection ACTUAUTHAGRAPH =
 			new TetrahedralProjection(
-					"Equahedral", 0b1011, Configuration.WIDE_VERTEX, Property.EQUAL_AREA,
-					"to put AuthaGraph to shame", null) {
+					"EquaHedral", "A holey authagraphic tetrahedral projection to put AuthaGraph to shame",
+					0b1010, Configuration.WIDE_VERTEX, Property.EQUAL_AREA,
+					new String[] {"Rho"}, new double[][] {{0,.5,.25}}) {
+		
+		private double r02;
+		
+		public void setParameters(double... params) {
+			this.r02 = 3*Math.pow(params[0], 2);
+		}
 		
 		public double[] innerProject(double lat, double lon) {
 			final double lam = lon - (Math.floor(lon/(2*Math.PI/3))*(2*Math.PI/3)+Math.PI/3);
 			final double tht = Math.atan((lam - Math.asin(Math.sin(lam)/Math.sqrt(3)))/Math.PI*Math.sqrt(12));
 			return new double[] {
-					Math.sqrt((1 - Math.sin(lat))/(1 - 1/Math.sqrt(1+2*Math.pow(Math.cos(lam),-2))))*Math.sqrt(3)/Math.cos(tht),
+					Math.sqrt((1 - Math.sin(lat))/(1 - Math.pow(1+2*Math.pow(Math.cos(lam),-2),-.5))*(3-r02)+r02)/Math.cos(tht),
 					(lon - lam)/2 + tht };
 		}
 		
 		public double[] innerInverse(double r, double th) {
 			final double dt = th - (Math.floor(th/(Math.PI/3))*(Math.PI/3)+Math.PI/6);
+			final double R2 = Math.pow(r*Math.cos(dt), 2);
+			if (R2 < r02) 	return null;
 			final double dl = NumericalAnalysis.newtonRaphsonApproximation(dt, dt*2,
 					(l) -> Math.atan((l - Math.asin(Math.sin(l)/Math.sqrt(3)))/Math.PI*Math.sqrt(12)),
 					(l) -> (1-1/Math.sqrt(1+2*Math.pow(Math.cos(l),-2)))/Math.sqrt(Math.pow(Math.PI,2)/12+Math.pow(l-Math.asin(Math.sin(l)/Math.sqrt(3)),2)),
 					.01);
-			final double R = r / (Math.sqrt(3)/Math.cos(dt));
-			final double p = Math.acos(1 - R*R*(1-1/Math.sqrt(1+2*Math.pow(Math.cos(dl), -2))));
+			final double p = Math.acos(1 - (R2-r02)/(3-r02)*(1-1/Math.sqrt(1+2*Math.pow(Math.cos(dl), -2))));
 			return new double[] { Math.PI/2 - p, (th - dt)*2 + dl };
 		}
 	};
@@ -199,53 +207,6 @@ public class Tetrahedral {
 			final double kRad = k3*Math.abs(thtP)/(Math.PI/3) + k2*(1-Math.abs(thtP)/(Math.PI/3));
 			final double rmax = 0.5/Math.cos(thtP); //the max normalized radius of this triangle (in the plane)
 			final double rtgf = 1-Math.pow(1-r/2/rmax*(1-Math.pow(Math.abs(1-rmax), kRad)), 1/kRad); //normalized tetragraph radius
-			return new double[] {
-					Math.atan(Math.cos(lamS)/Math.tan(rtgf/rmax*Math.atan(Math.sqrt(2)))),
-					t0 + lamS };
-		}
-	};
-	
-	
-	public static final Projection TETRAFILLET =
-			new TetrahedralProjection("TetraFillet",
-					"A parameterised tetrahedral projection I invented with the corners filleted off.",
-					0b1110, Configuration.WIDE_FACE, Property.COMPROMISE,
-					new String[] {"k1","k2","k3"},
-					new double[][] {{.01,2.,.78},{.01,2.,.99},{.01,2.,1.3}}) {
-		
-		private double k1, k2, k3;
-		
-		public void setParameters(double... params) {
-			this.k1 = params[0];
-			this.k2 = params[1];
-			this.k3 = params[2];
-		}
-		
-		public double[] innerProject(double lat, double lon) {
-			final double t0 = Math.floor((lon+Math.PI/3)/(2*Math.PI/3))*(2*Math.PI/3);
-			final double tht = lon - t0;
-			final double thtP = Math.PI/3*(1 - Math.pow(1-Math.abs(tht)/(Math.PI/2),k1))/(1 - 1/Math.pow(3,k1))*Math.signum(tht);
-			final double kRad = k3*Math.abs(thtP)/(Math.PI/3) + k2*(1-Math.abs(thtP)/(Math.PI/3));
-			final double rmax; //the max normalized radius of this triangle (in the plane)
-			if (Math.abs(thtP) < .70123892) 	rmax = .5/Math.cos(thtP);
-			else 	rmax = .75 - 1.5972774*Math.pow(Math.PI/3-Math.abs(thtP),2)/2;
-			final double rtgf = Math.atan(1/Math.tan(lat)*Math.cos(tht))/Math.atan(Math.sqrt(2))*rmax; //normalized tetragraph radius
-			return new double[] {
-					(1 - Math.pow(1-rtgf,kRad))/(1 - Math.pow(1-rmax,kRad))*rmax*2,
-					thtP + t0
-			};
-		}
-		
-		public double[] innerInverse(double r, double tht) {
-			final double t0 = Math.floor((tht+Math.PI/3)/(2*Math.PI/3))*(2*Math.PI/3);
-			final double thtP = tht-t0;
-			final double lamS = (1-Math.pow(1-Math.abs(thtP)*(1-1/Math.pow(3,k1))/(Math.PI/3), 1/k1))*Math.PI/2*Math.signum(thtP);
-			final double kRad = k3*Math.abs(thtP)/(Math.PI/3) + k2*(1-Math.abs(thtP)/(Math.PI/3));
-			final double rmax; //the max normalized radius of this triangle (in the plane)
-			if (Math.abs(thtP) < .70123892) 	rmax = .5/Math.cos(thtP);
-			else 	rmax = .75 - 1.5972774*Math.pow(Math.PI/3-Math.abs(thtP),2)/2;
-			final double rtgf = 1-Math.pow(1-r/2/rmax*(1-Math.pow(Math.abs(1-rmax), kRad)), 1/kRad); //normalized tetragraph radius
-			if (r/2 > rmax) 	return null;
 			return new double[] {
 					Math.atan(Math.cos(lamS)/Math.tan(rtgf/rmax*Math.atan(Math.sqrt(2)))),
 					t0 + lamS };
