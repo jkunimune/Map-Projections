@@ -67,27 +67,17 @@ public class MapPlotter extends Application {
 	private static final double GLOBE_RES = .002;
 	
 	private static final Projection[] CYLINDRICAL = { Cylindrical.MERCATOR,
-			Cylindrical.PLATE_CARREE, Cylindrical.BEHRMANN, Cylindrical.GALL };
-	private static final Projection[] AZIMUTHAL = { Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR,
-			Azimuthal.EQUAL_AREA };
+			Cylindrical.PLATE_CARREE, Cylindrical.GALL_PETERS, Cylindrical.BEHRMANN,
+			Cylindrical.GALL };
+	private static final Projection[] AZIMUTHAL = { Azimuthal.POLAR };
 	private static final Projection[] PSEUDOCYL = { Pseudocylindrical.MOLLWEIDE, Robinson.ROBINSON,
 			Tobler.TOBLER };
 	private static final Projection[] PSEUDOAZM = { Misc.AITOFF,
 			MyProjections.PSEUDOSTEREOGRAPHIC };
 	private static final Projection[] TETRAHEDRAL = { Tetrahedral.LEE, Tetrahedral.ACTUAUTHAGRAPH,
-			Tetrahedral.AUTHAPOWER, Tetrahedral.TETRAPOWER };
+			Tetrahedral.AUTHAGRAPH, Tetrahedral.TETRAPOWER };
 	private static final Projection[] OTHER = { Misc.VAN_DER_GRINTEN, WinkelTripel.WINKEL_TRIPEL,
 			Misc.PEIRCE_QUINCUNCIAL, Pseudocylindrical.LEMONS };
-	
-//	private static final Projection[] COMMON = { Azimuthal.STEREOGRAPHIC, Cylindrical.MERCATOR,
-//			Azimuthal.POLAR, Cylindrical.PLATE_CARREE, Azimuthal.EQUAL_AREA,
-//			Cylindrical.GALL_PETERS, Cylindrical.GALL, Misc.VAN_DER_GRINTEN, Robinson.ROBINSON,
-//			WinkelTripel.WINKEL_TRIPEL, Azimuthal.ORTHOGRAPHIC };
-//	private static final Projection[] UNCOMMON = { Misc.PEIRCE_QUINCUNCIAL, Tetrahedral.LEE,
-//			Tobler.TOBLER, Cylindrical.BEHRMANN, Misc.AITOFF };
-//	private static final Projection[] INVENTED = { MyProjections.PSEUDOSTEREOGRAPHIC,
-//			MyProjections.HYPERELLIPOWER, Tetrahedral.ACTAAUTHAGRAPH, Tetrahedral.TETRAPOWER,
-//			Tetrahedral.TETRAFILLET, MyProjections.TWO_POINT_EQUALIZED };
 	
 	
 	private StackPane stack;
@@ -103,7 +93,7 @@ public class MapPlotter extends Application {
 	public void start(Stage root) {
 		final ScatterChart<Number, Number> plot =
 				new ScatterChart<Number, Number>(
-				new NumberAxis("Size distortion", 0, 1.6, 0.2),
+				new NumberAxis("Size distortion", 0, 1.4, 0.2),
 				new NumberAxis("Shape distortion", 0, 0.8, 0.2));
 		final AnchorPane overlay = new AnchorPane();
 		stack = new StackPane(plot, overlay);
@@ -112,16 +102,12 @@ public class MapPlotter extends Application {
 		final List<Data<Number,Number>> data = new LinkedList<Data<Number,Number>>();
 		final double[][][] points = Projection.globe(GLOBE_RES);
 		
-		plotProjections(plot, overlay, labels, data, AZIMUTHAL, "Azimuthal", points);
-		plotProjections(plot, overlay, labels, data, CYLINDRICAL, "Cylindrical", points);
-		plotProjections(plot, overlay, labels, data, PSEUDOAZM, "Pseudoazimuthal", points);
-		plotProjections(plot, overlay, labels, data, PSEUDOCYL, "Pseudocylindrical", points);
-		plotProjections(plot, overlay, labels, data, TETRAHEDRAL, "Tetrahedral", points);
-		plotProjections(plot, overlay, labels, data, OTHER, "Other", points);
-		
-//		plotProjections(plot, overlay, labels, data, COMMON, "Common", points);
-//		plotProjections(plot, overlay, labels, data, UNCOMMON, "Hipster", points);
-//		plotProjections(plot, overlay, labels, data, INVENTED, "Mine", points);
+		plotProjections(plot, overlay, labels, data, AZIMUTHAL, "Azimuthal ", points);
+		plotProjections(plot, overlay, labels, data, CYLINDRICAL, "Cylindrical ", points);
+		plotProjections(plot, overlay, labels, data, PSEUDOAZM, "Pseudoazimuthal ", points);
+		plotProjections(plot, overlay, labels, data, PSEUDOCYL, "Pseudocylindrical ", points);
+		plotProjections(plot, overlay, labels, data, TETRAHEDRAL, "Tetrahedral ", points);
+		plotProjections(plot, overlay, labels, data, OTHER, "Other ", points);
 		
 		final ChangeListener<Number> listener = new ChangeListener<Number>() {
 			final Timer timer = new Timer();
@@ -173,8 +159,7 @@ public class MapPlotter extends Application {
 			List<Label> labels, List<Data<Number,Number>> data) {
 		for (int i = 0; i < labels.size(); i ++) {
 			AnchorPane.setLeftAnchor(labels.get(i),
-					chart.getXAxis().localToParent(chart.getXAxis().getDisplayPosition(data.get(i).getXValue()), 0).getX() + chart.getPadding().getLeft()
-					+ 3);
+					chart.getXAxis().localToParent(chart.getXAxis().getDisplayPosition(data.get(i).getXValue()), 0).getX() + chart.getPadding().getLeft() + 3);
 			AnchorPane.setTopAnchor(labels.get(i),
 					chart.getYAxis().localToParent(0, chart.getYAxis().getDisplayPosition(data.get(i).getYValue())).getY() + chart.getPadding().getTop() - labels.get(i).getHeight()
 					);

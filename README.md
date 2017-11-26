@@ -37,7 +37,7 @@ While I wrote all of the code in this repository myself, and I created several o
 * **RokerHRO** for [the indicatrix layer of Tissot.jpg](https://commons.wikimedia.org/wiki/File:Tissot_10deg.png)
 * **The CIA** for [Basic.svg](https://commons.wikimedia.org/wiki/File:BlankMap-World6-Equirectangular.svg)
 * **Crates** for [Landmasses.svg](https://commons.wikimedia.org/wiki/File:World_map_blank_without_borders.svg)
-* **Eric Gaba** for [Tissot.svg](https://commons.wikimedia.org/wiki/File:Tissot_indicatrix_world_map_equirectangular_proj.svg)
 * **The Apache Commons** for their [complex mathematics code](https://commons.apache.org/proper/commons-math/)
 * **Technische Universit&auml;t Berlin** for their [complex mathematics code](http://www3.math.tu-berlin.de/jtem/ellipticFunctions/)
+* **AuthaGraph Co., Ltd.** for their [vague information about their map projection](http://www.authagraph.com/projects/description/%E3%80%90%E4%BD%9C%E5%93%81%E8%A7%A3%E8%AA%AC%E3%80%91%E8%A8%98%E4%BA%8B01/?lang=en), which inspired several of my own.
 * **Wikipedia** for their [impressive collection of map projection information and equations](https://en.wikipedia.org/wiki/List_of_map_projections)

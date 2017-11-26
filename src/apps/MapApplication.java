@@ -67,9 +67,9 @@ public abstract class MapApplication extends Application {
 			"Atlantis", "AuthaGraph", "Jerusalem", "Point Nemo", "Longest Line",
 			"Cylindrical", "Tetrahedral", "Antipode", "Random" };
 	private static final double[][] ASPECT_VALS = { //the aspect presets (in degrees)
-			{ 90., 0.,  0.,  -4.,  77., 31.78, 48.88, 28.52,-35.,   35.5 },
-			{  0., 0., 90.,  65., 143., 35.22, 56.61,-38.55,-13.61,-27.9 },
-			{  0., 0.,-90.,-147.,  17.,  -35.,  -45.,  -30.,  145., -167.3 } };
+			{ 90., 0.,  0.,  -4.,  77., 31.78, 48.88, -28.52,-35.,    57. },
+			{  0., 0., 90.,  65., 143., 35.22, 56.61, 141.45,-13.61,-176. },
+			{  0., 0.,-90.,-147.,  17.,-35.,  -45.,    30.,  145.,   154. } };
 	
 	
 	final private String name;
