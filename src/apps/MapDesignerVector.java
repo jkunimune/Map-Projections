@@ -46,6 +46,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import maps.Azimuthal;
+import maps.CahillKeyes;
 import maps.Conic;
 import maps.Cylindrical;
 import maps.Misc;
@@ -85,9 +86,9 @@ public class MapDesignerVector extends MapApplication {
 			Tetrahedral.ACTUAUTHAGRAPH, Tetrahedral.AUTHAPOWER, Tetrahedral.AUTHAGRAPH,
 			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Misc.AITOFF,
 			Misc.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
-			Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL,
-			Pseudocylindrical.LEMONS, MyProjections.EXPERIMENT, MyProjections.PSEUDOSTEREOGRAPHIC,
-			MyProjections.TWO_POINT_EQUALIZED };
+			Misc.PEIRCE_QUINCUNCIAL, CahillKeyes.BUTTERFLY, CahillKeyes.M_MAP, Misc.TWO_POINT_EQUIDISTANT,
+			Misc.HAMMER_RETROAZIMUTHAL, Pseudocylindrical.LEMONS, MyProjections.EXPERIMENT,
+			MyProjections.PSEUDOSTEREOGRAPHIC, MyProjections.TWO_POINT_EQUALIZED };
 	
 	private static final int DEF_MAX_VTX = 5000;
 	private static final int FAST_MAX_VTX = 2000;

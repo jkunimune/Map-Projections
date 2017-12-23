@@ -97,8 +97,8 @@ public class MapExplainer {
 				out.println("      <dd>"+proj.getType().getName()+"</dd>");
 				out.println("      <dt>Property:&nbsp;</dt>");
 				out.println("      <dd>"+proj.getProperty().getName()+"</dd>");
-				out.println("      <dt>Continuous:&nbsp;</dt>");
-				out.println("      <dd>"+ (proj.isContinuous() ? "Yes":"No") +"</dd>");
+				out.println("      <dt>Uninterrupted:&nbsp;</dt>");
+				out.println("      <dd>"+ (proj.isConvex() ? "Yes":"No") +"</dd>");
 				out.println("      <dt>Shows entire world:&nbsp;</dt>");
 				out.println("      <dd>"+ (proj.isFinite() ? "Yes":"No") +"</dd>");
 				out.println("      <dt>Closed-form solution:&nbsp;</dt>");

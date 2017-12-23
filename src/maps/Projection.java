@@ -47,7 +47,7 @@ public abstract class Projection {
 	private final boolean finite; //does it display the entire world?
 	private final boolean invertable; //is the inverse solution closed-form?
 	private final boolean solveable; //is the solution closed-form?
-	private final boolean continuous; //can you see the whole earth without interruption?
+	private final boolean convex; //is it convex?
 	private final Type type; //the geometry of the projection
 	private final Property property; //what it is good for
 	
@@ -93,7 +93,7 @@ public abstract class Projection {
 	
 	protected Projection(Projection base) {
 		this(	base.name, base.description, base.width, base.height, base.finite, base.invertable,
-				base.solveable, base.continuous, base.type, base.property, base.paramNames,
+				base.solveable, base.convex, base.type, base.property, base.paramNames,
 				base.paramValues, base.hasAspect);
 	}
 	
@@ -111,7 +111,7 @@ public abstract class Projection {
 		this.finite = f;
 		this.invertable = i;
 		this.solveable = s;
-		this.continuous = c;
+		this.convex = c;
 		this.type = type;
 		this.property = property;
 	}
@@ -398,8 +398,8 @@ public abstract class Projection {
 		return this.solveable;
 	}
 	
-	public final boolean isContinuous() {
-		return this.continuous;
+	public final boolean isConvex() {
+		return this.convex;
 	}
 	
 	public final Type getType() {
