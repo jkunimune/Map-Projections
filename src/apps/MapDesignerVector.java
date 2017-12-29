@@ -86,7 +86,7 @@ public class MapDesignerVector extends MapApplication {
 			Tetrahedral.ACTUAUTHAGRAPH, Tetrahedral.AUTHAPOWER, Tetrahedral.AUTHAGRAPH,
 			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Misc.AITOFF,
 			Misc.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
-			Misc.PEIRCE_QUINCUNCIAL, CahillKeyes.BUTTERFLY, CahillKeyes.M_MAP, Misc.TWO_POINT_EQUIDISTANT,
+			Misc.PEIRCE_QUINCUNCIAL, CahillKeyes.BUTTERFLY, CahillKeyes.M_MAP, CahillKeyes.OCTANT, Misc.TWO_POINT_EQUIDISTANT,
 			Misc.HAMMER_RETROAZIMUTHAL, Pseudocylindrical.LEMONS, MyProjections.EXPERIMENT,
 			MyProjections.PSEUDOSTEREOGRAPHIC, MyProjections.TWO_POINT_EQUALIZED };
 	
@@ -200,7 +200,7 @@ public class MapDesignerVector extends MapApplication {
 		loadParameters();
 		final List<Path> transformed = map(input, 1, aspect.clone(), pBar::setProgress); //calculate
 		try {
-			input.save(transformed, file, pBar::setProgress); //save
+			input.save(transformed, this.getProjection().getSize(), file, pBar::setProgress); //save
 		} catch (IOException e) {
 			showError("Failure!",
 					"Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");

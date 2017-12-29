@@ -422,6 +422,14 @@ public abstract class Projection {
 		return this.width/this.height;
 	}
 	
+	public final double getSize() {
+		return Math.max(this.width, this.height);
+	}
+	
+	public final double[] getDimensions() {
+		return new double[] {this.width, this.height};
+	}
+	
 	
 	
 	/**
@@ -457,7 +465,7 @@ public abstract class Projection {
 	public static enum Property {
 		CONFORMAL("Conformal"), EQUIDISTANT("Equidistant"), EQUAL_AREA("Equal-area"),
 		PERSPECTIVE("Perspective"), GNOMONIC("Gnomonic"), RETROAZIMUTHAL("Retroazimuthal"),
-		COMPROMISE("Compromise"), POINTLESS("Pointless");
+		COMPROMISE("Compromise"), POINTLESS("Pointless"), TRUE("True");
 		
 		private String name;
 		

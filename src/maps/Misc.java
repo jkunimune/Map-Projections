@@ -307,4 +307,38 @@ public class Misc {
 					Math.cos(lat1)*Math.cos(lat2)*Math.cos(lon1-lon2));
 		}
 	};
+	
+	
+	public static final Projection GS50 =
+			new Projection(
+					"Snyder's GS50", "'MERKA!", 1, 1, 0b0011, Type.OTHER, Property.CONFORMAL,
+					new String[] {}, new double[][] {}, false) {
+
+		public double[] project(double lat, double lon) {
+			// TODO: Projection wishist
+			return null;
+		}
+
+		public double[] inverse(double x, double y) {
+			// TODO: Projection wishlist
+			return null;
+		}
+	};
+	
+	
+	public static final Projection FLAT_EARTH =
+			new Projection(
+					"Flat Earth", "The true shape of the Earth.", 2*Math.PI, 2*Math.PI, 0b1111,
+					Type.OTHER, Property.TRUE) {
+
+		public double[] project(double lat, double lon) {
+			// TODO: Projection wishist
+			return null;
+		}
+
+		public double[] inverse(double x, double y) {
+			// TODO: Projection wishlist
+			return null;
+		}
+	};
 }

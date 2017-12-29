@@ -47,6 +47,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import maps.Azimuthal;
+import maps.CahillKeyes;
 import maps.Cylindrical;
 import maps.Misc;
 import maps.MyProjections;
@@ -76,8 +77,10 @@ public class MapPlotter extends Application {
 			MyProjections.PSEUDOSTEREOGRAPHIC };
 	private static final Projection[] TETRAHEDRAL = { Tetrahedral.LEE, Tetrahedral.ACTUAUTHAGRAPH,
 			Tetrahedral.AUTHAGRAPH, Tetrahedral.TETRAPOWER };
+	private static final Projection[] CHEATY = { Pseudocylindrical.LEMONS,
+			CahillKeyes.OCTANT };
 	private static final Projection[] OTHER = { Misc.VAN_DER_GRINTEN, WinkelTripel.WINKEL_TRIPEL,
-			Misc.PEIRCE_QUINCUNCIAL, Pseudocylindrical.LEMONS };
+			Misc.PEIRCE_QUINCUNCIAL };
 	
 	
 	private StackPane stack;
@@ -107,6 +110,7 @@ public class MapPlotter extends Application {
 		plotProjections(plot, overlay, labels, data, PSEUDOAZM, "Pseudoazimuthal ", points);
 		plotProjections(plot, overlay, labels, data, PSEUDOCYL, "Pseudocylindrical ", points);
 		plotProjections(plot, overlay, labels, data, TETRAHEDRAL, "Tetrahedral ", points);
+		plotProjections(plot, overlay, labels, data, CHEATY, "Interrupted ", points);
 		plotProjections(plot, overlay, labels, data, OTHER, "Other ", points);
 		
 		final ChangeListener<Number> listener = new ChangeListener<Number>() {

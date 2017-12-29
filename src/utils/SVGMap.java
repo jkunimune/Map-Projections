@@ -202,7 +202,9 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 	}
 	
 	
-	public void save(List<Path> paths, File file, DoubleConsumer tracker) throws IOException {
+	public void save(
+			List<Path> paths, double inSize, File file,
+			DoubleConsumer tracker) throws IOException {
 		BufferedWriter out = new BufferedWriter(new FileWriter(file));
 		
 		int i = 0;
@@ -211,7 +213,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		while (curveIterator.hasNext()) {
 			out.write(formatIterator.next());
 			out.write(curveIterator.next().toString(
-					minX, minY, Math.min(width, height), Math.min(width, height)));
+					inSize, minX, minY, Math.min(width, height), Math.min(width, height)));
 			tracker.accept((double)i/paths.size());
 			i ++;
 		}
@@ -316,13 +318,13 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		}
 		
 		public String toString() {
-			return this.toString(-1, -1, 2, 2);
+			return this.toString(1, -1, -1, 2, 2);
 		}
 		
-		public String toString(double minX, double minY, double width, double height) {
+		public String toString(double mapSize, double minX, double minY, double width, double height) {
 			String s = "";
 			for (Command c: commands)
-				s += c.toString(minX, minY, width, height)+" ";
+				s += c.toString(mapSize, minX, minY, width, height)+" ";
 			return s;
 		}
 	}
@@ -342,16 +344,17 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		}
 		
 		public String toString() {
-			return this.toString(-1, -1, 2, 2);
+			return this.toString(1, -1, -1, 2, 2);
 		}
 		
-		public String toString(double minX, double minY, double width, double height) {
+		public String toString(
+				double mapSize, double minX, double minY, double width, double height) {
 			String s = type+" ";
 			for (int i = 0; i < args.length; i ++) {
 				if (i%2 == 0)
-					s += Math2.linInterp(args[0], -1, 1, minX, minX+width)+",";
+					s += Math2.linInterp(args[0], -mapSize/2, mapSize/2, minX, minX+width)+",";
 				else
-					s += Math2.linInterp(args[1], -1, 1, minY+height, minY)+",";
+					s += Math2.linInterp(args[1], -mapSize/2, mapSize/2, minY+height, minY)+",";
 			}
 			return s.substring(0, s.length()-1);
 		}

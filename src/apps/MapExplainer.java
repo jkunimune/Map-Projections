@@ -31,6 +31,7 @@ import java.io.PrintStream;
 import javax.imageio.ImageIO;
 
 import maps.Azimuthal;
+import maps.CahillKeyes;
 import maps.Conic;
 import maps.Cylindrical;
 import maps.Misc;
@@ -64,10 +65,10 @@ public class MapExplainer {
 					Tetrahedral.AUTHAGRAPH, Pseudocylindrical.SINUSOIDAL,
 					Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Misc.HAMMER, Misc.AITOFF,
 					Misc.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
-					Misc.PEIRCE_QUINCUNCIAL.transverse(), Misc.TWO_POINT_EQUIDISTANT,
-					Misc.HAMMER_RETROAZIMUTHAL },
+					CahillKeyes.BUTTERFLY, Misc.PEIRCE_QUINCUNCIAL.transverse(), Misc.GS50,
+					Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Misc.FLAT_EARTH },
 			
-			{ MyProjections.PSEUDOSTEREOGRAPHIC, Tetrahedral.TETRAGRAPH, Tetrahedral.TETRAPOWER,
+			{ MyProjections.PSEUDOSTEREOGRAPHIC, Tetrahedral.TETRAGRAPH, Tetrahedral.AUTHAPOWER,
 					Tetrahedral.TETRAPOWER, MyProjections.TWO_POINT_EQUALIZED.transverse() } };
 	
 	

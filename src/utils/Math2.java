@@ -128,5 +128,25 @@ public class Math2 {
 	public static double round(double x, int numPlaces) {
 		return Math.round(x*Math.pow(10, numPlaces))/Math.pow(10, numPlaces);
 	}
+	
+	
+	public static double sind(double angdeg) {
+		return Math.sin(Math.toRadians(angdeg));
+	}
+	
+	
+	public static double cosd(double angdeg) {
+		return Math.cos(Math.toRadians(angdeg));
+	}
+
+
+	public static double tand(double angdeg) {
+		return Math.tan(Math.toRadians(angdeg));
+	}
+
+
+	public static double cotd(double angdeg) {
+		return 1/Math.tan(Math.toRadians(angdeg));
+	}
 
 }
