@@ -56,7 +56,7 @@ public class Dixon {
 	
 	public static Complex invFunc(Complex z) { //the iterative algorithm specifically suggested by Lee
 		Complex wi;
-		Complex wf = z;
+		Complex wf = z; // TODO: I hear there's a rad new algorithm in town that can do this in a heartbeat (hopefully orders of maginutde faster
 		
 		do {
 			wi = wf;

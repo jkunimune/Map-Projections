@@ -39,6 +39,7 @@ import maps.MyProjections;
 import maps.Projection;
 import maps.Pseudocylindrical;
 import maps.Robinson;
+import maps.Snyder;
 import maps.Tetrahedral;
 import maps.Tobler;
 import maps.WinkelTripel;
@@ -65,7 +66,7 @@ public class MapExplainer {
 					Tetrahedral.AUTHAGRAPH, Pseudocylindrical.SINUSOIDAL,
 					Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Misc.HAMMER, Misc.AITOFF,
 					Misc.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
-					CahillKeyes.BUTTERFLY, Misc.PEIRCE_QUINCUNCIAL.transverse(), Misc.GS50,
+					CahillKeyes.BUTTERFLY, Misc.PEIRCE_QUINCUNCIAL.transverse(), Snyder.GS50,
 					Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Misc.FLAT_EARTH },
 			
 			{ MyProjections.PSEUDOSTEREOGRAPHIC, Tetrahedral.TETRAGRAPH, Tetrahedral.AUTHAPOWER,

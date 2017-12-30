@@ -53,6 +53,7 @@ import maps.MyProjections;
 import maps.Projection;
 import maps.Pseudocylindrical;
 import maps.Robinson;
+import maps.Snyder;
 import maps.Tetrahedral;
 import maps.Tobler;
 import maps.WinkelTripel;
@@ -90,7 +91,7 @@ public class MapDesignerRaster extends MapApplication {
 			Tetrahedral.ACTUAUTHAGRAPH, Tetrahedral.AUTHAPOWER, Tetrahedral.AUTHAGRAPH,
 			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Misc.AITOFF,
 			Misc.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
-			Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL,
+			Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Snyder.GS50,
 			Pseudocylindrical.LEMONS, MyProjections.EXPERIMENT, MyProjections.PSEUDOSTEREOGRAPHIC,
 			MyProjections.TWO_POINT_EQUALIZED };
 	

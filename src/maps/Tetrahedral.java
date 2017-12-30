@@ -38,7 +38,7 @@ public class Tetrahedral {
 	
 	public static final Projection LEE =
 			new TetrahedralProjection(
-					"Lee", 0b1001, Configuration.WIDE_FACE, Property.CONFORMAL,
+					"Lee Tetrahedral", 0b1001, Configuration.WIDE_FACE, Property.CONFORMAL,
 					null, "that really deserves more attention") {
 		
 		public double[] innerProject(double lat, double lon) {

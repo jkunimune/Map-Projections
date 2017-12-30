@@ -54,6 +54,7 @@ import maps.MyProjections;
 import maps.Projection;
 import maps.Pseudocylindrical;
 import maps.Robinson;
+import maps.Snyder;
 import maps.Tetrahedral;
 import maps.Tobler;
 import maps.WinkelTripel;
@@ -86,8 +87,8 @@ public class MapDesignerVector extends MapApplication {
 			Tetrahedral.ACTUAUTHAGRAPH, Tetrahedral.AUTHAPOWER, Tetrahedral.AUTHAGRAPH,
 			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Misc.AITOFF,
 			Misc.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
-			Misc.PEIRCE_QUINCUNCIAL, CahillKeyes.BUTTERFLY, CahillKeyes.M_MAP, CahillKeyes.OCTANT, Misc.TWO_POINT_EQUIDISTANT,
-			Misc.HAMMER_RETROAZIMUTHAL, Pseudocylindrical.LEMONS, MyProjections.EXPERIMENT,
+			Misc.PEIRCE_QUINCUNCIAL, CahillKeyes.BUTTERFLY, Misc.TWO_POINT_EQUIDISTANT,
+			Misc.HAMMER_RETROAZIMUTHAL, Snyder.GS50, Pseudocylindrical.LEMONS, MyProjections.EXPERIMENT,
 			MyProjections.PSEUDOSTEREOGRAPHIC, MyProjections.TWO_POINT_EQUALIZED };
 	
 	private static final int DEF_MAX_VTX = 5000;
