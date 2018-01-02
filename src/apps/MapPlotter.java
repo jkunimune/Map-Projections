@@ -49,6 +49,7 @@ import javafx.stage.Stage;
 import maps.Azimuthal;
 import maps.CahillKeyes;
 import maps.Cylindrical;
+import maps.Lenticular;
 import maps.Misc;
 import maps.MyProjections;
 import maps.Projection;
@@ -73,13 +74,13 @@ public class MapPlotter extends Application {
 	private static final Projection[] AZIMUTHAL = { Azimuthal.POLAR };
 	private static final Projection[] PSEUDOCYL = { Pseudocylindrical.MOLLWEIDE, Robinson.ROBINSON,
 			Tobler.TOBLER };
-	private static final Projection[] PSEUDOAZM = { Misc.AITOFF,
+	private static final Projection[] PSEUDOAZM = { Lenticular.AITOFF,
 			MyProjections.PSEUDOSTEREOGRAPHIC };
 	private static final Projection[] TETRAHEDRAL = { Tetrahedral.LEE, Tetrahedral.ACTUAUTHAGRAPH,
 			Tetrahedral.AUTHAGRAPH, Tetrahedral.TETRAPOWER };
 	private static final Projection[] CHEATY = { Pseudocylindrical.LEMONS,
 			CahillKeyes.OCTANT };
-	private static final Projection[] OTHER = { Misc.VAN_DER_GRINTEN, WinkelTripel.WINKEL_TRIPEL,
+	private static final Projection[] OTHER = { Lenticular.VAN_DER_GRINTEN, WinkelTripel.WINKEL_TRIPEL,
 			Misc.PEIRCE_QUINCUNCIAL };
 	
 	

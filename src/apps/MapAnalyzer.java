@@ -53,18 +53,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import maps.Azimuthal;
-import maps.Conic;
-import maps.Cylindrical;
-import maps.Misc;
-import maps.MyProjections;
 import maps.Projection;
-import maps.Pseudocylindrical;
-import maps.Robinson;
-import maps.Snyder;
-import maps.Tetrahedral;
-import maps.Tobler;
-import maps.WinkelTripel;
 import utils.Math2;
 import utils.Procedure;
 
@@ -93,20 +82,6 @@ public class MapAnalyzer extends MapApplication {
 			new FileChooser.ExtensionFilter("JPG", "*.jpg","*.jpeg","*.jpe","*.jfif"),
 			new FileChooser.ExtensionFilter("GIF", "*.gif") };
 	
-	private static final Projection[] PROJ_ARR = { Cylindrical.MERCATOR, Cylindrical.PLATE_CARREE,
-			Cylindrical.EQUIRECTANGULAR, Cylindrical.GALL_PETERS, Cylindrical.HOBO_DYER,
-			Cylindrical.BEHRMANN, Cylindrical.LAMBERT, Cylindrical.EQUAL_AREA, Cylindrical.GALL,
-			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
-			Azimuthal.ORTHOGRAPHIC, Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT,
-			Conic.ALBERS, Tetrahedral.LEE, Tetrahedral.TETRAGRAPH, Tetrahedral.ACTUAUTHAGRAPH,
-			Tetrahedral.AUTHAGRAPH, Tetrahedral.AUTHAPOWER, Pseudocylindrical.SINUSOIDAL,
-			Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Misc.HAMMER, Misc.AITOFF,
-			Misc.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
-			Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Snyder.GS50,
-			Pseudocylindrical.LEMONS, MyProjections.EXPERIMENT, MyProjections.PSEUDOSTEREOGRAPHIC,
-			MyProjections.TWO_POINT_EQUALIZED };
-	
-	
 	private Button updateBtn;
 	private Text avgSizeDistort, avgShapeDistort;
 	private ImageView mapDisplay;
@@ -132,7 +107,7 @@ public class MapAnalyzer extends MapApplication {
 	
 	@Override
 	protected Node makeWidgets() {
-		final Node projectionSelector = buildProjectionSelector(PROJ_ARR, Procedure.NONE);
+		final Node projectionSelector = buildProjectionSelector(Procedure.NONE);
 		final Node parameterSelector = buildParameterSelector(Procedure.NONE);
 		final Node textDisplay = buildTextDisplay();
 		this.updateBtn = buildUpdateButton(this::calculateAndUpdate);

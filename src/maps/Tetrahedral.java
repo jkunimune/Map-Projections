@@ -83,7 +83,7 @@ public class Tetrahedral {
 	
 	public static final Projection AUTHAGRAPH = 
 			new TetrahedralProjection(
-					"AuthaGraph", "A hip new Japanese map that is not authagraphic.",
+					"AuthaGraph", "A hip new Japanese map that is almost equal-area.",
 					0b1011, Configuration.AUTHAGRAPH, Property.COMPROMISE) {
 		
 		public double[] innerProject(double lat, double lon) {
@@ -109,7 +109,7 @@ public class Tetrahedral {
 	
 	public static final Projection AUTHAPOWER =
 			new TetrahedralProjection(
-					"AuthaPower", "A parametrised, rearranged version of my AuthaGraph approximation",
+					"AuthaPower", "A parametrised, rearranged version of my AuthaGraph approximation.",
 					0b1011, Configuration.WIDE_VERTEX, Property.COMPROMISE,
 					new String[] {"Power"}, new double[][] {{.25,1,.7}}) {
 		
@@ -142,7 +142,7 @@ public class Tetrahedral {
 	
 	public static final Projection ACTUAUTHAGRAPH =
 			new TetrahedralProjection(
-					"EquaHedral", "A holey authagraphic tetrahedral projection to put AuthaGraph to shame",
+					"EquaHedral", "A holey authagraphic tetrahedral projection to put AuthaGraph to shame.",
 					0b1010, Configuration.WIDE_VERTEX, Property.EQUAL_AREA,
 					new String[] {"Rho"}, new double[][] {{0,.5,.25}}) {
 		
@@ -228,21 +228,21 @@ public class Tetrahedral {
 		public TetrahedralProjection(
 				String name, int fisc, Configuration config, Property property,
 				String adjective, String addendum) {
-			super(name, config.width, config.height, fisc, Type.TETRAHEDRAL, property,
+			super(name, config.width, config.height, fisc, Type.POLYHEDRAL, property,
 					adjective, addendum);
 			this.configuration = config;
 		}
 		
 		public TetrahedralProjection(
 				String name, String description, int fisc, Configuration config, Property property) {
-			super(name, description, config.width, config.height, fisc, Type.TETRAHEDRAL, property);
+			super(name, description, config.width, config.height, fisc, Type.POLYHEDRAL, property);
 			this.configuration = config;
 		}
 		
 		public TetrahedralProjection(
 				String name, String description, int fisc, Configuration config, Property property,
 				String[] paramNames, double[][] paramValues) {
-			super(name, description, config.width, config.height, fisc, Type.TETRAHEDRAL, property,
+			super(name, description, config.width, config.height, fisc, Type.POLYHEDRAL, property,
 					paramNames, paramValues);
 			this.configuration = config;
 		}

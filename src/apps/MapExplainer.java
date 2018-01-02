@@ -34,6 +34,7 @@ import maps.Azimuthal;
 import maps.CahillKeyes;
 import maps.Conic;
 import maps.Cylindrical;
+import maps.Lenticular;
 import maps.Misc;
 import maps.MyProjections;
 import maps.Projection;
@@ -64,8 +65,8 @@ public class MapExplainer {
 					Azimuthal.GNOMONIC.transverse(), Azimuthal.ORTHOGRAPHIC.transverse(),
 					Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Tetrahedral.LEE,
 					Tetrahedral.AUTHAGRAPH, Pseudocylindrical.SINUSOIDAL,
-					Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Misc.HAMMER, Misc.AITOFF,
-					Misc.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
+					Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Lenticular.HAMMER, Lenticular.AITOFF,
+					Lenticular.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
 					CahillKeyes.BUTTERFLY, Misc.PEIRCE_QUINCUNCIAL.transverse(), Snyder.GS50,
 					Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Misc.FLAT_EARTH },
 			
@@ -100,7 +101,7 @@ public class MapExplainer {
 				out.println("      <dt>Property:&nbsp;</dt>");
 				out.println("      <dd>"+proj.getProperty().getName()+"</dd>");
 				out.println("      <dt>Uninterrupted:&nbsp;</dt>");
-				out.println("      <dd>"+ (proj.isConvex() ? "Yes":"No") +"</dd>");
+				out.println("      <dd>"+ (proj.isContinuous() ? "Yes":"No") +"</dd>");
 				out.println("      <dt>Shows entire world:&nbsp;</dt>");
 				out.println("      <dd>"+ (proj.isFinite() ? "Yes":"No") +"</dd>");
 				out.println("      <dt>Closed-form solution:&nbsp;</dt>");

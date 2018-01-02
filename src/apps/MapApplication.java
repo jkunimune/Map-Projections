@@ -5,12 +5,14 @@ package apps;
 
 import java.io.File;
 import java.lang.reflect.Array;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.DoubleUnaryOperator;
 
 import dialogs.ProgressBarDialog;
+import dialogs.ProjectionSelectionDialog;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -43,8 +45,18 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import maps.Azimuthal;
+import maps.Conic;
 import maps.Cylindrical;
+import maps.Lenticular;
+import maps.Misc;
+import maps.MyProjections;
 import maps.Projection;
+import maps.Pseudocylindrical;
+import maps.Robinson;
+import maps.Tetrahedral;
+import maps.Tobler;
+import maps.WinkelTripel;
 import utils.Math2;
 import utils.Procedure;
 
@@ -59,9 +71,19 @@ public abstract class MapApplication extends Application {
 	protected static final int GUI_WIDTH = 350;
 	protected static final int IMG_WIDTH = 500;
 	
-	private static final KeyCombination ctrlO = new KeyCodeCombination(KeyCode.O, KeyCodeCombination.CONTROL_DOWN);
-	private static final KeyCombination ctrlS = new KeyCodeCombination(KeyCode.S, KeyCodeCombination.CONTROL_DOWN);
-	private static final KeyCombination ctrlEnter = new KeyCodeCombination(KeyCode.ENTER, KeyCodeCombination.CONTROL_DOWN);
+	private static final KeyCombination CTRL_O = new KeyCodeCombination(KeyCode.O, KeyCodeCombination.CONTROL_DOWN);
+	private static final KeyCombination CTRL_S = new KeyCodeCombination(KeyCode.S, KeyCodeCombination.CONTROL_DOWN);
+	private static final KeyCombination CTRL_ENTER = new KeyCodeCombination(KeyCode.ENTER, KeyCodeCombination.CONTROL_DOWN);
+	
+	
+	protected static final Projection[] PROJECTIONS = { Cylindrical.MERCATOR,
+			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL,
+			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
+			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Tetrahedral.LEE,
+			Tetrahedral.ACTUAUTHAGRAPH, Tetrahedral.AUTHAGRAPH, Pseudocylindrical.SINUSOIDAL,
+			Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Lenticular.AITOFF,
+			Lenticular.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
+			Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT, Pseudocylindrical.LEMONS }; //the set of featured projections for the ComboBox
 	
 	private static final String[] ASPECT_NAMES = { "Standard", "Transverse", "Cassini",
 			"Atlantis", "AuthaGraph", "Jerusalem", "Point Nemo", "Longest Line",
@@ -82,7 +104,7 @@ public abstract class MapApplication extends Application {
 	private double[] currentParams;
 	
 	private Flag isChanging = new Flag();
-	private Flag suppressListeners = new Flag();
+	private Flag suppressListeners = new Flag(); //a flag to prevent events from triggering projection setting
 	
 	
 	
@@ -148,7 +170,7 @@ public abstract class MapApplication extends Application {
 		loadButton.setTooltip(new Tooltip(
 				"Change the input image"));
 		root.addEventHandler(KeyEvent.KEY_PRESSED, (event) -> {	// ctrl-O opens
-				if (ctrlO.match(event)) {
+				if (CTRL_O.match(event)) {
 					loadButton.requestFocus();
 					loadButton.fire();
 				}
@@ -162,25 +184,30 @@ public abstract class MapApplication extends Application {
 	
 	/**
 	 * Create a set of widgets to choose a Projection
-	 * @param projections The Projections from which the user may choose
 	 * @param defProj The default projection, before the user chooses anything
 	 * @return the full formatted Region
 	 */
-	protected Region buildProjectionSelector(Projection[] projections, Procedure projectionSetter) {
+	protected Region buildProjectionSelector(Procedure projectionSetter) {
 		final Label label = new Label("Projection:");
 		projectionChooser =
-				new ComboBox<Projection>(FXCollections.observableArrayList(projections));
+				new ComboBox<Projection>(FXCollections.observableArrayList(PROJECTIONS));
+		projectionChooser.getItems().add(Projection.NULL_PROJECTION);
 		projectionChooser.setPrefWidth(210);
 		
 		final Text description = new Text();
 		description.setWrappingWidth(GUI_WIDTH);
 		
-		projectionChooser.setOnAction((event) -> {
-				final boolean suppressedListeners = suppressListeners.isSet(); //save this value, because
-				description.setText(projectionChooser.getValue().getDescription()); //revealParameters
-				revealParameters(projectionChooser.getValue()); //clears suppressListeners. That's fine,
-				if (!suppressedListeners) //because suppressListeners is only needed here for that one case.
-					projectionSetter.execute();
+		projectionChooser.valueProperty().addListener((observable, old, now) -> {
+			final boolean suppressedListeners = suppressListeners.isSet(); //save this value, because revealParameters()...
+				if (projectionChooser.getValue() == Projection.NULL_PROJECTION) {
+					chooseProjectionFromExpandedList(old); //<aside>NULL_PROJECTION is the "More..." button. It triggers the expanded list</aside>
+				}
+				else {
+					description.setText(projectionChooser.getValue().getDescription());
+					revealParameters(projectionChooser.getValue()); //...clears suppressListeners. That's fine,
+					if (!suppressedListeners) //because suppressListeners is only needed here for that one case.
+						projectionSetter.execute();
+				}
 			});
 		
 		return new VBox(5, new HBox(3, label, projectionChooser), description);
@@ -286,6 +313,12 @@ public abstract class MapApplication extends Application {
 	}
 	
 	
+	protected Node buildOptionPane(Flag cropAtIDL, Flag graticule) {
+		//TODO: checkboxes for cropping and graticule
+		return null;
+	}
+	
+	
 	/**
 	 * Create a default button that will update the map
 	 * @return the button
@@ -300,7 +333,7 @@ public abstract class MapApplication extends Application {
 		
 		updateButton.setDefaultButton(true);
 		root.addEventHandler(KeyEvent.KEY_PRESSED, (event) -> {
-				if (ctrlEnter.match(event)) {
+				if (CTRL_ENTER.match(event)) {
 					updateButton.requestFocus();
 					updateButton.fire();
 				}
@@ -362,7 +395,7 @@ public abstract class MapApplication extends Application {
 		
 		if (bindCtrlS) // ctrl+S saves
 			root.addEventHandler(KeyEvent.KEY_PRESSED, (event) -> {
-				if (ctrlS.match(event)) {
+				if (CTRL_S.match(event)) {
 					saveButton.requestFocus();
 					saveButton.fire();
 				}
@@ -384,6 +417,29 @@ public abstract class MapApplication extends Application {
 	
 	protected void loadParameters() {
 		getProjection().setParameters(currentParams);
+	}
+	
+	
+	private void chooseProjectionFromExpandedList(Projection lastProjection) {
+		final ProjectionSelectionDialog selectDialog = new ProjectionSelectionDialog();
+		
+		do {
+			final Optional<Projection> result = selectDialog.showAndWait();
+			
+			if (result.isPresent()) {
+				if (result.get() == Projection.NULL_PROJECTION) {
+					showError("No projection chosen", "Please select a projection.");
+				}
+				else {
+					Platform.runLater(() -> projectionChooser.setValue(result.get()));
+					break;
+				}
+			}
+			else {
+				Platform.runLater(() -> projectionChooser.setValue(lastProjection)); //I need these runLater()s because JavaFX is dumb and throws an obscure error on recursive edits to ComboBoxes
+				break;
+			}
+		} while (true);
 	}
 	
 	
@@ -432,8 +488,7 @@ public abstract class MapApplication extends Application {
 			paramSpinVF.setMax(paramValues[i][1]);
 			paramSpinVF.setValue(paramValues[i][2]);
 			final Tooltip tt = new Tooltip(
-					"Change the "+paramNames[i]+" of the map (default is "+
-					paramValues[i][2]+")");
+					"Change the "+paramNames[i]+" of the map (default is " + paramValues[i][2]+")");
 			paramSliders[i].setTooltip(tt);
 			paramSpinners[i].setTooltip(tt);
 			paramGrid.addRow(i, paramLabels[i], paramSliders[i], paramSpinners[i]);

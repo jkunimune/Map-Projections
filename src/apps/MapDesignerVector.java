@@ -45,19 +45,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import maps.Azimuthal;
-import maps.CahillKeyes;
-import maps.Conic;
-import maps.Cylindrical;
-import maps.Misc;
-import maps.MyProjections;
-import maps.Projection;
-import maps.Pseudocylindrical;
-import maps.Robinson;
-import maps.Snyder;
-import maps.Tetrahedral;
-import maps.Tobler;
-import maps.WinkelTripel;
 import utils.Math2;
 import utils.Procedure;
 import utils.SVGMap;
@@ -77,23 +64,11 @@ public class MapDesignerVector extends MapApplication {
 	
 	
 	
-	private static final FileChooser.ExtensionFilter[] VECTOR_TYPES = {
-			new FileChooser.ExtensionFilter("SVG", "*.svg") };
-	
-	private static final Projection[] PROJ_ARR = { Cylindrical.MERCATOR,
-			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL,
-			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
-			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Tetrahedral.LEE,
-			Tetrahedral.ACTUAUTHAGRAPH, Tetrahedral.AUTHAPOWER, Tetrahedral.AUTHAGRAPH,
-			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Misc.AITOFF,
-			Misc.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
-			Misc.PEIRCE_QUINCUNCIAL, CahillKeyes.BUTTERFLY, Misc.TWO_POINT_EQUIDISTANT,
-			Misc.HAMMER_RETROAZIMUTHAL, Snyder.GS50, Pseudocylindrical.LEMONS, MyProjections.EXPERIMENT,
-			MyProjections.PSEUDOSTEREOGRAPHIC, MyProjections.TWO_POINT_EQUALIZED };
-	
 	private static final int DEF_MAX_VTX = 5000;
 	private static final int FAST_MAX_VTX = 2000;
 	
+	private static final FileChooser.ExtensionFilter[] VECTOR_TYPES = {
+			new FileChooser.ExtensionFilter("SVG", "*.svg") };
 	
 	private Node aspectSelector;
 	private Button saveBtn;
@@ -123,7 +98,7 @@ public class MapDesignerVector extends MapApplication {
 		this.aspect = new double[3];
 		final Node inputSelector = buildInputSelector(VECTOR_TYPES,
 				VECTOR_TYPES[0], this::setInput);
-		final Node projectionSelector = buildProjectionSelector(PROJ_ARR,
+		final Node projectionSelector = buildProjectionSelector(
 				Procedure.concat(this::updateMap, this::hideAspect));
 		this.aspectSelector = buildAspectSelector(this.aspect, this::updateMap);
 		final Node parameterSelector = buildParameterSelector(this::updateMap);

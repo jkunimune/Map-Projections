@@ -61,7 +61,7 @@ public class MyProjections {
 	
 	public static final Projection EXPERIMENT =
 			new Projection(
-					"Complex Sine", "What happens when you apply a complex differentiable function to a stereographic projection?",
+					"Complex Arcsine", "What happens when you apply a complex differentiable function to a stereographic projection?",
 					6, 6, 0b0000, Type.OTHER, Property.CONFORMAL) {
 		
 		public double[] project(double lat, double lon) {

@@ -96,8 +96,7 @@ public class MapConfigurationDialog extends Dialog<Boolean> {
 		this.smoothBox.setValue("Low");
 		this.smoothBox.setMaxWidth(Double.MAX_VALUE);
 		
-		this.gui = new VBox();
-		this.gui.setSpacing(20);
+		this.gui = new VBox(20);
 		
 		pane.contentTextProperty().addListener((arg0) -> {	// set it to refresh the gui when... the content texts?
 				this.updateGUI();
@@ -107,12 +106,8 @@ public class MapConfigurationDialog extends Dialog<Boolean> {
 		pane.getButtonTypes().addAll(new ButtonType[] { ButtonType.OK, ButtonType.CANCEL });	// add buttons
 		this.updateGUI();
 		
-		this.setResultConverter((btn) -> {
-				if (btn != null && btn.getButtonData() == ButtonData.OK_DONE)
-					return true;
-				else
-					return false;
-			});
+		this.setResultConverter(
+				(btn) -> (btn != null && btn.getButtonData() == ButtonData.OK_DONE));
 		
 		realEdit = true;
 	}
@@ -127,12 +122,9 @@ public class MapConfigurationDialog extends Dialog<Boolean> {
 		grid.setMaxWidth(Double.MAX_VALUE);
 		grid.setAlignment(Pos.CENTER_LEFT);
 		grid.getChildren().clear();
-		grid.add(new Label("Width:"), 0, 0);
-		grid.add(this.widthBox, 1, 0);
-		grid.add(new Label("Height:"), 0, 1);
-		grid.add(this.heightBox, 1, 1);
-		grid.add(new Label("Smoothing:"), 0, 2);
-		grid.add(this.smoothBox, 1, 2);
+		grid.addRow(0, new Label("Width:"), this.widthBox);
+		grid.addRow(1, new Label("Height:"), this.heightBox);
+		grid.addRow(2, new Label("Smoothing:"), this.smoothBox);
 		this.gui.getChildren().add(grid);
 		
 		this.getDialogPane().setContent(this.gui);

@@ -45,18 +45,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import maps.Azimuthal;
-import maps.Conic;
-import maps.Cylindrical;
-import maps.Misc;
-import maps.MyProjections;
 import maps.Projection;
-import maps.Pseudocylindrical;
-import maps.Robinson;
-import maps.Snyder;
-import maps.Tetrahedral;
-import maps.Tobler;
-import maps.WinkelTripel;
 import utils.ImageUtils;
 import utils.PixelMap;
 import utils.Procedure;
@@ -83,18 +72,6 @@ public class MapDesignerRaster extends MapApplication {
 			new FileChooser.ExtensionFilter("PNG", "*.png"),
 			new FileChooser.ExtensionFilter("JPG", "*.jpg"),
 			new FileChooser.ExtensionFilter("GIF", "*.gif") };
-	
-	private static final Projection[] PROJ_ARR = { Cylindrical.MERCATOR,
-			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL,
-			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
-			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Tetrahedral.LEE,
-			Tetrahedral.ACTUAUTHAGRAPH, Tetrahedral.AUTHAPOWER, Tetrahedral.AUTHAGRAPH,
-			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Misc.AITOFF,
-			Misc.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
-			Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Snyder.GS50,
-			Pseudocylindrical.LEMONS, MyProjections.EXPERIMENT, MyProjections.PSEUDOSTEREOGRAPHIC,
-			MyProjections.TWO_POINT_EQUALIZED };
-	
 	
 	private Node aspectSelector;
 	private Button updateBtn, saveMapBtn;
@@ -126,8 +103,7 @@ public class MapDesignerRaster extends MapApplication {
 		this.aspect = new double[3];
 		final Node inputSelector = buildInputSelector(READABLE_TYPES,
 				RASTER_TYPES[0], this::setInput);
-		final Node projectionSelector = buildProjectionSelector(PROJ_ARR,
-				this::hideAspect);
+		final Node projectionSelector = buildProjectionSelector(this::hideAspect);
 		this.aspectSelector = buildAspectSelector(this.aspect, Procedure.NONE);
 		final Node parameterSelector = buildParameterSelector(Procedure.NONE);
 		this.updateBtn = buildUpdateButton(this::updateMap);
