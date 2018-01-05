@@ -54,7 +54,9 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import maps.Projection;
+import utils.Flag;
 import utils.Math2;
+import utils.MutableDouble;
 import utils.Procedure;
 
 /**
@@ -82,6 +84,8 @@ public class MapAnalyzer extends MapApplication {
 			new FileChooser.ExtensionFilter("JPG", "*.jpg","*.jpeg","*.jpe","*.jfif"),
 			new FileChooser.ExtensionFilter("GIF", "*.gif") };
 	
+	private Flag cropAtIDL;
+	private MutableDouble graticuleSpacing;
 	private Button updateBtn;
 	private Text avgSizeDistort, avgShapeDistort;
 	private ImageView mapDisplay;
@@ -107,8 +111,11 @@ public class MapAnalyzer extends MapApplication {
 	
 	@Override
 	protected Node makeWidgets() {
+		this.cropAtIDL = new Flag(true);
+		this.graticuleSpacing = new MutableDouble(15);
 		final Node projectionSelector = buildProjectionSelector(Procedure.NONE);
 		final Node parameterSelector = buildParameterSelector(Procedure.NONE);
+		final Node optionPane = buildOptionPane(cropAtIDL, graticuleSpacing);
 		final Node textDisplay = buildTextDisplay();
 		this.updateBtn = buildUpdateButton(this::calculateAndUpdate);
 		this.updateBtn.setText("Calculate"); //I don't need to follow your darn conventions!
@@ -121,7 +128,7 @@ public class MapAnalyzer extends MapApplication {
 		
 		final VBox layout = new VBox(5,
 				projectionSelector, parameterSelector, new Separator(),
-				buttons, new Separator(), textDisplay);
+				optionPane, new Separator(), buttons, new Separator(), textDisplay);
 		layout.setAlignment(Pos.CENTER);
 		layout.setPrefWidth(GUI_WIDTH);
 		
@@ -191,7 +198,7 @@ public class MapAnalyzer extends MapApplication {
 		
 		loadParameters();
 		final Projection proj = this.getProjection();
-		final double[][][] distortionM = proj.calculateDistortion(proj.map(ROUGH_SAMP_NUM));
+		final double[][][] distortionM = proj.calculateDistortion(proj.map(ROUGH_SAMP_NUM, cropAtIDL.isSet()));
 		
 		mapDisplay.setImage(makeGraphic(distortionM));
 		

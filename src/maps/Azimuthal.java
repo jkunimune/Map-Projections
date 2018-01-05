@@ -38,9 +38,7 @@ public class Azimuthal {
 		}
 		
 		public double[] inverse(double x, double y) {
-			return new double[] {
-					Math.PI/2 - 2*Math.atan(Math.hypot(x, y)),
-					Math.atan2(y, x) + Math.PI/2 };
+			return new double[] { Math.PI/2 - 2*Math.atan(Math.hypot(x, y)), Math.atan2(x, -y) };
 		}
 	};
 	
@@ -58,7 +56,7 @@ public class Azimuthal {
 		public double[] inverse(double x, double y) {
 			double phi = Math.PI/2 - Math.hypot(x, y);
 			if (phi > -Math.PI/2)
-				return new double[] {phi, Math.atan2(y, x) + Math.PI/2};
+				return new double[] {phi, Math.atan2(x, -y)};
 			else
 				return null;
 		}
@@ -77,7 +75,7 @@ public class Azimuthal {
 		public double[] inverse(double x, double y) {
 			double r = Math.hypot(x, y);
 			if (r <= 1)
-				return new double[] {Math.asin(1-2*r*r), Math.atan2(y,x)+Math.PI/2};
+				return new double[] { Math.asin(1-2*r*r), Math.atan2(x, -y) };
 			else
 				return null;
 		}
@@ -97,7 +95,7 @@ public class Azimuthal {
 		public double[] inverse(double x, double y) {
 			double R = Math.hypot(x, y);
 			if (R <= 1)
-				return new double[] { Math.acos(R), Math.atan2(y, x) + Math.PI/2 };
+				return new double[] { Math.acos(R), Math.atan2(x, -y) };
 			else
 				return null;
 		}
@@ -116,8 +114,7 @@ public class Azimuthal {
 		}
 		
 		public double[] inverse(double x, double y) {
-			return new double[] { Math.PI/2 - Math.atan(Math.hypot(x, y)),
-					Math.atan2(y, x) + Math.PI/2 };
+			return new double[] { Math.PI/2 - Math.atan(Math.hypot(x, y)), Math.atan2(x, -y) };
 		}
 	};
 	

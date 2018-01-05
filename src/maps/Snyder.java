@@ -47,7 +47,7 @@ public class Snyder {
 	
 	private static final double TOLERANCE = 10e-4;
 	private static final double[] LIMS = {
-			Math.toRadians(10), Math.toRadians(85), Math.toRadians(-195), Math.toRadians(-50) }; //trims the outside unsightly portions
+			Math.toRadians(5), Math.toRadians(85), Math.toRadians(-195), Math.toRadians(-50) }; //trims the outside unsightly portions
 	
 	
 	public static final Projection GS50 =
@@ -78,12 +78,13 @@ public class Snyder {
 				z = z.minus(error.divide(deriv));
 				error = f(z).minus(p);
 			}
-			final double r = z.abs();
-			final double phi = 2*Math.atan(r/2);
-			final double lat = Math.asin(Math.cos(phi)*Math.sin(POLE[0]) + z.getIm()*Math.sin(phi)*Math.cos(POLE[0])/r);
-			final double lon = POLE[1] + Math.atan(z.getRe()*Math.sin(phi)/(r*Math.cos(POLE[0])*Math.cos(phi)-z.getIm()*Math.sin(POLE[0]*Math.sin(phi))));
+			double r = z.abs();
+			double phi = 2*Math.atan(r/2);
+			double lat = Math.asin(Math.cos(phi)*Math.sin(POLE[0]) + z.getIm()*Math.sin(phi)*Math.cos(POLE[0])/r);
+			double lon = POLE[1] + Math.atan(z.getRe()*Math.sin(phi)/(r*Math.cos(POLE[0])*Math.cos(phi)-z.getIm()*Math.sin(POLE[0]*Math.sin(phi))));
 			if (lat < LIMS[0] || lat > LIMS[1]) 	return null;
 			if (lon < LIMS[2] || lon > LIMS[3]) 	return null;
+			if (lon < -Math.PI) 	lon += 2*Math.PI;
 			return new double[] {lat, lon};
 		}
 	};

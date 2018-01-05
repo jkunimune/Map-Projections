@@ -158,7 +158,15 @@ public abstract class Projection {
 	}
 	
 	public double[] inverse(double x, double y, double[] pole) {
-		return obliquifyPlnr(inverse(x, y), pole);
+		return inverse(x, y, pole, false);
+	}
+	
+	public double[] inverse(double x, double y, double[] pole, boolean cropAtPi) {
+		final double[] relCoords = inverse(x, y);
+		if (relCoords == null || (cropAtPi && Math.abs(relCoords[1]) > Math.PI))
+			return null; //cropAtPi removes all points with longitudes outside +- PI
+		else
+			return obliquifyPlnr(relCoords, pole);
 	}
 	
 	
@@ -167,22 +175,27 @@ public abstract class Projection {
 	
 	
 	public double[][][] map(int size) {
-		return map(size, new double[] {Math.PI/2,0,0});
+		return map(size, false);
 	}
 	
-	public double[][][] map(int size, double[] pole) {
+	public double[][][] map(int size, boolean cropAtPi) {
+		return map(size, new double[] {Math.PI/2,0,0}, cropAtPi);
+	}
+	
+	public double[][][] map(int size, double[] pole, boolean cropAtPi) {
 		if (width >= height)
-			return map(size, Math.max(Math.round(size*height/width),1), pole, null);
+			return map(size, Math.max(Math.round(size*height/width),1), pole, cropAtPi, null);
 		else
-			return map(Math.max(Math.round(size*width/height),1), size, pole, null);
+			return map(Math.max(Math.round(size*width/height),1), size, pole, cropAtPi, null);
 	}
 	
-	public double[][][] map(double w, double h, double[] pole, DoubleConsumer tracker) { //generate a matrix of coordinates based on a map projection
+	public double[][][] map(double w, double h, double[] pole, boolean cropAtPi,
+			DoubleConsumer tracker) { //generate a matrix of coordinates based on a map projection
 		final double[][][] output = new double[(int) h][(int) w][2];
 		for (int y = 0; y < h; y ++) {
 			for (int x = 0; x < w; x ++)
 				output[y][x] = inverse(
-						((x+0.5)/w-1/2.)*width, (1/2.-(y+0.5)/h)*height, pole);
+						((x+0.5)/w-1/2.)*width, (1/2.-(y+0.5)/h)*height, pole, cropAtPi);
 			if (tracker != null)
 				tracker.accept((double)y / (int)h);
 		}
@@ -295,7 +308,7 @@ public abstract class Projection {
 				lon1 = 2*Math.PI-lon1;
 		}
 		lon1 = lon1-tht0;
-		lon1 = Math2.mod(lon1+Math.PI, 2*Math.PI) - Math.PI;
+		lon1 = Math2.floorMod(lon1+Math.PI, 2*Math.PI) - Math.PI;
 		
 		return new double[] {lat1, lon1};
 	}
@@ -308,8 +321,6 @@ public abstract class Projection {
 	 * @return { LAT, LON }
 	 */
 	protected static final double[] obliquifyPlnr(double[] coords, double[] pole) {
-		if (coords == null) 	return null;
-		
 		double lat1 = coords[0], lon1 = coords[1];
 		final double lat0 = pole[0], lon0 = pole[1], tht0 = pole[2];
 		lon1 += tht0;
@@ -332,6 +343,9 @@ public abstract class Projection {
 		else
 			lonf = lon0 -
 					Math.acos(innerFunc);
+		
+		if (Math.abs(lonf) > Math.PI)
+			lonf = Math2.floorMod(lonf+Math.PI, 2*Math.PI) - Math.PI;
 		
 		double thtf = pole[2];
 		

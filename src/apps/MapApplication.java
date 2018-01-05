@@ -16,11 +16,13 @@ import dialogs.ProjectionSelectionDialog;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
@@ -45,19 +47,21 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.converter.DoubleStringConverter;
 import maps.Azimuthal;
 import maps.Conic;
 import maps.Cylindrical;
 import maps.Lenticular;
 import maps.Misc;
-import maps.MyProjections;
 import maps.Projection;
 import maps.Pseudocylindrical;
 import maps.Robinson;
 import maps.Tetrahedral;
 import maps.Tobler;
 import maps.WinkelTripel;
+import utils.Flag;
 import utils.Math2;
+import utils.MutableDouble;
 import utils.Procedure;
 
 
@@ -70,6 +74,9 @@ public abstract class MapApplication extends Application {
 
 	protected static final int GUI_WIDTH = 350;
 	protected static final int IMG_WIDTH = 500;
+	protected static final int V_SPACE = 5;
+	protected static final int H_SPACE = 3;
+	protected static final int SPINNER_WIDTH = 92;
 	
 	private static final KeyCombination CTRL_O = new KeyCodeCombination(KeyCode.O, KeyCodeCombination.CONTROL_DOWN);
 	private static final KeyCombination CTRL_S = new KeyCodeCombination(KeyCode.S, KeyCodeCombination.CONTROL_DOWN);
@@ -80,7 +87,7 @@ public abstract class MapApplication extends Application {
 			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL,
 			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
 			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Tetrahedral.LEE,
-			Tetrahedral.ACTUAUTHAGRAPH, Tetrahedral.AUTHAGRAPH, Pseudocylindrical.SINUSOIDAL,
+			Tetrahedral.ACTUAUTHAGRAPH, Tetrahedral.AUTHAPOWER, Pseudocylindrical.SINUSOIDAL,
 			Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Lenticular.AITOFF,
 			Lenticular.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
 			Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT, Pseudocylindrical.LEMONS }; //the set of featured projections for the ComboBox
@@ -176,7 +183,7 @@ public abstract class MapApplication extends Application {
 				}
 			});
 		
-		VBox output = new VBox(5, new HBox(3, label, inputLabel), loadButton);
+		VBox output = new VBox(V_SPACE, new HBox(H_SPACE, label, inputLabel), loadButton);
 		output.setAlignment(Pos.CENTER);
 		return output;
 	}
@@ -210,7 +217,7 @@ public abstract class MapApplication extends Application {
 				}
 			});
 		
-		return new VBox(5, new HBox(3, label, projectionChooser), description);
+		return new VBox(V_SPACE, new HBox(H_SPACE, label, projectionChooser), description);
 	}
 	
 	
@@ -226,7 +233,7 @@ public abstract class MapApplication extends Application {
 		
 		final String[] labels = { "Latitude:", "Longitude:", "Ctr. Meridian:" };
 		final Slider[] sliders = new Slider[] {
-				new Slider(-90, 90, 0.), //TODO: can we call setAspectByPreset("Standard") instead of this?
+				new Slider(-90, 90, 0.),
 				new Slider(-180, 180, 0.),
 				new Slider(-180, 180, 0.) };
 		final Spinner<Double> spin0 = new Spinner<Double>(-90, 90, 0.); //yes, this is awkward. Java gets weird about arrays with generic types
@@ -257,11 +264,11 @@ public abstract class MapApplication extends Application {
 		}
 		
 		final GridPane grid = new GridPane();
-		grid.setVgap(5);
-		grid.setHgap(3);
+		grid.setVgap(V_SPACE);
+		grid.setHgap(H_SPACE);
 		grid.getColumnConstraints().addAll(
-				new ColumnConstraints(92,Control.USE_COMPUTED_SIZE,Control.USE_COMPUTED_SIZE),
-				new ColumnConstraints(), new ColumnConstraints(92));
+				new ColumnConstraints(SPINNER_WIDTH,Control.USE_COMPUTED_SIZE,Control.USE_COMPUTED_SIZE),
+				new ColumnConstraints(), new ColumnConstraints(SPINNER_WIDTH));
 		for (int i = 0; i < 3; i ++) {
 			GridPane.setHgrow(sliders[i], Priority.ALWAYS);
 			sliders[i].setTooltip(new Tooltip("Change the aspect of the map"));
@@ -270,8 +277,9 @@ public abstract class MapApplication extends Application {
 			grid.addRow(i, new Label(labels[i]), sliders[i], spinners[i]);
 		}
 		
-		VBox all = new VBox(5, presetChooser, grid);
+		VBox all = new VBox(V_SPACE, presetChooser, grid);
 		all.setAlignment(Pos.CENTER);
+		all.managedProperty().bind(all.visibleProperty()); //make it hide when it is hiding
 		return all;
 	}
 	
@@ -282,12 +290,12 @@ public abstract class MapApplication extends Application {
 	 * @return the full formatted Region
 	 */
 	@SuppressWarnings("unchecked")
-	protected Node buildParameterSelector(Procedure parameterSetter) {
+	protected Region buildParameterSelector(Procedure parameterSetter) {
 		currentParams = new double[4];
 		paramLabels = new Label[4];
 		paramSliders = new Slider[4]; // I don't think any projection has more than four parameters
 		final Spinner<Double> spin0 = new Spinner<Double>(0.,0.,0.); //yes, this is awkward. Java gets weird about arrays with generic types
-		paramSpinners = (Spinner<Double>[]) Array.newInstance(spin0.getClass(), 4);
+		paramSpinners = (Spinner<Double>[])Array.newInstance(spin0.getClass(), 4);
 		paramSpinners[0] = spin0;
 		
 		for (int i = 0; i < 4; i ++) {
@@ -304,18 +312,59 @@ public abstract class MapApplication extends Application {
 		}
 		
 		paramGrid = new GridPane();
-		paramGrid.setVgap(5);
-		paramGrid.setHgap(3);
+		paramGrid.setVgap(V_SPACE);
+		paramGrid.setHgap(H_SPACE);
 		paramGrid.getColumnConstraints().addAll(
-				new ColumnConstraints(92,Control.USE_COMPUTED_SIZE,Control.USE_COMPUTED_SIZE),
-				new ColumnConstraints(), new ColumnConstraints(92));
+				new ColumnConstraints(SPINNER_WIDTH,Control.USE_COMPUTED_SIZE,Control.USE_COMPUTED_SIZE),
+				new ColumnConstraints(), new ColumnConstraints(SPINNER_WIDTH));
 		return paramGrid;
 	}
 	
 	
-	protected Node buildOptionPane(Flag cropAtIDL, Flag graticule) {
-		//TODO: checkboxes for cropping and graticule
-		return null;
+	/**
+	 * Create a block of niche options - specifically International Dateline cropping and whether
+	 * there should be a graticule
+	 * @param cropAtIDL The mutable boolean value to which to bind the "Crop at Dateline" CheckBox
+	 * @param graticule The mutable double value to which to bind the "Graticule" Spinner
+	 * @return the full formatted Region
+	 */
+	protected Region buildOptionPane(Flag cropAtIDL, MutableDouble graticule) {
+		final CheckBox cropBox = new CheckBox("Crop at International Dateline"); //the CheckBox for whether there should be shown imagery outside the International Dateline
+		cropBox.setSelected(cropAtIDL.isSet());
+		cropBox.setTooltip(new Tooltip("Show every point exactly once."));
+		cropBox.selectedProperty().addListener((observable, old, now) -> {
+				cropAtIDL.set(now);
+			});
+		
+		final ObservableList<Double> factorsOf360 = FXCollections.observableArrayList();
+		for (double f = 1; f <= 45; f += 0.5)
+			if (360%f == 0)
+				factorsOf360.add((double)f);
+		final Spinner<Double> gratSpinner = new Spinner<Double>(factorsOf360); //spinner for the graticule value
+		gratSpinner.getValueFactory().setConverter(new DoubleStringConverter());
+		gratSpinner.getValueFactory().setValue(graticule.get());
+		gratSpinner.setDisable(graticule.isZero());
+		gratSpinner.setEditable(true);
+		gratSpinner.setTooltip(new Tooltip("The spacing in degrees between shown parallels and meridians."));
+		gratSpinner.setPrefWidth(SPINNER_WIDTH);
+		gratSpinner.valueProperty().addListener((observable, old, now) -> {
+				graticule.set(now); //which is tied to the mutable graticule spacing variable
+			});
+		
+		final CheckBox gratBox = new CheckBox("Graticule: "); //the CheckBox for whether there should be a graticule
+		gratBox.setSelected(!graticule.isZero());
+		gratBox.setTooltip(new Tooltip("Overlay a mesh of parallels and meridians."));
+		gratBox.selectedProperty().addListener((observable, old, now) -> {
+				if (now)
+					graticule.set(gratSpinner.getValue()); //set the value of graticule appropriately when checked
+				else
+					graticule.set(0); //when not checked, represent "no graticule" as a spacing of 0
+				gratSpinner.setDisable(!now); //disable the graticule Spinner when appropriate
+			});
+		
+		final HBox gratRow = new HBox(H_SPACE, gratBox, gratSpinner);
+		gratRow.setAlignment(Pos.CENTER_LEFT);
+		return new VBox(V_SPACE, cropBox, gratRow);
 	}
 	
 	
@@ -549,44 +598,6 @@ public abstract class MapApplication extends Application {
 				alert.setContentText(message);
 				alert.showAndWait();
 			});
-	}
-	
-	
-	
-	/**
-	 * Because Java apparently doesn't already have a mutable Bullion
-	 * @author jkunimune
-	 */
-	private class Flag {
-		private boolean set;
-		
-		public Flag() {
-			this(false);
-		}
-		
-		public Flag(boolean set) {
-			this.set = set;
-		}
-		
-		public boolean isSet() {
-			return this.set;
-		}
-		
-		public void set(boolean set) {
-			this.set = set;
-		}
-		
-		public void set() {
-			this.set = true;
-		}
-		
-		public void clear() {
-			this.set = false;
-		}
-		
-		public String toString() {
-			return "Flag("+this.set+")";
-		}
 	}
 
 }

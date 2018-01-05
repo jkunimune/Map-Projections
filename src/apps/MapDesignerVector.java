@@ -104,7 +104,6 @@ public class MapDesignerVector extends MapApplication {
 		final Node parameterSelector = buildParameterSelector(this::updateMap);
 		this.saveBtn = buildSaveButton(true, "map", VECTOR_TYPES,
 				VECTOR_TYPES[0], ()->true, this::calculateAndSaveMap);
-		aspectSelector.managedProperty().bind(aspectSelector.visibleProperty());
 		
 		final VBox layout = new VBox(5,
 				inputSelector, new Separator(), projectionSelector,

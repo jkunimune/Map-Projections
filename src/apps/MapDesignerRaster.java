@@ -46,7 +46,9 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import maps.Projection;
+import utils.Flag;
 import utils.ImageUtils;
+import utils.MutableDouble;
 import utils.PixelMap;
 import utils.Procedure;
 
@@ -76,6 +78,8 @@ public class MapDesignerRaster extends MapApplication {
 	private Node aspectSelector;
 	private Button updateBtn, saveMapBtn;
 	private double[] aspect;
+	private Flag cropAtIDL;
+	private MutableDouble graticuleSpacing;
 	private PixelMap input;
 	private ImageView display;
 	private MapConfigurationDialog configDialog;
@@ -101,22 +105,24 @@ public class MapDesignerRaster extends MapApplication {
 	@Override
 	protected Node makeWidgets() {
 		this.aspect = new double[3];
+		this.cropAtIDL = new Flag(false);
+		this.graticuleSpacing = new MutableDouble(15);
 		final Node inputSelector = buildInputSelector(READABLE_TYPES,
 				RASTER_TYPES[0], this::setInput);
 		final Node projectionSelector = buildProjectionSelector(this::hideAspect);
 		this.aspectSelector = buildAspectSelector(this.aspect, Procedure.NONE);
 		final Node parameterSelector = buildParameterSelector(Procedure.NONE);
+		final Node optionPane = buildOptionPane(cropAtIDL, graticuleSpacing);
 		this.updateBtn = buildUpdateButton(this::updateMap);
 		this.saveMapBtn = buildSaveButton(true, "map", RASTER_TYPES,
 				RASTER_TYPES[0], this::collectFinalSettings, this::calculateAndSaveMap);
-		final HBox buttons = new HBox(5, updateBtn, saveMapBtn);
+		final HBox buttons = new HBox(H_SPACE, updateBtn, saveMapBtn);
 		buttons.setAlignment(Pos.CENTER);
-		aspectSelector.managedProperty().bind(aspectSelector.visibleProperty());
 		
-		final VBox layout = new VBox(5,
-				inputSelector, new Separator(), projectionSelector,
-				new Separator(), aspectSelector, parameterSelector,
-				new Separator(), buttons);
+		final VBox layout = new VBox(V_SPACE,
+				inputSelector, new Separator(), projectionSelector, new Separator(),
+				aspectSelector, parameterSelector, new Separator(), optionPane, new Separator(),
+				buttons);
 		layout.setAlignment(Pos.CENTER);
 		layout.setPrefWidth(GUI_WIDTH);
 		
@@ -202,8 +208,9 @@ public class MapDesignerRaster extends MapApplication {
 	
 	private BufferedImage makeImage(int width, int height, int step, ProgressBarDialog pBar) {
 		final double[] pole = aspect.clone();
+		final boolean crop = cropAtIDL.isSet();
 		final Projection pjc = this.getProjection();
-		final BufferedImage out = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		BufferedImage out = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 		for (int y = 0; y < out.getHeight(); y ++) {
 			if (pBar != null)
 				pBar.setProgress((double) y/out.getHeight());
@@ -211,9 +218,9 @@ public class MapDesignerRaster extends MapApplication {
 				int[] colors = new int[step*step];
 				for (int dy = 0; dy < step; dy ++) {
 					for (int dx = 0; dx < step; dx ++) {
-						final double X = ((x+(dx+.5)/step)/out.getWidth() - 1/2.) *pjc.getWidth();
-						final double Y = (1/2. - (y+(dy+.5)/step)/out.getHeight()) *pjc.getHeight();
-						final double[] coords = this.getProjection().inverse(X, Y, pole);
+						double X = ((x+(dx+.5)/step)/out.getWidth() - 1/2.) *pjc.getWidth();
+						double Y = (1/2. - (y+(dy+.5)/step)/out.getHeight()) *pjc.getHeight();
+						double[] coords = this.getProjection().inverse(X, Y, pole, crop);
 						if (coords != null) //if it is null, the default (0:transparent) is used
 							colors[step*dy+dx] = input.getArgb(coords[0], coords[1]);
 					}

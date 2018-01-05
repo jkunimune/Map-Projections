@@ -25,6 +25,7 @@ package maps;
 
 import maps.Projection.Property;
 import utils.Dixon;
+import utils.Math2;
 import utils.NumericalAnalysis;
 
 /**
@@ -296,8 +297,16 @@ public class Tetrahedral {
 			final double x0 = centrum[4];
 			final double y0 = centrum[5];
 			
-			return obliquifyPlnr(
-					innerInverse(Math.hypot(x-x0, y-y0), Math.atan2(y-y0, x-x0) - th0), centrum);
+			double[] relCoords =
+					innerInverse(Math.hypot(x-x0, y-y0), Math.atan2(y-y0, x-x0) - th0);
+			
+			if (relCoords == null)
+				return null;
+			
+			double[] absCoords = obliquifyPlnr(relCoords, centrum);
+			if (Math.abs(absCoords[1]) > Math.PI)
+				absCoords[1] = Math2.floorMod(absCoords[1]+Math.PI, 2*Math.PI) - Math.PI;
+			return absCoords;
 		}
 	}
 	

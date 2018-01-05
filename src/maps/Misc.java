@@ -29,6 +29,7 @@ import de.jtem.ellipticFunctions.Jacobi;
 import maps.Projection.Property;
 import maps.Projection.Type;
 import utils.Elliptic;
+import utils.Math2;
 
 /**
  * All the projections that don't fit into any of the other categories.
@@ -71,7 +72,7 @@ public class Misc {
 			de.jtem.mfc.field.Complex k = new de.jtem.mfc.field.Complex(Math.sqrt(0.5)); //the rest comes from some fancy complex calculus
 			de.jtem.mfc.field.Complex ans = Jacobi.cn(u, k);
 			double p = 2 * Math.atan(ans.abs());
-			double theta = ans.arg() - Math.PI/2;
+			double theta = Math.atan2(-ans.getRe(), ans.getIm());
 			double lambda = Math.PI/2 - p;
 			return new double[] {lambda, theta};
 		}
@@ -147,15 +148,17 @@ public class Misc {
 		}
 		
 		public double[] inverse(double x, double y) {
-			final double phi1 = Math.PI/2 - Math.hypot(x, y);
+			double phi1 = Math.PI/2 - Math.hypot(x, y);
 			if (phi1 < -Math.PI/2) 	return null;
-			final double lam1 = Math.atan2(x, -y);
+			double lam1 = Math.atan2(x, -y);
 			double phiP = Math.asin(Math.sin(phi0)/Math.hypot(Math.sin(phi1),Math.cos(phi1)*Math.cos(lam1))) - Math.atan2(Math.cos(phi1)*Math.cos(lam1),Math.sin(phi1));
 			if (Math.abs(phiP) > Math.PI/2)
 				phiP = Math.signum(phiP)*Math.PI - phiP;
-			final double delL = Math.acos(Math.sin(phi1)/Math.cos(phiP)/Math.cos(phi0) - Math.tan(phiP)*Math.tan(phi0));
-			final double lamP = lam0 + Math.signum(x)*delL;
+			double delL = Math.acos(Math.sin(phi1)/Math.cos(phiP)/Math.cos(phi0) - Math.tan(phiP)*Math.tan(phi0));
+			double lamP = lam0 + Math.signum(x)*delL;
 			if (Double.isNaN(phiP) || Double.isNaN(lamP)) 	return null;
+			if (lamP > Math.PI) 	lamP -= 2*Math.PI;
+			if (lamP < -Math.PI) 	lamP += 2*Math.PI;
 			return new double[] {phiP, lamP};
 		}
 	};
@@ -216,7 +219,7 @@ public class Misc {
 			final double s1 = Math.signum(Math.sin(Math.acos(t1)-s0*Math.acos(t2)));
 			final double PHI = Math.asin(Math.sin(lat1)*Math.cos(d1) - Math.cos(lat1)*Math.sin(d1)*casab);
 			final double LAM = lon1 +s1* Math.acos((Math.cos(d1) - Math.sin(lat1)*Math.sin(PHI))/(Math.cos(lat1)*Math.cos(PHI)));
-			return new double[] {PHI, LAM};
+			return new double[] { PHI, Math2.floorMod(LAM+Math.PI, 2*Math.PI) - Math.PI };
 		}
 		
 		private double dist(double lat1, double lon1, double lat2, double lon2) {

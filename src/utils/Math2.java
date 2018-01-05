@@ -83,13 +83,13 @@ public class Math2 {
 	}
 	
 	
-	public static final double determ(double a, double b, double c, double d) {
-		return a*d - b*c;
+	public static final double floorMod(double x, double y) {
+		return x - Math.floor(x / y) * y;
 	}
 	
 	
-	public static final double mod(double x, double y) {
-		return x - Math.floor(x/y)*y;
+	public static final double determ(double a, double b, double c, double d) {
+		return a*d - b*c;
 	}
 	
 	

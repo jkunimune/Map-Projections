@@ -27,6 +27,7 @@ import org.apache.commons.math3.complex.Complex;
 
 import maps.Projection.Property;
 import maps.Projection.Type;
+import utils.Math2;
 
 /**
  * All of the projections I invented, save the tetrahedral ones, because
@@ -52,7 +53,7 @@ public class MyProjections {
 			if (R <= 1)
 				return new double[] {
 						Math.PI/2 * (1 - R*.2 - R*R*R*1.8),
-						Math.atan2(y, x) + Math.PI/2};
+						Math.atan2(x, -y)};
 			else
 				return null;
 		}
@@ -76,9 +77,14 @@ public class MyProjections {
 			Complex z = new Complex(x, y);
 			Complex ans = z.sin();
 			double p = 2 * Math.atan(ans.abs());
-			double theta = ans.getArgument() + Math.PI/2;
+			double theta = Math2.floorMod(ans.getArgument() + 3*Math.PI/2, 2*Math.PI) - Math.PI;
 			double lambda = Math.PI/2 - p;
-			return new double[] {lambda, theta};
+			if (x < -Math.PI/2)
+				return new double[] {lambda, theta-2*Math.PI};
+			else if (x < Math.PI/2)
+				return new double[] {lambda, theta};
+			else
+				return new double[] {lambda, theta+2*Math.PI};
 		}
 	};
 	
