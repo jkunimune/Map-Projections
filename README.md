@@ -32,11 +32,11 @@ For some examples, check out the `output` folder. For more information, go to [j
 
 ## Credits
 While I wrote all of the code in this repository myself, and I created several of the simpler images from scratch, other people did help. Here's a comprehensive list.
-* **The NASA** for [Basic.jpg](https://visibleearth.nasa.gov/view.php?id=57730), [Satellite.jpg](https://visibleearth.nasa.gov/view.php?id=57752), and [Altitude.jpg](https://asterweb.jpl.nasa.gov/gdem.asp)
-* **Tom Patterson** for [Pastel.jpg](http://www.shadedrelief.com/natural3/pages/textures.html) and [Rivers.jpg](http://www.shadedrelief.com/natural3/pages/extra.html)
+* **The NASA** for [Basic.png](https://visibleearth.nasa.gov/view.php?id=57730), [Satellite.jpg](https://visibleearth.nasa.gov/view.php?id=57752), and [Altitude.png](https://asterweb.jpl.nasa.gov/gdem.asp)
+* **Tom Patterson** for [Pastel.jpg](http://www.shadedrelief.com/natural3/pages/textures.html) and [Rivers.png](http://www.shadedrelief.com/natural3/pages/extra.html)
 * **RokerHRO** for [the indicatrix layer of Tissot.jpg](https://commons.wikimedia.org/wiki/File:Tissot_10deg.png)
-* **The CIA** for [Basic.svg](https://commons.wikimedia.org/wiki/File:BlankMap-World6-Equirectangular.svg)
-* **Crates** for [Landmasses.svg](https://commons.wikimedia.org/wiki/File:World_map_blank_without_borders.svg)
+* **Crates** for [Landmasses.svg and the landmass layer of Basic.svg](https://commons.wikimedia.org/wiki/File:World_map_blank_without_borders.svg)
+* **The CIA** for [Political.svg and Political.png](https://commons.wikimedia.org/wiki/File:BlankMap-World6-Equirectangular.svg).
 * **The Apache Commons** for their [complex mathematics code](https://commons.apache.org/proper/commons-math/)
 * **Technische Universit&auml;t Berlin** for their [complex mathematics code](http://www3.math.tu-berlin.de/jtem/ellipticFunctions/)
 * **AuthaGraph Co., Ltd.** for their [vague information about their map projection](http://www.authagraph.com/projects/description/%E3%80%90%E4%BD%9C%E5%93%81%E8%A7%A3%E8%AA%AC%E3%80%91%E8%A8%98%E4%BA%8B01/?lang=en), which inspired several of my own.
