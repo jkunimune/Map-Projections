@@ -45,6 +45,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import maps.Projection;
 import utils.Math2;
 import utils.Procedure;
 import utils.SVGMap;
@@ -175,7 +176,8 @@ public class MapDesignerVector extends MapApplication {
 		loadParameters();
 		final List<Path> transformed = map(input, 1, aspect.clone(), pBar::setProgress); //calculate
 		try {
-			input.save(transformed, this.getProjection().getSize(), file, pBar::setProgress); //save
+			final Projection proj = this.getProjection();
+			input.save(transformed, proj.getWidth(), proj.getHeight(), file, pBar::setProgress); //save
 		} catch (IOException e) {
 			showError("Failure!",
 					"Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
@@ -189,18 +191,20 @@ public class MapDesignerVector extends MapApplication {
 		for (Path path0: input) {
 			Path path1 = new Path();
 			int counter = 0;
-			for (Command cmd0: path0) {
+			for (Command cmdS: path0) {
 				counter --;
-				if (counter > 0 && cmd0.type != 'M' && cmd0.type != 'Z') 	continue;
+				if (counter > 0 && cmdS.type != 'M' && cmdS.type != 'Z') 	continue;
 				counter = step;
 				
-				Command cmd1 = new Command(cmd0.type, new double[cmd0.args.length]);
-				for (int k = 0; k < cmd0.args.length; k += 2) {
+				Command cmdP = new Command(cmdS.type, new double[cmdS.args.length]);
+				for (int k = 0; k < cmdS.args.length; k += 2) {
 					System.arraycopy(
-							this.getProjection().project(cmd0.args[k+1], cmd0.args[k], pole), 0,
-							cmd1.args, k, 2);
+							this.getProjection().project(cmdS.args[k+1], cmdS.args[k], pole), 0,
+							cmdP.args, k, 2);
+					if (Double.isNaN(cmdP.args[k]) || Double.isNaN(cmdP.args[k+1]))
+						System.err.println(this.getProjection()+" returns "+cmdP.args[k]+","+cmdP.args[k+1]+" at "+cmdS.args[k+1]+","+cmdS.args[k]+"!");
 				}
-				path1.add(cmd1);
+				path1.add(cmdP); //TODO: if I was smart, I would divide landmasses that hit an interruption so that I didn't get those annoying lines that cross the map, and then run adaptive resampling to make sure the cuts look clean and not polygonal (e.g. so Antarctica extends all the way to the bottom), but that sounds really hard.
 			}
 			output.add(path1);
 			

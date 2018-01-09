@@ -60,7 +60,7 @@ import utils.MutableDouble;
 import utils.Procedure;
 
 /**
- * An application to analyze the characteristics of map projections
+ * An application to analyse the characteristics of map projections
  * 
  * @author Justin Kunimune
  */

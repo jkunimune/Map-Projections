@@ -39,6 +39,7 @@ public class Lenticular {
 		
 		public double[] project(double lat, double lon) {
 			final double a = Math.acos(Math.cos(lat)*Math.cos(lon/2));
+			if (a == 0) 	return new double[] {0, 0};
 			return new double[] {
 					2*Math.cos(lat)*Math.sin(lon/2)*a/Math.sin(a),
 					Math.sin(lat)*a/Math.sin(a)};
@@ -112,6 +113,24 @@ public class Lenticular {
 					Math.PI*(x*x + y*y - 1 + Math.sqrt(1 + 2*(x*x - y*y) + Math.pow(x*x + y*y, 2)))
 							/ (2*x)};
 		}
+	};
+	
+	
+	public static final Projection STREBE =
+			new Projection(
+					"Strebe 1995", "An equal-area map with curvy poles that pushes distortion to the edges.",
+					4, 2, 0b1100, Type.OTHER, Property.COMPROMISE) {
+		
+		public double[] project(double lat, double lon) {
+			// TODO: Projection wishlist
+			return null;
+		}
+		
+		public double[] inverse(double x, double y) {
+			// TODO: Projection wishlist
+			return null;
+		}
+		
 	};
 	
 }

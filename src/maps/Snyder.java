@@ -45,9 +45,9 @@ public class Snyder {
 			-0.07,  0.,         0.0037608, -0.0575102, -0.0320119,  0.1223335,  0.0899805,
 			       -0.1435792, -0.1334108,  0.0776645,  0.0853673 }; //the imaginary components of the coefficients
 	
-	private static final double TOLERANCE = 10e-4;
+	private static final double TOLERANCE = 1e-3;
 	private static final double[] LIMS = {
-			Math.toRadians(5), Math.toRadians(85), Math.toRadians(-195), Math.toRadians(-50) }; //trims the outside unsightly portions
+			Math.toRadians(10), Math.toRadians(90), Math.toRadians(-195), Math.toRadians(-50) }; //trims the outside unsightly portions
 	
 	
 	public static final Projection GS50 =

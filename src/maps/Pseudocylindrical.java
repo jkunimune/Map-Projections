@@ -51,11 +51,16 @@ public class Pseudocylindrical {
 			new Projection("Mollweide", "An equal-area projection shaped like an ellipse.",
 					2*Math.PI, Math.PI, 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA) {
 		
+		private final double TOLERANCE = 1e-4;
+		
 		public double[] project(double lat, double lon) {
 			double tht = lat;
-			for (int i = 0; i < 10; i ++)
-				tht -= (2*tht+Math.sin(2*tht)-Math.PI*Math.sin(lat))/
+			double error = 0;
+			do {
+				tht -= error;
+				error = (2*tht+Math.sin(2*tht)-Math.PI*Math.sin(lat))/
 						(2+2*Math.cos(2*tht));
+			} while (Math.abs(error) > TOLERANCE);
 			return new double[] { lon*Math.cos(tht), Math.sin(tht)*Math.PI/2 };
 		}
 		
@@ -65,6 +70,24 @@ public class Pseudocylindrical {
 					Math.asin((2*tht + Math.sin(2*tht)) / Math.PI),
 					x / Math.cos(tht)};
 		}
+	};
+	
+	
+	public static final Projection WAGNER_IV =
+			new Projection(
+					"Wagner IV", "An equal-area projection released in a set of six (I'm only giving you the one because the others are useless).",
+					4, 2, 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA) {
+		
+		public double[] project(double lat, double lon) {
+			// TODO: Projection wishlist
+			return null;
+		}
+		
+		public double[] inverse(double x, double y) {
+			// TODO: Projection wishlist
+			return null;
+		}
+		
 	};
 	
 	
