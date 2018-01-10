@@ -23,12 +23,19 @@
  */
 package maps;
 
+import java.awt.geom.Path2D;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.function.DoubleConsumer;
 
 import dialogs.ProgressBarDialog;
 import utils.Math2;
+import utils.SVGMap.Command;
+import utils.SVGMap.Path;
 
 /**
  * An object that transforms coordinates between spheres and planes.
@@ -36,6 +43,9 @@ import utils.Math2;
  * @author jkunimune
  */
 public abstract class Projection {
+	
+	public static final double[] NORTH_POLE = {Math.PI/2, 0, 0};
+	
 	
 	private final String name; //typically the name of the dude credited for it
 	private final String description; //a noun clause or sentence about it
@@ -136,6 +146,10 @@ public abstract class Projection {
 	public abstract double[] inverse(double x, double y); //convert Cartesian coordinates to spherical
 	
 	
+	public void setParameters(double... params) {
+	}
+	
+	
 	public double[] project(double[] coords) {
 		return project(coords[0], coords[1]);
 	}
@@ -170,16 +184,12 @@ public abstract class Projection {
 	}
 	
 	
-	public void setParameters(double... params) {
-	}
-	
-	
 	public double[][][] map(int size) {
 		return map(size, false);
 	}
 	
 	public double[][][] map(int size, boolean cropAtPi) {
-		return map(size, new double[] {Math.PI/2,0,0}, cropAtPi);
+		return map(size, null, cropAtPi);
 	}
 	
 	public double[][][] map(int size, double[] pole, boolean cropAtPi) {
@@ -200,6 +210,81 @@ public abstract class Projection {
 				tracker.accept((double)y / (int)h);
 		}
 		return output;
+	}
+	
+	
+	/**
+	 * Create a series of paths that draw a graticule mesh
+	 * @param spacing The number of radians between each parallel or meridian
+	 * @param precision The maximum allowable distance from the true path
+	 * @param maxLat The maximum absolute value of latitude for any graticule curve
+	 * @param maxLon The maximum absolute value of longitude for any graticule curve
+	 * @param size The maximum dimension of the graticule
+	 * @param pole The aspect of this graticule
+	 * @return list of curves where each curve is a list of {x,y} arrays
+	 */
+	public Path drawGraticule(double spacing, double precision, double outW, double outH,
+			double maxLat, double maxLon, double[] pole) {
+		Path output = new Path();
+		
+		for (int y = 0; y < (int)(maxLat/spacing); y ++) {
+			output.addAll(drawLoxodrome( //northern parallel
+					 y*spacing,-maxLon, y*spacing, maxLon, precision, outW, outH, pole));
+			if (y == 0) 	continue;
+			output.addAll(drawLoxodrome( //southern parallel
+					-y*spacing,-maxLon,-y*spacing, maxLon, precision, outW, outH, pole));
+		}
+		maxLat -= .0001; //don't draw on the poles; it makes things easier
+		for (int x = 0; x <= (int)(maxLon/spacing); x ++) {
+			output.addAll(drawLoxodrome( //eastern meridian
+					-maxLat, x*spacing, maxLat, x*spacing, precision, outW, outH, pole));
+			if (x == 0 || x == (int)(maxLon/spacing)) 	continue;
+			output.addAll(drawLoxodrome( //western meridian
+					-maxLat,-x*spacing, maxLat,-x*spacing, precision, outW, outH, pole));
+		}
+		
+		return output;
+	}
+	
+	
+	private Path drawLoxodrome(double lat0, double lon0, double lat1, double lon1,
+			double precision, double outW, double outH, double[] pole) {
+		final double[][] baseRange = {{-width/2, height/2}, {width/2, -height/2}};
+		final double[][] imgRange = {{0, 0}, {outW, outH}}; //define some constants for changing coordinates
+		
+		double[] endPt0 = new double[] {lat0, lon0};
+		double[] endPt1 = new double[] {lat1, lon1};
+		List<double[]> spherical = new ArrayList<double[]>(); //the spherical coordinates of the vertices
+		for (double a = 0; a <= 1; a += .25) //populated with vertices along the loxodrome
+			spherical.add(new double[] {endPt0[0]*a+endPt1[0]*(1-a), endPt0[1]*a+endPt1[1]*(1-a)});
+		Path planar = new Path(); //the planar coordinates of the vertices
+		for (int i = 0; i < spherical.size(); i ++) {
+			double[] si = spherical.get(i); //populated with projections of spherical, in image coordinates
+			double[] pi = Math2.linInterp(this.project(si, pole), baseRange, imgRange);
+			char type = (i == 0) ? 'M' : 'L';
+			planar.add(new Command(type, pi));
+		}
+		
+		Queue<double[]> queue = new LinkedList<double[]>(spherical.subList(0, 4));
+		double[] s0;
+		while ((s0 = queue.poll()) != null) { //now iteratively flesh out the rest
+			int i = spherical.indexOf(s0); //s0 is the first spherical endpoint
+			double[] s1 = spherical.get(i+1); //second spherical endpoint
+			double[] sm = new double[] {(s0[0]+s1[0])/2, (s0[1]+s1[1])/2}; //spherical (loxodromic) midpoint
+			double[] p0 = planar.get(i).args; //first planar endpoint
+			double[] p1 = planar.get(i+1).args; //second planar endpoint
+			double[] pm = Math2.linInterp(this.project(sm, pole), baseRange, imgRange); //planar (loxodromic) midpoint
+			
+			double error = Math2.lineSegmentDistance(pm[0], pm[1], p0[0], p0[1], p1[0], p1[1]);
+			if (error > precision) { //if the calculated midpoint is too far off the line
+				spherical.add(i+1, sm); //add the midpoint to the curve
+				planar.add(i+1, new Command('L', pm));
+				queue.add(s0); //and see if you need to recurse this at all
+				queue.add(sm);
+			}
+		}
+		
+		return planar;
 	}
 	
 	
@@ -287,28 +372,37 @@ public abstract class Projection {
 	 * Calculate relative latitude and longitude for an oblique pole
 	 * @param coords the absolute coordinates
 	 * @param pole the pole location
-	 * @return { latr, lonr }
+	 * @return { latr, lonr }, or coords if pole is null
 	 */
 	protected static final double[] obliquifySphc(double latF, double lonF, double[] pole) {
+		if (pole == null)
+			return new double[] {latF, lonF};
+		
 		final double lat0 = pole[0];
 		final double lon0 = pole[1];
 		final double tht0 = pole[2];
 		
-		double lat1 = Math.asin(Math.sin(lat0)*Math.sin(latF) + Math.cos(lat0)*Math.cos(latF)*Math.cos(lon0-lonF)); // relative latitude
+		double lat1;
+		if (lat0 == Math.PI/2)
+			lat1 = latF;
+		else
+			lat1 = Math.asin(Math.sin(lat0)*Math.sin(latF) + Math.cos(lat0)*Math.cos(latF)*Math.cos(lon0-lonF)); // relative latitude
+		
 		double lon1;
 		if (lat0 == Math.PI/2) // accounts for all the 0/0 errors at the poles
-			lon1 = lonF-lon0;
+			lon1 = lonF - lon0;
 		else if (lat0 == -Math.PI/2)
-			lon1 = lon0-lonF+Math.PI;
+			lon1 = lon0 - lonF - Math.PI;
 		else {
 			lon1 = Math.acos((Math.cos(lat0)*Math.sin(latF) - Math.sin(lat0)*Math.cos(latF)*Math.cos(lon0-lonF))/Math.cos(lat1))-Math.PI; // relative longitude
 			if (Double.isNaN(lon1))
 				lon1 = 0;
 			else if (Math.sin(lonF - lon0) > 0) // it's a plus-or-minus arccos.
-				lon1 = 2*Math.PI-lon1;
+				lon1 = -lon1;
 		}
 		lon1 = lon1-tht0;
-		lon1 = Math2.floorMod(lon1+Math.PI, 2*Math.PI) - Math.PI;
+		if (Math.abs(lon1) > Math.PI) //put all longitudes in [-pi,pi], for convenience
+			lon1 = Math2.floorMod(lon1+Math.PI, 2*Math.PI) - Math.PI;
 		
 		return new double[] {lat1, lon1};
 	}
@@ -318,11 +412,15 @@ public abstract class Projection {
 	 * Calculate absolute latitude and longitude for an oblique pole
 	 * @param coords the relative coordinates
 	 * @param pole the pole location
-	 * @return { LAT, LON }
+	 * @return { LAT, LON }, or coords if pole is null
 	 */
 	protected static final double[] obliquifyPlnr(double[] coords, double[] pole) {
+		if (pole == null) //this indicates that you just shouldn't do this calculation
+			return coords;
+		
 		double lat1 = coords[0], lon1 = coords[1];
 		final double lat0 = pole[0], lon0 = pole[1], tht0 = pole[2];
+		
 		lon1 += tht0;
 		double latf = Math.asin(Math.sin(lat0)*Math.sin(lat1) - Math.cos(lat0)*Math.cos(lon1)*Math.cos(lat1));
 		double lonf;

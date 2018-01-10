@@ -31,6 +31,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -177,7 +178,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 				format.add(currentFormatString);
 				paths.add(new Path(d, transformStack.peek(), minX, minY, width, height));
 				currentFormatString = "\"";
-				size += paths.get(paths.size()-1).length();
+				size += paths.get(paths.size()-1).size();
 			}
 		};
 		
@@ -242,12 +243,12 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 	 * An svg path String, stored in a modifiable form
 	 * @author jkunimune
 	 */
-	public static class Path implements Iterable<Command> {
+	public static class Path extends ArrayList<Command> {
 		
-		final private List<Command> commands;
+		private static final long serialVersionUID = 8635895911857570332L;
 		
 		public Path() {
-			commands = new ArrayList<Command>();
+			super();
 		}
 		
 		public Path(String d, double vbWidth, double vbHeight) {
@@ -256,7 +257,8 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		
 		public Path(String d, double[] transform,
 				double vbMinX, double vbMinY, double vbWidth, double vbHeight) {
-			commands = new ArrayList<Command>();
+			super();
+			
 			int i = 0;
 			double[] last = new double[] {0,0}; //for relative coordinates
 			while (i < d.length()) {
@@ -309,23 +311,16 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 						args[j] = Math2.linInterp(args[j], vbMinY+vbHeight, vbMinY, //keep in mind that these are paired longitude-latitude
 								-Math.PI/2, Math.PI/2); //not latitude-longitude, as they are elsewhere
 					}
-//					Math2.removeRoundErrorZeros(args[j]); //round it so that zeros are zeros
 				}
 				
-				commands.add(new Command(type, args));
+				this.add(new Command(type, args));
 			}
 		}
 		
-		public Iterator<Command> iterator() {
-			return commands.iterator();
-		}
-		
-		public int length() {
-			return commands.size();
-		}
-		
-		public boolean add(Command c) {
-			return commands.add(c);
+		public boolean addAll(Path p) {
+			for (Command c: p)
+				add(c);
+			return true;
 		}
 		
 		public String toString() {
@@ -335,7 +330,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		public String toString(double inWidth, double inHeight,
 				double minX, double minY, double outWidth, double outHeight) {
 			String s = "";
-			for (Command c: commands)
+			for (Command c: this)
 				s += c.toString(inWidth, inHeight, minX, minY, outWidth, outHeight)+" ";
 			return s;
 		}

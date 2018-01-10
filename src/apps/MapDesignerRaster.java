@@ -23,9 +23,17 @@
  */
 package apps;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.geom.Line2D;
+import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -51,6 +59,8 @@ import utils.ImageUtils;
 import utils.MutableDouble;
 import utils.PixelMap;
 import utils.Procedure;
+import utils.SVGMap.Command;
+import utils.SVGMap.Path;
 
 /**
  * An application to make raster oblique aspects of map projections
@@ -58,7 +68,7 @@ import utils.Procedure;
  * @author Justin Kunimune
  */
 public class MapDesignerRaster extends MapApplication {
-
+	
 	public static final void main(String[] args) {
 		launch(args);
 	}
@@ -74,6 +84,9 @@ public class MapDesignerRaster extends MapApplication {
 			new FileChooser.ExtensionFilter("PNG", "*.png"),
 			new FileChooser.ExtensionFilter("JPG", "*.jpg"),
 			new FileChooser.ExtensionFilter("GIF", "*.gif") };
+	
+	private static final float GRATICULE_WIDTH = 1.0f;
+	private static final Color GRATICULE_COLOR = new Color(127, 127, 127);
 	
 	private Node aspectSelector;
 	private Button updateBtn, saveMapBtn;
@@ -96,7 +109,7 @@ public class MapDesignerRaster extends MapApplication {
 	public void start(Stage root) {
 		super.start(root);
 		new Thread(() -> {
-			setInput(new File("input/Basic.jpg")); //TODO: this should cause the buttons to grey out
+			setInput(new File("input/Basic.png")); //TODO: this should cause the buttons to grey out
 			updateMap();
 		}).start();
 	}
@@ -198,7 +211,7 @@ public class MapDesignerRaster extends MapApplication {
 	}
 	
 	
-	private BufferedImage makeImage() {
+	private BufferedImage makeImage() { //why is this a BufferedImage when the rest of this program uses JavaFX? Because the only JavaFX alternatives are WritableImage, which doesn't do anything but single-pixel-editing, and Canvas, which doesn't properly support transparency.
 		final double aspRat = this.getProjection().getAspectRatio();
 		if (aspRat >= 1)
 			return makeImage(IMG_WIDTH, (int)Math.max(IMG_WIDTH/aspRat,1), 1, null);
@@ -207,20 +220,23 @@ public class MapDesignerRaster extends MapApplication {
 	}
 	
 	private BufferedImage makeImage(int width, int height, int step, ProgressBarDialog pBar) {
-		final double[] pole = aspect.clone();
-		final boolean crop = cropAtIDL.isSet();
-		final Projection pjc = this.getProjection();
+		return makeImage(width, height, step, pBar, input, this.getProjection(), aspect.clone(),
+				cropAtIDL.isSet(), graticuleSpacing.get());
+	}
+	
+	static BufferedImage makeImage(int width, int height, int step, ProgressBarDialog pBar,
+			PixelMap input, Projection proj, double[] pole, boolean crop, double gratSpacing) {
 		BufferedImage out = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 		for (int y = 0; y < out.getHeight(); y ++) {
-			if (pBar != null)
-				pBar.setProgress((double) y/out.getHeight());
+			if (pBar != null) 	pBar.setProgress((double) y/height);
+			
 			for (int x = 0; x < out.getWidth(); x ++) {
 				int[] colors = new int[step*step];
 				for (int dy = 0; dy < step; dy ++) {
 					for (int dx = 0; dx < step; dx ++) {
-						double X = ((x+(dx+.5)/step)/out.getWidth() - 1/2.) *pjc.getWidth();
-						double Y = (1/2. - (y+(dy+.5)/step)/out.getHeight()) *pjc.getHeight();
-						double[] coords = this.getProjection().inverse(X, Y, pole, crop);
+						double X = ((x+(dx+.5)/step)/width - 1/2.) *proj.getWidth();
+						double Y = (1/2. - (y+(dy+.5)/step)/height) *proj.getHeight();
+						double[] coords = proj.inverse(X, Y, pole, crop);
 						if (coords != null) //if it is null, the default (0:transparent) is used
 							colors[step*dy+dx] = input.getArgb(coords[0], coords[1]);
 					}
@@ -228,6 +244,30 @@ public class MapDesignerRaster extends MapApplication {
 				out.setRGB(x, y, ImageUtils.blend(colors));
 			}
 		}
+		
+		if (gratSpacing != 0) {
+			Graphics2D g = (Graphics2D)out.getGraphics();
+			g.setStroke(new BasicStroke(GRATICULE_WIDTH));
+			g.setColor(GRATICULE_COLOR);
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			Path svgPath = proj.drawGraticule(
+					Math.toRadians(gratSpacing), .02, width, height, Math.PI/2, Math.PI, pole);
+			Path2D awtPath = new Path2D.Double(Path2D.WIND_NON_ZERO, svgPath.size());
+			for (Command svgCmd: svgPath) {
+				switch (svgCmd.type) {
+				case 'M':
+					awtPath.moveTo(svgCmd.args[0], svgCmd.args[1]);
+					break;
+				case 'L':
+					awtPath.lineTo(svgCmd.args[0], svgCmd.args[1]);
+					break;
+				case 'Z':
+					awtPath.closePath();
+				}
+			}
+			g.draw(awtPath);
+		}
+		
 		return out;
 	}
 }

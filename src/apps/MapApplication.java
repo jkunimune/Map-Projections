@@ -336,11 +336,11 @@ public abstract class MapApplication extends Application {
 				cropAtIDL.set(now);
 			});
 		
-		final ObservableList<Double> factorsOf360 = FXCollections.observableArrayList();
-		for (double f = 1; f <= 45; f += 0.5)
-			if (360%f == 0)
-				factorsOf360.add((double)f);
-		final Spinner<Double> gratSpinner = new Spinner<Double>(factorsOf360); //spinner for the graticule value
+		final ObservableList<Double> factorsOf90 = FXCollections.observableArrayList();
+		for (double f = 1; f <= 90; f += 0.5)
+			if (90%f == 0)
+				factorsOf90.add((double)f);
+		final Spinner<Double> gratSpinner = new Spinner<Double>(factorsOf90); //spinner for the graticule value
 		gratSpinner.getValueFactory().setConverter(new DoubleStringConverter());
 		gratSpinner.getValueFactory().setValue(graticule.get());
 		gratSpinner.setDisable(graticule.isZero());
