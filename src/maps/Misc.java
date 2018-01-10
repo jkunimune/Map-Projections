@@ -232,7 +232,7 @@ public class Misc {
 	
 	public static final Projection FLAT_EARTH =
 			new Projection(
-					"Flat Earth", "The true shape of the Earth.", 2*Math.PI, 2*Math.PI, 0b1111,
+					"Flat Earth", "The one true map.", 2*Math.PI, 2*Math.PI, 0b1111,
 					Type.OTHER, Property.TRUE) {
 
 		public double[] project(double lat, double lon) {

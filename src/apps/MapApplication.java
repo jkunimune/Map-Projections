@@ -49,13 +49,16 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.converter.DoubleStringConverter;
 import maps.Azimuthal;
+import maps.CahillKeyes;
 import maps.Conic;
 import maps.Cylindrical;
 import maps.Lenticular;
 import maps.Misc;
+import maps.MyProjections;
 import maps.Projection;
 import maps.Pseudocylindrical;
 import maps.Robinson;
+import maps.Snyder;
 import maps.Tetrahedral;
 import maps.Tobler;
 import maps.WinkelTripel;
@@ -83,14 +86,36 @@ public abstract class MapApplication extends Application {
 	private static final KeyCombination CTRL_ENTER = new KeyCodeCombination(KeyCode.ENTER, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	protected static final Projection[] PROJECTIONS = { Cylindrical.MERCATOR,
+	public static final Projection[] FEATURED_PROJECTIONS = { Cylindrical.MERCATOR,
 			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL,
 			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
 			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Tetrahedral.LEE,
-			Tetrahedral.ACTUAUTHAGRAPH, Tetrahedral.AUTHAPOWER, Pseudocylindrical.SINUSOIDAL,
-			Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Lenticular.AITOFF,
-			Lenticular.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
-			Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT, Pseudocylindrical.LEMONS }; //the set of featured projections for the ComboBox
+			Tetrahedral.ACTUAUTHAGRAPH, Tetrahedral.AUTHAPOWER, CahillKeyes.BUTTERFLY,
+			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER,
+			Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN, Robinson.ROBINSON,
+			WinkelTripel.WINKEL_TRIPEL, Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT,
+			Pseudocylindrical.LEMONS }; //the set of featured projections for the ComboBox
+	public static final String[] PROJECTION_CATEGORIES = { "Cylindrical", "Azimuthal", "Conic", "Polyhedral",
+			"Pseudocylindrical", "Lenticular", "Other", "Invented by Justin" }; //the overarching categories by which I organise my projections
+	public static final Projection[][] ALL_PROJECTIONS = {
+			{ Cylindrical.EQUAL_AREA, Cylindrical.EQUIRECTANGULAR, Cylindrical.GALL_PETERS,
+					Cylindrical.GALL, Cylindrical.HOBO_DYER, Cylindrical.LAMBERT,
+					Cylindrical.MERCATOR, Cylindrical.MILLER, Cylindrical.PLATE_CARREE },
+			{ Azimuthal.EQUAL_AREA, Azimuthal.POLAR, Azimuthal.GNOMONIC, Azimuthal.ORTHOGRAPHIC,
+					Azimuthal.PERSPECTIVE, Azimuthal.STEREOGRAPHIC },
+			{ Conic.ALBERS, Conic.LAMBERT, Conic.EQUIDISTANT },
+			{ Tetrahedral.AUTHAGRAPH, CahillKeyes.BUTTERFLY, CahillKeyes.M_MAP, CahillKeyes.OCTANT,
+					Tetrahedral.LEE },
+			{ Pseudocylindrical.MOLLWEIDE, Robinson.ROBINSON, Pseudocylindrical.SINUSOIDAL,
+					Tobler.TOBLER },
+			{ Lenticular.AITOFF, Lenticular.HAMMER, Lenticular.VAN_DER_GRINTEN,
+					WinkelTripel.WINKEL_TRIPEL },
+			{ Snyder.GS50, Misc.GUYOU, Misc.HAMMER_RETROAZIMUTHAL, Pseudocylindrical.LEMONS,
+					Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT, Misc.FLAT_EARTH },
+			{ MyProjections.EXPERIMENT, Tetrahedral.AUTHAPOWER, Tetrahedral.ACTUAUTHAGRAPH,
+					MyProjections.MAGNIFIER, MyProjections.PSEUDOSTEREOGRAPHIC,
+					Tetrahedral.TETRAGRAPH, Tetrahedral.TETRAPOWER,
+					MyProjections.TWO_POINT_EQUALIZED } }; // every projection I have programmed
 	
 	private static final String[] ASPECT_NAMES = { "Standard", "Transverse", "Cassini",
 			"Atlantis", "AuthaGraph", "Jerusalem", "Point Nemo", "Longest Line",
@@ -129,7 +154,7 @@ public abstract class MapApplication extends Application {
 		this.root.show();
 		
 		this.suppressListeners.set();
-		this.projectionChooser.setValue(Cylindrical.MERCATOR);
+		this.projectionChooser.setValue(FEATURED_PROJECTIONS[0]);;
 		this.suppressListeners.clear();
 	}
 	
@@ -197,7 +222,7 @@ public abstract class MapApplication extends Application {
 	protected Region buildProjectionSelector(Procedure projectionSetter) {
 		final Label label = new Label("Projection:");
 		projectionChooser =
-				new ComboBox<Projection>(FXCollections.observableArrayList(PROJECTIONS));
+				new ComboBox<Projection>(FXCollections.observableArrayList(FEATURED_PROJECTIONS));
 		projectionChooser.getItems().add(Projection.NULL_PROJECTION);
 		projectionChooser.setPrefWidth(210);
 		

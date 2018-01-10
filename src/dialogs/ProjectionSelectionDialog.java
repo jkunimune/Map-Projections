@@ -26,6 +26,7 @@ package dialogs;
 import java.util.HashMap;
 import java.util.Map;
 
+import apps.MapApplication;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonBar.ButtonData;
@@ -44,20 +45,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
-import maps.Azimuthal;
-import maps.CahillKeyes;
-import maps.Conic;
-import maps.Cylindrical;
-import maps.Lenticular;
-import maps.Misc;
-import maps.MyProjections;
 import maps.Projection;
-import maps.Pseudocylindrical;
-import maps.Robinson;
-import maps.Snyder;
-import maps.Tetrahedral;
-import maps.Tobler;
-import maps.WinkelTripel;
 
 
 /**
@@ -71,29 +59,6 @@ public class ProjectionSelectionDialog extends Dialog<Projection> {
 	
 	private static final double MENU_WIDTH = 250;
 	private static final double TEXT_WIDTH = 300;
-	
-	private static final String[] CATEGORIES = { "Cylindrical", "Azimuthal", "Conic", "Polyhedral",
-			"Pseudocylindrical", "Lenticular", "Other", "Invented by Justin" };
-	private static final Projection[][] PROJECTIONS = {
-			{ Cylindrical.MERCATOR, Cylindrical.PLATE_CARREE, Cylindrical.EQUIRECTANGULAR,
-					Cylindrical.GALL_PETERS, Cylindrical.HOBO_DYER, Cylindrical.BEHRMANN,
-					Cylindrical.LAMBERT, Cylindrical.EQUAL_AREA, Cylindrical.GALL,
-					Cylindrical.MILLER },
-			{ Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
-					Azimuthal.ORTHOGRAPHIC, Azimuthal.PERSPECTIVE },
-			{ Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS },
-			{ Tetrahedral.LEE, Tetrahedral.AUTHAGRAPH, CahillKeyes.M_MAP, CahillKeyes.BUTTERFLY },
-			{ Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER,
-					Robinson.ROBINSON },
-			{ Lenticular.HAMMER, Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN,
-					WinkelTripel.WINKEL_TRIPEL },
-			{ Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU, Pseudocylindrical.LEMONS,
-					Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Snyder.GS50,
-					Misc.FLAT_EARTH },
-			{ Tetrahedral.AUTHAPOWER, Tetrahedral.ACTUAUTHAGRAPH, Tetrahedral.TETRAGRAPH,
-					Tetrahedral.TETRAPOWER, MyProjections.EXPERIMENT,
-					MyProjections.PSEUDOSTEREOGRAPHIC, MyProjections.TWO_POINT_EQUALIZED,
-					MyProjections.MAGNIFIER } };
 	
 	
 	private Map<TreeItem<String>, Projection> projMap;
@@ -134,12 +99,14 @@ public class ProjectionSelectionDialog extends Dialog<Projection> {
 				return cell;
 			});
 		
-		for (int i = 0; i < CATEGORIES.length; i ++) {
-			final TreeItem<String> header = new TreeItem<String>(CATEGORIES[i]);
+		String[] categories = MapApplication.PROJECTION_CATEGORIES;
+		Projection[][] projections = MapApplication.ALL_PROJECTIONS;
+		for (int i = 0; i < categories.length; i ++) { //finally, populate the TreeView
+			final TreeItem<String> header = new TreeItem<String>(categories[i]);
 			root.getChildren().add(header);
-			for (int j = 0; j < PROJECTIONS[i].length; j ++) {
-				final TreeItem<String> leaf = new TreeItem<String>(PROJECTIONS[i][j].getName());
-				projMap.put(leaf, PROJECTIONS[i][j]);
+			for (int j = 0; j < projections[i].length; j ++) {
+				final TreeItem<String> leaf = new TreeItem<String>(projections[i][j].getName());
+				projMap.put(leaf, projections[i][j]);
 				header.getChildren().add(leaf);
 			}
 		}

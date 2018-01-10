@@ -69,7 +69,7 @@ public class CahillKeyes {
 			double mjY = mjCoords[1];
 			
 			if (lat < 0) //if it's in the souther hemisphere
-				mjX = 20000 - mjX; //flip it around
+				mjX = 2*lMG - mjX; //flip it around
 			if (lon < centralLon) //if the relative longitude is negative
 				mjY = -mjY; //flip it the other way
 			return new double[] {
@@ -78,7 +78,20 @@ public class CahillKeyes {
 		}
 		
 		public double[] inverse(double x, double y) {
-			return null; //TODO: projection wishlist
+			y -= OFFSET_Y;
+			double quadrAngle = (Math.floor(Math.atan2(x, -y)/(Math.PI/3))+2)*Math.PI/3; //the angle of the centre of the quadrant, measured widdershins from -y
+			double centralLon = quadrAngle*1.5 - 3*Math.PI/4; //the central meridian of this quadrant
+			double mjX = -x*Math.cos(quadrAngle) - y*Math.sin(quadrAngle);
+			double mjY =  x*Math.sin(quadrAngle) - y*Math.cos(quadrAngle);
+			
+			double[] relCoords = innerInverse(Math.min(mjX, 2*lMG-mjX), Math.abs(mjY));
+			if (relCoords == null)
+				return null;
+			
+			if (mjY < 0) 	relCoords[1] *= -1; //the left half of the octant gets shifted west
+			if (mjX > lMG) 	relCoords[0] *= -1; //the outer rim of the map is the southern hemisphere
+			return new double[] { Math.toRadians(relCoords[0]),
+					Math.toRadians(relCoords[1]) + centralLon };
 		}
 	};
 	
@@ -86,7 +99,7 @@ public class CahillKeyes {
 	public static final Projection M_MAP =
 			new Projection(
 					"Cahill-Keyes M-Profile", "A simple pleasing octohedral map arrangement.",
-					4*lMG-2*lMA, 3*lNG-2*lENy, 0b1110, Type.POLYHEDRAL, Property.COMPROMISE) {
+					4*lMG, 3*lNG-2*lENy, 0b1110, Type.POLYHEDRAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
 			final int octantNum = (int)Math.floor(lon/(Math.PI/2));
@@ -96,19 +109,36 @@ public class CahillKeyes {
 			double mjX = 10000 - mjCoords[0];
 			double mjY = mjCoords[1];
 			
-			if (lat < 0) //if it's in the souther hemisphere
+			if (lat < 0) //if it's in the southern hemisphere
 				mjX = -mjX; //flip it around
 			if (lon < centralLon) //if the relative longitude is negative
 				mjY = -mjY; //flip it the other way
 			double offsetX = centralLon*20000/Math.PI;
-			double rotDirec = octantNum%2==0 ? 1. : -1.;
+			double rotDirec = (octantNum%2 == 0) ? 1. : -1.;
+			double sinRot = Math.sqrt(0.75);
+			double cosRot = 0.5;
 			return new double[] {
-					rotDirec/2*mjX + Math.sqrt(3)/2*mjY + offsetX,
-					Math.sqrt(3)/2*mjX - rotDirec/2*mjY };
+					rotDirec*cosRot*mjX + sinRot*mjY + offsetX,
+					sinRot*mjX - rotDirec*cosRot*mjY };
 		}
 		
 		public double[] inverse(double x, double y) {
-			return null; //TODO: projection wishlist
+			int quadrantNum = (int)Math.floor(x/lMG) + 2;
+			double offsetX = (quadrantNum - 1.5)*lMG; //quadrant center coordinates
+			double rotDirec = (quadrantNum%2 == 0) ? 1. : -1.;
+			double sinRot = Math.sqrt(0.75);
+			double cosRot = 0.5;
+			double diagX = rotDirec*cosRot*(x-offsetX) + sinRot*y;
+			double diagY = sinRot*(x-offsetX) - rotDirec*cosRot*y;
+			
+			double[] relCoords = innerInverse(lMG - Math.abs(diagX), Math.abs(diagY));
+			if (relCoords == null)
+				return null;
+			
+			if (diagY < 0) 	relCoords[1] *= -1; //the left half of the octant gets shifted west
+			if (diagX < 0) 	relCoords[0] *= -1; //the bottom half of the map is the southern hemisphere
+			return new double[] {Math.toRadians(relCoords[0]),
+					Math.toRadians(relCoords[1] + (quadrantNum-1.5)*90) };
 		}
 	};
 	
@@ -128,7 +158,8 @@ public class CahillKeyes {
 		}
 		
 		public double[] inverse(double x, double y) {
-			return null; //TODO: projection wishlist
+			double[] coordsDeg = innerInverse(x+width/2, y+height/2);
+			return new double[] { Math.toRadians(coordsDeg[0]), Math.toRadians(coordsDeg[1]) };
 		}
 	};
 	
@@ -164,7 +195,8 @@ public class CahillKeyes {
 	
 	
 	private static final double[] innerInverse(double x, double y) { //convert Mary Jo's coordinates to relative lat and lon in degrees
-		return null;
+		if (Math.atan2(y, x) > Math.PI/6) return null;
+		return new double[] { 90 - Math.hypot(x, y)/110, Math.toDegrees(Math.atan2(y, x)*1.5) };
 	}
 	
 	
