@@ -252,7 +252,7 @@ public abstract class Projection {
 		double[] endPt0 = new double[] {lat0, lon0};
 		double[] endPt1 = new double[] {lat1, lon1};
 		List<double[]> spherical = new ArrayList<double[]>(); //the spherical coordinates of the vertices
-		for (double a = 0; a <= 1; a += .25) //populated with vertices along the loxodrome
+		for (double a = 0; a <= 1; a += .125) //populated with vertices along the loxodrome
 			spherical.add(new double[] {endPt0[0]*a+endPt1[0]*(1-a), endPt0[1]*a+endPt1[1]*(1-a)});
 		Path planar = new Path(); //the planar coordinates of the vertices
 		for (int i = 0; i < spherical.size(); i ++) {
@@ -262,7 +262,7 @@ public abstract class Projection {
 			planar.add(new Command(type, pi));
 		}
 		
-		Queue<double[]> queue = new LinkedList<double[]>(spherical.subList(0, 4));
+		Queue<double[]> queue = new LinkedList<double[]>(spherical.subList(0, spherical.size()-1));
 		double[] s0;
 		while ((s0 = queue.poll()) != null) { //now iteratively flesh out the rest
 			int i = spherical.indexOf(s0); //s0 is the first spherical endpoint
@@ -372,7 +372,7 @@ public abstract class Projection {
 	 * @return { latr, lonr }, or coords if pole is null
 	 */
 	protected static final double[] obliquifySphc(double latF, double lonF, double[] pole) {
-		if (pole == null)
+		if (pole == null) // null pole indicates that this procedure should be bypassed
 			return new double[] {latF, lonF};
 		
 		final double lat0 = pole[0];
