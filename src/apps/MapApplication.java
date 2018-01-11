@@ -86,11 +86,11 @@ public abstract class MapApplication extends Application {
 	private static final KeyCombination CTRL_ENTER = new KeyCodeCombination(KeyCode.ENTER, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	public static final Projection[] FEATURED_PROJECTIONS = { CahillKeyes.OCTANT, Cylindrical.MERCATOR,
+	public static final Projection[] FEATURED_PROJECTIONS = { Cylindrical.MERCATOR,
 			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL,
 			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
 			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Tetrahedral.LEE,
-			Tetrahedral.ACTUAUTHAGRAPH, Tetrahedral.AUTHAPOWER, CahillKeyes.BUTTERFLY,
+			Tetrahedral.ACTUAUTHAGRAPH, Tetrahedral.AUTHAPOWER, CahillKeyes.M_MAP,
 			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER,
 			Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN, Robinson.ROBINSON,
 			WinkelTripel.WINKEL_TRIPEL, Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT,
@@ -105,7 +105,7 @@ public abstract class MapApplication extends Application {
 			{ Azimuthal.EQUAL_AREA, Azimuthal.POLAR, Azimuthal.GNOMONIC, Azimuthal.ORTHOGRAPHIC,
 					Azimuthal.PERSPECTIVE, Azimuthal.STEREOGRAPHIC },
 			{ Conic.ALBERS, Conic.LAMBERT, Conic.EQUIDISTANT },
-			{ Tetrahedral.AUTHAGRAPH, CahillKeyes.BUTTERFLY, CahillKeyes.M_MAP, CahillKeyes.OCTANT,
+			{ Tetrahedral.AUTHAGRAPH, CahillKeyes.BUTTERFLY, CahillKeyes.M_MAP, CahillKeyes.HALF_OCTANT,
 					Tetrahedral.LEE },
 			{ Pseudocylindrical.MOLLWEIDE, Robinson.ROBINSON, Pseudocylindrical.SINUSOIDAL,
 					Tobler.TOBLER },
@@ -462,7 +462,7 @@ public abstract class MapApplication extends Application {
 						trigger(saveButton, () -> {
 								calculateAndSaver.accept(f, pBar);
 								Platform.runLater(pBar::close);
-							});
+							}); //TODO: I think I might want to automatically open the image
 					}
 				}
 			});

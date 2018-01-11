@@ -54,6 +54,7 @@ public class CahillKeyes {
 	private static final double bDE = (2*lNG-lMB)*(2-Math.sqrt(3)); //the y-intercept of the extension of line DE
 	private static final double xU = lMA + Math.sqrt(3)/2*rE;
 	private static final double xC = 2786.8887; //the x coordinate of the centre of arc CDV
+	private static final double yU = rE/2;
 	private static final double yC = 1609.0110; //the y coordinate of the centre of arc CDV
 	
 	private static final double TOLERANCE = 10; //this is a reasonable tolerance when you recall that we're operating on the order of 10,000 units
@@ -84,7 +85,10 @@ public class CahillKeyes {
 		
 		public double[] inverse(double x, double y) {
 			y -= OFFSET_Y;
-			double quadrAngle = (Math.floor(Math.atan2(x, -y)/(Math.PI/3))+2)*Math.PI/3; //the angle of the centre of the quadrant, measured widdershins from -y
+			double tht = Math.atan2(x, -y);
+			if (Math.abs(tht) > 5*Math.PI/6) 	return null; //only show a little bit of extra
+			
+			double quadrAngle = (Math.floor(tht/(Math.PI/3))+2)*Math.PI/3; //the angle of the centre of the quadrant, measured widdershins from -y
 			double centralLon = quadrAngle*1.5 - 3*Math.PI/4; //the central meridian of this quadrant
 			double mjX = -x*Math.cos(quadrAngle) - y*Math.sin(quadrAngle);
 			double mjY =  x*Math.sin(quadrAngle) - y*Math.cos(quadrAngle);
@@ -148,17 +152,17 @@ public class CahillKeyes {
 	};
 	
 	
-	public static final Projection OCTANT = 
+	public static final Projection HALF_OCTANT = 
 			new Projection(
-					"Cahill-Keyes Octant", "A singular octant from a Cahill-Keyes projection.",
+					"Cahill-Keyes Half-Octant", "A single sixteenth of a Cahill-Keyes projection.",
 					lMG-lMA, lNG, 0b0111, Type.POLYHEDRAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
 			lat = Math.max(0, lat);
 			lon = Math.max(0, Math.min(Math.PI/4, lon));
 			final double[] mjCoords = innerProjectD(
-					Math2.round(Math.toDegrees(Math.abs(lat)),6), //I apply the round so that graticule lines exactly on the thing get done properly
-					Math2.round(Math.toDegrees(Math.abs(lon)),6));
+					Math2.round(Math.toDegrees(Math.abs(lat)),9), //I apply the round so that graticule lines exactly on the thing get done properly
+					Math2.round(Math.toDegrees(Math.abs(lon)),9));
 			return new double[] { mjCoords[0] - (lMG+lMA)/2, mjCoords[1] - lNG/2 };
 		}
 		
@@ -175,13 +179,14 @@ public class CahillKeyes {
 	
 	private static final double[] innerProjectD(double latD, double lonD) { //convert adjusted lat and lon in degrees to Mary Jo's coordinates
 		final double[][] mer = meridian(lonD);
+		
 		if (latD >= 75) { //zone c (frigid zone)
-			return new double[] {
-					lMA + 104*(90-latD)*Math2.cosd(lonD), 104*(90-latD)*Math2.sind(lonD) };
+			return new double[] { lMA + 104*(90-latD)*Math2.cosd(lonD),
+					104*(90-latD)*Math2.sind(lonD) };
 		}
 		else if (latD >= 73 && lonD <= 30) { //zone e
-			return new double[] {
-					lMA + (rC+100*(75-latD))*Math2.cosd(lonD), (rC+100*(75-latD))*Math2.sind(lonD) };
+			return new double[] { lMA + (rC+100*(75-latD))*Math2.cosd(lonD),
+					(rC+100*(75-latD))*Math2.sind(lonD) };
 		}
 		else if (lonD <= 29) { //zone i (central zone)
 			return meridianPoint(mer, Math2.linInterp(latD, 73, 0, rE, meridianLength(mer)));
@@ -190,7 +195,7 @@ public class CahillKeyes {
 			final double distTU = meridianTUIntersect(lonD, mer);
 			return meridianPoint(mer, Math2.linInterp(latD, 75, 73, rC, distTU));
 		}
-		else if (latD <= 15) { //zone k (equatorial supple zone)
+		else if (latD <= 15) { //zone k (torrid supple zone)
 			final double distCDV = meridianCDVIntersect(mer);
 			return meridianPoint(mer, Math2.linInterp(latD, 15, 0, distCDV, meridianLength(mer)));
 		}
@@ -209,7 +214,30 @@ public class CahillKeyes {
 		
 		double lonD = longitudeD(x, y);
 		double[][] mer = meridian(lonD);
-		return new double[] { 90 - meridianDistance(mer, x, y)/meridianLength(mer)*90, lonD };
+		double len = meridianDistance(mer, x, y);
+		
+		if (len <= rC) { //zone c (frigid zone)
+			return new double[] {90 - len/100, lonD};
+		}
+		else if (len <= rE && lonD < 30) { //zone e ()
+			return new double[] {75 - (len-rC)/104, lonD};
+		}
+		else if (lonD <= 29) { //zone i (central zone)
+			return new double[] {Math2.linInterp(len, rE, meridianLength(mer), 73, 0), lonD};
+		}
+		else if (y <= yU - Math.sqrt(3)*(x-xU)) { //zone j (frigid supple zone)
+			final double distTU = meridianTUIntersect(lonD, mer);
+			return new double[] {Math2.linInterp(len, rC, distTU, 75, 73), lonD};
+		}
+		else if (Math.hypot(x-xC, y-yC) >= lCV) { //zone k (torrid supple zone)
+			final double distCDV = meridianCDVIntersect(mer);
+			return new double[] {Math2.linInterp(len, distCDV, meridianLength(mer), 15, 0), lonD};
+		}
+		else { //zone l (middle supple zone)
+			final double distTU = meridianTUIntersect(lonD, mer);
+			final double distCDV = meridianCDVIntersect(mer);
+			return new double[] {Math2.linInterp(len, distTU, distCDV, 73, 15), lonD};
+		}
 	}
 	
 	
@@ -277,7 +305,7 @@ public class CahillKeyes {
 				dyM = dMEq + (x-lMG)*Math.toRadians(Math.pow(Math2.secd(lonD2/3), 2))/3;
 			} while (Math.abs(yM - y) > TOLERANCE);
 		}
-		else { //then it must strike FE!
+		else { //then it must strike FE!*
 			do {
 				lonD2 -= (yM - y)/dyM;
 				yM = dMEqy*(lonD2-tF) + (x-lMG+dMEqx*(lonD2-tF))*Math2.tand(lonD2/3) + lGF;
@@ -307,7 +335,7 @@ public class CahillKeyes {
 			return rE/Math2.cosd(30-lonD);
 		}
 		else { //frigid joint is below TU; intersection is on the temperate segment
-			final double d = Math.hypot(xU-meridian[1][0], rE/2-meridian[1][1]);
+			final double d = Math.hypot(xU-meridian[1][0], yU-meridian[1][1]);
 			final double a = Math.atan2(rE/2-meridian[1][1], xU-meridian[1][0]);
 			return Math.hypot(meridian[0][0] - meridian[1][0], meridian[0][1] - meridian[1][1])
 					+ d * Math2.sind(60 + Math.toDegrees(a)) / Math2.sind(120 - 2/3.*lonD);
@@ -334,4 +362,4 @@ public class CahillKeyes {
 					+ Math.hypot(meridian[2][0] - meridian[1][0], meridian[2][1] - meridian[1][1])
 					+ l;
 	}
-}
+} //*see bottom of Misc.java

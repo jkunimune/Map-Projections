@@ -352,13 +352,13 @@ public abstract class Projection {
 		final double dA = 
 				(p1[0]-p0[0])*(p2[1]-p0[1]) - (p1[1]-p0[1])*(p2[0]-p0[0]);
 		output[0] = Math.log(Math.abs(dA/(dx*dx))); //the zeroth output is the size (area) distortion
-		if (Math.abs(output[0]) > 15)
+		if (Math.abs(output[0]) > 20)
 			output[0] = Double.NaN; //discard outliers
 		
 		final double s1ps2 = Math.hypot((p1[0]-p0[0])+(p2[1]-p0[1]), (p1[1]-p0[1])-(p2[0]-p0[0]));
 		final double s1ms2 = Math.hypot((p1[0]-p0[0])-(p2[1]-p0[1]), (p1[1]-p0[1])+(p2[0]-p0[0]));
 		output[1] = Math.abs(Math.log(Math.abs((s1ps2-s1ms2)/(s1ps2+s1ms2)))); //the first output is the shape (angle) distortion
-		if (Math.abs(output[1]) > 15)
+		if (Math.abs(output[1]) > 20)
 			output[1] = Double.NaN; //discard outliers
 		
 		return output;

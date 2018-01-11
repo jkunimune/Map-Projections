@@ -76,7 +76,7 @@ public class MapAnalyzer extends MapApplication {
 	
 	private static final int CHART_WIDTH = 400;
 	private static final int ROUGH_SAMP_NUM = 500;
-	private static final int FINE_SAMP_NUM = 1000;
+	private static final int FINE_SAMP_NUM = 2048;
 	private static final double GLOBE_RES = .01;
 	
 	private static final FileChooser.ExtensionFilter[] RASTER_TYPES = {
