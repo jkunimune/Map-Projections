@@ -59,9 +59,8 @@ public class Lenticular {
 					4, 2, 0b1111, Type.PSEUDOAZIMUTHAL, Property.EQUAL_AREA) {
 		
 		public double[] project(double lat, double lon) {
-			return new double[] {
-					2*Math.cos(lat)*Math.sin(lon/2)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2)),
-					Math.sin(lat)/Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2)) };
+			final double z = Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2));
+			return new double[] {2*Math.cos(lat)*Math.sin(lon/2)/z, Math.sin(lat)/z};
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -116,19 +115,48 @@ public class Lenticular {
 	};
 	
 	
-	public static final Projection STREBE =
+	public static final Projection STREBE_95 =
 			new Projection(
 					"Strebe 1995", "An equal-area map with curvy poles that pushes distortion to the edges.",
-					4, 2, 0b1100, Type.OTHER, Property.COMPROMISE) {
+					4, 4, 0b1100, Type.STREBE, Property.COMPROMISE, new String[] {"Scale Factor"},
+					new double[][] {{Math.sqrt(2*Math.PI/(4+Math.PI)), Math.sqrt((4+Math.PI)/Math.PI*2), 1.35}}) {
+		
+		private final double[] HEIGHT_COEF =
+			{66.4957646058, -752.3272866971, 3676.4957505494, -10122.0239575686, 17147.3042517495,
+					-18272.5905481794, 11938.4486562530, -4362.2950601929, 682.5870175013};
+		private double factor;
+		
+		public void setParameters(double... params) {
+			factor = params[0];
+			double maxLon = factor*Math.PI*Math.sqrt(2*Math.PI/(4+Math.PI));
+			width = 4*Math.sin(maxLon/2)/Math.sqrt(1+Math.cos(maxLon/2))/factor;
+			height = 0; //add a little extra to air on the side of caution
+			for (int i = 0; i < HEIGHT_COEF.length; i ++) //the equation for height actually ends up being crazy complicated,
+				height = height*factor + HEIGHT_COEF[i]; //so use this polynomial approximation MatLab gave me instead.
+		}
 		
 		public double[] project(double lat, double lon) {
-			// TODO: Projection wishlist
-			return null;
+			double[] xy1 = Pseudocylindrical.ECKERT_IV.project(lat, lon);
+			xy1[0] *= 2*Math.sqrt(Math.PI/(4+Math.PI))*factor/Math.sqrt(2);
+			xy1[1] *= 2*Math.sqrt(Math.PI/(4+Math.PI))/factor/Math.sqrt(2);
+			double[] ll2 = Pseudocylindrical.MOLLWEIDE.inverse(xy1);
+			double[] xy3 = Lenticular.HAMMER.project(ll2);
+			xy3[0] *= 1/factor;
+			xy3[1] *= factor;
+			return xy3;
 		}
 		
 		public double[] inverse(double x, double y) {
-			// TODO: Projection wishlist
-			return null;
+			double[] ll2 = Lenticular.HAMMER.inverse(x*factor, y/factor);
+			double[] xy1 = Pseudocylindrical.MOLLWEIDE.project(ll2);
+			xy1[0] /= 2*Math.sqrt(Math.PI/(4+Math.PI))*factor/Math.sqrt(2);
+			xy1[1] /= 2*Math.sqrt(Math.PI/(4+Math.PI))/factor/Math.sqrt(2);
+			double[] ll0 = Pseudocylindrical.ECKERT_IV.inverse(xy1);
+			
+			if (Double.isNaN(ll0[0]))
+				return null;
+			else
+				return ll0;
 		}
 		
 	};

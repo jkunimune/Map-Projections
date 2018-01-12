@@ -29,7 +29,8 @@ import maps.Projection.Type;
 public class Azimuthal {
 	
 	public static final Projection STEREOGRAPHIC =
-			new Projection("Stereographic", 4, 4, 0b0111, Type.AZIMUTHAL, Property.CONFORMAL,
+			new Projection(
+					"Stereographic", 4, 4, 0b0111, Type.AZIMUTHAL, Property.CONFORMAL,
 					"mathematically important") {
 		
 		public double[] project(double lat, double lon) {

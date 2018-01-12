@@ -562,8 +562,10 @@ public abstract class Projection {
 	 */
 	public static enum Type {
 		CYLINDRICAL("Cylindrical"), CONIC("Conic"), AZIMUTHAL("Azimuthal"),
-		PSEUDOCYLINDRICAL("Pseudocylindrical"), PSEUDOAZIMUTHAL("Pseudoazimuthal"),
-		QUASIAZIMUTHAL("Quasiazimuthal"), POLYHEDRAL("Polyhedral"), OTHER("Other");
+		PSEUDOCYLINDRICAL("Pseudocylindrical"), PSEUDOCONIC("Pseudoconic"),
+		PSEUDOAZIMUTHAL("Pseudoazimuthal"), QUASIAZIMUTHAL("Quasiazimuthal"),
+		TETRAHEDRAL("Tetrahedral"), TETRADECAHEDRAL("Tetradecahedral"), POLYNOMIAL("Polynomial"),
+		STREBE("Strebe"), PLANAR("Planar"), OTHER("Other");
 		
 		private String name;
 		

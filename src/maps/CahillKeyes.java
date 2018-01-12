@@ -26,6 +26,7 @@ package maps;
 import maps.Projection.Property;
 import maps.Projection.Type;
 import utils.Math2;
+import utils.NumericalAnalysis;
 
 /**
  * A truncated octohedral map shaped like a butterfly. The projection is Cahill-Keyes, because it
@@ -63,7 +64,7 @@ public class CahillKeyes {
 	public static final Projection BUTTERFLY =
 			new Projection(
 					"Cahill-Keyes Butterfly", "An aesthetically pleasing octohedral map arrangement.",
-					4*lMG-2*lMA, 4*lNG-2*lENy, 0b1110, Type.POLYHEDRAL, Property.COMPROMISE) {
+					4*lMG-2*lMA, 4*lNG-2*lENy, 0b1110, Type.TETRADECAHEDRAL, Property.COMPROMISE) {
 		
 		private final double OFFSET_Y = 10000/Math.sqrt(3);
 		
@@ -108,7 +109,7 @@ public class CahillKeyes {
 	public static final Projection M_MAP =
 			new Projection(
 					"Cahill-Keyes M-Profile", "A simple pleasing octohedral map arrangement.",
-					4*lMG, 3*lNG-2*lENy, 0b1110, Type.POLYHEDRAL, Property.COMPROMISE) {
+					4*lMG, 3*lNG-2*lENy, 0b1110, Type.TETRADECAHEDRAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
 			final int octantNum = (int)Math.floor(lon/(Math.PI/2));
@@ -155,7 +156,7 @@ public class CahillKeyes {
 	public static final Projection HALF_OCTANT = 
 			new Projection(
 					"Cahill-Keyes Half-Octant", "A single sixteenth of a Cahill-Keyes projection.",
-					lMG-lMA, lNG, 0b0111, Type.POLYHEDRAL, Property.COMPROMISE) {
+					lMG-lMA, lNG, 0b0111, Type.TETRADECAHEDRAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
 			lat = Math.max(0, lat);
@@ -295,25 +296,18 @@ public class CahillKeyes {
 		if (x <= mer1[2][0])
 			return lonD1; //the point is north of the temperate joint; return guess 1
 		
-		double lonD2 = y/(lNG - lENy)*45; //the point is on the torrid segment; we require iteration
-		double yM = y;
-		double dyM = 1;
-		if (y <= lGF + (x-lMG)*Math2.tand(tF/3)) { //does the meridian strike GF?
-			do {
-				lonD2 -= (yM - y)/dyM;
-				yM = dMEq*lonD2 + (x-lMG)*Math2.tand(lonD2/3);
-				dyM = dMEq + (x-lMG)*Math.toRadians(Math.pow(Math2.secd(lonD2/3), 2))/3;
-			} while (Math.abs(yM - y) > TOLERANCE);
+		if (y <= lGF + (x-lMG)*Math2.tand(tF/3)) { //the point is on the torrid segment; we require iteration
+			return NumericalAnalysis.newtonRaphsonApproximation(y, y/(lNG - lENy)*45, //does the meridian strike GF?
+					(l) -> (dMEq*l + (x-lMG)*Math2.tand(l/3)),
+					(l) -> (dMEq + (x-lMG)*Math.toRadians(Math.pow(Math2.secd(l/3), 2))/3),
+					TOLERANCE);
 		}
-		else { //then it must strike FE!*
-			do {
-				lonD2 -= (yM - y)/dyM;
-				yM = dMEqy*(lonD2-tF) + (x-lMG+dMEqx*(lonD2-tF))*Math2.tand(lonD2/3) + lGF;
-				dyM = dMEqy + dMEqx*Math2.tand(lonD2/3) +
-						(x-lMG+dMEqx*(lonD2-tF))*Math.toRadians(Math.pow(Math2.secd(lonD2/3), 2))/3;
-			} while (Math.abs(yM - y) > TOLERANCE);
+		else {
+			return NumericalAnalysis.newtonRaphsonApproximation(y, y/(lNG - lENy)*45, //then it must strike FE!*
+					(l) -> (dMEqy*(l-tF) + (x-lMG+dMEqx*(l-tF))*Math2.tand(l/3) + lGF),
+					(l) -> (dMEqy + dMEqx*Math2.tand(l/3) + (x-lMG+dMEqx*(l-tF))*Math.toRadians(Math.pow(Math2.secd(l/3), 2))/3),
+					TOLERANCE);
 		}
-		return lonD2;
 	}
 	
 	

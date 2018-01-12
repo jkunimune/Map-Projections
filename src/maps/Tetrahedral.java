@@ -229,21 +229,21 @@ public class Tetrahedral {
 		public TetrahedralProjection(
 				String name, int fisc, Configuration config, Property property,
 				String adjective, String addendum) {
-			super(name, config.width, config.height, fisc, Type.POLYHEDRAL, property,
+			super(name, config.width, config.height, fisc, Type.TETRAHEDRAL, property,
 					adjective, addendum);
 			this.configuration = config;
 		}
 		
 		public TetrahedralProjection(
 				String name, String description, int fisc, Configuration config, Property property) {
-			super(name, description, config.width, config.height, fisc, Type.POLYHEDRAL, property);
+			super(name, description, config.width, config.height, fisc, Type.TETRAHEDRAL, property);
 			this.configuration = config;
 		}
 		
 		public TetrahedralProjection(
 				String name, String description, int fisc, Configuration config, Property property,
 				String[] paramNames, double[][] paramValues) {
-			super(name, description, config.width, config.height, fisc, Type.POLYHEDRAL, property,
+			super(name, description, config.width, config.height, fisc, Type.TETRAHEDRAL, property,
 					paramNames, paramValues);
 			this.configuration = config;
 		}
