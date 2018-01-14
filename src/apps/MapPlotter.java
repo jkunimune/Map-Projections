@@ -76,12 +76,12 @@ public class MapPlotter extends Application {
 			Tobler.TOBLER };
 	private static final Projection[] PSEUDOAZM = { Lenticular.AITOFF,
 			MyProjections.PSEUDOSTEREOGRAPHIC };
-	private static final Projection[] TETRAHEDRAL = { Tetrahedral.LEE, Tetrahedral.ACTUAUTHAGRAPH,
-			Tetrahedral.AUTHAGRAPH, Tetrahedral.TETRAPOWER };
+	private static final Projection[] TETRAHEDRAL = { Tetrahedral.LEE_TETRAHEDRAL_RECTANGULAR,
+			Tetrahedral.ACTUAUTHAGRAPH, Tetrahedral.AUTHAGRAPH, Tetrahedral.TETRAPOWER };
 	private static final Projection[] CHEATY = { Pseudocylindrical.LEMONS,
 			CahillKeyes.HALF_OCTANT };
-	private static final Projection[] OTHER = { Lenticular.VAN_DER_GRINTEN, WinkelTripel.WINKEL_TRIPEL,
-			Misc.PEIRCE_QUINCUNCIAL };
+	private static final Projection[] OTHER = { Lenticular.VAN_DER_GRINTEN,
+			WinkelTripel.WINKEL_TRIPEL, Misc.PEIRCE_QUINCUNCIAL };
 	
 	
 	private StackPane stack;

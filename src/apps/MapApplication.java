@@ -109,12 +109,12 @@ public abstract class MapApplication extends Application {
 	public static final Projection[] FEATURED_PROJECTIONS = { Cylindrical.MERCATOR,
 			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL,
 			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
-			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Tetrahedral.LEE,
-			Tetrahedral.ACTUAUTHAGRAPH, Tetrahedral.AUTHAPOWER, CahillKeyes.M_MAP,
-			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER,
-			Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN, Robinson.ROBINSON,
-			WinkelTripel.WINKEL_TRIPEL, Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT,
-			Pseudocylindrical.LEMONS }; //the set of featured projections for the ComboBox
+			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
+			Tetrahedral.LEE_TETRAHEDRAL_RECTANGULAR, Tetrahedral.ACTUAUTHAGRAPH,
+			Tetrahedral.AUTHAPOWER, CahillKeyes.M_MAP, Pseudocylindrical.SINUSOIDAL,
+			Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Lenticular.AITOFF,
+			Lenticular.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
+			Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT, Pseudocylindrical.LEMONS }; //the set of featured projections for the ComboBox
 	
 	public static final String[] PROJECTION_CATEGORIES = { "Cylindrical", "Azimuthal", "Conic", "Polyhedral",
 			"Pseudocylindrical", "Lenticular", "Other", "Invented by Justin" }; //the overarching categories by which I organise my projections
@@ -125,8 +125,9 @@ public abstract class MapApplication extends Application {
 			{ Azimuthal.EQUAL_AREA, Azimuthal.POLAR, Azimuthal.GNOMONIC, Azimuthal.ORTHOGRAPHIC,
 					Azimuthal.PERSPECTIVE, Azimuthal.STEREOGRAPHIC },
 			{ Conic.ALBERS, Conic.LAMBERT, Conic.EQUIDISTANT },
-			{ Tetrahedral.AUTHAGRAPH, CahillKeyes.BUTTERFLY, CahillKeyes.M_MAP, CahillKeyes.HALF_OCTANT,
-					Tetrahedral.LEE },
+			{ Tetrahedral.AUTHAGRAPH, CahillKeyes.BUTTERFLY, CahillKeyes.M_MAP,
+					CahillKeyes.HALF_OCTANT, Tetrahedral.LEE_TETRAHEDRAL_RECTANGULAR,
+					Tetrahedral.LEE_TETRAHEDRAL_TRIANGULAR },
 			{ Pseudocylindrical.ECKERT_IV, Pseudocylindrical.MOLLWEIDE, Robinson.ROBINSON,
 					Pseudocylindrical.SINUSOIDAL, Tobler.TOBLER },
 			{ Lenticular.AITOFF, Lenticular.HAMMER, Lenticular.STREBE_95,
@@ -138,13 +139,13 @@ public abstract class MapApplication extends Application {
 					Tetrahedral.TETRAGRAPH, Tetrahedral.TETRAPOWER,
 					MyProjections.TWO_POINT_EQUALIZED } }; // every projection I have programmed
 	
-	private static final String[] ASPECT_NAMES = { "Standard", "Transverse", "Cassini",
-			"Atlantis", "AuthaGraph", "Jerusalem", "Point Nemo", "Longest Line",
-			"Cylindrical", "Tetrahedral", "Antipode", "Random" };
+	private static final String[] ASPECT_NAMES = { "Standard", "Transverse", "Cassini", "Atlantis",
+			"Jerusalem", "Point Nemo", "Longest Line", "Cylindrical", "Tetrahedral", "Antipode",
+			"Random" };
 	private static final double[][] ASPECT_VALS = { //the aspect presets (in degrees)
-			{ 90., 0.,  0.,  -4.,  77., 31.78, 48.88, -28.52,-35.,    57. },
-			{  0., 0., 90.,  65., 143., 35.22, 56.61, 141.45,-13.61,-176. },
-			{  0., 0.,-90.,-147.,  17.,-35.,  -45.,    30.,  145.,   154. } };
+			{ 90., 0.,  0.,  -4., 31.78, 48.88, -28.52,-35.,    57. },
+			{  0., 0., 90.,  65., 35.22, 56.61, 141.45,-13.61,-176. },
+			{  0., 0.,-90.,-147.,-35.,  -45.,    30.,  145.,   154. } };
 	
 	
 	final private String name;

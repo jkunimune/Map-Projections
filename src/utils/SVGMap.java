@@ -31,6 +31,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -90,8 +91,10 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 				
 				if (qName.equals("path"))
 					parsePath(attributes.getValue("d"));
-				if (qName.equals("svg"))
-					parseViewBox(attributes.getValue("viewBox"));
+				
+				if (qName.equals("svg")) {
+					parseViewBox(attributes);
+				}
 				
 				for (int i = 0; i < attributes.getLength(); i ++)
 					if (!attributes.getQName(i).equals("d") && //d is already taken care of
@@ -118,13 +121,19 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 				format.add(currentFormatString);
 			}
 			
-			private void parseViewBox(String viewBox) {
-				if (viewBox != null) {
-					String[] values = viewBox.split("\\s", 4);
+			private void parseViewBox(Attributes attrs) {
+				if (attrs.getValue("viewBox") != null) {
+					String[] values = attrs.getValue("viewBox").split("\\s", 4);
 					minX = Double.parseDouble(values[0]);
 					minY = Double.parseDouble(values[1]);
 					width = Double.parseDouble(values[2]);
 					height = Double.parseDouble(values[3]);
+				}
+				else {
+					width = Double.parseDouble(attrs.getValue("width"));
+					height = Double.parseDouble(attrs.getValue("height"));
+					minX = 0;
+					minY = 0;
 				}
 			}
 			
@@ -232,8 +241,8 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 	}
 	
 	
-	public static boolean isLetter(char c) {
-		return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+	public static boolean isNonELetter(char c) {
+		return (c >= 'A' && c <= 'Z' && c != 'E') || (c >= 'a' && c <= 'z' && c != 'e');
 	}
 	
 	
@@ -263,7 +272,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			while (i < d.length()) {
 				char type = d.charAt(i);
 				String argString = "";
-				while (i+1 < d.length() && !isLetter(d.charAt(i+1))) {
+				while (i+1 < d.length() && !isNonELetter(d.charAt(i+1))) {
 					i ++;
 					argString += d.charAt(i);
 				}
@@ -275,7 +284,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 				final double[] args;
 				
 				if (type == 'a' || type == 'A') {
-					type += 11;
+					type += (type == 'a') ? 'l' : 'L'; //change this to a line; I don't want to deal with arcs
 					argStrings = new String[] {argStrings[3], argStrings[4]};
 				}
 				if (type == 'h' || type == 'H' || type == 'v' || type == 'V') { //convert these to 'L'
@@ -300,6 +309,8 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 				}
 				
 				for (int j = 0; j < args.length; j ++) {
+					if (!Double.isFinite(args[j]))
+						throw new IllegalArgumentException("uhh... "+type+argString);
 					if (j%2 == 0) {
 						args[j] = args[j]*transform[0] + transform[2]; //apply the transformation
 						args[j] = Math2.linInterp(args[j], vbMinX, vbMinX+vbWidth,
@@ -310,6 +321,8 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 						args[j] = Math2.linInterp(args[j], vbMinY+vbHeight, vbMinY, //keep in mind that these are paired longitude-latitude
 								-Math.PI/2, Math.PI/2); //not latitude-longitude, as they are elsewhere
 					}
+					if (!Double.isFinite(args[j]))
+						throw new IllegalArgumentException("hey! "+type+Arrays.toString(args));
 				}
 				
 				this.add(new Command(type, args));

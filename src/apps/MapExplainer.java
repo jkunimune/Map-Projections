@@ -57,18 +57,17 @@ public class MapExplainer {
 	public static final int IMG_WIDTH = 800;
 	public static final int SMOOTHING = 3;
 	
-	public static final Projection[][] ALL_PROJECTIONS = {
-			{ Cylindrical.MERCATOR, Cylindrical.PLATE_CARREE, Cylindrical.GALL_PETERS,
-					Cylindrical.HOBO_DYER, Cylindrical.BEHRMANN, Cylindrical.LAMBERT,
-					Cylindrical.GALL, Azimuthal.STEREOGRAPHIC.transverse(),
-					Azimuthal.POLAR.transverse(), Azimuthal.EQUAL_AREA.transverse(),
-					Azimuthal.GNOMONIC.transverse(), Azimuthal.ORTHOGRAPHIC.transverse(),
-					Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Tetrahedral.LEE,
-					Tetrahedral.AUTHAGRAPH, Pseudocylindrical.SINUSOIDAL,
-					Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Lenticular.HAMMER, Lenticular.AITOFF,
-					Lenticular.VAN_DER_GRINTEN, Robinson.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
-					CahillKeyes.BUTTERFLY, Misc.PEIRCE_QUINCUNCIAL.transverse(), Snyder.GS50,
-					Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Misc.FLAT_EARTH },
+	public static final Projection[][] ALL_PROJECTIONS = { { Cylindrical.MERCATOR,
+			Cylindrical.PLATE_CARREE, Cylindrical.GALL_PETERS, Cylindrical.HOBO_DYER,
+			Cylindrical.BEHRMANN, Cylindrical.LAMBERT, Cylindrical.GALL,
+			Azimuthal.STEREOGRAPHIC.transverse(), Azimuthal.POLAR.transverse(),
+			Azimuthal.EQUAL_AREA.transverse(), Azimuthal.GNOMONIC.transverse(),
+			Azimuthal.ORTHOGRAPHIC.transverse(), Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
+			Tetrahedral.LEE_TETRAHEDRAL_RECTANGULAR, Tetrahedral.AUTHAGRAPH,
+			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER,
+			Lenticular.HAMMER, Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN, Robinson.ROBINSON,
+			WinkelTripel.WINKEL_TRIPEL, CahillKeyes.BUTTERFLY, Misc.PEIRCE_QUINCUNCIAL.transverse(),
+			Snyder.GS50, Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Misc.FLAT_EARTH },
 			
 			{ MyProjections.PSEUDOSTEREOGRAPHIC, Tetrahedral.TETRAGRAPH, Tetrahedral.AUTHAPOWER,
 					Tetrahedral.TETRAPOWER, MyProjections.TWO_POINT_EQUALIZED.transverse() } };

@@ -45,7 +45,7 @@ public class Snyder {
 			-0.07,  0.,         0.0037608, -0.0575102, -0.0320119,  0.1223335,  0.0899805,
 			       -0.1435792, -0.1334108,  0.0776645,  0.0853673 }; //the imaginary components of the coefficients
 	
-	private static final double TOLERANCE = 1e-3;
+	private static final double TOLERANCE = 1e-4;
 	private static final double[] LIMS = {
 			Math.toRadians(10), Math.toRadians(90), Math.toRadians(-195), Math.toRadians(-50) }; //trims the outside unsightly portions
 	
@@ -73,7 +73,7 @@ public class Snyder {
 			Complex z = p; //initial guess
 			Complex error = f(z).minus(p);
 			for (int i = 0; error.abs() > TOLERANCE; i ++) {
-				if (i == 5) 	return null;
+				if (i == 9) 	return null;
 				final Complex deriv = fp(z);
 				z = z.minus(error.divide(deriv));
 				error = f(z).minus(p);
@@ -86,6 +86,16 @@ public class Snyder {
 			if (lon < LIMS[2] || lon > LIMS[3]) 	return null;
 			if (lon < -Math.PI) 	lon += 2*Math.PI;
 			return new double[] {lat, lon};
+		}
+		
+		@Override
+		public double[] project(double lat, double lon, double[] pole) {
+			return super.project(lat, lon, null);
+		}
+		
+		@Override
+		public double[] inverse(double x, double y, double[] pole, boolean crop) {
+			return super.inverse(x, y, null, crop);
 		}
 	};
 	

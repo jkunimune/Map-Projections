@@ -37,7 +37,7 @@ public class Tetrahedral {
 	
 	private static final double ASIN_ONE_THD = Math.asin(1/3.); //the complement of the angular radius of a face
 	
-	public static final Projection LEE =
+	public static final TetrahedralProjection LEE_TETRAHEDRAL_RECTANGULAR =
 			new TetrahedralProjection(
 					"Lee Tetrahedral", 0b1001, Configuration.WIDE_FACE, Property.CONFORMAL,
 					null, "that really deserves more attention") {
@@ -60,7 +60,22 @@ public class Tetrahedral {
 	};
 	
 	
-	public static final Projection TETRAGRAPH =
+	public static final TetrahedralProjection LEE_TETRAHEDRAL_TRIANGULAR =
+			new TetrahedralProjection(
+					"Lee Tetrahedral (triangular)", 0b1001, Configuration.TRIANGLE_FACE, Property.CONFORMAL,
+					null, "in a triangle, because this is the form in which is was published, even though the rectangle is clearly better") {
+		
+		public double[] innerProject(double lat, double lon) {
+			return LEE_TETRAHEDRAL_RECTANGULAR.innerProject(lat, lon);
+		}
+		
+		public double[] innerInverse(double r, double tht) {
+			return LEE_TETRAHEDRAL_RECTANGULAR.innerInverse(r, tht);
+		}
+	};
+	
+	
+	public static final TetrahedralProjection TETRAGRAPH =
 			new TetrahedralProjection(
 					"TetraGraph", 0b1111, Configuration.WIDE_FACE, Property.EQUIDISTANT,
 					null, "that I invented") {
@@ -82,10 +97,24 @@ public class Tetrahedral {
 	};
 	
 	
-	public static final Projection AUTHAGRAPH = 
+	public static final TetrahedralProjection AUTHAGRAPH = 
 			new TetrahedralProjection(
 					"AuthaGraph", "A hip new Japanese map that is almost equal-area.",
 					0b1011, Configuration.AUTHAGRAPH, Property.COMPROMISE) {
+		
+		private final double[] POLE = {Math.toRadians(77), Math.toRadians(143), Math.toRadians(17)};
+		
+		@Override
+		public double[] project(double lat, double lon) { //apply a pole shift to AuthaGraph
+			double[] relCoords = obliquifySphc(lat, lon, POLE);
+			return super.project(relCoords[0], relCoords[1]);
+		}
+		
+		@Override
+		public double[] inverse(double x, double y) {
+			return obliquifyPlnr(super.inverse(x, y), POLE);
+		}
+		
 		
 		public double[] innerProject(double lat, double lon) {
 			final double lam = lon - (Math.floor(lon/(2*Math.PI/3))*(2*Math.PI/3)+Math.PI/3);
@@ -108,7 +137,7 @@ public class Tetrahedral {
 	};
 	
 	
-	public static final Projection AUTHAPOWER =
+	public static final TetrahedralProjection AUTHAPOWER =
 			new TetrahedralProjection(
 					"AuthaPower", "A parametrised, rearranged version of my AuthaGraph approximation.",
 					0b1011, Configuration.WIDE_VERTEX, Property.COMPROMISE,
@@ -141,7 +170,7 @@ public class Tetrahedral {
 	};
 	
 	
-	public static final Projection ACTUAUTHAGRAPH =
+	public static final TetrahedralProjection ACTUAUTHAGRAPH =
 			new TetrahedralProjection(
 					"EquaHedral", "A holey authagraphic tetrahedral projection to put AuthaGraph to shame.",
 					0b1010, Configuration.WIDE_VERTEX, Property.EQUAL_AREA,
@@ -175,7 +204,7 @@ public class Tetrahedral {
 	};
 	
 	
-	public static final Projection TETRAPOWER =
+	public static final TetrahedralProjection TETRAPOWER =
 			new TetrahedralProjection(
 					"TetraPower", "A parameterised tetrahedral projection that I invented.", 0b1111,
 					Configuration.WIDE_FACE, Property.COMPROMISE, new String[] {"k1","k2","k3"},
@@ -194,7 +223,7 @@ public class Tetrahedral {
 			final double tht = lon - t0;
 			final double thtP = Math.PI/3*(1 - Math.pow(1-Math.abs(tht)/(Math.PI/2),k1))/(1 - 1/Math.pow(3,k1))*Math.signum(tht);
 			final double kRad = k3*Math.abs(thtP)/(Math.PI/3) + k2*(1-Math.abs(thtP)/(Math.PI/3));
-			final double rmax = 0.5/Math.cos(thtP); //the max normalized radius of this triangle (in the plane)
+			final double rmax = 0.5/Math.cos(thtP); //the max normalised radius of this triangle (in the plane)
 			final double rtgf = Math.atan(1/Math.tan(lat)*Math.cos(tht))/Math.atan(Math.sqrt(2))*rmax;
 			return new double[] {
 					(1 - Math.pow(1-rtgf,kRad))/(1 - Math.pow(1-rmax,kRad))*rmax*2,
@@ -283,6 +312,8 @@ public class Tetrahedral {
 		
 		
 		public double[] inverse(double x, double y) {
+			if (!configuration.inBounds(x, y)) 	return null;
+			
 			double rM = Double.POSITIVE_INFINITY;
 			double[] centrum = null;
 			for (double[] testCentrum: configuration.centrumSet) {
@@ -320,34 +351,43 @@ public class Tetrahedral {
 	private static enum Configuration {
 		
 		/*		  LATITUDE,		 LONGITUDE,		 STD_PRLL,		 PLANE_ROT,		 X,	 Y */
-		WIDE_FACE(6, 2*Math.sqrt(3), new double[][] { // [<|>] arrangement, face-centered
+		WIDE_FACE(6, 2*Math.sqrt(3), new double[][] { // [<|>] arrangement, face-centred
 				{ ASIN_ONE_THD,	 Math.PI,		-2*Math.PI/3,	-2*Math.PI/3,	 2,	 Math.sqrt(3) },
 				{ ASIN_ONE_THD,	 Math.PI,		 2*Math.PI/3,	-Math.PI/3,		-2,	 Math.sqrt(3) },
 				{-Math.PI/2,	 0,				 2*Math.PI/3,	 2*Math.PI/3,	 2,	-Math.sqrt(3) },
 				{-Math.PI/2,	 0,				-2*Math.PI/3,	 Math.PI/3,		-2,	-Math.sqrt(3) },
 				{ ASIN_ONE_THD,	 Math.PI/3,		-2*Math.PI/3,	 Math.PI,		 1,	 0 },
 				{ ASIN_ONE_THD,	-Math.PI/3,		 2*Math.PI/3,	 0,				-1,	 0 }}) {
-			public double[] rotateOOB(double[] oob) {
+			@Override public double[] rotateOOB(double[] oob) {
 				return new double[] { -oob[0], Math.sqrt(3)*Math.signum(oob[1]) - oob[1] };
 			}
 		},
-		WIDE_VERTEX(6, 2*Math.sqrt(3), new double[][] { // [<|>] arrangement, vertex-centered
+		TRIANGLE_FACE(4*Math.sqrt(3), 6, new double[][] { //\delta arrangement, like they are often published
+				{ ASIN_ONE_THD,	 Math.PI/3,		 0,		-5*Math.PI/6,	 Math.sqrt(3),	2 },
+				{ ASIN_ONE_THD,	-Math.PI/3,		 0,		-Math.PI/6,		-Math.sqrt(3),	2 },
+				{ ASIN_ONE_THD,	 Math.PI,		 0,		 Math.PI/2,		 0,	-1 },
+				{-Math.PI/2,	 0,				 0,		-Math.PI/2,		 0,	 1 }}) {
+			@Override public boolean inBounds(double x, double y) {
+				return y > Math.sqrt(3)*Math.abs(x) - 3;
+			}
+		},
+		WIDE_VERTEX(6, 2*Math.sqrt(3), new double[][] { // [<|>] arrangement, vertex-centred
 				{ Math.PI/2,	 0,				 Math.PI/3,		-Math.PI/3,		 0,	 Math.sqrt(3) },
 				{-ASIN_ONE_THD,	 0,				 2*Math.PI/3,	 Math.PI/3,		 0,	-Math.sqrt(3) },
 				{-ASIN_ONE_THD,	 2*Math.PI/3,	-2*Math.PI/3,	 Math.PI,		 3, 0 },
 				{-ASIN_ONE_THD,	-2*Math.PI/3,	 2*Math.PI/3,	 0,				-3, 0 }}) {
-			public double[] rotateOOB(double[] oob) {
+			@Override public double[] rotateOOB(double[] oob) {
 				return new double[] { -oob[0], 2*Math.sqrt(3)*Math.signum(oob[1]) - oob[1] };
 			}
 		},
-		AUTHAGRAPH(4*Math.sqrt(3), 3, new double[][] { // |\/\/`| arrangement, vertex-centered
+		AUTHAGRAPH(4*Math.sqrt(3), 3, new double[][] { // |\/\/`| arrangement, vertex-centred
 				{-ASIN_ONE_THD, Math.PI,	 0,			 -Math.PI/2,-2*Math.sqrt(3)-.6096,  1.5 },
 				{-ASIN_ONE_THD,-Math.PI/3,-2*Math.PI/3, Math.PI/2,-Math.sqrt(3)-.6096,   -1.5 },
 				{ Math.PI/2,	0,			 0,	 -Math.PI/2, 0-.6096,			    1.5 },
 				{-ASIN_ONE_THD, Math.PI/3, 2*Math.PI/3, Math.PI/2, Math.sqrt(3)-.6096,   -1.5 },
 				{-ASIN_ONE_THD, Math.PI,	 0,			 -Math.PI/2, 2*Math.sqrt(3)-.6096,  1.5 },
 				{-ASIN_ONE_THD,-Math.PI/3,-2*Math.PI/3, Math.PI/2, 3*Math.sqrt(3)-.6096, -1.5}}) {
-			public double[] rotateOOB(double[] oob) {
+			@Override public double[] rotateOOB(double[] oob) {
 				return new double[] { (oob[0]+3*width/2)%width-width/2, oob[1] };
 			}
 		};
@@ -355,12 +395,15 @@ public class Tetrahedral {
 		
 		public final double width, height; //the width and height of a map with this configuration
 		public final double[][] centrumSet; //the mathematical information about this configuration
-		public abstract double[] rotateOOB(double[] oob);
 		
 		private Configuration(double width, double height, double[][] centrumSet) {
 			this.width = width;
 			this.height = height;
 			this.centrumSet = centrumSet;
 		}
+		
+		public double[] rotateOOB(double[] oob) {return oob;}; //move points that are out of bounds for project()
+		
+		public boolean inBounds(double x, double y) {return true;}; //determine whether a point is in bounds for inverse()
 	}
 }

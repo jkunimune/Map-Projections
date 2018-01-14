@@ -135,8 +135,8 @@ public class NumericalAnalysis {
 			double y, double x0, ScalarFunction f, ScalarFunction dfdx,
 			double tolerance, double... constants) {
 		double x = x0;
-		double error = Math.PI;
-		for (int i = 0; i < 6 && error > tolerance; i ++) {
+		double error = Double.POSITIVE_INFINITY;
+		for (int i = 0; i < 9 && error > tolerance; i ++) {
 			error = f.evaluate(x, constants) - y;
 			final double dydx = dfdx.evaluate(x, constants);
 			x -= error/dydx;

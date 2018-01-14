@@ -205,6 +205,7 @@ public class MapDesignerRaster extends MapApplication {
 			showError("Failure!",
 					"Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
 		}
+		display.setImage(SwingFXUtils.toFXImage(theMap, null));
 	}
 	
 	

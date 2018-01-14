@@ -126,10 +126,6 @@ public class Misc {
 			this.lam0 = Math.toRadians(params[1]);
 		}
 		
-		public double[] project(double lat, double lon, double[] pole) {
-			return project(lat, lon);
-		}
-		
 		public double[] project(double lat, double lon) {
 			final double z = Math.acos(Math.sin(phi0)*Math.sin(lat) +
 					Math.cos(phi0)*Math.cos(lat)*Math.cos(lon-lam0));
@@ -141,10 +137,6 @@ public class Misc {
 				return new double[] {-x, -y};
 			else
 				return new double[] {x, y};
-		}
-		
-		public double[] inverse(double x, double y, double[] pole) {
-			return inverse(x, y);
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -160,6 +152,16 @@ public class Misc {
 			if (lamP > Math.PI) 	lamP -= 2*Math.PI;
 			if (lamP < -Math.PI) 	lamP += 2*Math.PI;
 			return new double[] {phiP, lamP};
+		}
+		
+		@Override
+		public double[] project(double lat, double lon, double[] pole) {
+			return super.project(lat, lon, null);
+		}
+		
+		@Override
+		public double[] inverse(double x, double y, double[] pole, boolean crop) {
+			return super.inverse(x, y, null, crop);
 		}
 	};
 	
@@ -187,10 +189,6 @@ public class Misc {
 			this.height = 2*b;
 		}
 		
-		public double[] project(double lat, double lon, double[] pole) {
-			return project(lat, lon);
-		}
-		
 		public double[] project(double lat0, double lon0) {
 			final double d1 = dist(lat0,lon0, lat1,lon1);
 			final double d2 = dist(lat0,lon0, lat2,lon2);
@@ -201,10 +199,6 @@ public class Misc {
 			return new double[] {
 					(d1*d1-d2*d2)/(2*D),
 					s*Math.sqrt(d1*d1 - Math.pow((d1*d1-d2*d2+D*D)/(2*D), 2)) };
-		}
-		
-		public double[] inverse(double x, double y, double[] pole) {
-			return inverse(x, y);
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -226,6 +220,16 @@ public class Misc {
 			return Math.acos(
 					Math.sin(lat1)*Math.sin(lat2) +
 					Math.cos(lat1)*Math.cos(lat2)*Math.cos(lon1-lon2));
+		}
+		
+		@Override
+		public double[] project(double lat, double lon, double[] pole) {
+			return super.project(lat, lon, null);
+		}
+		
+		@Override
+		public double[] inverse(double x, double y, double[] pole, boolean crop) {
+			return super.inverse(x, y, null, crop);
 		}
 	};
 	
