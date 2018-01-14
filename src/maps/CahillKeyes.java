@@ -29,9 +29,9 @@ import utils.Math2;
 import utils.NumericalAnalysis;
 
 /**
- * A truncated octohedral map shaped like a butterfly. The projection is Cahill-Keyes, because it
- * was the best-documented one I found out of it, Cahill, and Waterman, and it's the newest of them
- * so it's presumably best (not that Tobler World in a Square wasn't invented after Lambert EAC).
+ * A truncated octohedral map. The projection is Cahill-Keyes, because out of it, Cahill, and Waterman,
+ * it was by far the best-documented, and it's the newest of them so it's presumably best (not that
+ * Tobler World in a Square wasn't invented after Lambert EAC).
  * http://www.genekeyes.com/CKOG-OOo/7-CKOG-illus-&-coastline.html
  * 
  * @author jkunimune
@@ -108,7 +108,7 @@ public class CahillKeyes {
 	
 	public static final Projection M_MAP =
 			new Projection(
-					"Cahill-Keyes M-Profile", "A simple pleasing octohedral map arrangement.",
+					"Cahill-Keyes M-Profile", "A horizontally arranged octohedral map designed to end all maps.",
 					4*lMG, 3*lNG-2*lENy, 0b1110, Type.TETRADECAHEDRAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
@@ -185,7 +185,7 @@ public class CahillKeyes {
 			return new double[] { lMA + 104*(90-latD)*Math2.cosd(lonD),
 					104*(90-latD)*Math2.sind(lonD) };
 		}
-		else if (latD >= 73 && lonD <= 30) { //zone e
+		else if (latD >= 73 && lonD <= 30) { //zone e ()
 			return new double[] { lMA + (rC+100*(75-latD))*Math2.cosd(lonD),
 					(rC+100*(75-latD))*Math2.sind(lonD) };
 		}
@@ -287,7 +287,7 @@ public class CahillKeyes {
 	}
 	
 	
-	private static double longitudeD(double x, double y) {
+	private static double longitudeD(double x, double y) { //calculate the longitude of a given point
 		double lonD0 = Math.toDegrees(Math.atan2(y, x-lMA)); //guess 0 for longitude
 		double lonD1 = Math.toDegrees(Math.atan2(y, x))*1.5; //guess 1 for longitude
 		if (lonD0 >= lonD1)
