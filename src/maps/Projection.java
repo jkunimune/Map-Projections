@@ -433,19 +433,16 @@ public abstract class Projection {
 				lonf = lon0;
 		}
 		else if (Math.sin(lon1) > 0)
-			lonf = lon0 +
-					Math.acos(innerFunc);
+			lonf = lon0 + Math.acos(innerFunc);
 		else
-			lonf = lon0 -
-					Math.acos(innerFunc);
+			lonf = lon0 - Math.acos(innerFunc);
 		
 		if (Math.abs(lonf) > Math.PI)
 			lonf = Math2.floorMod(lonf+Math.PI, 2*Math.PI) - Math.PI;
 		
 		double thtf = pole[2];
 		
-		double[] output = {latf, lonf, thtf};
-		return output;
+		return new double[] {latf, lonf, thtf};
 	}
 	
 	

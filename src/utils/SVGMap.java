@@ -81,7 +81,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			
 			@Override
 			public void startElement(
-					String uri, String localName, String qName, Attributes attributes) {
+					String uri, String localName, String qName, Attributes attributes) throws SAXException {
 				currentFormatString += "<"+qName;
 				
 				if (attributes.getIndex("transform") >= 0)
@@ -89,8 +89,13 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 				else
 					parseTransform();
 				
-				if (qName.equals("path"))
-					parsePath(attributes.getValue("d"));
+				if (qName.equals("path")) {
+					try {
+						parsePath(attributes.getValue("d"));
+					} catch (Exception e) {
+						throw new SAXException(e.getLocalizedMessage(), null);
+					}
+				}
 				
 				if (qName.equals("svg")) {
 					parseViewBox(attributes);
@@ -181,7 +186,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 				transformStack.push(new double[] {xScale, yScale, xTrans, yTrans});
 			}
 			
-			private void parsePath(String d) {
+			private void parsePath(String d) throws Exception {
 				currentFormatString += " d=\"";
 				format.add(currentFormatString);
 				paths.add(new Path(d, transformStack.peek(), minX, minY, width, height));
@@ -259,12 +264,12 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			super();
 		}
 		
-		public Path(String d, double vbWidth, double vbHeight) {
+		public Path(String d, double vbWidth, double vbHeight) throws Exception {
 			this(d, new double[] {1,1,0,0}, 0, 0, vbWidth, vbHeight);
 		}
 		
 		public Path(String d, double[] transform,
-				double vbMinX, double vbMinY, double vbWidth, double vbHeight) {
+				double vbMinX, double vbMinY, double vbWidth, double vbHeight) throws Exception { //I don't know if this is bad coding practice, but I don't really want to find a way to gracefully catch all possible errors into some more specific Exception class
 			super();
 			
 			int i = 0;
@@ -276,6 +281,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 					i ++;
 					argString += d.charAt(i);
 				}
+				argString = argString.replaceAll("([0-9\\.])-", "$1,-"); //this is necessary because some Adobe products leave out delimiters between negative numbers
 				i ++;
 				
 				String[] argStrings;
@@ -288,11 +294,11 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 					argStrings = new String[] {argStrings[3], argStrings[4]};
 				}
 				if (type == 'h' || type == 'H' || type == 'v' || type == 'V') { //convert these to 'L'
-					final int chgIdx = (type%32 == 8) ? 0 : 1;
+					final int direcIdx = (type%32 == 8) ? 0 : 1;
 					args = new double[] {last[0], last[1]};
-					if (type <= 'Z') 	args[chgIdx] = Double.parseDouble(argStrings[0]); //uppercase (absolute)
-					else 				args[chgIdx] += Double.parseDouble(argStrings[0]); //lowercase (relative)
-					last[chgIdx] = args[chgIdx];
+					if (type <= 'Z') 	args[direcIdx] = Double.parseDouble(argStrings[0]); //uppercase (absolute)
+					else 				args[direcIdx] += Double.parseDouble(argStrings[0]); //lowercase (relative)
+					last[direcIdx] = args[direcIdx];
 					type = 'L';
 				}
 				else {
