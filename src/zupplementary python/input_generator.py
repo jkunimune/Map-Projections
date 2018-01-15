@@ -5,7 +5,7 @@ PHI = (math.sqrt(5)+1)/2
 ATH = math.atan(1/2)
 
 IND_NUM = 120
-IND_RAD = 500/6371
+IND_RAD = math.radians(3.75)
 
 
 def obliquify(lat1, lon1, lat0, lon0):
@@ -108,14 +108,21 @@ if __name__ == '__main__':
 	# 	plot_orthodrome(ATH, math.radians(l), math.pi*.4)
 	# 	plot_orthodrome(ATH, math.radians(l), math.pi*.8)
 
-	plot_pole_indicatrix(False, IND_RAD)
-	for y in [60, 30, 0, -30, -60]:
-		for x in range(0, 360, 30):
-			# if x == 0:
-			# 	plot_side_indicatrix(math.radians(y), math.pi/36)
-			# else:
-				plot_indicatrix(math.radians(y), math.radians(x), IND_RAD)
+	# plot_pole_indicatrix(False, IND_RAD)
+	# for y in [60, 30, 0, -30, -60]:
+	# 	for x in range(0, 360, 30):
+	# 		if x == 0:
+	# 			plot_side_indicatrix(math.radians(y), math.pi/36)
+	# 		else:
+	# 			plot_indicatrix(math.radians(y), math.radians(x), IND_RAD)
+	# plot_pole_indicatrix(True, IND_RAD)
+
 	plot_pole_indicatrix(True, IND_RAD)
+	for y in range(-75, 90, 15):
+		step = 15 * round(1/math.cos(math.radians(y)))
+		for x in range(0, 360, step):
+			plot_indicatrix(math.radians(y), math.radians(x), IND_RAD)
+	plot_pole_indicatrix(False, IND_RAD)
 
 	# for x in range(0, 361, 10):
 	# 	plot_meridian(x)

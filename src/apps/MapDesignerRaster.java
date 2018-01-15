@@ -82,8 +82,8 @@ public class MapDesignerRaster extends MapApplication {
 			new FileChooser.ExtensionFilter("JPG", "*.jpg"),
 			new FileChooser.ExtensionFilter("GIF", "*.gif") };
 	
-	private static final float GRATICULE_WIDTH = 1.0f;
-	private static final Color GRATICULE_COLOR = new Color(127, 127, 127);
+	private static final float GRATICULE_WIDTH = 0.5f;
+	private static final Color GRATICULE_COLOR = Color.WHITE;
 	
 	private Node aspectSelector;
 	private Button updateBtn, saveMapBtn;

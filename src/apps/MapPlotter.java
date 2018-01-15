@@ -54,7 +54,7 @@ import maps.Misc;
 import maps.MyProjections;
 import maps.Projection;
 import maps.Pseudocylindrical;
-import maps.Robinson;
+import maps.Arbitrary;
 import maps.Tetrahedral;
 import maps.Tobler;
 import maps.WinkelTripel;
@@ -69,11 +69,11 @@ public class MapPlotter extends Application {
 	private static final double GLOBE_RES = .002;
 	
 	private static final Projection[] CYLINDRICAL = { Cylindrical.MERCATOR,
-			Cylindrical.PLATE_CARREE, Cylindrical.GALL_PETERS, Cylindrical.BEHRMANN,
-			Cylindrical.GALL };
+			Cylindrical.PLATE_CARREE, Cylindrical.GALL_ORTHOGRAPHIC, Cylindrical.BEHRMANN,
+			Cylindrical.GALL_STEREOGRAPHIC };
 	private static final Projection[] AZIMUTHAL = { Azimuthal.POLAR };
-	private static final Projection[] PSEUDOCYL = { Pseudocylindrical.MOLLWEIDE, Robinson.ROBINSON,
-			Tobler.TOBLER };
+	private static final Projection[] PSEUDOCYL = { Pseudocylindrical.MOLLWEIDE, Arbitrary.ROBINSON,
+			Arbitrary.NATURAL_EARTH, Pseudocylindrical.KAVRAYSKIY_VII, Tobler.TOBLER };
 	private static final Projection[] PSEUDOAZM = { Lenticular.AITOFF,
 			MyProjections.PSEUDOSTEREOGRAPHIC };
 	private static final Projection[] TETRAHEDRAL = { Tetrahedral.LEE_TETRAHEDRAL_RECTANGULAR,

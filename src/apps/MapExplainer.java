@@ -39,7 +39,7 @@ import maps.Misc;
 import maps.MyProjections;
 import maps.Projection;
 import maps.Pseudocylindrical;
-import maps.Robinson;
+import maps.Arbitrary;
 import maps.Snyder;
 import maps.Tetrahedral;
 import maps.Tobler;
@@ -58,14 +58,14 @@ public class MapExplainer {
 	public static final int SMOOTHING = 3;
 	
 	public static final Projection[][] ALL_PROJECTIONS = { { Cylindrical.MERCATOR,
-			Cylindrical.PLATE_CARREE, Cylindrical.GALL_PETERS, Cylindrical.HOBO_DYER,
-			Cylindrical.BEHRMANN, Cylindrical.LAMBERT, Cylindrical.GALL,
+			Cylindrical.PLATE_CARREE, Cylindrical.GALL_ORTHOGRAPHIC, Cylindrical.HOBO_DYER,
+			Cylindrical.BEHRMANN, Cylindrical.LAMBERT, Cylindrical.GALL_STEREOGRAPHIC,
 			Azimuthal.STEREOGRAPHIC.transverse(), Azimuthal.POLAR.transverse(),
 			Azimuthal.EQUAL_AREA.transverse(), Azimuthal.GNOMONIC.transverse(),
 			Azimuthal.ORTHOGRAPHIC.transverse(), Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
 			Tetrahedral.LEE_TETRAHEDRAL_RECTANGULAR, Tetrahedral.AUTHAGRAPH,
 			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER,
-			Lenticular.HAMMER, Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN, Robinson.ROBINSON,
+			Lenticular.HAMMER, Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN, Arbitrary.ROBINSON,
 			WinkelTripel.WINKEL_TRIPEL, CahillKeyes.BUTTERFLY, Misc.PEIRCE_QUINCUNCIAL.transverse(),
 			Snyder.GS50, Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Misc.FLAT_EARTH },
 			

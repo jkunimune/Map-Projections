@@ -86,7 +86,7 @@ public class Cylindrical {
 	};
 	
 	
-	public static final Projection GALL_PETERS =
+	public static final Projection GALL_ORTHOGRAPHIC =
 			new Projection(
 					"Gall-Peters", 2*Math.PI, 4, 0b1111, Type.CYLINDRICAL, Property.EQUAL_AREA,
 					"somewhat controversial", "with least distortion at 45\u00B0") {
@@ -166,7 +166,7 @@ public class Cylindrical {
 	};
 	
 	
-	public static final Projection GALL =
+	public static final Projection GALL_STEREOGRAPHIC =
 			new Projection(
 					"Gall Stereographic", 2*Math.PI, 1.5*Math.PI, 0b1111,
 					Type.CYLINDRICAL, Property.COMPROMISE) {

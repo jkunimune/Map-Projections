@@ -92,6 +92,22 @@ public class Pseudocylindrical {
 	};
 	
 	
+	public static final Projection KAVRAYSKIY_VII =
+			new Projection(
+					"Kavrayskiy VII", Math.PI*Math.sqrt(3), Math.PI, 0b1111,
+					Type.PSEUDOCYLINDRICAL, Property.COMPROMISE, "mostly popular in the former Soviet Union") {
+		
+		public double[] project(double lat, double lon) {
+			return new double[] { 1.5*lon*Math.sqrt(1/3.-Math.pow(lat/Math.PI, 2)), lat };
+		}
+		
+		public double[] inverse(double x, double y) {
+			return new double[] { y, x/1.5/Math.sqrt(1/3.-Math.pow(y/Math.PI, 2)) };
+		}
+		
+	};
+	
+	
 	public static final Projection LEMONS =
 			new Projection(
 					"Lemons", "BURN LIFE'S HOUSE DOWN!!!", 2*Math.PI, Math.PI, 0b1110,
