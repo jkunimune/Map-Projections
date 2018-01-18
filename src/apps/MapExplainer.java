@@ -31,7 +31,6 @@ import java.io.PrintStream;
 import javax.imageio.ImageIO;
 
 import maps.Azimuthal;
-import maps.CahillKeyes;
 import maps.Conic;
 import maps.Cylindrical;
 import maps.Lenticular;
@@ -41,8 +40,9 @@ import maps.Projection;
 import maps.Pseudocylindrical;
 import maps.Arbitrary;
 import maps.Snyder;
-import maps.Tetrahedral;
+import maps.Polyhedral;
 import maps.Tobler;
+import maps.Waterman;
 import maps.WinkelTripel;
 import utils.ImageUtils;
 import utils.PixelMap;
@@ -63,14 +63,14 @@ public class MapExplainer {
 			Azimuthal.STEREOGRAPHIC.transverse(), Azimuthal.POLAR.transverse(),
 			Azimuthal.EQUAL_AREA.transverse(), Azimuthal.GNOMONIC.transverse(),
 			Azimuthal.ORTHOGRAPHIC.transverse(), Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
-			Tetrahedral.LEE_TETRAHEDRAL_RECTANGULAR, Tetrahedral.AUTHAGRAPH,
+			Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.AUTHAGRAPH,
 			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER,
 			Lenticular.HAMMER, Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN, Arbitrary.ROBINSON,
-			WinkelTripel.WINKEL_TRIPEL, CahillKeyes.BUTTERFLY, Misc.PEIRCE_QUINCUNCIAL.transverse(),
+			WinkelTripel.WINKEL_TRIPEL, Waterman.BUTTERFLY, Misc.PEIRCE_QUINCUNCIAL.transverse(),
 			Snyder.GS50, Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Misc.FLAT_EARTH },
 			
-			{ MyProjections.PSEUDOSTEREOGRAPHIC, Tetrahedral.TETRAGRAPH, Tetrahedral.AUTHAPOWER,
-					Tetrahedral.TETRAPOWER, MyProjections.TWO_POINT_EQUALIZED.transverse() } };
+			{ MyProjections.PSEUDOSTEREOGRAPHIC, Polyhedral.TETRAGRAPH, Polyhedral.AUTHAPOWER,
+					Polyhedral.TETRAPOWER, MyProjections.TWO_POINT_EQUALIZED.transverse() } };
 	
 	
 	public static void main(String[] args) throws IOException {

@@ -561,8 +561,8 @@ public abstract class Projection {
 		CYLINDRICAL("Cylindrical"), CONIC("Conic"), AZIMUTHAL("Azimuthal"),
 		PSEUDOCYLINDRICAL("Pseudocylindrical"), PSEUDOCONIC("Pseudoconic"),
 		PSEUDOAZIMUTHAL("Pseudoazimuthal"), QUASIAZIMUTHAL("Quasiazimuthal"),
-		TETRAHEDRAL("Tetrahedral"), TETRADECAHEDRAL("Tetradecahedral"), POLYNOMIAL("Polynomial"),
-		STREBE("Strebe"), PLANAR("Planar"), OTHER("Other");
+		TETRAHEDRAL("Tetrahedral"), TETRADECAHEDRAL("Truncated Octohedral"),
+		POLYNOMIAL("Polynomial"), STREBE("Strebe Blend"), PLANAR("Planar"), OTHER("Other");
 		
 		private String name;
 		

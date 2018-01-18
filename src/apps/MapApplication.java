@@ -79,8 +79,9 @@ import maps.Projection;
 import maps.Pseudocylindrical;
 import maps.Arbitrary;
 import maps.Snyder;
-import maps.Tetrahedral;
+import maps.Polyhedral;
 import maps.Tobler;
+import maps.Waterman;
 import maps.WinkelTripel;
 import utils.Flag;
 import utils.Math2;
@@ -106,12 +107,12 @@ public abstract class MapApplication extends Application {
 	private static final KeyCombination CTRL_ENTER = new KeyCodeCombination(KeyCode.ENTER, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	public static final Projection[] FEATURED_PROJECTIONS = { Cylindrical.MERCATOR,
+	public static final Projection[] FEATURED_PROJECTIONS = { Waterman.BUTTERFLY, Cylindrical.MERCATOR,
 			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL_STEREOGRAPHIC,
 			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
 			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
-			Tetrahedral.LEE_TETRAHEDRAL_RECTANGULAR, Tetrahedral.ACTUAUTHAGRAPH,
-			Tetrahedral.AUTHAPOWER, CahillKeyes.M_MAP, Pseudocylindrical.SINUSOIDAL,
+			Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.ACTUAUTHAGRAPH,
+			Polyhedral.AUTHAPOWER, CahillKeyes.M_MAP, Pseudocylindrical.SINUSOIDAL,
 			Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Lenticular.AITOFF,
 			Lenticular.VAN_DER_GRINTEN, Arbitrary.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
 			Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT, Pseudocylindrical.LEMONS }; //the set of featured projections for the ComboBox
@@ -125,9 +126,8 @@ public abstract class MapApplication extends Application {
 			{ Azimuthal.EQUAL_AREA, Azimuthal.POLAR, Azimuthal.GNOMONIC, Azimuthal.ORTHOGRAPHIC,
 					Azimuthal.PERSPECTIVE, Azimuthal.STEREOGRAPHIC },
 			{ Conic.ALBERS, Conic.LAMBERT, Conic.EQUIDISTANT },
-			{ Tetrahedral.AUTHAGRAPH, CahillKeyes.BUTTERFLY, CahillKeyes.M_MAP,
-					CahillKeyes.HALF_OCTANT, Tetrahedral.LEE_TETRAHEDRAL_RECTANGULAR,
-					Tetrahedral.LEE_TETRAHEDRAL_TRIANGULAR },
+			{ Polyhedral.AUTHAGRAPH, CahillKeyes.M_MAP, Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
+				Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR, Waterman.BUTTERFLY },
 			{ Pseudocylindrical.ECKERT_IV, Pseudocylindrical.KAVRAYSKIY_VII,
 					Pseudocylindrical.MOLLWEIDE, Arbitrary.NATURAL_EARTH, Arbitrary.ROBINSON,
 					Pseudocylindrical.SINUSOIDAL, Tobler.TOBLER },
@@ -135,9 +135,9 @@ public abstract class MapApplication extends Application {
 					Lenticular.VAN_DER_GRINTEN, WinkelTripel.WINKEL_TRIPEL },
 			{ Snyder.GS50, Misc.GUYOU, Misc.HAMMER_RETROAZIMUTHAL, Pseudocylindrical.LEMONS,
 					Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT, Misc.FLAT_EARTH },
-			{ MyProjections.EXPERIMENT, Tetrahedral.AUTHAPOWER, Tetrahedral.ACTUAUTHAGRAPH,
+			{ MyProjections.EXPERIMENT, Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH,
 					MyProjections.MAGNIFIER, MyProjections.PSEUDOSTEREOGRAPHIC,
-					Tetrahedral.TETRAGRAPH, Tetrahedral.TETRAPOWER,
+					Polyhedral.TETRAGRAPH, Polyhedral.TETRAPOWER,
 					MyProjections.TWO_POINT_EQUALIZED } }; // every projection I have programmed
 	
 	private static final String[] ASPECT_NAMES = { "Standard", "Transverse", "Cassini", "Atlantis",

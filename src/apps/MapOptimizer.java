@@ -43,7 +43,7 @@ import maps.Lenticular;
 import maps.Misc;
 import maps.Projection;
 import maps.Arbitrary;
-import maps.Tetrahedral;
+import maps.Polyhedral;
 import maps.Tobler;
 import maps.WinkelTripel;
 
@@ -57,7 +57,7 @@ public class MapOptimizer extends Application {
 	private static final Projection[] EXISTING_PROJECTIONS = { Cylindrical.HOBO_DYER,
 			Arbitrary.ROBINSON, Lenticular.VAN_DER_GRINTEN, Misc.PEIRCE_QUINCUNCIAL };
 	private static final Projection[] PROJECTIONS_TO_OPTIMIZE = { Tobler.TOBLER,
-			WinkelTripel.WINKEL_TRIPEL, Tetrahedral.TETRAPOWER, Tetrahedral.AUTHAPOWER };
+			WinkelTripel.WINKEL_TRIPEL, Polyhedral.TETRAPOWER, Polyhedral.AUTHAPOWER };
 	private static final double[] WEIGHTS = { 0., .125, .25, .375, .5, .625, .75, .875, 1. };
 	private static final int NUM_BRUTE_FORCE = 100;
 	private static final int NUM_DESCENT = 30;

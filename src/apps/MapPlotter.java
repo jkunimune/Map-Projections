@@ -55,7 +55,7 @@ import maps.MyProjections;
 import maps.Projection;
 import maps.Pseudocylindrical;
 import maps.Arbitrary;
-import maps.Tetrahedral;
+import maps.Polyhedral;
 import maps.Tobler;
 import maps.WinkelTripel;
 
@@ -76,8 +76,8 @@ public class MapPlotter extends Application {
 			Arbitrary.NATURAL_EARTH, Pseudocylindrical.KAVRAYSKIY_VII, Tobler.TOBLER };
 	private static final Projection[] PSEUDOAZM = { Lenticular.AITOFF,
 			MyProjections.PSEUDOSTEREOGRAPHIC };
-	private static final Projection[] TETRAHEDRAL = { Tetrahedral.LEE_TETRAHEDRAL_RECTANGULAR,
-			Tetrahedral.ACTUAUTHAGRAPH, Tetrahedral.AUTHAGRAPH, Tetrahedral.TETRAPOWER };
+	private static final Projection[] TETRAHEDRAL = { Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
+			Polyhedral.ACTUAUTHAGRAPH, Polyhedral.AUTHAGRAPH, Polyhedral.TETRAPOWER };
 	private static final Projection[] CHEATY = { Pseudocylindrical.LEMONS,
 			CahillKeyes.HALF_OCTANT };
 	private static final Projection[] OTHER = { Lenticular.VAN_DER_GRINTEN,

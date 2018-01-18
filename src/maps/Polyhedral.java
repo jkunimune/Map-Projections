@@ -29,27 +29,27 @@ import utils.Math2;
 import utils.NumericalAnalysis;
 
 /**
- * Projections created by projecting onto and then unfolding a regular tetrahedron
+ * Projections created by projecting onto and then unfolding some kind of polyhedron
  * 
  * @author jkunimune
  */
-public class Tetrahedral {
+public class Polyhedral {
 	
 	private static final double ASIN_ONE_THD = Math.asin(1/3.); //the complement of the angular radius of a face
 	
-	public static final TetrahedralProjection LEE_TETRAHEDRAL_RECTANGULAR =
-			new TetrahedralProjection(
-					"Lee Tetrahedral", 0b1001, Configuration.WIDE_FACE, Property.CONFORMAL,
+	public static final PolyhedralProjection LEE_TETRAHEDRAL_RECTANGULAR =
+			new PolyhedralProjection(
+					"Lee Tetrahedral", 0b1001, Configuration.TETRAHEDRON_WIDE_FACE, Property.CONFORMAL,
 					null, "that really deserves more attention") {
 		
-		public double[] innerProject(double lat, double lon) {
+		public double[] faceProject(double lat, double lon) {
 			final de.jtem.mfc.field.Complex z = de.jtem.mfc.field.Complex.fromPolar(
 					Math.pow(2, 5/6.)*Math.tan(Math.PI/4-lat/2), lon);
 			final de.jtem.mfc.field.Complex w = Dixon.invFunc(z);
 			return new double[] { w.abs()*1.132, w.arg() }; //I don't understand Dixon functions well enough to say whence the 1.132 comes
 		}
 		
-		public double[] innerInverse(double r, double tht) {
+		public double[] faceInverse(double r, double tht) {
 			final de.jtem.mfc.field.Complex w = de.jtem.mfc.field.Complex.fromPolar(
 					r/1.132, tht);
 			final de.jtem.mfc.field.Complex ans = Dixon.leeFunc(w).times(Math.pow(2, -5/6.));
@@ -60,34 +60,34 @@ public class Tetrahedral {
 	};
 	
 	
-	public static final TetrahedralProjection LEE_TETRAHEDRAL_TRIANGULAR =
-			new TetrahedralProjection(
+	public static final PolyhedralProjection LEE_TETRAHEDRAL_TRIANGULAR =
+			new PolyhedralProjection(
 					"Lee Tetrahedral (triangular)", 0b1001, Configuration.TRIANGLE_FACE, Property.CONFORMAL,
 					null, "in a triangle, because this is the form in which is was published, even though the rectangle is clearly better") {
 		
-		public double[] innerProject(double lat, double lon) {
-			return LEE_TETRAHEDRAL_RECTANGULAR.innerProject(lat, lon);
+		public double[] faceProject(double lat, double lon) {
+			return LEE_TETRAHEDRAL_RECTANGULAR.faceProject(lat, lon);
 		}
 		
-		public double[] innerInverse(double r, double tht) {
-			return LEE_TETRAHEDRAL_RECTANGULAR.innerInverse(r, tht);
+		public double[] faceInverse(double r, double tht) {
+			return LEE_TETRAHEDRAL_RECTANGULAR.faceInverse(r, tht);
 		}
 	};
 	
 	
-	public static final TetrahedralProjection TETRAGRAPH =
-			new TetrahedralProjection(
-					"TetraGraph", 0b1111, Configuration.WIDE_FACE, Property.EQUIDISTANT,
+	public static final PolyhedralProjection TETRAGRAPH =
+			new PolyhedralProjection(
+					"TetraGraph", 0b1111, Configuration.TETRAHEDRON_WIDE_FACE, Property.EQUIDISTANT,
 					null, "that I invented") {
 		
-		public double[] innerProject(double lat, double lon) {
+		public double[] faceProject(double lat, double lon) {
 			final double tht = lon - Math.floor((lon+Math.PI/3)/(2*Math.PI/3))*(2*Math.PI/3);
 			return new double[] {
 					Math.atan(1/Math.tan(lat)*Math.cos(tht))/Math.cos(tht) /Math.atan(Math.sqrt(2)),
 					lon };
 		}
 		
-		public double[] innerInverse(double r, double tht) {
+		public double[] faceInverse(double r, double tht) {
 			final double t0 = Math.floor((tht+Math.PI/3)/(2*Math.PI/3))*(2*Math.PI/3);
 			final double dt = tht-t0;
 			return new double[] {
@@ -97,8 +97,8 @@ public class Tetrahedral {
 	};
 	
 	
-	public static final TetrahedralProjection AUTHAGRAPH = 
-			new TetrahedralProjection(
+	public static final PolyhedralProjection AUTHAGRAPH = 
+			new PolyhedralProjection(
 					"AuthaGraph", "A hip new Japanese map that is almost equal-area.",
 					0b1011, Configuration.AUTHAGRAPH, Property.COMPROMISE) {
 		
@@ -116,14 +116,14 @@ public class Tetrahedral {
 		}
 		
 		
-		public double[] innerProject(double lat, double lon) {
+		public double[] faceProject(double lat, double lon) {
 			final double lam = lon - (Math.floor(lon/(2*Math.PI/3))*(2*Math.PI/3)+Math.PI/3);
 			final double tht = Math.atan((lam - Math.asin(Math.sin(lam)/Math.sqrt(3)))/Math.PI*Math.sqrt(12));
 			final double p = (Math.PI/2 - lat) / Math.atan(Math.sqrt(2)/Math.cos(lam));
 			return new double[] { Math.pow(p,.707)*Math.sqrt(3)/Math.cos(tht), (lon - lam)/2 + tht };
 		}
 		
-		protected double[] innerInverse(double r, double th) {
+		protected double[] faceInverse(double r, double th) {
 			final double dt = th - (Math.floor(th/(Math.PI/3))*(Math.PI/3)+Math.PI/6);
 			final double dl = NumericalAnalysis.newtonRaphsonApproximation(dt, dt*2,
 					(l) -> Math.atan((l - Math.asin(Math.sin(l)/Math.sqrt(3)))/Math.PI*Math.sqrt(12)),
@@ -137,10 +137,10 @@ public class Tetrahedral {
 	};
 	
 	
-	public static final TetrahedralProjection AUTHAPOWER =
-			new TetrahedralProjection(
+	public static final PolyhedralProjection AUTHAPOWER =
+			new PolyhedralProjection(
 					"AuthaPower", "A parametrised, rearranged version of my AuthaGraph approximation.",
-					0b1011, Configuration.WIDE_VERTEX, Property.COMPROMISE,
+					0b1011, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.COMPROMISE,
 					new String[] {"Power"}, new double[][] {{.25,1,.7}}) {
 		
 		private double k;
@@ -149,14 +149,14 @@ public class Tetrahedral {
 				this.k = params[0];
 		}
 		
-		public double[] innerProject(double lat, double lon) {
+		public double[] faceProject(double lat, double lon) {
 			final double lam = lon - (Math.floor(lon/(2*Math.PI/3))*(2*Math.PI/3)+Math.PI/3);
 			final double tht = Math.atan((lam - Math.asin(Math.sin(lam)/Math.sqrt(3)))/Math.PI*Math.sqrt(12));
 			final double p = (Math.PI/2 - lat) / Math.atan(Math.sqrt(2)/Math.cos(lam));
 			return new double[] { Math.pow(p,k)*Math.sqrt(3)/Math.cos(tht), (lon - lam)/2 + tht };
 		}
 		
-		protected double[] innerInverse(double r, double th) {
+		protected double[] faceInverse(double r, double th) {
 			final double dt = th - (Math.floor(th/(Math.PI/3))*(Math.PI/3)+Math.PI/6);
 			final double dl = NumericalAnalysis.newtonRaphsonApproximation(dt, dt*2,
 					(l) -> Math.atan((l - Math.asin(Math.sin(l)/Math.sqrt(3)))/Math.PI*Math.sqrt(12)),
@@ -170,10 +170,10 @@ public class Tetrahedral {
 	};
 	
 	
-	public static final TetrahedralProjection ACTUAUTHAGRAPH =
-			new TetrahedralProjection(
+	public static final PolyhedralProjection ACTUAUTHAGRAPH =
+			new PolyhedralProjection(
 					"EquaHedral", "A holey authagraphic tetrahedral projection to put AuthaGraph to shame.",
-					0b1010, Configuration.WIDE_VERTEX, Property.EQUAL_AREA,
+					0b1010, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.EQUAL_AREA,
 					new String[] {"Rho"}, new double[][] {{0,.5,.25}}) {
 		
 		private double r02;
@@ -182,7 +182,7 @@ public class Tetrahedral {
 			this.r02 = 3*Math.pow(params[0], 2);
 		}
 		
-		public double[] innerProject(double lat, double lon) {
+		public double[] faceProject(double lat, double lon) {
 			final double lam = lon - (Math.floor(lon/(2*Math.PI/3))*(2*Math.PI/3)+Math.PI/3);
 			final double tht = Math.atan((lam - Math.asin(Math.sin(lam)/Math.sqrt(3)))/Math.PI*Math.sqrt(12));
 			return new double[] {
@@ -190,7 +190,7 @@ public class Tetrahedral {
 					(lon - lam)/2 + tht };
 		}
 		
-		public double[] innerInverse(double r, double th) {
+		public double[] faceInverse(double r, double th) {
 			final double dt = th - (Math.floor(th/(Math.PI/3))*(Math.PI/3)+Math.PI/6);
 			final double R2 = Math.pow(r*Math.cos(dt), 2);
 			if (R2 < r02) 	return null;
@@ -204,10 +204,10 @@ public class Tetrahedral {
 	};
 	
 	
-	public static final TetrahedralProjection TETRAPOWER =
-			new TetrahedralProjection(
+	public static final PolyhedralProjection TETRAPOWER =
+			new PolyhedralProjection(
 					"TetraPower", "A parameterised tetrahedral projection that I invented.", 0b1111,
-					Configuration.WIDE_FACE, Property.COMPROMISE, new String[] {"k1","k2","k3"},
+					Configuration.TETRAHEDRON_WIDE_FACE, Property.COMPROMISE, new String[] {"k1","k2","k3"},
 					new double[][] {{.01,2.,.98},{.01,2.,1.2},{.01,2.,.98}}) {
 		
 		private double k1, k2, k3;
@@ -218,7 +218,7 @@ public class Tetrahedral {
 			this.k3 = params[2];
 		}
 		
-		public double[] innerProject(double lat, double lon) {
+		public double[] faceProject(double lat, double lon) {
 			final double t0 = Math.floor((lon+Math.PI/3)/(2*Math.PI/3))*(2*Math.PI/3);
 			final double tht = lon - t0;
 			final double thtP = Math.PI/3*(1 - Math.pow(1-Math.abs(tht)/(Math.PI/2),k1))/(1 - 1/Math.pow(3,k1))*Math.signum(tht);
@@ -230,7 +230,7 @@ public class Tetrahedral {
 					thtP + t0 };
 		}
 		
-		public double[] innerInverse(double r, double tht) {
+		public double[] faceInverse(double r, double tht) {
 			final double t0 = Math.floor((tht+Math.PI/3)/(2*Math.PI/3))*(2*Math.PI/3);
 			final double thtP = tht-t0;
 			final double lamS = (1-Math.pow(1-Math.abs(thtP)*(1-1/Math.pow(3,k1))/(Math.PI/3), 1/k1))*Math.PI/2*Math.signum(thtP);
@@ -250,12 +250,12 @@ public class Tetrahedral {
 	 * 
 	 * @author jkunimune
 	 */
-	private static abstract class TetrahedralProjection extends Projection {
+	private static abstract class PolyhedralProjection extends Projection {
 		
 		private final Configuration configuration;
 		
 		
-		public TetrahedralProjection(
+		public PolyhedralProjection(
 				String name, int fisc, Configuration config, Property property,
 				String adjective, String addendum) {
 			super(name, config.width, config.height, fisc, Type.TETRAHEDRAL, property,
@@ -263,13 +263,13 @@ public class Tetrahedral {
 			this.configuration = config;
 		}
 		
-		public TetrahedralProjection(
+		public PolyhedralProjection(
 				String name, String description, int fisc, Configuration config, Property property) {
 			super(name, description, config.width, config.height, fisc, Type.TETRAHEDRAL, property);
 			this.configuration = config;
 		}
 		
-		public TetrahedralProjection(
+		public PolyhedralProjection(
 				String name, String description, int fisc, Configuration config, Property property,
 				String[] paramNames, double[][] paramValues) {
 			super(name, description, config.width, config.height, fisc, Type.TETRAHEDRAL, property,
@@ -278,9 +278,9 @@ public class Tetrahedral {
 		}
 		
 		
-		protected abstract double[] innerProject(double lat, double lon); //the projection from spherical to polar within a face
+		protected abstract double[] faceProject(double lat, double lon); //the projection from spherical to polar within a face
 		
-		protected abstract double[] innerInverse(double x, double y); //I think you can guess
+		protected abstract double[] faceInverse(double x, double y); //I think you can guess
 		
 		
 		public double[] project(double lat, double lon) {
@@ -297,7 +297,7 @@ public class Tetrahedral {
 				}
 			}
 			
-			final double[] rth = innerProject(latR, lonR); //apply the projection to the relative coordinates
+			final double[] rth = faceProject(latR, lonR); //apply the projection to the relative coordinates
 			final double r = rth[0];
 			final double th = rth[1] + centrum[3];
 			final double x0 = centrum[4];
@@ -329,7 +329,7 @@ public class Tetrahedral {
 			final double y0 = centrum[5];
 			
 			double[] relCoords =
-					innerInverse(Math.hypot(x-x0, y-y0), Math.atan2(y-y0, x-x0) - th0);
+					faceInverse(Math.hypot(x-x0, y-y0), Math.atan2(y-y0, x-x0) - th0);
 			
 			if (relCoords == null)
 				return null;
@@ -351,7 +351,7 @@ public class Tetrahedral {
 	private static enum Configuration {
 		
 		/*		  LATITUDE,		 LONGITUDE,		 STD_PRLL,		 PLANE_ROT,		 X,	 Y */
-		WIDE_FACE(6, 2*Math.sqrt(3), new double[][] { // [<|>] arrangement, face-centred
+		TETRAHEDRON_WIDE_FACE(6, 2*Math.sqrt(3), new double[][] { // [<|>] arrangement, face-centred
 				{ ASIN_ONE_THD,	 Math.PI,		-2*Math.PI/3,	-2*Math.PI/3,	 2,	 Math.sqrt(3) },
 				{ ASIN_ONE_THD,	 Math.PI,		 2*Math.PI/3,	-Math.PI/3,		-2,	 Math.sqrt(3) },
 				{-Math.PI/2,	 0,				 2*Math.PI/3,	 2*Math.PI/3,	 2,	-Math.sqrt(3) },
@@ -371,7 +371,7 @@ public class Tetrahedral {
 				return y > Math.sqrt(3)*Math.abs(x) - 3;
 			}
 		},
-		WIDE_VERTEX(6, 2*Math.sqrt(3), new double[][] { // [<|>] arrangement, vertex-centred
+		TETRAHEDRON_WIDE_VERTEX(6, 2*Math.sqrt(3), new double[][] { // [<|>] arrangement, vertex-centred
 				{ Math.PI/2,	 0,				 Math.PI/3,		-Math.PI/3,		 0,	 Math.sqrt(3) },
 				{-ASIN_ONE_THD,	 0,				 2*Math.PI/3,	 Math.PI/3,		 0,	-Math.sqrt(3) },
 				{-ASIN_ONE_THD,	 2*Math.PI/3,	-2*Math.PI/3,	 Math.PI,		 3, 0 },
@@ -382,23 +382,35 @@ public class Tetrahedral {
 		},
 		AUTHAGRAPH(4*Math.sqrt(3), 3, new double[][] { // |\/\/`| arrangement, vertex-centred
 				{-ASIN_ONE_THD, Math.PI,	 0,			 -Math.PI/2,-2*Math.sqrt(3)-.6096,  1.5 },
-				{-ASIN_ONE_THD,-Math.PI/3,-2*Math.PI/3, Math.PI/2,-Math.sqrt(3)-.6096,   -1.5 },
-				{ Math.PI/2,	0,			 0,	 -Math.PI/2, 0-.6096,			    1.5 },
-				{-ASIN_ONE_THD, Math.PI/3, 2*Math.PI/3, Math.PI/2, Math.sqrt(3)-.6096,   -1.5 },
+				{-ASIN_ONE_THD,-Math.PI/3,	-2*Math.PI/3, Math.PI/2,-Math.sqrt(3)-.6096,   -1.5 },
+				{ Math.PI/2,	0,			 0,			 -Math.PI/2, 0-.6096,			    1.5 },
+				{-ASIN_ONE_THD, Math.PI/3,	 2*Math.PI/3, Math.PI/2, Math.sqrt(3)-.6096,   -1.5 },
 				{-ASIN_ONE_THD, Math.PI,	 0,			 -Math.PI/2, 2*Math.sqrt(3)-.6096,  1.5 },
-				{-ASIN_ONE_THD,-Math.PI/3,-2*Math.PI/3, Math.PI/2, 3*Math.sqrt(3)-.6096, -1.5}}) {
+				{-ASIN_ONE_THD,-Math.PI/3,	-2*Math.PI/3, Math.PI/2, 3*Math.sqrt(3)-.6096, -1.5}}) {
 			@Override public double[] rotateOOB(double[] oob) {
 				return new double[] { (oob[0]+3*width/2)%width-width/2, oob[1] };
 			}
-		};
-		/*		  LATITUDE,	    LONGITUDE,	 STD_PRLL, PLANE_ROT,		 X,	 Y */
+		},
+		WATERMAN_5(-2*Math.sqrt(3), 2*Math.sqrt(3), -6, 2, new double[][] { // <vv> butterfly arrangement, W5 polyhedron
+				{ Math.PI/2,	 0,				-3*Math.PI/4,	-Math.PI,		 0,	 0 },
+				{ Math.PI/2,	 0,				-Math.PI/4,		-2*Math.PI/3,	 0,	 0 },
+				{ Math.PI/2,	 0,				 Math.PI/4,		-Math.PI/3,		 0,	 0 },
+				{ Math.PI/2,	 0,				 3*Math.PI/4,	 0,				 0,	 0 }});
+		/*		  LATITUDE,		 LONGITUDE,		 STD_PRLL,		 PLANE_ROT,		 X,	 Y */
 		
-		public final double width, height; //the width and height of a map with this configuration
+		public final double xMin, yMin, width, height; //the width and height of a map with this configuration
 		public final double[][] centrumSet; //the mathematical information about this configuration
 		
 		private Configuration(double width, double height, double[][] centrumSet) {
-			this.width = width;
-			this.height = height;
+			this(-width/2, width/2, -height/2, height/2, centrumSet);
+		}
+		
+		private Configuration(
+				double xMin, double xMax, double yMin, double yMax, double[][] centrumSet) {
+			this.xMin = xMin;
+			this.yMin = yMin;
+			this.width = xMax - xMin;
+			this.height = yMax - yMin;
 			this.centrumSet = centrumSet;
 		}
 		

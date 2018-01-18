@@ -29,9 +29,8 @@ import utils.Math2;
 import utils.NumericalAnalysis;
 
 /**
- * A truncated octohedral map. The projection is Cahill-Keyes, because out of it, Cahill, and Waterman,
- * it was by far the best-documented, and it's the newest of them so it's presumably best (not that
- * Tobler World in a Square wasn't invented after Lambert EAC).
+ * A truncated octohedral map. The projection is Cahill-Keyes, because it was invented after Cahill,
+ * so it is presumably better (not that Tobler World in a Square wasn't invented after Lambert EAC).
  * http://www.genekeyes.com/CKOG-OOo/7-CKOG-illus-&-coastline.html
  * 
  * @author jkunimune
@@ -41,7 +40,7 @@ public class CahillKeyes {
 	private static final double lMA = 940; //the distance from triangle vertex M to octant vertex A (the red length)
 	private static final double lMG = 10000; //the altitude of the triangle
 	private static final double lNG = lMG/Math.sqrt(3); //the height of the triangle
-	private static final double lENy = lMA*(Math.sqrt(3)+1)/Math.sqrt(8); //the height difference between the triangle and the octant
+	private static final double lENy = lMA*Math.sqrt(3)/2; //the height difference between the triangle and the octant
 	private static final double lMB = lMA*2/(Math.sqrt(3)-1); //the distance from triangle vertex M to octant vertex B (the blue length)
 	private static final double lGF = lMG/Math.sqrt(3) - lMB; //the distance from triangle vertex G to octant vertex F
 	private static final double lFE = lMA*Math.sqrt(2)/(Math.sqrt(3)-1); //the distance from octant vertex A to octant vertex B (the green length)
@@ -61,60 +60,15 @@ public class CahillKeyes {
 	private static final double TOLERANCE = 10; //this is a reasonable tolerance when you recall that we're operating on the order of 10,000 units
 	
 	
-	public static final Projection BUTTERFLY =
-			new Projection(
-					"Cahill-Keyes Butterfly", "An aesthetically pleasing octohedral map arrangement.",
-					4*lMG-2*lMA, 4*lNG-2*lENy, 0b1110, Type.TETRADECAHEDRAL, Property.COMPROMISE) {
-		
-		private final double OFFSET_Y = 10000/Math.sqrt(3);
-		
-		public double[] project(double lat, double lon) {
-			final double centralLon = Math.floor(lon/(Math.PI/2))*Math.PI/2 + Math.PI/4; //get the octant longitude
-			final double[] mjCoords = innerProjectD(
-					Math.toDegrees(Math.abs(lat)), Math.toDegrees(Math.abs(lon - centralLon)));
-			double mjX = mjCoords[0];
-			double mjY = mjCoords[1];
-			
-			if (lat < 0) //if it's in the souther hemisphere
-				mjX = 2*lMG - mjX; //flip it around
-			if (lon < centralLon) //if the relative longitude is negative
-				mjY = -mjY; //flip it the other way
-			return new double[] {
-					mjX*Math.sin(centralLon*2/3) + mjY*Math.cos(centralLon*2/3),
-					-mjX*Math.cos(centralLon*2/3) + mjY*Math.sin(centralLon*2/3) + OFFSET_Y };
-		}
-		
-		public double[] inverse(double x, double y) {
-			y -= OFFSET_Y;
-			double tht = Math.atan2(x, -y);
-			if (Math.abs(tht) > 5*Math.PI/6) 	return null; //only show a little bit of extra
-			
-			double quadrAngle = (Math.floor(tht/(Math.PI/3))+2)*Math.PI/3; //the angle of the centre of the quadrant, measured widdershins from -y
-			double centralLon = quadrAngle*1.5 - 3*Math.PI/4; //the central meridian of this quadrant
-			double mjX = -x*Math.cos(quadrAngle) - y*Math.sin(quadrAngle);
-			double mjY =  x*Math.sin(quadrAngle) - y*Math.cos(quadrAngle);
-			
-			double[] relCoords = innerInverseD(Math.min(mjX, 2*lMG-mjX), Math.abs(mjY));
-			if (relCoords == null)
-				return null;
-			
-			if (mjY < 0) 	relCoords[1] *= -1; //the left half of the octant gets shifted west
-			if (mjX > lMG) 	relCoords[0] *= -1; //the outer rim of the map is the southern hemisphere
-			return new double[] { Math.toRadians(relCoords[0]),
-					Math.toRadians(relCoords[1]) + centralLon };
-		}
-	};
-	
-	
 	public static final Projection M_MAP =
 			new Projection(
-					"Cahill-Keyes M-Profile", "A horizontally arranged octohedral map designed to end all maps.",
-					4*lMG, 3*lNG-2*lENy, 0b1110, Type.TETRADECAHEDRAL, Property.COMPROMISE) {
+					"Cahill-Keyes", "A horizontally arranged octohedral map designed to end all maps.",
+					4*lMG, 3*lNG-2*lENy, 0b1010, Type.TETRADECAHEDRAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
 			final int octantNum = (int)Math.floor(lon/(Math.PI/2));
 			final double centralLon = octantNum*Math.PI/2 + Math.PI/4; //get the octant longitude
-			final double[] mjCoords = innerProjectD(
+			final double[] mjCoords = faceProjectD(
 					Math.toDegrees(Math.abs(lat)), Math.toDegrees(Math.abs(lon - centralLon)));
 			double mjX = 10000 - mjCoords[0];
 			double mjY = mjCoords[1];
@@ -141,7 +95,7 @@ public class CahillKeyes {
 			double diagX = rotDirec*cosRot*(x-offsetX) + sinRot*y;
 			double diagY = sinRot*(x-offsetX) - rotDirec*cosRot*y;
 			
-			double[] relCoords = innerInverseD(lMG - Math.abs(diagX), Math.abs(diagY));
+			double[] relCoords = faceInverseD(lMG - Math.abs(diagX), Math.abs(diagY));
 			if (relCoords == null)
 				return null;
 			
@@ -156,19 +110,19 @@ public class CahillKeyes {
 	public static final Projection HALF_OCTANT = 
 			new Projection(
 					"Cahill-Keyes Half-Octant", "A single sixteenth of a Cahill-Keyes projection.",
-					lMG-lMA, lNG, 0b0111, Type.TETRADECAHEDRAL, Property.COMPROMISE) {
+					lMG-lMA, lNG, 0b0011, Type.TETRADECAHEDRAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
 			lat = Math.max(0, lat);
 			lon = Math.max(0, Math.min(Math.PI/4, lon));
-			final double[] mjCoords = innerProjectD(
+			final double[] mjCoords = faceProjectD(
 					Math2.round(Math.toDegrees(Math.abs(lat)),9), //I apply the round so that graticule lines exactly on the thing get done properly
 					Math2.round(Math.toDegrees(Math.abs(lon)),9));
 			return new double[] { mjCoords[0] - (lMG+lMA)/2, mjCoords[1] - lNG/2 };
 		}
 		
 		public double[] inverse(double x, double y) {
-			double[] coordsD = innerInverseD(x + (lMG+lMA)/2, y + lNG/2);
+			double[] coordsD = faceInverseD(x + (lMG+lMA)/2, y + lNG/2);
 			if (coordsD == null)
 				return null;
 			else
@@ -178,7 +132,7 @@ public class CahillKeyes {
 	
 	
 	
-	private static final double[] innerProjectD(double latD, double lonD) { //convert adjusted lat and lon in degrees to Mary Jo's coordinates
+	private static final double[] faceProjectD(double latD, double lonD) { //convert adjusted lat and lon in degrees to Mary Jo's coordinates
 		final double[][] mer = meridian(lonD);
 		
 		if (latD >= 75) { //zone c (frigid zone)
@@ -208,7 +162,7 @@ public class CahillKeyes {
 	}
 	
 	
-	private static final double[] innerInverseD(double x, double y) { //convert Mary Jo's coordinates to relative lat and lon in degrees
+	private static final double[] faceInverseD(double x, double y) { //convert Mary Jo's coordinates to relative lat and lon in degrees
 		if (y > x-lMA || y > x/Math.sqrt(3) || y > x*(2-Math.sqrt(3))+bDE ||
 				y > (lMG-x)*(2+Math.sqrt(3))+lGF || x > lMG) //this describes the footprint of the octant
 			return null;
