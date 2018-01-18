@@ -18,6 +18,9 @@ def obliquify(lat1, lon1, lat0, lon0):
 		lonf = lon0 + math.acos(innerFunc)
 	else:
 		lonf = lon0 - math.acos(innerFunc)
+
+	while lonf > math.pi:
+		lonf -= 2*math.pi
 		
 	return latf, lonf
 

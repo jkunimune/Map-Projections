@@ -9,16 +9,16 @@ ATH = math.atan(1/2)
 
 def plot_orthodrome(phi0, lam0, tht0):
 	points = []
-	for p in range(90, -90, -1):
+	for p in range(-90, 91):
 		points.append(obliquify(math.radians(p), tht0, phi0, lam0))
-	for p in range(-90, 90, 1):
-		points.append(obliquify(math.radians(p), tht0+math.pi, phi0, lam0))
-	plot(points)
+	plot(points, close=False)
 
 
 if __name__ == '__main__':
-	for l in range(0, 180, 36):
+	for l in range(-180, 180, 36):
 		plot_orthodrome(math.pi/2, 0, math.radians(l))
 	for l in range(0, 360, 72):
-		plot_orthodrome(ATH, math.radians(l), math.pi*.4)
-		plot_orthodrome(ATH, math.radians(l), math.pi*.8)
+		plot_orthodrome(ATH, math.radians(l), math.pi*0.2)
+		plot_orthodrome(ATH, math.radians(l), math.pi*0.4)
+		plot_orthodrome(ATH, math.radians(l), math.pi*1.2)
+		plot_orthodrome(ATH, math.radians(l), math.pi*1.4)
