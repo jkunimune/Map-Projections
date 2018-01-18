@@ -219,7 +219,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 	public void save(
 			List<Path> paths, double inWidth, double inHeight, File file,
 			DoubleConsumer tracker) throws IOException {
-		BufferedWriter out = new BufferedWriter(new FileWriter(file));
+		BufferedWriter out = new BufferedWriter(new FileWriter(file)); //TODO: change title ("Equirectangular->{}") and size
 		
 		double outWidth, outHeight;
 		if (this.width/this.height < inWidth/inHeight) {

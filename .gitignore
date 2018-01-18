@@ -1,6 +1,13 @@
-output/mymap.svg
-output/mymap.png
-output/myplots.png
+# Images
+/output/mymap.svg
+/output/mymap.png
+/output/myplots.png
+
+# Large data files from the internet
+/src/zupplemental/data/*
+
+# Freakin PyC files
+*.pyc
 
 # Windows image file caches
 Thumbs.db

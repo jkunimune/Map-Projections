@@ -83,7 +83,7 @@ public class ProjectionSelectionDialog extends Dialog<Projection> {
 		
 		menu.getSelectionModel().selectedItemProperty().addListener((observable, old, now) -> {
 				if (projMap.containsKey(now)) //selection callback to describe each projection
-					describe(projMap.get(now));
+					describe(projMap.get(now)); //TODO: get rid of this, let them select category headers
 				else if (now != null) {
 					now.setExpanded(!now.isExpanded());
 					Platform.runLater(() -> menu.getSelectionModel().select(old)); //prevent them from selecting headers

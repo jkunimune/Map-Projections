@@ -57,7 +57,7 @@ public abstract class Projection {
 	private final boolean continuous; //does a random continuous path cross outside of the map?
 	private final Type type; //the geometry of the projection
 	private final Property property; //what it is good for
-	
+	 //TODO: ratings
 	protected double width, height; //max(x)-min(x) and max(y)-min(y)
 	
 	
