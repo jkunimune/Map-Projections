@@ -38,7 +38,7 @@ import javafx.scene.layout.VBox;
 
 public class MapConfigurationDialog extends Dialog<Boolean> {
 
-	public final double DEF_SIZE = 1000;
+	public final double DEF_SIZE = 1500;
 	
 	
 	private final double defaultRatio;

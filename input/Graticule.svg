@@ -39,6 +39,7 @@
 	</desc>
 	<style>
 		.graticule {
+			fill:none;
 			stroke:#000000;
 			stroke-width:0.1;
 		}
@@ -52,11 +53,11 @@
 		}
 		.tropics {
 			stroke:#bf0000;
-			stroke-dasharray:1;
+			stroke-dasharray:2;
 		}
 		.circles {
 			stroke:#0000bf;
-			stroke-dasharray:1;
+			stroke-dasharray:2;
 		}
 	</style>
 	<g transform="matrix(1,0,0,-1,180,90)">

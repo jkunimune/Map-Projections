@@ -117,8 +117,12 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			
 			@Override
 			public void characters(char[] ch, int start, int length) {
-				for (int i = 0; i < length; i ++)
-					currentFormatString += ch[start+i];
+				for (int i = 0; i < length; i ++) {
+					if (ch[start+i] >= 128)
+						currentFormatString += "&#" + (int)ch[start+i] + ";";
+					else
+						currentFormatString += ch[start+i];
+				}
 			}
 			
 			@Override

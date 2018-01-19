@@ -50,6 +50,7 @@
 			stroke-miterlimit:4;
 		}
 		.graticule {
+			fill:none;
 			stroke:#000000;
 			stroke-width:0.1;
 		}

@@ -5,9 +5,9 @@ from helpers import obliquify, plot
 
 IND_NUM = 360
 # IND_RAD = math.radians(3.75)
-IND_RAD = 500/6371
+IND_RAD = 750/6371
 SPACING = 30
-ADJUST_SPACING = False
+ADJUST_SPACING = True
 
 
 def plot_indicatrix(phi0, lam0, r):

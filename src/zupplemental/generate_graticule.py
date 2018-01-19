@@ -1,9 +1,10 @@
 import math
 
 
-GRATICULE = 10
-INCLUDE_TROPICS = False
-ADJUST_POLES = False #set to True to reduce the number of meridians as you approach the pole
+GRATICULE = 15
+INCLUDE_TROPICS = True
+ADJUST_POLES = True #set to True to reduce the number of meridians as you approach the pole
+GRANULARITY = .25
 
 AXIAL_TILT = 23.43694
 ANTI_TILT = 66.56306
@@ -11,13 +12,13 @@ ANTI_TILT = 66.56306
 
 def plot_meridian(lamd, cut=0, clazz=None):
 	class_attr = 'class="{}" '.format(clazz) if clazz is not None else ''
-	tag = '\t\t\t<path {}d="M{},{}'.format(class_attr, lamd, cut-90) + 'v1'*(180-2*cut) + '" />'
+	tag = '\t\t\t<path {}d="M{},{}'.format(class_attr, lamd, cut-90) + 'v{}'.format(GRANULARITY)*round((180-2*cut)/GRANULARITY) + '" />'
 	print(tag)
 
 
 def plot_parallel(phid, cut=0, clazz=None):
 	class_attr = 'class="{}" '.format(clazz) if clazz is not None else ''
-	tag = '\t\t\t<path {}d="M{},{}'.format(class_attr, cut-180, phid) + 'h1'*(360-2*cut) + '" />'
+	tag = '\t\t\t<path {}d="M{},{}'.format(class_attr, cut-180, phid) + 'h{}'.format(GRANULARITY)*round((360-2*cut)/GRANULARITY) + '" />'
 	print(tag)
 
 
