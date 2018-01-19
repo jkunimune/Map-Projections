@@ -66,8 +66,9 @@ public class CahillKeyes {
 					4*lMG, 3*lNG-2*lENy, 0b1010, Type.TETRADECAHEDRAL, Property.COMPROMISE) {
 		
 		public double[] project(double lat, double lon) {
-			final int octantNum = (int)Math.floor(lon/(Math.PI/2));
-			final double centralLon = octantNum*Math.PI/2 + Math.PI/4; //get the octant longitude
+			int octantNum = (int)Math.floor(lon/(Math.PI/2));
+			if (lon == Math.PI) 	octantNum = 1; //a hack to fix a minor issue with the IDL
+			double centralLon = octantNum*Math.PI/2 + Math.PI/4; //get the octant longitude
 			final double[] mjCoords = faceProjectD(
 					Math.toDegrees(Math.abs(lat)), Math.toDegrees(Math.abs(lon - centralLon)));
 			double mjX = 10000 - mjCoords[0];
@@ -87,22 +88,26 @@ public class CahillKeyes {
 		}
 		
 		public double[] inverse(double x, double y) {
-			int quadrantNum = (int)Math.floor(x/lMG) + 2;
-			double offsetX = (quadrantNum - 1.5)*lMG; //quadrant center coordinates
-			double rotDirec = (quadrantNum%2 == 0) ? 1. : -1.;
-			double sinRot = Math.sqrt(0.75);
-			double cosRot = 0.5;
-			double diagX = rotDirec*cosRot*(x-offsetX) + sinRot*y;
-			double diagY = sinRot*(x-offsetX) - rotDirec*cosRot*y;
+			double side = Math.signum(x);
+			x = Math.abs(x) - lMG;
+			y -= 1.5*lNG;
+			double tht = Math.atan2(x, -y);
+			if (Math.abs(tht) > 5*Math.PI/6) 	return null; //only show a little bit of extra
 			
-			double[] relCoords = faceInverseD(lMG - Math.abs(diagX), Math.abs(diagY));
+			double quadrAngle = (Math.floor(tht/(Math.PI/3))+2)*Math.PI/3; //the angle of the centre of the quadrant, measured widdershins from -y
+			double centralLon = quadrAngle*1.5 - Math.PI/4; //the central meridian of this quadrant
+			if (centralLon < 0) 	return null;
+			double mjX = -x*Math.cos(quadrAngle) - y*Math.sin(quadrAngle);
+			double mjY =  x*Math.sin(quadrAngle) - y*Math.cos(quadrAngle);
+			
+			double[] relCoords = faceInverseD(Math.min(mjX, 2*lMG-mjX), Math.abs(mjY));
 			if (relCoords == null)
 				return null;
 			
-			if (diagY < 0) 	relCoords[1] *= -1; //the left half of the octant gets shifted west
-			if (diagX < 0) 	relCoords[0] *= -1; //the bottom half of the map is the southern hemisphere
-			return new double[] {Math.toRadians(relCoords[0]),
-					Math.toRadians(relCoords[1] + (quadrantNum-1.5)*90) };
+			if (mjY < 0) 	relCoords[1] *= -1; //the left half of the octant gets shifted west
+			if (mjX > lMG) 	relCoords[0] *= -1; //the outer rim of the map is the southern hemisphere
+			return new double[] {
+					Math.toRadians(relCoords[0]), (Math.toRadians(relCoords[1]) + centralLon)*side };
 		}
 	};
 	

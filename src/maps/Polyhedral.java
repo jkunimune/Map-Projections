@@ -390,12 +390,7 @@ public class Polyhedral {
 			@Override public double[] rotateOOB(double[] oob) {
 				return new double[] { (oob[0]+3*width/2)%width-width/2, oob[1] };
 			}
-		},
-		WATERMAN_5(-2*Math.sqrt(3), 2*Math.sqrt(3), -6, 2, new double[][] { // <vv> butterfly arrangement, W5 polyhedron
-				{ Math.PI/2,	 0,				-3*Math.PI/4,	-Math.PI,		 0,	 0 },
-				{ Math.PI/2,	 0,				-Math.PI/4,		-2*Math.PI/3,	 0,	 0 },
-				{ Math.PI/2,	 0,				 Math.PI/4,		-Math.PI/3,		 0,	 0 },
-				{ Math.PI/2,	 0,				 3*Math.PI/4,	 0,				 0,	 0 }});
+		};
 		/*		  LATITUDE,		 LONGITUDE,		 STD_PRLL,		 PLANE_ROT,		 X,	 Y */
 		
 		public final double xMin, yMin, width, height; //the width and height of a map with this configuration

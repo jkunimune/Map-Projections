@@ -91,7 +91,6 @@ public class Waterman {
 	};
 	
 	
-	
 	private static double[] faceProject(double lat, double lon) {
 		double[] yELD = jointHeights(lon);
 		double desirLength = Math2.linInterp(lat, Math.PI/2, 0, 0, totalLength(xELD, yELD));
