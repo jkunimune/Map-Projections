@@ -1,6 +1,4 @@
 package maps;
-import java.util.Arrays;
-
 import maps.Projection.Property;
 import maps.Projection.Type;
 import utils.Math2;
@@ -125,9 +123,9 @@ public class Waterman {
 		else { //the well-behaved part of the last segment?
 			longitude = y/Math2.linInterp(x, xELD[i-1], 2*Math.sqrt(3), dYdL[i-1], dYdL[i]);
 			if (longitude > lonDiag) { //the diagonal part of the last segment?
-				double a = dYdL[2]*dYdL[3]*sin15; //surprisingly, the equation is quadratic here
-				double b = (dYdL[3]*cos15-dYdL[2])*(1.5*Math.sqrt(3)-x) - dYdL[3]*sin15*y - Math.sqrt(3)/2*dYdL[2];
-				double c = Math.sqrt(3)/2*y - x + 1.5*Math.sqrt(3);
+				double a = dYdL[2]*dYdL[3]*sin15; //surprisingly, the equation becomes quadratic here
+				double b = (dYdL[3]*cos15-dYdL[2])*(1.5*Math.sqrt(3)-x) - dYdL[3]*sin15*y - dYdL[2]*(Math.sqrt(3)/2+dYdL[3]*lonDiag*sin15);
+				double c = (Math.sqrt(3)/2+dYdL[3]*lonDiag*sin15)*y + (1-dYdL[3]*lonDiag*cos15)*(1.5*Math.sqrt(3)-x);
 				longitude = (-b - Math.sqrt(b*b - 4*a*c))/(2*a);
 			}
 		}
