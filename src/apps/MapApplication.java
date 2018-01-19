@@ -107,7 +107,7 @@ public abstract class MapApplication extends Application {
 	private static final KeyCombination CTRL_ENTER = new KeyCodeCombination(KeyCode.ENTER, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	public static final Projection[] FEATURED_PROJECTIONS = {Cylindrical.MERCATOR,
+	public static final Projection[] FEATURED_PROJECTIONS = { Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Cylindrical.MERCATOR,
 			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL_STEREOGRAPHIC,
 			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
 			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,

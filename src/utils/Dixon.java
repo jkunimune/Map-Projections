@@ -37,24 +37,34 @@ import de.jtem.mfc.field.Complex;
  * @author jkunimune
  */
 public class Dixon {
-
+	
+	/**
+	 * One third of the period of a dixon sm or cm function
+	 */
+	public static double PERIOD_THIRD = 1.7666387503;
+	
+	private static final double[] COEF = { 1.000000e0, .625000e-1, .223214e-2, .069754e-3, .020121e-4,
+			.005539e-5/*, .001477e-6, .000385e-7, .000099e-8, .000025e-9*/ };
+	
 	private static final double TOLERANCE = 1e-3;
 	
 	
-	public static Complex leeFunc(Complex w) { //the 28th order McLaurin polynomial for 2sm(w/2)cm(w/2)
-		return w.plus(w.pow( 4).times(.625000e-1))
-				.plus( w.pow( 7).times(.223214e-2))
-				.plus(w.pow(10).times(.069754e-3))
-				.plus( w.pow(13).times(.020121e-4))
-				.plus(w.pow(16).times(.005539e-5));
-//				.plus( w.pow(19).times(.001477e-6))
-//				.plus(w.pow(22).times(.000385e-7))
-//				.plus( w.pow(25).times(.000099e-8))
-//				.plus(w.pow(28).times(.000025e-9));
+	/**
+	 * the 28th order McLaurin polynomial for 2sm(w/2)cm(w/2)
+	 */
+	public static Complex leeFunc(Complex w) {
+		Complex w3 = w.pow(3);
+		Complex sum = new Complex(0);
+		for (int i = COEF.length-1; i >= 0; i --)
+			sum = sum.times(w3).plus(COEF[i]);
+		return sum.times(w);
 	}
 	
 	
-	public static Complex invFunc(Complex z) { //the iterative algorithm specifically suggested by Lee
+	/**
+	 * the iterative algorithm specifically suggested by Lee for the inverse of 2sm(w/2)cm(w/2)
+	 */
+	public static Complex invFunc(Complex z) {
 		Complex wi;
 		Complex wf = z; // TODO: I hear there's a rad new algorithm in town that can do this in a heartbeat (hopefully orders of maginutde faster
 		

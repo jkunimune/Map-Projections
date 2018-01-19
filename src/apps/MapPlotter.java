@@ -76,7 +76,7 @@ public class MapPlotter extends Application {
 			Arbitrary.NATURAL_EARTH, Pseudocylindrical.KAVRAYSKIY_VII, Tobler.TOBLER };
 	private static final Projection[] PSEUDOAZM = { Lenticular.AITOFF,
 			MyProjections.PSEUDOSTEREOGRAPHIC };
-	private static final Projection[] TETRAHEDRAL = { Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
+	private static final Projection[] TETRAHEDRAL = { Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
 			Polyhedral.ACTUAUTHAGRAPH, Polyhedral.AUTHAGRAPH, Polyhedral.TETRAPOWER };
 	private static final Projection[] CHEATY = { Pseudocylindrical.LEMONS,
 			CahillKeyes.HALF_OCTANT };

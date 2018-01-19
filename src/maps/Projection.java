@@ -392,8 +392,12 @@ public abstract class Projection {
 			lon1 = lon0 - lonF - Math.PI;
 		else {
 			lon1 = Math.acos((Math.cos(lat0)*Math.sin(latF) - Math.sin(lat0)*Math.cos(latF)*Math.cos(lon0-lonF))/Math.cos(lat1))-Math.PI; // relative longitude
-			if (Double.isNaN(lon1))
-				lon1 = 0;
+			if (Double.isNaN(lon1)) {
+				if ((Math.cos(lon0-lonF) >= 0 && latF < lat0) || (Math.cos(lon0-lonF) < 0 && latF < -lat0))
+					lon1 = 0;
+				else
+					lon1 = -Math.PI;
+			}
 			else if (Math.sin(lonF - lon0) > 0) // it's a plus-or-minus arccos.
 				lon1 = -lon1;
 		}
