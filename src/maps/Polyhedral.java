@@ -24,6 +24,7 @@
 package maps;
 
 import maps.Projection.Property;
+import maps.Projection.Type;
 import utils.Dixon;
 import utils.Math2;
 import utils.NumericalAnalysis;
@@ -35,7 +36,9 @@ import utils.NumericalAnalysis;
  */
 public class Polyhedral {
 	
-	private static final double ASIN_ONE_THD = Math.asin(1/3.); //the complement of the angular radius of a face
+	private static final double ASIN_ONE_THD = Math.asin(1/3.); //the complement of the angular radius of a tetrahedron face
+	private static final double ATAN_ONE_HLF = Math.atan(1/2.); //the complement of the angular length of an icosahedron edge
+	
 	
 	public static final PolyhedralProjection LEE_TETRAHEDRAL_RECTANGULAR =
 			new PolyhedralProjection(
@@ -108,7 +111,7 @@ public class Polyhedral {
 		}
 		
 		@Override
-		public double[] inverse(double x, double y) {
+		public double[] inverse(double x, double y) { //because AuthaGraph needs its obliquity, and I didn't want to program that into the Configuration
 			return obliquifyPlnr(super.inverse(x, y), POLE);
 		}
 		
@@ -228,6 +231,40 @@ public class Polyhedral {
 	};
 	
 	
+	public static final Projection DYMAXION =
+			new PolyhedralProjection(
+					"Dymaxion", "A polyhedral projection that slices up the oceans as much as possible without slicing up any continents.",
+					0b1110, Configuration.DYMAXION, Property.COMPROMISE) {
+		
+		private final double[] POLE = {0.040158, -0.091549,-2.015269}; //I derived these numbers from [Robert Gray](http://www.rwgrayprojects.com/rbfnotes/maps/graymap4.html)
+		private final double X_0 = 0.75;
+		private final double Y_0 = -Math.sqrt(3)/4;
+		
+		@Override
+		public double[] project(double lat, double lon) { //apply a pole shift and Cartesian shift to Dymaxion
+			double[] coords = obliquifySphc(lat, lon, POLE);
+			coords = super.project(coords[0], coords[1]);
+			return new double[] {coords[0] + X_0, coords[1] + Y_0};
+		}
+		
+		@Override
+		public double[] inverse(double x, double y) { //because Dymaxion needs its obliquity, and I didn't want to program that into the Configuration
+			double[] coords = super.inverse(x - X_0, y - Y_0);
+			if (coords == null) 	return null;
+			return obliquifyPlnr(coords, POLE);
+		}
+		
+		public double[] faceProject(double lat, double lon) {
+			return new double[] {(Math.PI/2-lat)/1.1, lon*5/6};
+		}
+		
+		public double[] faceInverse(double r, double th) {
+			if (r > Math.sqrt(1/3.)) 	return null;
+			return new double[] {Math.PI/2-r*1.1, th*6/5};
+		}
+	};
+	
+	
 	
 	/**
 	 * A base for polyhedral Projections
@@ -242,21 +279,21 @@ public class Polyhedral {
 		public PolyhedralProjection(
 				String name, int fisc, Configuration config, Property property,
 				String adjective, String addendum) {
-			super(name, config.width, config.height, fisc, Type.TETRAHEDRAL, property,
+			super(name, config.width, config.height, fisc, config.type, property,
 					adjective, addendum);
 			this.configuration = config;
 		}
 		
 		public PolyhedralProjection(
 				String name, String description, int fisc, Configuration config, Property property) {
-			super(name, description, config.width, config.height, fisc, Type.TETRAHEDRAL, property);
+			super(name, description, config.width, config.height, fisc, config.type, property);
 			this.configuration = config;
 		}
 		
 		public PolyhedralProjection(
 				String name, String description, int fisc, Configuration config, Property property,
 				String[] paramNames, double[][] paramValues) {
-			super(name, description, config.width, config.height, fisc, Type.TETRAHEDRAL, property,
+			super(name, description, config.width, config.height, fisc, config.type, property,
 					paramNames, paramValues);
 			this.configuration = config;
 		}
@@ -268,20 +305,24 @@ public class Polyhedral {
 		
 		
 		public double[] project(double lat, double lon) {
+			final int numSym = configuration.sphereSym; //we're about to be using this variable a lot
 			double latR = Double.NEGATIVE_INFINITY;
 			double lonR = Double.NEGATIVE_INFINITY;
 			double[] centrum = null;
-			for (double[] testCentrum: configuration.centrumSet) {
+			for (double[] testCentrum: configuration.centrumSet) { //iterate through the centrums to see which goes here
 				final double[] relCoords = obliquifySphc(lat, lon, testCentrum);
-				if (relCoords[0] > latR || //pick the centrum that maxes out your latitude
-						(relCoords[0] == latR && Math.cos(relCoords[1]) > Math.cos(lonR))) { //or, in the event of a tie, the cosine of your longitude
+				if (testCentrum.length > 6) //if the centrum is long, then it contains longitude bounds
+					if (relCoords[1] < testCentrum[6]*Math.PI/numSym ||
+							relCoords[1] > testCentrum[7]*Math.PI/numSym)
+						continue; //ignore any longitudes not in the bounds described in [6:7]
+				
+				if (relCoords[0] > latR) { //pick the centrum that maxes out latitude
 					latR = relCoords[0];
 					lonR = relCoords[1];
 					centrum = testCentrum;
 				}
 			}
 			
-			final int numSym = configuration.sphereSym; //we're about to be using this variable a lot
 			final double lonRBase = Math.floor((lonR+Math.PI/numSym)/(2*Math.PI/numSym))
 					*(2*Math.PI/numSym); //because most face projections are periodic
 			
@@ -302,23 +343,29 @@ public class Polyhedral {
 		public double[] inverse(double x, double y) {
 			if (!configuration.inBounds(x, y)) 	return null;
 			
+			final int numSym = configuration.planarSym; //we'll be using this variable a lot soon
+			
 			double rM = Double.POSITIVE_INFINITY;
-			double[] centrum = null;
+			double[] centrum = null; //iterate to see which centrum we get
 			for (double[] testCentrum: configuration.centrumSet) {
 				final double rR = Math.hypot(x-testCentrum[4], y-testCentrum[5]);
-				if (rR < rM) {
+				if (rR < rM) { //pick the centrum that minimises r
 					rM = rR;
 					centrum = testCentrum;
 				}
 			}
 			
-			final int numSym = configuration.planarSym; //we'll be using this variable a lot soon
-			
 			final double th0 = centrum[3];
 			final double x0 = centrum[4];
 			final double y0 = centrum[5];
 			final double r = Math.hypot(x - x0, y - y0);
-			final double th = Math.atan2(y - y0, x - x0) - th0;
+			final double th = Math2.coerceAngle(Math.atan2(y - y0, x - x0) - th0);
+			
+			if (centrum.length > 6) { //if the centrum has extra values, they are angle bounds
+				if (th < centrum[6]*Math.PI/numSym || th > centrum[7]*Math.PI/numSym)
+					return null; //ignore any angles not in the bounds described in [6:7]
+			}
+			
 			final double thBase = Math.floor((th+Math.PI/numSym)/(2*Math.PI/numSym))
 					*(2*Math.PI/numSym); //because most face projections are periodic
 			
@@ -330,7 +377,7 @@ public class Polyhedral {
 			relCoords[1] = thBase*numSym/configuration.sphereSym + relCoords[1];
 			double[] absCoords = obliquifyPlnr(relCoords, centrum);
 			if (Math.abs(absCoords[1]) > Math.PI)
-				absCoords[1] = Math2.floorMod(absCoords[1]+Math.PI, 2*Math.PI) - Math.PI;
+				absCoords[1] = Math2.coerceAngle(absCoords[1]);
 			return absCoords;
 		}
 	}
@@ -344,24 +391,24 @@ public class Polyhedral {
 	 */
 	private static enum Configuration {
 		
-		/*		  LATITUDE,		 LONGITUDE,		 STD_PRLL,		 PLANE_ROT,		 X,	 Y */
-		TETRAHEDRON_WIDE_FACE(6, 2*Math.sqrt(3), 3, 3, new double[][] { // [<|>] arrangement, face-centred
-				{ ASIN_ONE_THD,	 Math.PI,		-2*Math.PI/3,	-2*Math.PI/3,	 2,	 Math.sqrt(3) },
-				{ ASIN_ONE_THD,	 Math.PI,		 2*Math.PI/3,	-Math.PI/3,		-2,	 Math.sqrt(3) },
-				{-Math.PI/2,	 0,				 2*Math.PI/3,	 2*Math.PI/3,	 2,	-Math.sqrt(3) },
-				{-Math.PI/2,	 0,				-2*Math.PI/3,	 Math.PI/3,		-2,	-Math.sqrt(3) },
-				{ ASIN_ONE_THD,	 Math.PI/3,		-2*Math.PI/3,	 Math.PI,		 1,	 0 },
-				{ ASIN_ONE_THD,	-Math.PI/3,		 2*Math.PI/3,	 0,				-1,	 0 }}),
-		TRIANGLE_FACE(4*Math.sqrt(3), 6, 3, 3, new double[][] { // \delta arrangement, like they are often published
-				{ ASIN_ONE_THD,	 Math.PI/3,		 0,				-5*Math.PI/6,	 Math.sqrt(3),	2 },
-				{ ASIN_ONE_THD,	-Math.PI/3,		 0,				-Math.PI/6,		-Math.sqrt(3),	2 },
-				{ ASIN_ONE_THD,	 Math.PI,		 0,				 Math.PI/2,		 0,			-1 },
-				{-Math.PI/2,	 0,				 0,				-Math.PI/2,		 0,			 1 }}) {
+		/*		  LATITUDE,		 LONGITUDE,		 CTR_MERID,		 PLANE_ROT,		 X,	 Y */
+		TETRAHEDRON_WIDE_FACE(3, 3, 6., 2*Math.sqrt(3), new double[][] { // [<|>] arrangement, face-centred
+				{ ASIN_ONE_THD,	 Math.PI,	-2*Math.PI/3,	-2*Math.PI/3,	 2,	 Math.sqrt(3),-1,2 },
+				{ ASIN_ONE_THD,	 Math.PI,	 2*Math.PI/3,	-Math.PI/3,		-2,	 Math.sqrt(3) },
+				{-Math.PI/2,	 0,			 2*Math.PI/3,	 2*Math.PI/3,	 2,	-Math.sqrt(3),-2,1 },
+				{-Math.PI/2,	 0,			-2*Math.PI/3,	 Math.PI/3,		-2,	-Math.sqrt(3) },
+				{ ASIN_ONE_THD,	 Math.PI/3,	-2*Math.PI/3,	 Math.PI,		 1,	 0 },
+				{ ASIN_ONE_THD,	-Math.PI/3,	 2*Math.PI/3,	 0,				-1,	 0 }}),
+		TRIANGLE_FACE(3, 3, 4*Math.sqrt(3), 6., new double[][] { // \delta arrangement, like they are often published
+				{ ASIN_ONE_THD,	 Math.PI/3,	 0,				-5*Math.PI/6,	 Math.sqrt(3),	2 },
+				{ ASIN_ONE_THD,	-Math.PI/3,	 0,				-Math.PI/6,		-Math.sqrt(3),	2 },
+				{ ASIN_ONE_THD,	 Math.PI,	 0,				 Math.PI/2,		 0,			-1 },
+				{-Math.PI/2,	 0,			 0,				-Math.PI/2,		 0,			 1 }}) {
 			@Override public boolean inBounds(double x, double y) {
 				return y > Math.sqrt(3)*Math.abs(x) - 3;
 			}
 		},
-		TETRAHEDRON_WIDE_VERTEX(6, 2*Math.sqrt(3), 3, 6, new double[][] { // [<|>] arrangement, vertex-centred
+		TETRAHEDRON_WIDE_VERTEX(3, 6, 6., 2*Math.sqrt(3), new double[][] { // [<|>] arrangement, vertex-centred
 				{ Math.PI/2,	 0,				 0,				-Math.PI/2,		 0,	 Math.sqrt(3) },
 				{-ASIN_ONE_THD,	 0,				 Math.PI,		 Math.PI/2,		 0,	-Math.sqrt(3) },
 				{-ASIN_ONE_THD,	 2*Math.PI/3,	 Math.PI,		 5*Math.PI/6,	 3,	 0 },
@@ -373,7 +420,7 @@ public class Polyhedral {
 					return new double[] {-x, height*Math.signum(y) - y};
 			}
 		},
-		AUTHAGRAPH(4*Math.sqrt(3), 3, 3, 6, new double[][] { // |\/\/`| arrangement, vertex-centred
+		AUTHAGRAPH(3, 6, 4*Math.sqrt(3), 3, new double[][] { // |\/\/`| arrangement, vertex-centred
 				{-ASIN_ONE_THD,	-Math.PI/3,		 Math.PI/3,	 0,	-Math.sqrt(3)-.6096,	-1.5 },
 				{ Math.PI/2,	 0,				 Math.PI,	 0,	 0-.6096,				 1.5 },
 				{-ASIN_ONE_THD,	 Math.PI/3,		-Math.PI/3,	 0,	 Math.sqrt(3)-.6096,	-1.5 },
@@ -387,25 +434,52 @@ public class Polyhedral {
 					x = Math2.floorMod(x+width/2,width)-width/2;
 				return new double[] {x, y};
 			}
-		};
-		/*		  LATITUDE,		 LONGITUDE,		 STD_PRLL,		 PLANE_ROT,		 X,	 Y */
-		
-		public final double width, height; //the width and height of a map with this configuration
+		},
+		DYMAXION(5, 6, 5.5, 1.5*Math.sqrt(3), new double[][] { // I can't draw this in ASCII. You know what "Dymaxion" means
+				{ Math.PI/2,    0.0,		-3*Math.PI/5,-Math.PI/2,  -1.5, Math.sqrt(3),  -3,3 }, //West Africa
+				{ Math.PI/2,    0.0,		 Math.PI/5,	 -Math.PI/2,   0.5, Math.sqrt(3),  -1,1 }, //Brazil
+				{ Math.PI/2,    0.0,		 3*Math.PI/5,-Math.PI/2,   1.5, Math.sqrt(3),  -1,1 }, //South Atlantic O.
+				{ ATAN_ONE_HLF,-4*Math.PI/5, 2*Math.PI/5,-Math.PI/6,  -2.0, Math.sqrt(3)/2,-5,5 }, //Arabia
+				{ ATAN_ONE_HLF,-2*Math.PI/5,-2*Math.PI/5,-5*Math.PI/6,-1.0, Math.sqrt(3)/2,-5,5 }, //Scandanavia
+				{ ATAN_ONE_HLF, 0.0,		 0.0,		 -Math.PI/2,   0.0, Math.sqrt(3)/2,-3,5 }, //Caribbean
+				{ ATAN_ONE_HLF, 0.0,		-4*Math.PI/5,-5*Math.PI/6,-0.5, Math.sqrt(3),  -1,1 }, //North Atlantic O.
+				{ ATAN_ONE_HLF, 2*Math.PI/5, 0.0,		 -Math.PI/2,   1.0, Math.sqrt(3)/2,-5,5 }, //Patagonia
+				{ ATAN_ONE_HLF, 4*Math.PI/5, 0.0,		 -Math.PI/2,   2.0, Math.sqrt(3)/2,-5,0 }, //East Antarctica
+				{ ATAN_ONE_HLF, 4*Math.PI/5, 0.0,		 -Math.PI/6,  -3.5, 0.0,		    0,1 }, //South Indian O.
+				{ ATAN_ONE_HLF, 4*Math.PI/5, 2*Math.PI/5,-Math.PI/6,  -3.0, Math.sqrt(3)/2,-1,1 }, //North Indian O.
+				{ ATAN_ONE_HLF, 4*Math.PI/5, 4*Math.PI/5,-Math.PI/6,  -2.5, Math.sqrt(3),  -1,1 }, //South Africa
+				{-ATAN_ONE_HLF,-Math.PI,	 Math.PI/5,  -Math.PI/6,  -2.5, 0.0,		   -5,5 }, //Australia
+				{-ATAN_ONE_HLF,-3*Math.PI/5, Math.PI,	  Math.PI/2,  -1.5, 0.0,		   -6,4 }, //China
+				{-ATAN_ONE_HLF,-Math.PI/5,	 Math.PI,	  Math.PI/2,  -0.5, 0.0,		   -5,5 }, //North America
+				{-ATAN_ONE_HLF, Math.PI/5,	-3*Math.PI/5, 5*Math.PI/6, 0.5, 0.0,		   -5,5 }, //East Pacific O.
+				{-ATAN_ONE_HLF, 3*Math.PI/5, Math.PI,	  Math.PI/2,   1.5, 0.0,		   -3,3 }, //West Antarctica
+				{-ATAN_ONE_HLF, 3*Math.PI/5,-Math.PI/5,   5*Math.PI/6, 1.0,-Math.sqrt(3)/2,-1,1 }, //South Pacific O.
+				{-ATAN_ONE_HLF, 3*Math.PI/5, Math.PI/5,   Math.PI/6,  -3.0,-Math.sqrt(3)/2,-1,1 }, //New Zealand
+				{-Math.PI/2,    0.0,		-Math.PI,	  Math.PI/2,   0.0,-Math.sqrt(3)/2,-3,1 }, //Hawai`i
+				{-Math.PI/2,    0.0,		-3*Math.PI/5, Math.PI/2,  -1.0,-Math.sqrt(3)/2,-1,2 }, //West Pacific O.
+				{-Math.PI/2,    0.0,		-Math.PI/5,	  Math.PI/2,  -2.0,-Math.sqrt(3)/2, 0,3 }}); //Melanesia
+		/*		  LATITUDE,	    LONGITUDE,	 CTR_MERID,	  PLANE_ROT,   X,   Y               RANGE */
 		public final int sphereSym, planarSym; //the numbers of symmetries in the two coordinate systems
+		public final double width, height; //the width and height of a map with this configuration
 		public final double[][] centrumSet; //the mathematical information about this configuration
+		public final Type type; //holds the number of faces
 		
-		private Configuration(double width, double height, int sphereSym, int planarSym, double[][] centrumSet) {
+		private Configuration(int sphereSym, int planarSym, double width, double height, double[][] centrumSet) {
 			this.width = width;
 			this.height = height;
 			this.sphereSym = sphereSym;
 			this.planarSym = planarSym;
 			this.centrumSet = centrumSet;
+			if (sphereSym == 3)
+				this.type = Type.TETRAHEDRAL;
+			else
+				this.type = Type.ICOSOHEDRAL;
 		}
 		
 		public double[] rotateOOB(double x, double y, double xCen, double yCen) { //move points that are out of bounds for project()
 			return new double[] {x, y}; //this method should be overridden by projections with weird geometry
 		}
 		
-		public boolean inBounds(double x, double y) {return true;}; //determine whether a point is in bounds for inverse()
+		public boolean inBounds(double x, double y) {return true;} //determine whether a point is in bounds for inverse()
 	}
 }

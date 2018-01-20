@@ -88,6 +88,11 @@ public class Math2 {
 	}
 	
 	
+	public static double coerceAngle(double ang) {
+		return floorMod(ang+Math.PI, 2*Math.PI) - Math.PI;
+	}
+	
+	
 	public static final double determ(double a, double b, double c, double d) {
 		return a*d - b*c;
 	}
@@ -193,14 +198,6 @@ public class Math2 {
 	
 	public static double cscd(double angdeg) {
 		return 1/Math.sin(Math.toRadians(angdeg));
-	}
-	
-	
-	public static double removeRoundErrorZeros(double d) { //this is a really specific function to deal with round-off error for doubles
-//		if (Math.abs(d) <= Math.pow(2, -53))
-//			return 0;
-//		else
-			return d;
 	}
 
 }

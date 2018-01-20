@@ -112,7 +112,7 @@ public class Misc {
 	};
 	
 	
-	public static final Projection HAMMER_RETROAZIMUTHAL =
+	public static final Projection HAMMER_RETROAZIMUTHAL = //TODO: I think I should have front and back versions, too
 			new Projection(
 					"Hammer Retroazimuthal", "The full version of a map where bearing and distance to a reference point is preserved.",
 					2*Math.PI, 2*Math.PI, 0b1110, Type.QUASIAZIMUTHAL, Property.RETROAZIMUTHAL,
@@ -213,7 +213,7 @@ public class Misc {
 			final double s1 = Math.signum(Math.sin(Math.acos(t1)-s0*Math.acos(t2)));
 			final double PHI = Math.asin(Math.sin(lat1)*Math.cos(d1) - Math.cos(lat1)*Math.sin(d1)*casab);
 			final double LAM = lon1 +s1* Math.acos((Math.cos(d1) - Math.sin(lat1)*Math.sin(PHI))/(Math.cos(lat1)*Math.cos(PHI)));
-			return new double[] { PHI, Math2.floorMod(LAM+Math.PI, 2*Math.PI) - Math.PI };
+			return new double[] { PHI, Math2.coerceAngle(LAM) };
 		}
 		
 		private double dist(double lat1, double lon1, double lat2, double lon2) {

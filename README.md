@@ -47,6 +47,7 @@ While I wrote all of the code in this repository myself, and I created several o
 * **Natural Earth** for [Pastel.png](http://www.naturalearthdata.com/downloads/50m-raster-data/50m-natural-earth-2/) and their [vector coastline data](http://www.naturalearthdata.com/downloads/50m-physical-vectors/),
 * **The Apache Commons** for their [complex mathematics code](https://commons.apache.org/proper/commons-math/),
 * **Technische Universit&auml;t Berlin** for their [complex mathematics code](http://www3.math.tu-berlin.de/jtem/ellipticFunctions/),
-* **Gene Keyes** for his [impressively in-depth and open documentation of his map projection](http://www.genekeyes.com/CKOG-OOo/7-CKOG-illus-&-coastline.html),
-* **AuthaGraph Co., Ltd.** for their [vague information about their map projection](http://www.authagraph.com/projects/description/%E3%80%90%E4%BD%9C%E5%93%81%E8%A7%A3%E8%AA%AC%E3%80%91%E8%A8%98%E4%BA%8B01/?lang=en), which inspired several of my own, and
+* **Gene Keyes** for his [impressively in-depth documentation of his map projection](http://www.genekeyes.com/CKOG-OOo/7-CKOG-illus-&-coastline.html),
+* **Robert Gray** for his [research on Buckminster Fuller's map projection](http://www.rwgrayprojects.com/rbfnotes/toc.html),
+* **AuthaGraph Co., Ltd.** for their [vague information about their map projection](http://www.authagraph.com/projects/description/%E3%80%90%E4%BD%9C%E5%93%81%E8%A7%A3%E8%AA%AC%E3%80%91%E8%A8%98%E4%BA%8B01/?lang=en), and
 * **Wikipedia** for their [substantial collection of map projection information and equations](https://en.wikipedia.org/wiki/List_of_map_projections).

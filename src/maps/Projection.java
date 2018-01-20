@@ -340,7 +340,7 @@ public abstract class Projection {
 	
 	
 	public double[] getDistortionAt(double[] s0) { //calculate both kinds of distortion at the given point
-		final double[] output = new double[2];
+		final double[] output = new double[2]; //TODO: avoid interruptions
 		final double dx = 1e-6;
 		
 		final double[] s1 = { s0[0], s0[1]+dx/Math.cos(s0[0]) }; //consider a point slightly to the east
@@ -403,7 +403,7 @@ public abstract class Projection {
 		}
 		lon1 = lon1-tht0;
 		if (Math.abs(lon1) > Math.PI) //put all longitudes in [-pi,pi], for convenience
-			lon1 = Math2.floorMod(lon1+Math.PI, 2*Math.PI) - Math.PI;
+			lon1 = Math2.coerceAngle(lon1);
 		
 		return new double[] {lat1, lon1};
 	}
@@ -442,7 +442,7 @@ public abstract class Projection {
 			lonf = lon0 - Math.acos(innerFunc);
 		
 		if (Math.abs(lonf) > Math.PI)
-			lonf = Math2.floorMod(lonf+Math.PI, 2*Math.PI) - Math.PI;
+			lonf = Math2.coerceAngle(lonf);
 		
 		double thtf = pole[2];
 		
@@ -566,7 +566,8 @@ public abstract class Projection {
 		PSEUDOCYLINDRICAL("Pseudocylindrical"), PSEUDOCONIC("Pseudoconic"),
 		PSEUDOAZIMUTHAL("Pseudoazimuthal"), QUASIAZIMUTHAL("Quasiazimuthal"),
 		TETRAHEDRAL("Tetrahedral"), TETRADECAHEDRAL("Truncated Octohedral"),
-		POLYNOMIAL("Polynomial"), STREBE("Strebe Blend"), PLANAR("Planar"), OTHER("Other");
+		ICOSOHEDRAL("Icosohedral"), POLYNOMIAL("Polynomial"), STREBE("Strebe Blend"),
+		PLANAR("Planar"), OTHER("Other");
 		
 		private String name;
 		

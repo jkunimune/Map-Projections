@@ -77,7 +77,7 @@ public class MyProjections {
 			Complex z = new Complex(x, y);
 			Complex ans = z.sin();
 			double p = 2 * Math.atan(ans.abs());
-			double theta = Math2.floorMod(ans.getArgument() + 3*Math.PI/2, 2*Math.PI) - Math.PI;
+			double theta = Math2.coerceAngle(ans.getArgument());
 			double lambda = Math.PI/2 - p;
 			if (x < -Math.PI/2)
 				return new double[] {lambda, theta-2*Math.PI};
