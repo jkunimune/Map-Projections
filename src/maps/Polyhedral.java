@@ -189,7 +189,7 @@ public class Polyhedral {
 			final double lon = NumericalAnalysis.newtonRaphsonApproximation(th, th*2,
 					(l) -> Math.atan((l - Math.asin(Math.sin(l)/Math.sqrt(3)))/Math.PI*Math.sqrt(12)),
 					(l) -> (1-1/Math.sqrt(1+2*Math.pow(Math.cos(l),-2)))/Math.sqrt(Math.pow(Math.PI,2)/12+Math.pow(l-Math.asin(Math.sin(l)/Math.sqrt(3)),2)),
-					.01);
+					1e-3);
 			final double p = Math.acos(1 - (R2-r02)/(3-r02)*(1-1/Math.sqrt(1+2*Math.pow(Math.cos(lon), -2))));
 			return new double[] { Math.PI/2 - p, lon };
 		}
@@ -343,12 +343,12 @@ public class Polyhedral {
 				}
 			}
 			
-			final double lonRBase = Math.floor((lonR+Math.PI/numSym)/(2*Math.PI/numSym))
+			final double lonR0 = Math.floor((lonR+Math.PI/numSym)/(2*Math.PI/numSym))
 					*(2*Math.PI/numSym); //because most face projections are periodic
 			
-			final double[] rth = faceProject(latR, lonR - lonRBase); //apply the projection to the relative coordinates
+			final double[] rth = faceProject(latR, lonR - lonR0); //apply the projection to the relative coordinates
 			final double r = rth[0];
-			final double th = rth[1] + centrum[3] + lonRBase*numSym/configuration.planarSym;
+			final double th = rth[1] + centrum[3] + lonR0*numSym/configuration.planarSym;
 			final double x0 = centrum[4];
 			final double y0 = centrum[5];
 			

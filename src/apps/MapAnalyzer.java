@@ -206,9 +206,9 @@ public class MapAnalyzer extends MapApplication {
 		
 		Platform.runLater(() -> {
 				sizeChart.getData().add(histogram(distortionG[0],
-						-LN_10, LN_10, 14, Math::exp));
+						-LN_10, LN_10, 20, Math::exp));
 				shapeChart.getData().add(histogram(distortionG[1],
-						   0.0, LN_10, 14, Math::exp));
+						   0.0, LN_10, 20, Math::exp));
 				
 				avgSizeDistort.setText(format(Math2.stdDev(distortionG[0])));
 				avgShapeDistort.setText(format(Math2.mean(distortionG[1])));

@@ -37,6 +37,7 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
@@ -66,7 +67,7 @@ import maps.WinkelTripel;
  */
 public class MapPlotter extends Application {
 
-	private static final double GLOBE_RES = .002;
+	private static final double GLOBE_RES = .005;
 	
 	private static final Projection[] CYLINDRICAL = { Cylindrical.MERCATOR,
 			Cylindrical.PLATE_CARREE, Cylindrical.GALL_ORTHOGRAPHIC, Cylindrical.BEHRMANN,
@@ -76,10 +77,10 @@ public class MapPlotter extends Application {
 			Arbitrary.NATURAL_EARTH, Pseudocylindrical.KAVRAYSKIY_VII, Tobler.TOBLER };
 	private static final Projection[] PSEUDOAZM = { Lenticular.AITOFF,
 			MyProjections.PSEUDOSTEREOGRAPHIC };
-	private static final Projection[] TETRAHEDRAL = { Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
+	private static final Projection[] TETRAHEDRAL = { Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
 			Polyhedral.ACTUAUTHAGRAPH, Polyhedral.AUTHAGRAPH, Polyhedral.TETRAPOWER };
 	private static final Projection[] CHEATY = { Pseudocylindrical.LEMONS,
-			CahillKeyes.HALF_OCTANT };
+			CahillKeyes.M_MAP, Polyhedral.DYMAXION };
 	private static final Projection[] OTHER = { Lenticular.VAN_DER_GRINTEN,
 			WinkelTripel.WINKEL_TRIPEL, Misc.PEIRCE_QUINCUNCIAL };
 	
@@ -97,8 +98,9 @@ public class MapPlotter extends Application {
 	public void start(Stage root) {
 		final ScatterChart<Number, Number> plot =
 				new ScatterChart<Number, Number>(
-				new NumberAxis("Size distortion", 0, 1.4, 0.2),
-				new NumberAxis("Shape distortion", 0, 0.8, 0.2));
+				new NumberAxis("Size distortion", 0, 1.2, 0.1),
+				new NumberAxis("Shape distortion", 0, 0.7, 0.1));
+		plot.setLegendSide(Side.RIGHT);
 		final AnchorPane overlay = new AnchorPane();
 		stack = new StackPane(plot, overlay);
 		

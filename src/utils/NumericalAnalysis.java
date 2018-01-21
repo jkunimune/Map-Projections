@@ -136,7 +136,7 @@ public class NumericalAnalysis {
 			double tolerance, double... constants) {
 		double x = x0;
 		double error = Double.POSITIVE_INFINITY;
-		for (int i = 0; i < 9 && error > tolerance; i ++) {
+		for (int i = 0; i < 8 && error > tolerance; i ++) {
 			error = f.evaluate(x, constants) - y;
 			final double dydx = dfdx.evaluate(x, constants);
 			x -= error/dydx;
@@ -202,7 +202,7 @@ public class NumericalAnalysis {
 		double lam = lam0;
 		double error = Math.PI;
 		
-		for (int i = 0; i < 6 && error > tolerance; i++) {
+		for (int i = 0; i < 8 && error > tolerance; i++) {
 			final double F1mx = f1.evaluate(phi, lam, constants) - x;
 			final double F2my = f2.evaluate(phi, lam, constants) - y;
 			final double dF1dP = df1dp.evaluate(phi, lam, constants);

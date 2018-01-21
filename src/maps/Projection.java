@@ -288,7 +288,7 @@ public abstract class Projection {
 	public static double[][][] globe(double dt) { //generate a matrix of coordinates based on the sphere
 		List<double[]> points = new ArrayList<double[]>();
 		for (double phi = -Math.PI/2+dt/2; phi < Math.PI/2; phi += dt) { // make sure phi is never exactly +-tau/4
-			for (double lam = -Math.PI; lam < Math.PI; lam += dt/Math.cos(phi)) {
+			for (double lam = -Math.PI+dt/Math.cos(phi)/2; lam < Math.PI; lam += dt/Math.cos(phi)) {
 				points.add(new double[] {phi, lam});
 			}
 		}
@@ -340,25 +340,26 @@ public abstract class Projection {
 	
 	
 	public double[] getDistortionAt(double[] s0) { //calculate both kinds of distortion at the given point
-		final double[] output = new double[2]; //TODO: avoid interruptions
-		final double dx = 1e-6;
+		final double[] output = new double[2];
+		final double dx = 1e-8;
 		
-		final double[] s1 = { s0[0], s0[1]+dx/Math.cos(s0[0]) }; //consider a point slightly to the east
-		final double[] s2 = { s0[0]+dx, s0[1] }; //and slightly to the north
-		final double[] p0 = project(s0);
-		final double[] p1 = project(s1);
-		final double[] p2 = project(s2);
+		final double[] sC = { s0[0]+dx, s0[1] }; //first, step to the side a bit to help us avoid interruptions
+		final double[] sE = { sC[0], sC[1]+dx/Math.cos(sC[0]) }; //consider a point slightly to the east
+		final double[] sN = { sC[0]+dx, sC[1] }; //and slightly to the north
+		final double[] pC = project(sC);
+		final double[] pE = project(sE);
+		final double[] pN = project(sN);
 		
 		final double dA = 
-				(p1[0]-p0[0])*(p2[1]-p0[1]) - (p1[1]-p0[1])*(p2[0]-p0[0]);
+				(pE[0]-pC[0])*(pN[1]-pC[1]) - (pE[1]-pC[1])*(pN[0]-pC[0]);
 		output[0] = Math.log(Math.abs(dA/(dx*dx))); //the zeroth output is the size (area) distortion
-		if (Math.abs(output[0]) > 20)
+		if (Math.abs(output[0]) > 25)
 			output[0] = Double.NaN; //discard outliers
 		
-		final double s1ps2 = Math.hypot((p1[0]-p0[0])+(p2[1]-p0[1]), (p1[1]-p0[1])-(p2[0]-p0[0]));
-		final double s1ms2 = Math.hypot((p1[0]-p0[0])-(p2[1]-p0[1]), (p1[1]-p0[1])+(p2[0]-p0[0]));
+		final double s1ps2 = Math.hypot((pE[0]-pC[0])+(pN[1]-pC[1]), (pE[1]-pC[1])-(pN[0]-pC[0]));
+		final double s1ms2 = Math.hypot((pE[0]-pC[0])-(pN[1]-pC[1]), (pE[1]-pC[1])+(pN[0]-pC[0]));
 		output[1] = Math.abs(Math.log(Math.abs((s1ps2-s1ms2)/(s1ps2+s1ms2)))); //the first output is the shape (angle) distortion
-		if (Math.abs(output[1]) > 20)
+		if (Math.abs(output[1]) > 25)
 			output[1] = Double.NaN; //discard outliers
 		
 		return output;
