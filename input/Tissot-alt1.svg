@@ -46,18 +46,19 @@
 			fill:#fefee4;
 			fill-rule:evenodd;
 			stroke:#0978ab;
-			stroke-width:0.04;
+			stroke-width:0.05;
 			stroke-miterlimit:4;
 		}
 		.graticule {
 			fill:none;
 			stroke:#000000;
-			stroke-width:0.04;
+			stroke-width:0.05;
 			stroke-miterlimit:4;
+			stroke-endcap:round;
 		}
 		.prime-m,
 		.equator {
-			stroke-width:0.08;
+			stroke-width:0.1;
 		}
 		.tissot {
 			fill:#ff4800;

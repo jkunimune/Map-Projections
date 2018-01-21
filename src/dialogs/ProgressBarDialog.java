@@ -48,10 +48,9 @@ public class ProgressBarDialog extends Dialog<Void> {
 		
 		this.bar = new ProgressBar();
 		this.bar.setPrefWidth(300);
-		this.bar.setTooltip(new Tooltip("Oh, did you want a cancel button? Well, TOO BAD."));
 		
 		this.words = new Label();
-		this.words.setMinWidth(40);
+		this.words.setMinWidth(50);
 		this.words.setAlignment(Pos.BASELINE_RIGHT);
 		
 		this.box = new HBox(5);
@@ -60,6 +59,7 @@ public class ProgressBarDialog extends Dialog<Void> {
 		pane.setHeaderText("Please wait.");
 		pane.getButtonTypes().addAll(new ButtonType[] { ButtonType.CLOSE });
 		((Button) pane.lookupButton(ButtonType.CLOSE)).setText("Run in background");	// you can't close it
+		((Button) pane.lookupButton(ButtonType.CLOSE)).setTooltip(new Tooltip("Oh, did you want a cancel button? Well, TOO BAD. Cancel buttons are hard."));
 		this.resetBar();
 		
 		this.setResultConverter((btn) -> {	// set the return value

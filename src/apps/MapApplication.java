@@ -98,8 +98,9 @@ public abstract class MapApplication extends Application {
 
 	protected static final int GUI_WIDTH = 350;
 	protected static final int IMG_WIDTH = 500;
-	protected static final int V_SPACE = 5;
-	protected static final int H_SPACE = 3;
+	protected static final int V_SPACE = 6;
+	protected static final int H_SPACE = 4;
+	protected static final int MARGIN = 10;
 	protected static final int SPINNER_WIDTH = 92;
 	
 	private static final KeyCombination CTRL_O = new KeyCodeCombination(KeyCode.O, KeyCodeCombination.CONTROL_DOWN);
@@ -266,7 +267,9 @@ public abstract class MapApplication extends Application {
 				}
 			});
 		
-		return new VBox(V_SPACE, new HBox(H_SPACE, label, projectionChooser), description);
+		HBox comboRow = new HBox(H_SPACE, label, projectionChooser);
+		comboRow.setAlignment(Pos.CENTER_LEFT);
+		return new VBox(V_SPACE, comboRow, description);
 	}
 	
 	

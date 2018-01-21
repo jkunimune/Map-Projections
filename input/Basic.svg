@@ -53,6 +53,7 @@
 			fill:none;
 			stroke:#000000;
 			stroke-width:0.1;
+			stroke-endcap:round;
 		}
 		.prime-m {
 			stroke:#000000;

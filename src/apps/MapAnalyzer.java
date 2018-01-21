@@ -123,10 +123,10 @@ public class MapAnalyzer extends MapApplication {
 				RASTER_TYPES[0], ()->true, this::calculateAndSaveMap);
 		final Button savePltBtn = buildSaveButton(true, "plots", RASTER_TYPES,
 				RASTER_TYPES[0], ()->true, this::calculateAndSavePlot);
-		final HBox buttons = new HBox(5, updateBtn, saveMapBtn, savePltBtn);
+		final HBox buttons = new HBox(H_SPACE, updateBtn, saveMapBtn, savePltBtn);
 		buttons.setAlignment(Pos.CENTER);
 		
-		final VBox layout = new VBox(5,
+		final VBox layout = new VBox(V_SPACE,
 				projectionSelector, parameterSelector, new Separator(),
 				optionPane, new Separator(), buttons, new Separator(), textDisplay);
 		layout.setAlignment(Pos.CENTER);
@@ -141,9 +141,9 @@ public class MapAnalyzer extends MapApplication {
 		
 		this.charts = buildDistortionHistograms();
 		
-		final HBox gui = new HBox(10, layout, pane, charts);
+		final HBox gui = new HBox(MARGIN, layout, pane, charts);
 		gui.setAlignment(Pos.CENTER);
-		StackPane.setMargin(gui, new Insets(10));
+		StackPane.setMargin(gui, new Insets(MARGIN));
 		
 		return gui;
 	}

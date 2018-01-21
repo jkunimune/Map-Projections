@@ -106,7 +106,7 @@ public class MapDesignerVector extends MapApplication {
 		this.saveBtn = buildSaveButton(true, "map", VECTOR_TYPES,
 				VECTOR_TYPES[0], ()->true, this::calculateAndSaveMap);
 		
-		final VBox layout = new VBox(5,
+		final VBox layout = new VBox(V_SPACE,
 				inputSelector, new Separator(), projectionSelector,
 				new Separator(), aspectSelector, parameterSelector,
 				new Separator(), saveBtn);
@@ -119,9 +119,9 @@ public class MapDesignerVector extends MapApplication {
 		pane.setMinWidth(IMG_WIDTH);
 		pane.setMinHeight(IMG_WIDTH);
 		
-		final HBox gui = new HBox(10, layout, pane);
+		final HBox gui = new HBox(MARGIN, layout, pane);
 		gui.setAlignment(Pos.CENTER);
-		StackPane.setMargin(gui, new Insets(10));
+		StackPane.setMargin(gui, new Insets(MARGIN));
 		
 		return gui;
 	}

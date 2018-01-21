@@ -144,9 +144,9 @@ public class MapDesignerRaster extends MapApplication {
 		pane.setMinWidth(IMG_WIDTH);
 		pane.setMinHeight(IMG_WIDTH);
 		
-		final HBox gui = new HBox(10, layout, pane);
+		final HBox gui = new HBox(MARGIN, layout, pane);
 		gui.setAlignment(Pos.CENTER);
-		StackPane.setMargin(gui, new Insets(10));
+		StackPane.setMargin(gui, new Insets(MARGIN));
 		
 		return gui;
 	}
