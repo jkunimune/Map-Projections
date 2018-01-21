@@ -233,12 +233,15 @@ public class Polyhedral {
 	
 	public static final Projection DYMAXION =
 			new PolyhedralProjection(
-					"Dymaxion", "A polyhedral projection that slices up the oceans as much as possible without slicing up any continents.",
+					"Dymaxion", "A polyhedral projection that slices up the oceans as much as possible without slicing up any landmasses.",
 					0b1110, Configuration.DYMAXION, Property.COMPROMISE) {
 		
 		private final double[] POLE = {0.040158, -0.091549,-2.015269}; //I derived these numbers from [Robert Gray](http://www.rwgrayprojects.com/rbfnotes/maps/graymap4.html)
 		private final double X_0 = 0.75;
 		private final double Y_0 = -Math.sqrt(3)/4;
+		
+		private final double sin36 = Math.sqrt(10-2*Math.sqrt(5))/4;
+		private final double cos36 = (1+Math.sqrt(5))/4;
 		
 		@Override
 		public double[] project(double lat, double lon) { //apply a pole shift and Cartesian shift to Dymaxion
@@ -255,12 +258,26 @@ public class Polyhedral {
 		}
 		
 		public double[] faceProject(double lat, double lon) {
-			return new double[] {(Math.PI/2-lat)/1.1, lon*5/6};
+			if (Math.abs(lon) > Math.PI/5) 	throw new IllegalArgumentException("That's not possible!");
+			double xG = Math.cos(lon)/Math.tan(lat)/cos36; //normalised gnomonic coordinates
+			double yG = Math.sin(lon)/Math.tan(lat)/sin36;
+			double a = Math.asin((xG+yG)/(2*Math.sqrt(1+xG*xG))) + Math.atan(xG); //angular distance up each side of the triangle
+			double b = Math.asin((xG-yG)/(2*Math.sqrt(1+xG*xG))) + Math.atan(xG);
+			double x = (a + b)/(2*Math.sqrt(3)); //final cartesian coordinates in radians
+			double y = (a - b)/2;
+			return new double[] {Math.hypot(x,y)/Math.atan(2), Math.atan2(y,x)}; //scale to fit to layout, where side length is 1
 		}
 		
 		public double[] faceInverse(double r, double th) {
-			if (r > Math.sqrt(1/3.)) 	return null;
-			return new double[] {Math.PI/2-r*1.1, th*6/5};
+			if (Math.abs(th) > Math.PI/6) 	throw new IllegalArgumentException("Wait, what?");
+			double x = r*Math.cos(th)*Math.atan(2); //cartesian coordinates in radians
+			double y = r*Math.sin(th)*Math.atan(2);
+			double a = Math.sqrt(3)*x + y; //angular distance up each side of the triangle
+			double b = Math.sqrt(3)*x - y;
+			double xG = cos36*(Math.sin(a) + Math.sin(b))/(1 + Math.cos(a) + Math.cos(b)); //unnormalised gnomonic coordinates
+			double yG = sin36*
+					(Math.sin(a) - Math.sin(b) + 2*Math.sin(a-b))/(1 + Math.cos(a) + Math.cos(b));
+			return new double[] {Math.atan(1/Math.hypot(xG, yG)), Math.atan2(yG, xG)}; //inverse gnomonic projection
 		}
 	};
 	
@@ -311,10 +328,13 @@ public class Polyhedral {
 			double[] centrum = null;
 			for (double[] testCentrum: configuration.centrumSet) { //iterate through the centrums to see which goes here
 				final double[] relCoords = obliquifySphc(lat, lon, testCentrum);
-				if (testCentrum.length > 6) //if the centrum is long, then it contains longitude bounds
-					if (relCoords[1] < testCentrum[6]*Math.PI/numSym ||
-							relCoords[1] > testCentrum[7]*Math.PI/numSym)
+				if (testCentrum.length > 6) { //if the centrum is long, then it contains longitude bounds
+					double minL = testCentrum[6]*Math.PI/numSym;
+					double maxL = testCentrum[7]*Math.PI/numSym;
+					relCoords[1] = Math2.floorMod(relCoords[1]-minL, 2*Math.PI) + minL;
+					if (relCoords[1] < minL || relCoords[1] > maxL)
 						continue; //ignore any longitudes not in the bounds described in [6:7]
+				}
 				
 				if (relCoords[0] > latR) { //pick the centrum that maxes out latitude
 					latR = relCoords[0];
@@ -444,7 +464,7 @@ public class Polyhedral {
 				{ ATAN_ONE_HLF, 0.0,		 0.0,		 -Math.PI/2,   0.0, Math.sqrt(3)/2,-3,5 }, //Caribbean
 				{ ATAN_ONE_HLF, 0.0,		-4*Math.PI/5,-5*Math.PI/6,-0.5, Math.sqrt(3),  -1,1 }, //North Atlantic O.
 				{ ATAN_ONE_HLF, 2*Math.PI/5, 0.0,		 -Math.PI/2,   1.0, Math.sqrt(3)/2,-5,5 }, //Patagonia
-				{ ATAN_ONE_HLF, 4*Math.PI/5, 0.0,		 -Math.PI/2,   2.0, Math.sqrt(3)/2,-5,0 }, //East Antarctica
+				{ ATAN_ONE_HLF, 4*Math.PI/5,-2*Math.PI/5,-5*Math.PI/6, 2.0, Math.sqrt(3)/2,-3,2 }, //East Antarctica
 				{ ATAN_ONE_HLF, 4*Math.PI/5, 0.0,		 -Math.PI/6,  -3.5, 0.0,		    0,1 }, //South Indian O.
 				{ ATAN_ONE_HLF, 4*Math.PI/5, 2*Math.PI/5,-Math.PI/6,  -3.0, Math.sqrt(3)/2,-1,1 }, //North Indian O.
 				{ ATAN_ONE_HLF, 4*Math.PI/5, 4*Math.PI/5,-Math.PI/6,  -2.5, Math.sqrt(3),  -1,1 }, //South Africa

@@ -107,7 +107,7 @@ public abstract class MapApplication extends Application {
 	private static final KeyCombination CTRL_ENTER = new KeyCodeCombination(KeyCode.ENTER, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	public static final Projection[] FEATURED_PROJECTIONS = { Polyhedral.DYMAXION, Cylindrical.MERCATOR,
+	public static final Projection[] FEATURED_PROJECTIONS = { Cylindrical.MERCATOR,
 			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL_STEREOGRAPHIC,
 			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
 			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
@@ -126,8 +126,9 @@ public abstract class MapApplication extends Application {
 			{ Azimuthal.EQUAL_AREA, Azimuthal.POLAR, Azimuthal.GNOMONIC, Azimuthal.ORTHOGRAPHIC,
 					Azimuthal.PERSPECTIVE, Azimuthal.STEREOGRAPHIC },
 			{ Conic.ALBERS, Conic.LAMBERT, Conic.EQUIDISTANT },
-			{ Polyhedral.AUTHAGRAPH, CahillKeyes.M_MAP, Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
-				Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR, Waterman.BUTTERFLY },
+			{ Polyhedral.AUTHAGRAPH, CahillKeyes.M_MAP, Polyhedral.DYMAXION,
+				Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
+				Waterman.BUTTERFLY },
 			{ Pseudocylindrical.ECKERT_IV, Pseudocylindrical.KAVRAYSKIY_VII,
 					Pseudocylindrical.MOLLWEIDE, Arbitrary.NATURAL_EARTH, Arbitrary.ROBINSON,
 					Pseudocylindrical.SINUSOIDAL, Tobler.TOBLER },
