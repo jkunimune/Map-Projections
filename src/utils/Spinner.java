@@ -35,8 +35,8 @@ public class Spinner<T> extends javafx.scene.control.Spinner<T> {
 	public Spinner() {
 		super();
 		this.focusedProperty().addListener((observable, prev, now) -> {
-			if (!now) //why I'm not allowed to call commitEditorText() is beyond me, since it clearly doesn't do that enough
-				this.increment(0); //was that so hard?
+			if (!now)
+				this.commitValue(); //was that so hard?
 		});
 	}
 	

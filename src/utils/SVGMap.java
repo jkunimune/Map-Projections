@@ -158,9 +158,13 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 					vbMinY = 0;
 				}
 				
-				AttributesImpl modAttrs = new AttributesImpl(attrs);
-				for (String qName: attrsToReplace.keySet())
-					modAttrs.setValue(modAttrs.getIndex(qName), attrsToReplace.get(qName));
+				AttributesImpl modAttrs = new AttributesImpl(attrs); //now insert the placeholders for the format string
+				for (String qName: attrsToReplace.keySet()) {
+					if (modAttrs.getIndex(qName) >= 0)
+						modAttrs.setValue(modAttrs.getIndex(qName), attrsToReplace.get(qName));
+					else
+						modAttrs.addAttribute("", "", qName, "", attrsToReplace.get(qName));
+				}
 				return modAttrs;
 			}
 			

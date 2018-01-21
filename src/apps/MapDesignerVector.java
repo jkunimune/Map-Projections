@@ -24,7 +24,6 @@
 package apps;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -73,7 +72,8 @@ public class MapDesignerVector extends MapApplication {
 	private static final FileChooser.ExtensionFilter[] VECTOR_TYPES = {
 			new FileChooser.ExtensionFilter("SVG", "*.svg") };
 	
-	private static final Map<String, String> ATTRIBUTE_PLACEHOLDERS = new HashMap<String, String>(); //attributes of the SVG object to change
+	private static final Map<String, String> ATTRIBUTE_PLACEHOLDERS = Map.of(
+			"width","hmxMLwhWHeqMA8Ba", "height","VlMBunXsmQUtmCw4", "viewBox","UrFo1q9niPDkKSNC"); //attributes of the SVG object to change
 	
 	private Node aspectSelector;
 	private Button saveBtn;
@@ -201,9 +201,9 @@ public class MapDesignerVector extends MapApplication {
 			outHeight = input.getSize();
 			outWidth = (int) (outHeight*proj.getAspectRatio());
 		}
-//		output = output.replace(ATTRIBUTE_PLACEHOLDERS.get("viewbox"), viewBoxStr);
-//		output = output.replace(ATTRIBUTE_PLACEHOLDERS.get("width"), Double.toString(outWidth));
-//		output = output.replace(ATTRIBUTE_PLACEHOLDERS.get("height"), Double.toString(outHeight));
+		output = output.replace(ATTRIBUTE_PLACEHOLDERS.get("viewBox"), viewBoxStr);
+		output = output.replace(ATTRIBUTE_PLACEHOLDERS.get("width"), Double.toString(outWidth));
+		output = output.replace(ATTRIBUTE_PLACEHOLDERS.get("height"), Double.toString(outHeight));
 		return output;
 	}
 	

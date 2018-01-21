@@ -90,17 +90,14 @@ public class MapConfigurationDialog extends Dialog<Boolean> {
 				if (!now) 	heightBox.increment(0);
 			});
 		
-		ObservableList<String> items = FXCollections.observableArrayList(
-				"None","Low","High");
+		ObservableList<String> items = FXCollections.observableArrayList("None","Low","High");
 		this.smoothBox = new ComboBox<String>(items);
 		this.smoothBox.setValue("Low");
 		this.smoothBox.setMaxWidth(Double.MAX_VALUE);
 		
 		this.gui = new VBox(20);
 		
-		pane.contentTextProperty().addListener((arg0) -> {	// set it to refresh the gui when... the content texts?
-				this.updateGUI();
-			});
+		pane.contentTextProperty().addListener((arg0) -> this.updateGUI());	// set it to refresh the gui when... the content texts?
 		this.setTitle("Save options");	// set the words on it
 		pane.setHeaderText("Please configure the final image");
 		pane.getButtonTypes().addAll(new ButtonType[] { ButtonType.OK, ButtonType.CANCEL });	// add buttons

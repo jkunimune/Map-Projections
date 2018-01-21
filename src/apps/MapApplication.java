@@ -96,12 +96,13 @@ import utils.Procedure;
  */
 public abstract class MapApplication extends Application {
 
-	protected static final int GUI_WIDTH = 350;
+	protected static final int GUI_WIDTH = 300;
 	protected static final int IMG_WIDTH = 500;
 	protected static final int V_SPACE = 6;
 	protected static final int H_SPACE = 4;
 	protected static final int MARGIN = 10;
-	protected static final int SPINNER_WIDTH = 92;
+	protected static final int COMBOBOX_WIDTH = 200;
+	protected static final int SPINNER_WIDTH = 80;
 	
 	private static final KeyCombination CTRL_O = new KeyCodeCombination(KeyCode.O, KeyCodeCombination.CONTROL_DOWN);
 	private static final KeyCombination CTRL_S = new KeyCodeCombination(KeyCode.S, KeyCodeCombination.CONTROL_DOWN);
@@ -146,9 +147,9 @@ public abstract class MapApplication extends Application {
 			"Jerusalem", "Point Nemo", "Longest Line", "Cylindrical", "Tetrahedral", "Antipode",
 			"Random" };
 	private static final double[][] ASPECT_VALS = { //the aspect presets (in degrees)
-			{ 90., 0.,  0.,  -4., 31.78, 48.88, -28.52,-35.,    57. },
-			{  0., 0., 90.,  65., 35.22, 56.61, 141.45,-13.61,-176. },
-			{  0., 0.,-90.,-147.,-35.,  -45.,    30.,  145.,   154. } };
+			{ 90., 0.,  0.,  -4., 31.78, 48.88, -28.52,  35.,   57. },
+			{  0., 0., 90.,  65., 35.22, 56.61, 141.45, 166.5,-175.5 },
+			{  0., 0.,-90.,-147.,-35.,  -45.,    30.,  -145.,  154. } };
 	
 	
 	final private String name;
@@ -249,7 +250,7 @@ public abstract class MapApplication extends Application {
 		projectionChooser =
 				new ComboBox<Projection>(FXCollections.observableArrayList(FEATURED_PROJECTIONS));
 		projectionChooser.getItems().add(Projection.NULL_PROJECTION);
-		projectionChooser.setPrefWidth(210);
+		projectionChooser.setPrefWidth(COMBOBOX_WIDTH);
 		
 		final Text description = new Text();
 		description.setWrappingWidth(GUI_WIDTH);
@@ -550,6 +551,7 @@ public abstract class MapApplication extends Application {
 		if (presetName.equals("Antipode")) {
 			sliders[0].setValue(-sliders[0].getValue());
 			sliders[1].setValue((sliders[1].getValue()+360)%360-180);
+			sliders[2].setValue(-sliders[2].getValue());
 		}
 		else if (presetName.equals("Random")) {
 			sliders[0].setValue(Math.toDegrees(Math.asin(Math.random()*2-1)));
