@@ -24,8 +24,10 @@
 package apps;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.DoubleConsumer;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -70,6 +72,8 @@ public class MapDesignerVector extends MapApplication {
 	
 	private static final FileChooser.ExtensionFilter[] VECTOR_TYPES = {
 			new FileChooser.ExtensionFilter("SVG", "*.svg") };
+	
+	private static final Map<String, String> ATTRIBUTE_PLACEHOLDERS = new HashMap<String, String>(); //attributes of the SVG object to change
 	
 	private Node aspectSelector;
 	private Button saveBtn;
@@ -131,7 +135,7 @@ public class MapDesignerVector extends MapApplication {
 		saveBtn.setDisable(true);
 		
 		try {
-			input = new SVGMap(file);
+			input = new SVGMap(file, ATTRIBUTE_PLACEHOLDERS);
 		} catch (IOException e) {
 			showError("File not found!",
 					"We couldn't find "+file.getAbsolutePath()+".");
@@ -158,7 +162,7 @@ public class MapDesignerVector extends MapApplication {
 	private void updateMap() {
 		loadParameters();
 		int maxVtx = this.getParamsChanging() ? FAST_MAX_VTX : DEF_MAX_VTX;
-		final Iterable<Path> transformed = map(input, input.size()/maxVtx+1, aspect.clone(), null);
+		final Iterable<Path> transformed = map(input, input.length()/maxVtx+1, aspect.clone(), null);
 		
 		if (this.getProjection().getWidth() > this.getProjection().getHeight()) {
 			viewer.setWidth(IMG_WIDTH);
@@ -176,8 +180,8 @@ public class MapDesignerVector extends MapApplication {
 		loadParameters();
 		final List<Path> transformed = map(input, 1, aspect.clone(), pBar::setProgress); //calculate
 		try {
-			final Projection proj = this.getProjection();
-			input.save(transformed, proj.getWidth(), proj.getHeight(), file, pBar::setProgress); //save
+			SVGMap altered = alterFormatting(input, this.getProjection());
+			altered.save(transformed, file, pBar::setProgress); //save
 		} catch (IOException e) {
 			showError("Failure!",
 					"Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
@@ -185,7 +189,26 @@ public class MapDesignerVector extends MapApplication {
 	}
 	
 	
-	public List<Path> map(SVGMap input, int step, double[] pole, DoubleConsumer tracker) {
+	private SVGMap alterFormatting(SVGMap input, Projection proj) { //change the formatting of the SVGMap to match the new projection
+		SVGMap output = input.replace("Equirectangular", proj.getName());
+		String viewBoxStr = -proj.getWidth()/2+" "+-proj.getHeight()/2+" "+proj.getWidth()+" "+proj.getHeight();
+		double outWidth, outHeight;
+		if (proj.getAspectRatio() > 1) {
+			outWidth = input.getSize();
+			outHeight = (int) (outWidth/proj.getAspectRatio());
+		}
+		else {
+			outHeight = input.getSize();
+			outWidth = (int) (outHeight*proj.getAspectRatio());
+		}
+//		output = output.replace(ATTRIBUTE_PLACEHOLDERS.get("viewbox"), viewBoxStr);
+//		output = output.replace(ATTRIBUTE_PLACEHOLDERS.get("width"), Double.toString(outWidth));
+//		output = output.replace(ATTRIBUTE_PLACEHOLDERS.get("height"), Double.toString(outHeight));
+		return output;
+	}
+	
+	
+	private List<Path> map(SVGMap input, int step, double[] pole, DoubleConsumer tracker) {
 		List<Path> output = new LinkedList<Path>();
 		int i = 0;
 		for (Path path0: input) {

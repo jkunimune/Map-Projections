@@ -31,10 +31,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 import java.util.function.DoubleConsumer;
 
@@ -45,6 +45,7 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
@@ -54,16 +55,17 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class SVGMap implements Iterable<SVGMap.Path> {
 	
-	public double[] NULL_TRANSFORM = {1, 1, 0, 0};
+	public static final double[] NULL_TRANSFORM = {1, 1, 0, 0};
 	
 	private List<Path> paths; //the set of closed curves in this image
 	private List<String> format; //the stuff that goes between the curve descriptions, probably important for something.
-	private double minX, minY, width, height; //the SVG viewBox
-	private int size; //the total number of path commands, for optimization purposes
+	private double vbMinX, vbMinY, vbWidth, vbHeight; //the SVG viewBox
+	private double size; //the actual SVG size (max dimension)
+	private int length; //the total number of path commands, for optimization purposes
 	
 	
 	
-	public SVGMap(File file) throws IOException, SAXException, ParserConfigurationException {
+	public SVGMap(File file, Map<String, String> importantAttributes) throws IOException, SAXException, ParserConfigurationException {
 		paths = new LinkedList<Path>();
 		format = new LinkedList<String>();
 		
@@ -98,7 +100,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 				}
 				
 				if (qName.equals("svg")) {
-					parseViewBox(attributes);
+					parseViewBox(attributes, importantAttributes);
 				}
 				
 				for (int i = 0; i < attributes.getLength(); i ++)
@@ -130,20 +132,36 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 				format.add(currentFormatString);
 			}
 			
-			private void parseViewBox(Attributes attrs) {
+			private Attributes parseViewBox(Attributes attrs, Map<String, String> attrsToReplace) {
+				double width, height;
+				if (attrs.getValue("width") != null)
+					width = Double.parseDouble(attrs.getValue("width"));
+				else
+					width = 360.;
+				if (attrs.getValue("height") != null)
+					height = Double.parseDouble(attrs.getValue("height"));
+				else
+					height =  180.;
+				size = Math.max(width, height);
+				
 				if (attrs.getValue("viewBox") != null) {
 					String[] values = attrs.getValue("viewBox").split("\\s", 4);
-					minX = Double.parseDouble(values[0]);
-					minY = Double.parseDouble(values[1]);
-					width = Double.parseDouble(values[2]);
-					height = Double.parseDouble(values[3]);
+					vbMinX = Double.parseDouble(values[0]);
+					vbMinY = Double.parseDouble(values[1]);
+					vbWidth = Double.parseDouble(values[2]);
+					vbHeight = Double.parseDouble(values[3]);
 				}
 				else {
-					width = Double.parseDouble(attrs.getValue("width"));
-					height = Double.parseDouble(attrs.getValue("height"));
-					minX = 0;
-					minY = 0;
+					vbWidth = width;
+					vbHeight = Double.parseDouble(attrs.getValue("height"));
+					vbMinX = 0;
+					vbMinY = 0;
 				}
+				
+				AttributesImpl modAttrs = new AttributesImpl(attrs);
+				for (String qName: attrsToReplace.keySet())
+					modAttrs.setValue(modAttrs.getIndex(qName), attrsToReplace.get(qName));
+				return modAttrs;
 			}
 			
 			private void parseTransform() {
@@ -193,9 +211,9 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			private void parsePath(String d) throws Exception {
 				currentFormatString += " d=\"";
 				format.add(currentFormatString);
-				paths.add(new Path(d, transformStack.peek(), minX, minY, width, height));
+				paths.add(new Path(d, transformStack.peek(), vbMinX, vbMinY, vbWidth, vbHeight));
 				currentFormatString = "\"";
-				size += paths.get(paths.size()-1).size();
+				length += paths.get(paths.size()-1).size();
 			}
 		};
 		
@@ -203,9 +221,21 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 	}
 	
 	
+	private SVGMap(List<Path> paths, List<String> format, double minX, double minY, double width,
+			double height, int size) {
+		this.paths = paths;
+		this.format = format;
+		this.vbMinX = minX;
+		this.vbMinY = minY;
+		this.vbWidth = width;
+		this.vbHeight = height;
+		this.length = size;
+	}
 	
-	public int size() {
-		return this.size;
+	
+	
+	public int length() {
+		return this.length;
 	}
 	
 	
@@ -220,33 +250,36 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 	}
 	
 	
-	public void save(
-			List<Path> paths, double inWidth, double inHeight, File file,
-			DoubleConsumer tracker) throws IOException {
+	/**
+	 * @return the result of replacing all instances of target in the format strings
+	 */
+	public SVGMap replace(CharSequence target, CharSequence replacement) {
+		List<String> newFormat = new LinkedList<String>();
+		for (String f: this.format)
+			newFormat.add(f.replace(target, replacement));
+		return new SVGMap(paths, newFormat, vbMinX, vbMinY, vbWidth, vbHeight, length);
+	}
+	
+	
+	public void save(List<Path> paths, File file, DoubleConsumer tracker) throws IOException {
 		BufferedWriter out = new BufferedWriter(new FileWriter(file)); //TODO: change title ("Equirectangular->{}") and size
-		
-		double outWidth, outHeight;
-		if (this.width/this.height < inWidth/inHeight) {
-			outWidth = this.width;
-			outHeight = inHeight/inWidth*this.width;
-		}
-		else {
-			outWidth = inWidth/inHeight*this.height;
-			outHeight = this.height;
-		}
 		
 		int i = 0;
 		final Iterator<String> formatIterator = format.iterator();
 		final Iterator<Path> curveIterator = paths.iterator();
 		while (curveIterator.hasNext()) {
 			out.write(formatIterator.next());
-			out.write(curveIterator.next().toString(
-					inWidth, inHeight, minX, minY, outWidth, outHeight));
+			out.write(curveIterator.next().toString());
 			tracker.accept((double)i/paths.size());
 			i ++;
 		}
 		out.write(formatIterator.next());
 		out.close();
+	}
+	
+	
+	public double getSize() {
+		return size;
 	}
 	
 	
@@ -331,8 +364,6 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 						args[j] = Math2.linInterp(args[j], vbMinY+vbHeight, vbMinY, //keep in mind that these are paired longitude-latitude
 								-Math.PI/2, Math.PI/2); //not latitude-longitude, as they are elsewhere
 					}
-					if (!Double.isFinite(args[j]))
-						throw new IllegalArgumentException("hey! "+type+Arrays.toString(args));
 				}
 				
 				this.add(new Command(type, args));
@@ -346,14 +377,9 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		}
 		
 		public String toString() {
-			return this.toString(2, 2, -1, -1, 2, 2);
-		}
-		
-		public String toString(double inWidth, double inHeight,
-				double minX, double minY, double outWidth, double outHeight) {
 			String s = "";
 			for (Command c: this)
-				s += c.toString(inWidth, inHeight, minX, minY, outWidth, outHeight)+" ";
+				s += c.toString()+" ";
 			return s;
 		}
 	}
@@ -373,17 +399,12 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		}
 		
 		public String toString() {
-			return this.toString(2, 2, -1, -1, 2, 2);
-		}
-		
-		public String toString(double inWidth, double inHeight,
-				double minX, double minY, double outWidth, double outHeight) {
 			String s = type+" ";
 			for (int i = 0; i < args.length; i ++) {
 				if (i%2 == 0)
-					s += Math2.linInterp(args[0],-inWidth/2, inWidth/2, minX, minX+outWidth)+",";
+					s += args[0]+",";
 				else
-					s += Math2.linInterp(args[1],-inHeight/2, inHeight/2, minY+outHeight, minY)+",";
+					s += args[1]+",";
 			}
 			return s.substring(0, s.length()-1);
 		}
