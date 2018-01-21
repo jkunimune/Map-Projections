@@ -243,8 +243,8 @@ public class MapDesignerVector extends MapApplication {
 				case 'L':
 				case 'T':
 					for (int i = 0; i < args.length; i += 2)
-						if (Math.hypot(args[i+0]-lastX, args[i+1]-lastY) < IMG_WIDTH/6) // break lines that are too long
-							g.lineTo(args[i+0], args[i+1]);
+						if (Math.hypot(args[i+0]-lastX, args[i+1]-lastY) < IMG_WIDTH/4) // break lines that are too long
+							g.lineTo(args[i+0], args[i+1]); //TODO: I really need to actually look for interruptions or something
 						else
 							g.moveTo(args[i+0], args[i+1]);
 					break;
@@ -259,7 +259,7 @@ public class MapDesignerVector extends MapApplication {
 								args[i+0], args[i+1], args[i+2], args[i+3], args[i+4], args[i+5]);
 					break;
 				case 'Z':
-					if (Math.hypot(startX-lastX, startY-lastY) < IMG_WIDTH/6)
+					if (Math.hypot(startX-lastX, startY-lastY) < IMG_WIDTH/4)
 						g.lineTo(startX, startY);
 					break;
 				default:

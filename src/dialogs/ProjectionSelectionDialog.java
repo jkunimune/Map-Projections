@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import apps.MapApplication;
-import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
@@ -83,10 +82,9 @@ public class ProjectionSelectionDialog extends Dialog<Projection> {
 		
 		menu.getSelectionModel().selectedItemProperty().addListener((observable, old, now) -> {
 				if (projMap.containsKey(now)) //selection callback to describe each projection
-					describe(projMap.get(now)); //TODO: get rid of this, let them select category headers
+					describe(projMap.get(now));
 				else if (now != null) {
-					now.setExpanded(!now.isExpanded());
-					Platform.runLater(() -> menu.getSelectionModel().select(old)); //prevent them from selecting headers
+					describe(null);
 				}
 			});
 		menu.setCellFactory((tView) -> { //factoring cells to detect double-clicks
@@ -130,6 +128,12 @@ public class ProjectionSelectionDialog extends Dialog<Projection> {
 	
 	
 	private void describe(Projection p) {
+		if (p == null) {
+			flow.getChildren().clear();
+			text.getChildren().clear();
+			return;
+		}
+		
 		final Text head = new Text(p.getName()+"\n");
 		head.setFont(Font.font(head.getFont().getFamily(), FontWeight.BOLD, 18));
 		final Text body = new Text(p.getDescription());

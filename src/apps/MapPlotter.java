@@ -98,7 +98,7 @@ public class MapPlotter extends Application {
 	public void start(Stage root) {
 		final ScatterChart<Number, Number> plot =
 				new ScatterChart<Number, Number>(
-				new NumberAxis("Size distortion", 0, 1.2, 0.1),
+				new NumberAxis("Size distortion", 0, 1.1, 0.1),
 				new NumberAxis("Shape distortion", 0, 0.7, 0.1));
 		plot.setLegendSide(Side.RIGHT);
 		final AnchorPane overlay = new AnchorPane();

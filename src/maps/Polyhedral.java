@@ -164,7 +164,7 @@ public class Polyhedral {
 	};
 	
 	
-	public static final PolyhedralProjection ACTUAUTHAGRAPH =
+	public static final PolyhedralProjection ACTUAUTHAGRAPH = //TODO: I hate to do this to myself, but I think I need to revamp this to have differently-shaped cutouts
 			new PolyhedralProjection(
 					"EquaHedral", "A holey authalic tetrahedral projection to put AuthaGraph to shame.",
 					0b1010, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.EQUAL_AREA,
@@ -258,7 +258,6 @@ public class Polyhedral {
 		}
 		
 		public double[] faceProject(double lat, double lon) {
-			if (Math.abs(lon) > Math.PI/5) 	throw new IllegalArgumentException("That's not possible!");
 			double xG = Math.cos(lon)/Math.tan(lat)/cos36; //normalised gnomonic coordinates
 			double yG = Math.sin(lon)/Math.tan(lat)/sin36;
 			double a = Math.asin((xG+yG)/(2*Math.sqrt(1+xG*xG))) + Math.atan(xG); //angular distance up each side of the triangle
