@@ -271,7 +271,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 	
 	public void save(List<Path> paths, File file, double inMinX, double inMaxY, double inWidth,
 			double inHeight, DoubleConsumer tracker) throws IOException {
-		BufferedWriter out = new BufferedWriter(new FileWriter(file)); //TODO: change title ("Equirectangular->{}") and size
+		BufferedWriter out = new BufferedWriter(new FileWriter(file));
 		
 		int i = 0;
 		final Iterator<String> formatIterator = format.iterator();

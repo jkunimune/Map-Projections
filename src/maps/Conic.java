@@ -62,8 +62,8 @@ public class Conic {
 				}
 			}
 			else {
-				this.width = Cylindrical.MERCATOR.getWidth(); //TODO: fix this; make it consistent
-				this.height = Cylindrical.MERCATOR.getHeight();
+				this.width = 2*Math.PI;
+				this.height = Math.max(6*Math.log(Math.tan(Math.PI/4+Math.abs(lat1)/2)), width);
 			}
 		}
 		

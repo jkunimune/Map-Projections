@@ -46,6 +46,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Slider;
@@ -53,6 +54,7 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.SpinnerValueFactory.DoubleSpinnerValueFactory;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.cell.ComboBoxListCell;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -68,6 +70,7 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.converter.DoubleStringConverter;
+import maps.Arbitrary;
 import maps.Azimuthal;
 import maps.CahillKeyes;
 import maps.Conic;
@@ -75,11 +78,10 @@ import maps.Cylindrical;
 import maps.Lenticular;
 import maps.Misc;
 import maps.MyProjections;
+import maps.Polyhedral;
 import maps.Projection;
 import maps.Pseudocylindrical;
-import maps.Arbitrary;
 import maps.Snyder;
-import maps.Polyhedral;
 import maps.Tobler;
 import maps.Waterman;
 import maps.WinkelTripel;
@@ -180,7 +182,7 @@ public abstract class MapApplication extends Application {
 		this.root.show();
 		
 		this.suppressListeners.set();
-		this.projectionChooser.setValue(FEATURED_PROJECTIONS[0]);;
+		this.projectionChooser.setValue(FEATURED_PROJECTIONS[0]);
 		this.suppressListeners.clear();
 	}
 	
@@ -256,7 +258,9 @@ public abstract class MapApplication extends Application {
 		description.setWrappingWidth(GUI_WIDTH);
 		
 		projectionChooser.valueProperty().addListener((observable, old, now) -> {
-			final boolean suppressedListeners = suppressListeners.isSet(); //save this value, because revealParameters()...
+				projectionChooser.setButtonCell(new ComboBoxListCell<Projection>()); //This makes it properly display values not in the featured list
+				
+				final boolean suppressedListeners = suppressListeners.isSet(); //save this value, because revealParameters()...
 				if (projectionChooser.getValue() == Projection.NULL_PROJECTION) {
 					chooseProjectionFromExpandedList(old); //<aside>NULL_PROJECTION is the "More..." button. It triggers the expanded list</aside>
 				}
