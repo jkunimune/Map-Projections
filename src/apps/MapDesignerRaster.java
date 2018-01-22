@@ -36,16 +36,13 @@ import javax.imageio.ImageIO;
 
 import dialogs.MapConfigurationDialog;
 import dialogs.ProgressBarDialog;
-import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.Separator;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -85,8 +82,7 @@ public class MapDesignerRaster extends MapApplication {
 	private static final float GRATICULE_WIDTH = 0.5f;
 	private static final Color GRATICULE_COLOR = Color.WHITE;
 	
-	private Node aspectSelector;
-	private Button updateBtn, saveMapBtn;
+	private Region aspectSelector;
 	private double[] aspect;
 	private Flag cropAtIDL;
 	private MutableDouble graticuleSpacing;
@@ -106,25 +102,25 @@ public class MapDesignerRaster extends MapApplication {
 	public void start(Stage root) {
 		super.start(root);
 		new Thread(() -> {
-			setInput(new File("input/Basic.png")); //TODO: this should cause the buttons to grey out
+			setInput(new File("input/Basic.png"));
 			updateMap();
 		}).start();
 	}
 	
 	
 	@Override
-	protected Node makeWidgets() {
+	protected Region makeWidgets() {
 		this.aspect = new double[3];
 		this.cropAtIDL = new Flag(false);
 		this.graticuleSpacing = new MutableDouble(15);
-		final Node inputSelector = buildInputSelector(READABLE_TYPES,
+		final Region inputSelector = buildInputSelector(READABLE_TYPES,
 				RASTER_TYPES[0], this::setInput);
-		final Node projectionSelector = buildProjectionSelector(this::hideAspect);
+		final Region projectionSelector = buildProjectionSelector(this::hideAspect);
 		this.aspectSelector = buildAspectSelector(this.aspect, Procedure.NONE);
-		final Node parameterSelector = buildParameterSelector(Procedure.NONE);
-		final Node optionPane = buildOptionPane(cropAtIDL, graticuleSpacing);
-		this.updateBtn = buildUpdateButton(this::updateMap);
-		this.saveMapBtn = buildSaveButton(true, "map", RASTER_TYPES,
+		final Region parameterSelector = buildParameterSelector(Procedure.NONE);
+		final Region optionPane = buildOptionPane(cropAtIDL, graticuleSpacing);
+		final Region updateBtn = buildUpdateButton("Update Map", this::updateMap);
+		final Region saveMapBtn = buildSaveButton(true, "map", RASTER_TYPES,
 				RASTER_TYPES[0], this::collectFinalSettings, this::calculateAndSaveMap);
 		final HBox buttons = new HBox(H_SPACE, updateBtn, saveMapBtn);
 		buttons.setAlignment(Pos.CENTER);
@@ -153,19 +149,15 @@ public class MapDesignerRaster extends MapApplication {
 	
 	
 	private void setInput(File file) {
-		updateBtn.setDisable(true);
-		saveMapBtn.setDisable(true);
+		disable(ButtonType.LOAD_INPUT, ButtonType.UPDATE_MAP, ButtonType.SAVE_MAP);
 		
 		try {
 			input = new PixelMap(file);
 		} catch (IOException e) {
-			final Alert alert = new Alert(Alert.AlertType.ERROR);
-			alert.setHeaderText("File not found!");
-			alert.setContentText("Couldn't find "+file.getAbsolutePath()+".");
-			Platform.runLater(alert::showAndWait);
+			showError("File not found!",
+					"Couldn't find "+file.getAbsolutePath()+".");
 		} finally {
-			updateBtn.setDisable(false);
-			saveMapBtn.setDisable(false);
+			enable(ButtonType.LOAD_INPUT, ButtonType.UPDATE_MAP, ButtonType.SAVE_MAP);
 		}
 	}
 	
@@ -176,8 +168,10 @@ public class MapDesignerRaster extends MapApplication {
 	
 	
 	private void updateMap() {
+		disable(ButtonType.UPDATE_MAP, ButtonType.SAVE_MAP);
 		loadParameters();
 		display.setImage(SwingFXUtils.toFXImage(makeImage(), null));
+		enable(ButtonType.UPDATE_MAP, ButtonType.SAVE_MAP);
 	}
 	
 	
@@ -191,6 +185,8 @@ public class MapDesignerRaster extends MapApplication {
 	
 	
 	private void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
+		disable(ButtonType.SAVE_MAP);
+		
 		final int[] outDims = configDialog.getDims();
 		final int smoothing = configDialog.getSmoothing();
 		BufferedImage theMap = makeImage(outDims[0], outDims[1], smoothing, pBar); //calculate
@@ -204,6 +200,8 @@ public class MapDesignerRaster extends MapApplication {
 		} catch (IOException e) {
 			showError("Failure!",
 					"Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
+		} finally {
+			enable(ButtonType.SAVE_MAP);
 		}
 		display.setImage(SwingFXUtils.toFXImage(theMap, null));
 	}

@@ -35,12 +35,11 @@ import org.xml.sax.SAXException;
 import dialogs.ProgressBarDialog;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
 import javafx.scene.control.Separator;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -71,8 +70,7 @@ public class MapDesignerVector extends MapApplication {
 	private static final FileChooser.ExtensionFilter[] VECTOR_TYPES = {
 			new FileChooser.ExtensionFilter("SVG", "*.svg") };
 	
-	private Node aspectSelector;
-	private Button saveBtn;
+	private Region aspectSelector;
 	private double[] aspect;
 	private SVGMap input;
 	private Canvas viewer;
@@ -87,23 +85,26 @@ public class MapDesignerVector extends MapApplication {
 	
 	@Override
 	public void start(Stage root) {
+		System.out.println("Check 0"); //these are for tracking down that rare BufferOverflowException
 		super.start(root);
+		System.out.println("Check 1");
 		new Thread(() -> {
-			setInput(new File("input/Basic.svg")); //this automatically updates the map//TODO: this should cause the buttons to grey out
+			setInput(new File("input/Basic.svg")); //this automatically updates the map
 		}).start();
+		System.out.println("Check 2");
 	}
 	
 	
 	@Override
-	protected Node makeWidgets() {
+	protected Region makeWidgets() {
 		this.aspect = new double[3];
-		final Node inputSelector = buildInputSelector(VECTOR_TYPES,
+		final Region inputSelector = buildInputSelector(VECTOR_TYPES,
 				VECTOR_TYPES[0], this::setInput);
-		final Node projectionSelector = buildProjectionSelector(
+		final Region projectionSelector = buildProjectionSelector(
 				Procedure.concat(this::updateMap, this::hideAspect));
 		this.aspectSelector = buildAspectSelector(this.aspect, this::updateMap);
-		final Node parameterSelector = buildParameterSelector(this::updateMap);
-		this.saveBtn = buildSaveButton(true, "map", VECTOR_TYPES,
+		final Region parameterSelector = buildParameterSelector(this::updateMap);
+		final Region saveBtn = buildSaveButton(true, "map", VECTOR_TYPES,
 				VECTOR_TYPES[0], ()->true, this::calculateAndSaveMap);
 		
 		final VBox layout = new VBox(V_SPACE,
@@ -128,7 +129,7 @@ public class MapDesignerVector extends MapApplication {
 	
 	
 	private void setInput(File file) {
-		saveBtn.setDisable(true);
+		disable(ButtonType.LOAD_INPUT, ButtonType.SAVE_MAP);
 		
 		try {
 			input = new SVGMap(file);
@@ -139,15 +140,14 @@ public class MapDesignerVector extends MapApplication {
 			showError("Unreadable file!",
 					"We couldn't read "+file.getAbsolutePath()+". It may be corrupt or an unreadable format.");
 		} catch (ParserConfigurationException e) {
-			// TODO: Handle this
-			e.printStackTrace();
+			showError("Parser Configuration Error!",
+					"My parser configured incorrectly. I blame you.");
 		} finally {
-			saveBtn.setDisable(false);
+			enable(ButtonType.LOAD_INPUT);
+			updateMap();
 		}
 		
-		updateMap();
 	}
-	
 	
 	
 	private void hideAspect() {
@@ -156,6 +156,8 @@ public class MapDesignerVector extends MapApplication {
 	
 	
 	private void updateMap() {
+		disable(ButtonType.SAVE_MAP);
+		
 		loadParameters();
 		int maxVtx = this.getParamsChanging() ? FAST_MAX_VTX : DEF_MAX_VTX;
 		final Iterable<Path> transformed = map(input, input.length()/maxVtx+1, aspect.clone(), null);
@@ -169,10 +171,14 @@ public class MapDesignerVector extends MapApplication {
 			viewer.setHeight(IMG_WIDTH);
 		}
 		drawImage(transformed, viewer);
+		
+		enable(ButtonType.SAVE_MAP);
 	}
 	
 	
 	private void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
+		disable(ButtonType.SAVE_MAP);
+		
 		loadParameters();
 		final List<Path> transformed = map(input, 1, aspect.clone(), pBar::setProgress); //calculate
 		try {
@@ -183,6 +189,8 @@ public class MapDesignerVector extends MapApplication {
 		} catch (IOException e) {
 			showError("Failure!",
 					"Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
+		} finally {
+			enable(ButtonType.SAVE_MAP);
 		}
 	}
 	

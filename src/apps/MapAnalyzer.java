@@ -33,13 +33,11 @@ import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.image.Image;
@@ -86,7 +84,6 @@ public class MapAnalyzer extends MapApplication {
 	
 	private Flag cropAtIDL;
 	private MutableDouble graticuleSpacing;
-	private Button updateBtn;
 	private Text avgSizeDistort, avgShapeDistort;
 	private ImageView mapDisplay;
 	private Region charts;
@@ -110,18 +107,17 @@ public class MapAnalyzer extends MapApplication {
 	
 	
 	@Override
-	protected Node makeWidgets() {
+	protected Region makeWidgets() {
 		this.cropAtIDL = new Flag(true);
 		this.graticuleSpacing = new MutableDouble(15);
-		final Node projectionSelector = buildProjectionSelector(Procedure.NONE);
-		final Node parameterSelector = buildParameterSelector(Procedure.NONE);
-		final Node optionPane = buildOptionPane(cropAtIDL, graticuleSpacing);
-		final Node textDisplay = buildTextDisplay();
-		this.updateBtn = buildUpdateButton(this::calculateAndUpdate);
-		this.updateBtn.setText("Calculate"); //I don't need to follow your darn conventions!
-		final Button saveMapBtn = buildSaveButton(true, "map", RASTER_TYPES,
+		final Region projectionSelector = buildProjectionSelector(Procedure.NONE);
+		final Region parameterSelector = buildParameterSelector(Procedure.NONE);
+		final Region optionPane = buildOptionPane(cropAtIDL, graticuleSpacing);
+		final Region textDisplay = buildTextDisplay();
+		final Region updateBtn = buildUpdateButton("Calculate", this::calculateAndUpdate);
+		final Region saveMapBtn = buildSaveButton(true, "map", RASTER_TYPES,
 				RASTER_TYPES[0], ()->true, this::calculateAndSaveMap);
-		final Button savePltBtn = buildSaveButton(true, "plots", RASTER_TYPES,
+		final Region savePltBtn = buildSaveButton(true, "plots", RASTER_TYPES,
 				RASTER_TYPES[0], ()->true, this::calculateAndSavePlot);
 		final HBox buttons = new HBox(H_SPACE, updateBtn, saveMapBtn, savePltBtn);
 		buttons.setAlignment(Pos.CENTER);
@@ -149,7 +145,7 @@ public class MapAnalyzer extends MapApplication {
 	}
 	
 	
-	private Node buildTextDisplay() {
+	private Region buildTextDisplay() {
 		this.avgSizeDistort = new Text("...");
 		this.avgShapeDistort = new Text("...");
 		final Text txt = new Text("Blue areas are dilated, red areas are compressed, and black areas are stretched.");
@@ -188,6 +184,8 @@ public class MapAnalyzer extends MapApplication {
 	
 	
 	private void calculateAndUpdate() {
+		disable(ButtonType.UPDATE_MAP, ButtonType.SAVE_MAP, ButtonType.SAVE_GRAPH);
+		
 		Platform.runLater(() -> {
 			sizeChart.getData().clear();
 			shapeChart.getData().clear();
@@ -202,6 +200,8 @@ public class MapAnalyzer extends MapApplication {
 		
 		mapDisplay.setImage(makeGraphic(distortionM));
 		
+		enable(ButtonType.SAVE_MAP);
+		
 		final double[][][] distortionG = proj.calculateDistortion(Projection.globe(GLOBE_RES));
 		
 		Platform.runLater(() -> {
@@ -212,28 +212,38 @@ public class MapAnalyzer extends MapApplication {
 				
 				avgSizeDistort.setText(format(Math2.stdDev(distortionG[0])));
 				avgShapeDistort.setText(format(Math2.mean(distortionG[1])));
+				
+				enable(ButtonType.UPDATE_MAP, ButtonType.SAVE_GRAPH);
 			});
 	}
 	
 	
 	private void calculateAndSavePlot(File file, ProgressBarDialog pBar) {
+		disable(ButtonType.SAVE_GRAPH);
+		
 		pBar.setProgress(-1);
-		final String filename = file.getName();
-		final String extension = filename.substring(filename.lastIndexOf('.')+1);
-		try {
-			final WritableImage out = new WritableImage(
-					(int) charts.getWidth(), (int) charts.getHeight());
-			Platform.runLater(() -> charts.snapshot(null,out));
-			while (out.getProgress() < 1) {}
-			ImageIO.write(SwingFXUtils.fromFXImage(out, null), extension, file); //save
-		} catch (IOException e) {
-			showError("Failure!",
-					"Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
-		}
+		Platform.runLater(() -> {
+			charts.snapshot((snapRes) -> {
+				final String filename = file.getName();
+				final String extension = filename.substring(filename.lastIndexOf('.')+1);
+				try {
+					ImageIO.write(SwingFXUtils.fromFXImage(snapRes.getImage(), null),
+							extension, file);
+				} catch (IOException e) {
+					showError("Failure!",
+							"Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
+				} finally {
+					enable(ButtonType.SAVE_GRAPH);
+				}
+				return null;
+			}, null, null);
+		});
 	}
 	
 	
 	private void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
+		disable(ButtonType.SAVE_MAP);
+		
 		loadParameters();
 		final Projection proj = this.getProjection();
 		final double[][][] distortion = proj.calculateDistortion(proj.map(FINE_SAMP_NUM), pBar); //calculate
@@ -248,6 +258,8 @@ public class MapAnalyzer extends MapApplication {
 		} catch (IOException e) {
 			showError("Failure!",
 					"Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
+		} finally {
+			enable(ButtonType.SAVE_MAP);
 		}
 	}
 	

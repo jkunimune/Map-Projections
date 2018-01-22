@@ -23,8 +23,12 @@
  */
 package apps;
 
+import java.awt.Desktop;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Array;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
@@ -46,7 +50,6 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Slider;
@@ -154,7 +157,9 @@ public abstract class MapApplication extends Application {
 			{  0., 0.,-90.,-147.,-35.,  -45.,    30.,  -145.,  154. } };
 	
 	
-	final private String name;
+	private final Map<ButtonType, Button> buttons = new HashMap<ButtonType, Button>();
+	
+	private String name;
 	private Stage root;
 	private ComboBox<Projection> projectionChooser;
 	private GridPane paramGrid;
@@ -202,7 +207,7 @@ public abstract class MapApplication extends Application {
 			FileChooser.ExtensionFilter defaultExtension,
 			Consumer<File> inputSetter) {
 		final Label label = new Label("Current input:");
-		final Text inputLabel = new Text("None");
+		final Text inputLabel = new Text("Basic"+defaultExtension.getExtensions().get(0).substring(1)); //this line kind of cheats, since it assumes the first input will be called "Basic", but I couldn't figure out a good way for this to update when the subclass programatically sets the input
 		
 		final FileChooser inputChooser = new FileChooser(); //TODO: remember last directory
 		inputChooser.setInitialDirectory(new File("input"));
@@ -223,7 +228,7 @@ public abstract class MapApplication extends Application {
 				}
 				if (file != null) {
 					final File f = file;
-					trigger(loadButton, () -> inputSetter.accept(f));
+					new Thread(() -> inputSetter.accept(f)).start();
 					inputLabel.setText(f.getName());
 				}
 			});
@@ -236,6 +241,7 @@ public abstract class MapApplication extends Application {
 				}
 			});
 		
+		buttons.put(ButtonType.LOAD_INPUT, loadButton);
 		VBox output = new VBox(V_SPACE, new HBox(H_SPACE, label, inputLabel), loadButton);
 		output.setAlignment(Pos.CENTER);
 		return output;
@@ -429,10 +435,10 @@ public abstract class MapApplication extends Application {
 	 * Create a default button that will update the map
 	 * @return the button
 	 */
-	protected Button buildUpdateButton(Runnable mapUpdater) {
-		final Button updateButton = new Button("Update map");
+	protected Region buildUpdateButton(String text, Runnable mapUpdater) {
+		final Button updateButton = new Button(text);
 		updateButton.setOnAction((event) -> {
-				trigger(updateButton, mapUpdater);
+				new Thread(mapUpdater).start();
 			});
 		updateButton.setTooltip(new Tooltip(
 				"Update the current map with your parameters"));
@@ -445,6 +451,7 @@ public abstract class MapApplication extends Application {
 				}
 			});
 		
+		this.buttons.put(ButtonType.UPDATE_MAP, updateButton);
 		return updateButton;
 	}
 	
@@ -459,7 +466,7 @@ public abstract class MapApplication extends Application {
 	 * @param calculateAndSaver The callback that saves the thing
 	 * @return the button, ready to be pressed
 	 */
-	protected Button buildSaveButton(boolean bindCtrlS, String savee,
+	protected Region buildSaveButton(boolean bindCtrlS, String savee,
 			FileChooser.ExtensionFilter[] allowedExtensions,
 			FileChooser.ExtensionFilter defaultExtension,
 			BooleanSupplier settingCollector,
@@ -490,10 +497,13 @@ public abstract class MapApplication extends Application {
 						final ProgressBarDialog pBar = new ProgressBarDialog();
 						pBar.setContentText("Finalizing "+savee+"...");
 						pBar.show();
-						trigger(saveButton, () -> {
-								calculateAndSaver.accept(f, pBar);
-								Platform.runLater(pBar::close);
-							}); //TODO: I think I might want to automatically open the image
+						new Thread(() -> {
+							calculateAndSaver.accept(f, pBar);
+							Platform.runLater(pBar::close);
+							try {
+								Desktop.getDesktop().open(f.getParentFile());
+							} catch (IOException e) {} //if you can't open the file for any reason, just don't worry about it
+						}).start();
 					}
 				}
 			});
@@ -507,6 +517,10 @@ public abstract class MapApplication extends Application {
 				}
 			});
 		
+		if (savee.equals("map"))
+			this.buttons.put(ButtonType.SAVE_MAP, saveButton);
+		else
+			this.buttons.put(ButtonType.SAVE_GRAPH, saveButton);
 		return saveButton;
 	}
 	
@@ -523,6 +537,18 @@ public abstract class MapApplication extends Application {
 	
 	protected void loadParameters() {
 		getProjection().setParameters(currentParams);
+	}
+	
+	
+	protected void disable(ButtonType... buttons) {
+		for (ButtonType bt: buttons)
+			this.buttons.get(bt).setDisable(true);
+	}
+	
+	
+	protected void enable(ButtonType... buttons) {
+		for (ButtonType bt: buttons)
+			this.buttons.get(bt).setDisable(false);
 	}
 	
 	
@@ -604,20 +630,6 @@ public abstract class MapApplication extends Application {
 	}
 	
 	
-	private static void trigger(Button btn, Runnable task) {
-		btn.setDisable(true);
-		new Thread(() -> {
-			try {
-				task.run();
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				btn.setDisable(false);
-			}
-		}).start();
-	}
-	
-	
 	private static void link(Slider sld, Spinner<Double> spn, int i, double[] doubles,
 		DoubleUnaryOperator converter, Procedure callback, Flag isChanging, Flag suppressListeners) {
 		sld.valueChangingProperty().addListener((observable, prev, now) -> { //link spinner to slider
@@ -657,5 +669,11 @@ public abstract class MapApplication extends Application {
 				alert.showAndWait();
 			});
 	}
-
+	
+	
+	
+	protected enum ButtonType {
+		LOAD_INPUT, UPDATE_MAP, SAVE_MAP, SAVE_GRAPH;
+	}
 }
+

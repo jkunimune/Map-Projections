@@ -43,8 +43,8 @@ public class Dixon {
 	 */
 	public static double PERIOD_THIRD = 1.7666387503;
 	
-	private static final double[] COEF = { 1.000000e0, .625000e-1, .223214e-2, .069754e-3, .020121e-4,
-			.005539e-5/*, .001477e-6, .000385e-7, .000099e-8, .000025e-9*/ };
+	private static final double[] COEF = { 1.000000e0, .625000e-1, .223214e-2, .069754e-3,
+			.020121e-4/*, .005539e-5, .001477e-6, .000385e-7, .000099e-8, .000025e-9*/ };
 	
 	private static final double TOLERANCE = 1e-3;
 	

@@ -27,7 +27,7 @@ import maps.Projection.Property;
 import maps.Projection.Type;
 
 /**
- * TODO: Write description
+ * A class containing map projections with four-way symmetry and curved parallels.
  * 
  * @author jkunimune
  */
