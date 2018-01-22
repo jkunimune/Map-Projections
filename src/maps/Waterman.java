@@ -51,7 +51,7 @@ public class Waterman {
 			new Projection(
 					"Waterman", "An aesthetically pleasing octohedral map arrangement.",
 					8*Math.sqrt(3)-2*lossX, 8-2*lossY, 0b1010,
-					Type.TETRADECAHEDRAL, Property.COMPROMISE) {
+					Type.TETRADECAHEDRAL, Property.COMPROMISE, 3) {
 		
 		public double[] project(double lat, double lon) {
 			double centralLon = Math.floor(lon/(Math.PI/2))*Math.PI/2 + Math.PI/4; //get the octant longitude

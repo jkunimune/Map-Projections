@@ -210,8 +210,8 @@ public class MapAnalyzer extends MapApplication {
 				shapeChart.getData().add(histogram(distortionG[1],
 						   0.0, LN_10, 20, Math::exp));
 				
-				avgSizeDistort.setText(format(Math2.stdDev(distortionG[0])));
-				avgShapeDistort.setText(format(Math2.mean(distortionG[1])));
+				avgSizeDistort.setText(format(Math2.stdDev(distortionG[0])/LN_10*10));
+				avgShapeDistort.setText(format(Math2.mean(distortionG[1])/LN_10*10));
 				
 				enable(ButtonType.UPDATE_MAP, ButtonType.SAVE_GRAPH);
 			});
@@ -298,7 +298,7 @@ public class MapAnalyzer extends MapApplication {
 	
 	
 	private static final Series<String, Number> histogram(double[][] values,
-			double min, double max, int num, DoubleUnaryOperator labeler) {
+			double min, double max, int num, DoubleUnaryOperator converter) {
 		int[] hist = new int[num+1]; //this array is the histogram values for min, min+dx, ..., max-dx, max
 		int tot = 0;
 		for (double[] row: values) {
@@ -313,7 +313,7 @@ public class MapAnalyzer extends MapApplication {
 		}
 		Series<String, Number> output = new Series<String, Number>();
 		for (int i = 0; i <= num; i ++) {
-			double x = labeler.applyAsDouble(i*(max-min)/num+min);
+			double x = converter.applyAsDouble(i*(max-min)/num+min);
 			output.getData().add(new Data<String, Number>(
 					Double.toString(Math.round(100*x)/100.),
 					(double)hist[i]/tot*100));

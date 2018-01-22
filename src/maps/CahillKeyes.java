@@ -63,7 +63,7 @@ public class CahillKeyes {
 	public static final Projection M_MAP =
 			new Projection(
 					"Cahill-Keyes", "A horizontally arranged octohedral map designed to end all maps.",
-					4*lMG, 3*lNG-2*lENy, 0b1010, Type.TETRADECAHEDRAL, Property.COMPROMISE) {
+					4*lMG, 3*lNG-2*lENy, 0b1010, Type.TETRADECAHEDRAL, Property.COMPROMISE, 4) {
 		
 		public double[] project(double lat, double lon) {
 			int octantNum = (int)Math.floor(lon/(Math.PI/2));
@@ -115,7 +115,7 @@ public class CahillKeyes {
 	public static final Projection HALF_OCTANT = 
 			new Projection(
 					"Cahill-Keyes Half-Octant", "A single sixteenth of a Cahill-Keyes projection.",
-					lMG-lMA, lNG, 0b0011, Type.TETRADECAHEDRAL, Property.COMPROMISE) {
+					lMG-lMA, lNG, 0b0011, Type.TETRADECAHEDRAL, Property.COMPROMISE, 4) {
 		
 		public double[] project(double lat, double lon) {
 			lat = Math.max(0, lat);

@@ -43,7 +43,7 @@ public class Polyhedral {
 	public static final PolyhedralProjection LEE_TETRAHEDRAL_RECTANGULAR =
 			new PolyhedralProjection(
 					"Lee Tetrahedral", 0b1001, Configuration.TETRAHEDRON_WIDE_FACE, Property.CONFORMAL,
-					null, "that really deserves more attention") {
+					4, null, "that really deserves more attention") {
 		
 		public double[] faceProject(double lat, double lon) {
 			final de.jtem.mfc.field.Complex z = de.jtem.mfc.field.Complex.fromPolar(
@@ -65,8 +65,9 @@ public class Polyhedral {
 	
 	public static final PolyhedralProjection LEE_TETRAHEDRAL_TRIANGULAR =
 			new PolyhedralProjection(
-					"Lee Tetrahedral (triangular)", 0b1001, Configuration.TRIANGLE_FACE, Property.CONFORMAL,
-					null, "in a triangle, because this is the form in which it was published, even though the rectangle is clearly better") {
+					"Lee Tetrahedral (triangular)", 0b1001, Configuration.TRIANGLE_FACE,
+					Property.CONFORMAL, 2, null,
+					"in a triangle, because this is the form in which it was published, even though the rectangle is clearly better") {
 		
 		public double[] faceProject(double lat, double lon) {
 			return LEE_TETRAHEDRAL_RECTANGULAR.faceProject(lat, lon);
@@ -81,7 +82,7 @@ public class Polyhedral {
 	public static final PolyhedralProjection TETRAGRAPH =
 			new PolyhedralProjection(
 					"TetraGraph", 0b1111, Configuration.TETRAHEDRON_WIDE_FACE, Property.EQUIDISTANT,
-					null, "that I invented") {
+					2, null, "that I invented") {
 		
 		public double[] faceProject(double lat, double lon) {
 			return new double[] {
@@ -99,8 +100,8 @@ public class Polyhedral {
 	
 	public static final PolyhedralProjection AUTHAGRAPH = 
 			new PolyhedralProjection(
-					"AuthaGraph", "A hip new Japanese map that is almost equal-area.",
-					0b1011, Configuration.AUTHAGRAPH, Property.COMPROMISE) {
+					"AuthaGraph", "A hip new Japanese map that is almost equal-area and would be super great if they actually published their equations.",
+					0b1011, Configuration.AUTHAGRAPH, Property.COMPROMISE, 3) {
 		
 		private final double[] POLE = {Math.toRadians(77), Math.toRadians(143), Math.toRadians(17)};
 		
@@ -136,8 +137,8 @@ public class Polyhedral {
 	
 	public static final PolyhedralProjection AUTHAPOWER =
 			new PolyhedralProjection(
-					"AuthaPower", "A parametrised, rearranged version of my AuthaGraph approximation.",
-					0b1011, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.COMPROMISE,
+					"AuthaPower", "A parametrised, rearranged, open-source version of my AuthaGraph approximation.",
+					0b1011, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.COMPROMISE, 4,
 					new String[] {"Power"}, new double[][] {{.25,1,.7}}) {
 		
 		private double k;
@@ -167,7 +168,7 @@ public class Polyhedral {
 	public static final PolyhedralProjection ACTUAUTHAGRAPH = //TODO: I hate to do this to myself, but I think I need to revamp this to have differently-shaped cutouts
 			new PolyhedralProjection(
 					"EquaHedral", "A holey authalic tetrahedral projection to put AuthaGraph to shame.",
-					0b1010, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.EQUAL_AREA,
+					0b1010, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.EQUAL_AREA, 2,
 					new String[] {"Gap size"}, new double[][] {{0,.5,.25}}) {
 		
 		private double r02;
@@ -199,7 +200,7 @@ public class Polyhedral {
 	public static final PolyhedralProjection TETRAPOWER =
 			new PolyhedralProjection(
 					"TetraPower", "A parameterised tetrahedral projection that I invented.", 0b1111,
-					Configuration.TETRAHEDRON_WIDE_FACE, Property.COMPROMISE,
+					Configuration.TETRAHEDRON_WIDE_FACE, Property.COMPROMISE, 2,
 					new String[] {"k1","k2","k3"},
 					new double[][] {{.01,2.,.98},{.01,2.,1.2},{.01,2.,.98}}) {
 		
@@ -234,7 +235,7 @@ public class Polyhedral {
 	public static final Projection DYMAXION =
 			new PolyhedralProjection(
 					"Dymaxion", "A polyhedral projection that slices up the oceans as much as possible without slicing up any landmasses.",
-					0b1110, Configuration.DYMAXION, Property.COMPROMISE) {
+					0b1110, Configuration.DYMAXION, Property.COMPROMISE, 3) {
 		
 		private final double[] POLE = {0.040158, -0.091549,-2.015269}; //I derived these numbers from [Robert Gray](http://www.rwgrayprojects.com/rbfnotes/maps/graymap4.html)
 		private final double X_0 = 0.75;
@@ -293,24 +294,26 @@ public class Polyhedral {
 		
 		
 		public PolyhedralProjection(
-				String name, int fisc, Configuration config, Property property,
+				String name, int fisc, Configuration config, Property property, int rating,
 				String adjective, String addendum) {
-			super(name, config.width, config.height, fisc, config.type, property,
+			super(name, config.width, config.height, fisc, config.type, property, rating,
 					adjective, addendum);
 			this.configuration = config;
 		}
 		
 		public PolyhedralProjection(
-				String name, String description, int fisc, Configuration config, Property property) {
-			super(name, description, config.width, config.height, fisc, config.type, property);
+				String name, String description, int fisc, Configuration config, Property property,
+				int rating) {
+			super(name, description, config.width, config.height, fisc, config.type, property,
+					rating);
 			this.configuration = config;
 		}
 		
 		public PolyhedralProjection(
 				String name, String description, int fisc, Configuration config, Property property,
-				String[] paramNames, double[][] paramValues) {
+				int rating, String[] paramNames, double[][] paramValues) {
 			super(name, description, config.width, config.height, fisc, config.type, property,
-					paramNames, paramValues);
+					rating, paramNames, paramValues);
 			this.configuration = config;
 		}
 		

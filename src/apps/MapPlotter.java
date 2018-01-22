@@ -67,6 +67,8 @@ import maps.WinkelTripel;
  */
 public class MapPlotter extends Application {
 
+	private static final double DECIBEL = Math.log(10)/10;
+	
 	private static final double GLOBE_RES = .005;
 	
 	private static final Projection[] CYLINDRICAL = { Cylindrical.MERCATOR,
@@ -98,8 +100,8 @@ public class MapPlotter extends Application {
 	public void start(Stage root) {
 		final ScatterChart<Number, Number> plot =
 				new ScatterChart<Number, Number>(
-				new NumberAxis("Size distortion", 0, 1.1, 0.1),
-				new NumberAxis("Shape distortion", 0, 0.7, 0.1));
+				new NumberAxis("Size distortion", 0, 4, .5),
+				new NumberAxis("Shape distortion", 0, 3, .5));
 		plot.setLegendSide(Side.RIGHT);
 		final AnchorPane overlay = new AnchorPane();
 		stack = new StackPane(plot, overlay);
@@ -149,7 +151,8 @@ public class MapPlotter extends Application {
 			System.out.print(projection+": ");
 			final double[] params = projection.getDefaultParameters();
 			final double distortion[] = projection.avgDistortion(points, params);
-			final Data<Number, Number> datum = new Data<Number, Number>(distortion[0], distortion[1]);
+			final Data<Number, Number> datum = new Data<Number, Number>(
+					distortion[0]/DECIBEL, distortion[1]/DECIBEL);
 			series.getData().add(datum);
 			final Label lbl = new Label(projection.getName());
 			overlay.getChildren().add(lbl);

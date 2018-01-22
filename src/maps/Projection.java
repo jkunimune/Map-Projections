@@ -57,56 +57,64 @@ public abstract class Projection {
 	private final boolean continuous; //does a random continuous path cross outside of the map?
 	private final Type type; //the geometry of the projection
 	private final Property property; //what it is good for
-	 //TODO: ratings
+	private final int rating; //how good I think it is
 	protected double width, height; //max(x)-min(x) and max(y)-min(y)
 	
 	
 	
 	protected Projection(
-			String name, double width, double height, int fisc, Type type, Property property) {
-		this(name, buildDescription(type,property,null,null), width, height, fisc, type, property, new String[0], new double[0][]);
+			String name, double width, double height, int fisc, Type type, Property property,
+			int rating) {
+		this(name, buildDescription(type,property,null,null), width, height, fisc, type, property,
+				rating, new String[0], new double[0][]);
 	}
 	
 	protected Projection(
-			String name, double width, double height, int fisc, Type type, Property property, String adjective) {
-		this(name, buildDescription(type,property,adjective,null), width, height, fisc, type, property, new String[0], new double[0][]);
+			String name, double width, double height, int fisc, Type type, Property property, 
+			int rating, String adjective) {
+		this(name, buildDescription(type,property,adjective,null), width, height, fisc, type,
+				property, rating, new String[0], new double[0][]);
 	}
 	
 	protected Projection(
 			String name, double width, double height, int fisc, Type type, Property property,
-			String adjective, String addendum) {
-		this(name, buildDescription(type,property,adjective,addendum), width, height, fisc, type, property, new String[0], new double[0][]);
+			int rating, String adjective, String addendum) {
+		this(name, buildDescription(type,property,adjective,addendum), width, height, fisc, type,
+				property, rating, new String[0], new double[0][]);
 	}
 	
 	protected Projection(
 			String name, String description, double width, double height, int fisc,
-			Type type, Property property) {
-		this(name, description, width, height, fisc, type, property, new String[0], new double[0][]);
+			Type type, Property property, int rating) {
+		this(name, description, width, height, fisc, type, property, rating, 
+				new String[0], new double[0][]);
 	}
 	
 	protected Projection(
 			String name, String description, double width, double height, int fisc, Type type,
-			Property property, String[] paramNames, double[][] paramValues) {
-		this(name, description, width, height, fisc, type, property, paramNames, paramValues, true);
+			Property property, int rating, String[] paramNames, double[][] paramValues) {
+		this(name, description, width, height, fisc, type, property, rating,
+				paramNames, paramValues, true);
 	}
 	
 	protected Projection(
 			String name, String description, double width, double height, int fisc, Type type,
-			Property property, String[] paramNames, double[][] paramValues, boolean hasAspect) {
+			Property property, int rating, String[] paramNames, double[][] paramValues,
+			boolean hasAspect) {
 		this(name, description, width, height,
 				(fisc&0b1000) > 0, (fisc&0b0100) > 0, (fisc&0b0010) > 0, (fisc&0b0001) > 0,
-				type, property, paramNames, paramValues, hasAspect);
+				type, property, rating, paramNames, paramValues, hasAspect);
 	}
 	
 	protected Projection(Projection base) {
 		this(	base.name, base.description, base.width, base.height, base.finite, base.invertable,
-				base.solveable, base.continuous, base.type, base.property, base.paramNames,
-				base.paramValues, base.hasAspect);
+				base.solveable, base.continuous, base.type, base.property, base.rating,
+				base.paramNames, base.paramValues, base.hasAspect);
 	}
 	
 	protected Projection (
 			String name, String description, double width, double height,
-			boolean f, boolean i, boolean s, boolean c, Type type, Property property,
+			boolean f, boolean i, boolean s, boolean c, Type type, Property property, int rating,
 			String[] paramNames, double[][] paramValues, boolean hasAspect) {
 		this.name = name;
 		this.description = description;
@@ -121,6 +129,7 @@ public abstract class Projection {
 		this.continuous = c;
 		this.type = type;
 		this.property = property;
+		this.rating = rating;
 	}
 	
 	
@@ -544,7 +553,7 @@ public abstract class Projection {
 	
 	
 	public static final Projection NULL_PROJECTION = //this exists solely for the purpose of a "More..." option at the end of menus
-			new Projection("More...", null, 0, 0, 0, null, null) {
+			new Projection("More...", null, 0, 0, 0, null, null, 0) {
 		
 		public double[] project(double lat, double lon) {
 			return null;

@@ -40,7 +40,7 @@ public class MyProjections {
 	public static final Projection MAGNIFIER =
 			new Projection("Magnifier",
 					"A novelty map projection that blows up the center way out of proportion.",
-					2, 2, 0b1011, Type.AZIMUTHAL, Property.POINTLESS) {
+					2, 2, 0b1011, Type.AZIMUTHAL, Property.POINTLESS, 0) {
 		
 		public double[] project(double lat, double lon) {
 			final double p = 1/2.0+lat/Math.PI;
@@ -63,7 +63,7 @@ public class MyProjections {
 	public static final Projection EXPERIMENT =
 			new Projection(
 					"Complex Arcsine", "What happens when you apply a complex differentiable function to a stereographic projection?",
-					6, 6, 0b0000, Type.OTHER, Property.CONFORMAL) {
+					6, 6, 0b0000, Type.OTHER, Property.CONFORMAL, 0) {
 		
 		public double[] project(double lat, double lon) {
 			final double wMag = Math.tan(Math.PI/4-lat/2);
@@ -93,7 +93,7 @@ public class MyProjections {
 	public static final Projection PSEUDOSTEREOGRAPHIC =
 			new Projection(
 					"Pseudostereographic", "The logical next step after Aitoff and Hammer.",
-					2, 1, 0b1111, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE) {
+					2, 1, 0b1111, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE, 1) {
 		
 		public double[] project(double lat, double lon) {
 			final double a = Math.PI - Math.acos(Math.cos(lat)*Math.cos(lon/2));
@@ -115,8 +115,8 @@ public class MyProjections {
 	public static final Projection TWO_POINT_EQUALIZED =
 			new Projection("Two-Point Equalised",
 					"A projection I invented specifically for viewing small elliptical regions of the Earth.",
-					0, 0, 0b1111, Type.OTHER, Property.EQUIDISTANT, new String[] {"Width"},
-					new double[][] { {0, 180, 120} }) {
+					0, 0, 0b1111, Type.OTHER, Property.EQUIDISTANT, 2,
+					new String[] {"Width"}, new double[][] { {0, 180, 120} }) {
 		
 		private double theta;
 		

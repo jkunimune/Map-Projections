@@ -35,7 +35,7 @@ public class Lenticular {
 	
 	public static final Projection AITOFF =
 			new Projection("Aitoff", "A compromise projection shaped like an ellipse.",
-					2*Math.PI, Math.PI, 0b1111, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE) {
+					2*Math.PI, Math.PI, 0b1111, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE, 2) {
 		
 		public double[] project(double lat, double lon) {
 			final double a = Math.acos(Math.cos(lat)*Math.cos(lon/2));
@@ -56,7 +56,7 @@ public class Lenticular {
 	
 	public static final Projection HAMMER =
 			new Projection("Hammer", "An equal-area projection shaped like an ellipse.",
-					4, 2, 0b1111, Type.PSEUDOAZIMUTHAL, Property.EQUAL_AREA) {
+					4, 2, 0b1111, Type.PSEUDOAZIMUTHAL, Property.EQUAL_AREA, 1) {
 		
 		public double[] project(double lat, double lon) {
 			final double z = Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2));
@@ -76,7 +76,7 @@ public class Lenticular {
 	public static final Projection VAN_DER_GRINTEN =
 			new Projection(
 					"Van der Grinten", "A circular compromise map that is popular for some reason.",
-					2, 2, 0b1111, Type.OTHER, Property.COMPROMISE) {
+					2, 2, 0b1111, Type.OTHER, Property.COMPROMISE, 0) {
 		
 		public double[] project(double lat, double lon) {
 			if (lat == 0) //special case 1: equator
@@ -118,7 +118,8 @@ public class Lenticular {
 	public static final Projection STREBE_95 =
 			new Projection(
 					"Strebe 1995", "An equal-area map with curvy poles that pushes distortion to the edges.",
-					4, 4, 0b1100, Type.STREBE, Property.COMPROMISE, new String[] {"Scale Factor"},
+					4, 4, 0b1100, Type.STREBE, Property.COMPROMISE, 2,
+					new String[] {"Scale Factor"},
 					new double[][] {{Math.sqrt(2*Math.PI/(4+Math.PI)), Math.sqrt((4+Math.PI)/Math.PI*2), 1.35}}) {
 		
 		private final double[] HEIGHT_COEF =

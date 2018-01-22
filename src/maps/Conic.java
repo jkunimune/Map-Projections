@@ -29,7 +29,7 @@ import utils.Math2;
 public class Conic {
 	
 	public static final Projection LAMBERT =
-			new ConicProjection("Conformal Conic", 0b0111, Property.CONFORMAL) {
+			new ConicProjection("Conformal Conic", 0b0111, Property.CONFORMAL, 2) {
 		
 		private double n; //the scaling factor for angles
 		private double r0; //the primary radius based on the standard axes
@@ -96,7 +96,7 @@ public class Conic {
 	
 	
 	public static final Projection EQUIDISTANT =
-			new ConicProjection("Equidistant Conic", 0b1111, Property.EQUIDISTANT) {
+			new ConicProjection("Equidistant Conic", 0b1111, Property.EQUIDISTANT, 2) {
 		
 		private double m; //the scaling factor for radii
 		private double n; //the scaling factor for angles
@@ -158,7 +158,7 @@ public class Conic {
 	
 	
 	public static final Projection ALBERS =
-			new ConicProjection("Albers", 0b1111, Property.EQUAL_AREA) {
+			new ConicProjection("Albers", 0b1111, Property.EQUAL_AREA, 2) {
 		
 		private double n; //the scaling factor for angles
 		private double C; //a scaling factor for radii
@@ -229,9 +229,9 @@ public class Conic {
 		protected double lat1, lat2;
 		protected boolean reversed;
 		
-		ConicProjection(String name, int fisc, Property property) {
+		ConicProjection(String name, int fisc, Property property, int rating) {
 			super(name, "The "+property+" conic projection.", 0,0, fisc, Type.CONIC, property,
-					new String[] {"Std. Parallel 1", "Std. Parallel 2"},
+					rating, new String[] {"Std. Parallel 1", "Std. Parallel 2"},
 					new double[][] {{-89,89,15},{-89,89,45}});
 		}
 		

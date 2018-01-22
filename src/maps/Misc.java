@@ -41,7 +41,7 @@ public class Misc {
 	public static final Projection PEIRCE_QUINCUNCIAL =
 			new Projection(
 					"Peirce Quincuncial", "A conformal projection that uses complex elliptic functions.",
-					2, 2, 0b1001, Type.OTHER, Property.CONFORMAL) {
+					2, 2, 0b1001, Type.OTHER, Property.CONFORMAL, 3) {
 		
 		private static final double K_RT_HALF = 1.85407; //this is approx K(sqrt(1/2))
 		
@@ -82,7 +82,7 @@ public class Misc {
 	public static final Projection GUYOU =
 			new Projection(
 					"Guyou", "Peirce Quincuncial, rearranged a bit.", 2., 1, 0b1001,
-					Type.OTHER, Property.CONFORMAL) {
+					Type.OTHER, Property.CONFORMAL, 3) {
 		
 		private static final double K_RT_HALF = 1.854; //this is approx K(sqrt(1/2))
 		private final double[] POLE = {0, -Math.PI/2, Math.PI/4};
@@ -115,7 +115,7 @@ public class Misc {
 	public static final Projection HAMMER_RETROAZIMUTHAL = //TODO: I think I should have front and back versions, too
 			new Projection(
 					"Hammer Retroazimuthal", "The full version of a map where bearing and distance to a reference point is preserved.",
-					2*Math.PI, 2*Math.PI, 0b1110, Type.QUASIAZIMUTHAL, Property.RETROAZIMUTHAL,
+					2*Math.PI, 2*Math.PI, 0b1110, Type.QUASIAZIMUTHAL, Property.RETROAZIMUTHAL, 2,
 					new String[] {"Latitude","Longitude"},
 					new double[][] {{-89,89,21.4},{-180,180,39.8}}, false) {
 		
@@ -169,7 +169,7 @@ public class Misc {
 	public static final Projection TWO_POINT_EQUIDISTANT =
 			new Projection(
 					"Two-point Equidistant", "A map that preserves distances, but not azimuths, to two arbitrary points.",
-					0, 0, 0b1111, Type.QUASIAZIMUTHAL, Property.EQUIDISTANT,
+					0, 0, 0b1111, Type.QUASIAZIMUTHAL, Property.EQUIDISTANT, 3,
 					new String[] {"Latitude 1","Longitude 1","Latitude 2","Longitude 2"},
 					new double[][] {{-90,90,41.9},{-180,180,12.5},{-90,90,34.7},{-180,180,112.4}},
 					false) {
@@ -237,7 +237,7 @@ public class Misc {
 	public static final Projection FLAT_EARTH =
 			new Projection(
 					"Flat Earth", "The one true map.", 2*Math.PI, 2*Math.PI, 0b1111,
-					Type.PLANAR, Property.TRUE) {
+					Type.PLANAR, Property.TRUE, 5) {
 
 		public double[] project(double lat, double lon) {
 			// TODO: Projection wishist

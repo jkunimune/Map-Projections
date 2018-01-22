@@ -40,7 +40,7 @@ public class Tobler {
 	public static final Projection TOBLER =
 			new Projection(
 					"Tobler Hyperelliptical", "An equal-area projection shaped like a hyperellipse.",
-					2*Math.PI, 0, 0b1001, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA,
+					2*Math.PI, 0, 0b1001, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 4,
 					new String[]{"Std. Parallel","alpha","K"},
 					new double[][] {{0,89,37}, {0,1,0}, {1,5,3.6}}) { //optimal parameters are 30.6,.50,3.63, but these defaults are more recognizably Tobler
 		
