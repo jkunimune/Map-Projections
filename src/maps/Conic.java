@@ -62,7 +62,7 @@ public class Conic {
 				}
 			}
 			else {
-				this.width = Cylindrical.MERCATOR.getWidth();
+				this.width = Cylindrical.MERCATOR.getWidth(); //TODO: fix this; make it consistent
 				this.height = Cylindrical.MERCATOR.getHeight();
 			}
 		}
@@ -73,6 +73,7 @@ public class Conic {
 				lat = -lat;
 				lon = -lon;
 			}
+			if (lat < -1.5) 	lat = -1.5; //remove polar infinite values
 			final double s = reversed ? -1 : 1;
 			final double r = Math.pow(Math.tan(Math.PI/4+lat/2), -n);
 			return new double[] { s*r*Math.sin(n*lon), s*(r0 - r*Math.cos(n*lon)) };

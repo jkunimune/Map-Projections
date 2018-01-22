@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.DoubleConsumer;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -71,9 +70,6 @@ public class MapDesignerVector extends MapApplication {
 	
 	private static final FileChooser.ExtensionFilter[] VECTOR_TYPES = {
 			new FileChooser.ExtensionFilter("SVG", "*.svg") };
-	
-	private static final Map<String, String> ATTRIBUTE_PLACEHOLDERS = Map.of(
-			"width","hmxMLwhWHeqMA8Ba", "height","VlMBunXsmQUtmCw4", "viewBox","UrFo1q9niPDkKSNC"); //attributes of the SVG object to change
 	
 	private Node aspectSelector;
 	private Button saveBtn;
@@ -135,7 +131,7 @@ public class MapDesignerVector extends MapApplication {
 		saveBtn.setDisable(true);
 		
 		try {
-			input = new SVGMap(file, ATTRIBUTE_PLACEHOLDERS);
+			input = new SVGMap(file);
 		} catch (IOException e) {
 			showError("File not found!",
 					"We couldn't find "+file.getAbsolutePath()+".");
@@ -180,8 +176,10 @@ public class MapDesignerVector extends MapApplication {
 		loadParameters();
 		final List<Path> transformed = map(input, 1, aspect.clone(), pBar::setProgress); //calculate
 		try {
-			SVGMap altered = alterFormatting(input, this.getProjection());
-			altered.save(transformed, file, pBar::setProgress); //save
+			Projection proj = this.getProjection();
+			SVGMap altered = input.replace("Equirectangular", proj.getName());
+			altered.save(transformed, file, -proj.getWidth()/2, proj.getHeight()/2,
+					proj.getWidth(), proj.getHeight(), pBar::setProgress); //save
 		} catch (IOException e) {
 			showError("Failure!",
 					"Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
@@ -189,26 +187,8 @@ public class MapDesignerVector extends MapApplication {
 	}
 	
 	
-	private SVGMap alterFormatting(SVGMap input, Projection proj) { //change the formatting of the SVGMap to match the new projection
-		SVGMap output = input.replace("Equirectangular", proj.getName());
-		String viewBoxStr = -proj.getWidth()/2+" "+-proj.getHeight()/2+" "+proj.getWidth()+" "+proj.getHeight();
-		double outWidth, outHeight;
-		if (proj.getAspectRatio() > 1) {
-			outWidth = input.getSize();
-			outHeight = (int) (outWidth/proj.getAspectRatio());
-		}
-		else {
-			outHeight = input.getSize();
-			outWidth = (int) (outHeight*proj.getAspectRatio());
-		}
-		output = output.replace(ATTRIBUTE_PLACEHOLDERS.get("viewBox"), viewBoxStr);
-		output = output.replace(ATTRIBUTE_PLACEHOLDERS.get("width"), Double.toString(outWidth));
-		output = output.replace(ATTRIBUTE_PLACEHOLDERS.get("height"), Double.toString(outHeight));
-		return output;
-	}
-	
-	
 	private List<Path> map(SVGMap input, int step, double[] pole, DoubleConsumer tracker) {
+		Projection proj = this.getProjection();
 		List<Path> output = new LinkedList<Path>();
 		int i = 0;
 		for (Path path0: input) {
@@ -221,9 +201,11 @@ public class MapDesignerVector extends MapApplication {
 				
 				Command cmdP = new Command(cmdS.type, new double[cmdS.args.length]);
 				for (int k = 0; k < cmdS.args.length; k += 2) {
-					System.arraycopy(
-							this.getProjection().project(cmdS.args[k+1], cmdS.args[k], pole), 0,
-							cmdP.args, k, 2);
+					double[] coords = proj.project(cmdS.args[k+1], cmdS.args[k], pole);
+					cmdP.args[k] =
+							Math.max(Math.min(coords[0], proj.getWidth()), -proj.getWidth());
+					cmdP.args[k+1] =
+							Math.max(Math.min(coords[1], proj.getHeight()), -proj.getHeight());
 					if (Double.isNaN(cmdP.args[k]) || Double.isNaN(cmdP.args[k+1]))
 						System.err.println(this.getProjection()+" returns "+cmdP.args[k]+","+cmdP.args[k+1]+" at "+cmdS.args[k+1]+","+cmdS.args[k]+"!");
 				}

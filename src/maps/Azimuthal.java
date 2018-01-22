@@ -34,6 +34,7 @@ public class Azimuthal {
 					"mathematically important") {
 		
 		public double[] project(double lat, double lon) {
+			if (lat < -1.5) 	lat = -1.5;
 			final double r = 1/(Math.tan(lat/2 + Math.PI/4));
 			return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
 		}

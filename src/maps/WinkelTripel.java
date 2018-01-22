@@ -110,6 +110,7 @@ public final class WinkelTripel {
 		}
 		
 		private double C(double phi, double lam) {
+			if (phi == 0 && lam == 0) 	return 1; //there's a hole here
 			return 1 - Math.pow(Math.cos(phi)*Math.cos(lam/2), 2);
 		}
 	};

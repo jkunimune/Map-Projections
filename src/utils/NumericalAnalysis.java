@@ -135,11 +135,11 @@ public class NumericalAnalysis {
 			double y, double x0, ScalarFunction f, ScalarFunction dfdx,
 			double tolerance, double... constants) {
 		double x = x0;
-		double error = Double.POSITIVE_INFINITY;
-		for (int i = 0; i < 8 && error > tolerance; i ++) {
-			error = f.evaluate(x, constants) - y;
-			final double dydx = dfdx.evaluate(x, constants);
+		double error = f.evaluate(x, constants) - y;
+		for (int i = 0; i < 8 && Math.abs(error) > tolerance; i ++) {
+			double dydx = dfdx.evaluate(x, constants);
 			x -= error/dydx;
+			error = f.evaluate(x, constants) - y;
 		}
 		if (error > tolerance)
 			return Double.NaN;
@@ -200,20 +200,22 @@ public class NumericalAnalysis {
 			VectorFunction df2dl, double tolerance, double... constants) {
 		double phi = phi0;
 		double lam = lam0;
-		double error = Math.PI;
+		double f1mx = f1.evaluate(phi, lam, constants) -x;
+		double f2my = f2.evaluate(phi, lam, constants) - y;
+		double error = Double.POSITIVE_INFINITY;
 		
 		for (int i = 0; i < 8 && error > tolerance; i++) {
-			final double F1mx = f1.evaluate(phi, lam, constants) - x;
-			final double F2my = f2.evaluate(phi, lam, constants) - y;
 			final double dF1dP = df1dp.evaluate(phi, lam, constants);
 			final double dF1dL = df1dl.evaluate(phi, lam, constants);
 			final double dF2dP = df2dp.evaluate(phi, lam, constants);
 			final double dF2dL = df2dl.evaluate(phi, lam, constants);
 			
-			phi -= (F1mx*dF2dL - F2my*dF1dL) / (dF1dP*dF2dL - dF2dP*dF1dL);
-			lam -= (F2my*dF1dP - F1mx*dF2dP) / (dF1dP*dF2dL - dF2dP*dF1dL);
+			phi -= (f1mx*dF2dL - f2my*dF1dL) / (dF1dP*dF2dL - dF2dP*dF1dL);
+			lam -= (f2my*dF1dP - f1mx*dF2dP) / (dF1dP*dF2dL - dF2dP*dF1dL);
 			
-			error = Math.hypot(F1mx, F2my);
+			f1mx = f1.evaluate(phi, lam, constants) - x;
+			f2my = f2.evaluate(phi, lam, constants) - y;
+			error = Math.hypot(f1mx, f2my);
 		}
 		
 		if (error > tolerance) // if it aborted due to timeout
