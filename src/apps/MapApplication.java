@@ -102,7 +102,7 @@ import utils.Procedure;
 public abstract class MapApplication extends Application {
 
 	protected static final int GUI_WIDTH = 300;
-	protected static final int IMG_WIDTH = 500;
+	protected static final int IMG_WIDTH = 450;
 	protected static final int V_SPACE = 6;
 	protected static final int H_SPACE = 4;
 	protected static final int MARGIN = 10;

@@ -325,7 +325,7 @@ public class MapAnalyzer extends MapApplication {
 	
 	private static final String format(double d) {
 		if (d < 1000)
-			return Double.toString(Math.round(d*1000.)/1000.);
+			return Double.toString(Math.round(d*100.)/100.);
 		else
 			return "1000+";
 	}

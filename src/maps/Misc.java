@@ -30,6 +30,7 @@ import maps.Projection.Property;
 import maps.Projection.Type;
 import utils.Elliptic;
 import utils.Math2;
+import utils.SVGMap.Path;
 
 /**
  * All the projections that don't fit into any of the other categories.
@@ -236,17 +237,73 @@ public class Misc {
 	
 	public static final Projection FLAT_EARTH =
 			new Projection(
-					"Flat Earth", "The one true map.", 2*Math.PI, 2*Math.PI, 0b1111,
-					Type.PLANAR, Property.TRUE, 5) {
-
+					"Flat Earth", "The one true map.", 2, 2, 0b1111,
+					Type.PLANAR, Property.TRUE, 5, new String[0], new double[0][], false) {
+		
+		private final double[] CORE_LONGITUDES = {
+				Math.toRadians(-60), Math.toRadians(20), Math.toRadians(135) };
+		
 		public double[] project(double lat, double lon) {
-			// TODO: Projection wishist
-			return null;
+			double a;
+			if (lat >= 0 || lat <= -Math.PI/3)
+				a = 1;
+			else
+				a = 1+(4-Math.sqrt(6)+Math.sqrt(2))/4*3/Math.PI*lat;
+			double lonR = Double.POSITIVE_INFINITY; //the round earth model was computed using three central longitudes
+			for (double lon0: CORE_LONGITUDES)
+				if (Math.abs(Math2.coerceAngle(lon-lon0)) < Math.abs(lonR))
+					lonR = Math2.coerceAngle(lon-lon0); //pick the one to which you are closest
+			
+			double r = Math.tan((Math.PI/2-lat)/4); //compute the distance from the center of the Universe
+			double th = lonR*a + (lon-lonR); //adjust longitude to remove RET-induced distortion
+			return new double[] {r*Math.sin(th), -r*Math.cos(th)};
 		}
-
+		
 		public double[] inverse(double x, double y) {
-			// TODO: Projection wishlist
-			return null;
+			double lat = Math.PI/2 - 4*Math.atan(Math.hypot(x, y)); //simulate the fake concept of latitude
+			double a;
+			if (lat >= 0 || lat <= -Math.PI/3)
+				a = 1;
+			else
+				a = 1+(4-Math.sqrt(6)+Math.sqrt(2))/4*3/Math.PI*lat;
+			
+			if (lat < -Math.PI/2) 	lat = -Math.PI/2; //the ice wall extends as far as man knows
+			double th = Math.atan2(x, -y);
+			
+			double th0 = Double.POSITIVE_INFINITY;
+			for (double lon: CORE_LONGITUDES)
+				if (Double.isNaN(th0) ||
+						Math.abs(Math2.coerceAngle(th-lon)) < Math.abs(th-th0))
+					th0 = lon; //find the central longitude to which you are closest
+			double thR = Math2.coerceAngle(th - th0);
+			
+			double th1 = Double.NaN; //to fix the empty space
+			for (double lon: CORE_LONGITUDES) {
+				if (Double.isNaN(th1) ||
+						Math2.floorMod((lon-th)*Math.signum(thR), 2*Math.PI) <
+						Math2.floorMod((th1-th)*Math.signum(thR), 2*Math.PI))
+					th1 = lon; //find the central longitude on your other side
+			}
+			double thM = Math2.coerceAngle((th0 + th1)/2); //the line between the two
+			if (Math.abs(thR)/a > Math.abs(Math2.coerceAngle(thM-th0))) { //if you are farther than the midpoint is, once adjusted
+				if (thR>0 == Math2.coerceAngle(thM-th0)>0)
+					return new double[] {lat, thM}; //then this point does not exist in the sphere earth model; fill it with guess
+				else
+					return new double[] {lat, Math2.coerceAngle(thM+Math.PI)};
+			}
+			
+			return new double[] {lat, Math2.coerceAngle(thR/a + th0)};
+		}
+		
+		@Override
+		public double[] getDistortionAt(double[] s0) {
+			return new double[] {0,0};
+		}
+		
+		@Override
+		public Path drawGraticule(double spacing, double precision, double outW, double outH,
+			double maxLat, double maxLon, double[] pole) {
+			return Azimuthal.POLAR.drawGraticule(spacing, precision, outW, outH, maxLat, maxLon, pole);
 		}
 	};
 	
