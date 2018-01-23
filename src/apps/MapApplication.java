@@ -209,7 +209,7 @@ public abstract class MapApplication extends Application {
 		final Label label = new Label("Current input:");
 		final Text inputLabel = new Text("Basic"+defaultExtension.getExtensions().get(0).substring(1)); //this line kind of cheats, since it assumes the first input will be called "Basic", but I couldn't figure out a good way for this to update when the subclass programatically sets the input
 		
-		final FileChooser inputChooser = new FileChooser(); //TODO: remember last directory
+		final FileChooser inputChooser = new FileChooser();
 		inputChooser.setInitialDirectory(new File("input"));
 		inputChooser.setTitle("Choose an input map");
 		inputChooser.getExtensionFilters().addAll(allowedExtensions);
@@ -227,6 +227,7 @@ public abstract class MapApplication extends Application {
 					file = inputChooser.showOpenDialog(root);
 				}
 				if (file != null) {
+					inputChooser.setInitialDirectory(file.getParentFile()); //remember this directory for next time
 					final File f = file;
 					new Thread(() -> inputSetter.accept(f)).start();
 					inputLabel.setText(f.getName());
@@ -492,6 +493,7 @@ public abstract class MapApplication extends Application {
 					file = saver.showSaveDialog(root);
 				}
 				if (file != null) {
+					saver.setInitialDirectory(file.getParentFile()); //remember this directory for next time
 					final File f = file;
 					if (settingCollector.getAsBoolean()) {
 						final ProgressBarDialog pBar = new ProgressBarDialog();

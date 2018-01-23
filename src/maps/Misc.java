@@ -113,12 +113,12 @@ public class Misc {
 	};
 	
 	
-	public static final Projection HAMMER_RETROAZIMUTHAL = //TODO: I think I should have front and back versions, too
+	public static final Projection HAMMER_RETROAZIMUTHAL =
 			new Projection(
 					"Hammer Retroazimuthal", "The full version of a map where bearing and distance to a reference point is preserved.",
 					2*Math.PI, 2*Math.PI, 0b1110, Type.QUASIAZIMUTHAL, Property.RETROAZIMUTHAL, 2,
 					new String[] {"Latitude","Longitude"},
-					new double[][] {{-89,89,21.4},{-180,180,39.8}}, false) {
+					new double[][] {{-89,89,21.4}, {-180,180,39.8}}, false) {
 		
 		private double phi0, lam0;
 		
