@@ -165,84 +165,68 @@ public class Polyhedral {
 	};
 	
 	
-	public static final PolyhedralProjection ACTUAUTHAGRAPH_HEX =
+	public static final PolyhedralProjection ACTUAUTHAGRAPH =
 			new PolyhedralProjection(
-					"EquaHedral Hex", "A holey authalic tetrahedral projection to put AuthaGraph to shame.",
+					"EquaHedral", "A holey authalic tetrahedral projection to put AuthaGraph to shame.",
 					0b1010, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.EQUAL_AREA, 2,
-					new String[] {"Sinus length"}, new double[][] {{0,1,.2}}) {
+					new String[] {"Sinus length"}, new double[][] {{0, 60, 20}}) {
 		
-		private double sig2, scale;
+		private double sig, a0, scale;
 		
 		public void setParameters(double... params) {
-			this.sig2 = Math.pow(params[0], 2);
-			this.scale = (6*Math.sqrt(3) - 3*Math.sqrt(3)*sig2)/(2*Math.PI);
+			this.sig = params[0]/60;
+			this.a0 = 3 - 1.5*sig*sig;
+			this.scale = Math.sqrt(3)*a0/Math.PI;
 		}
 		
 		public double[] faceProject(double lat, double lon) {
-			double bet = Math.atan((lon-Math.asin(Math.sin(lon)/Math.sqrt(3)))/(1.5-.75*sig2)*scale);
+			double bet = Math.atan((lon-Math.asin(Math.sin(lon)/Math.sqrt(3)))/(a0/2)*scale);
 			double f = (1-Math.sin(lat))/(1-1/Math.sqrt(1+2/Math2.cos2(lon)));
-			if (f < sig2/(2-sig2)) {
-				double rA = Math.sqrt(f*(6-3*sig2)*(1+Math.pow(2*Math.tan(Math.abs(bet))-1/Math.sqrt(3), 2)))/2;
+			if (f < (3*sig*sig)/(2*a0)) { //sinus zone
 				double alf = Math.atan(2*Math.tan(Math.abs(bet)) - 1/Math.sqrt(3));
+				double rA = Math.sqrt(2*f*a0/Math2.cos2(alf))/2;
 				return toPolar(rA, alf, Math.signum(lon));
 			}
-			else {
-				double rB = Math.sqrt(3*f + 1.5*sig2*(1-f))/Math.cos(bet);
+			else { //primary zone
+				double rB = Math.sqrt(a0*f - a0 + 3)/Math.cos(bet);
 				return new double[] {rB, bet};
 			}
 		}
 		
 		public double[] faceInverse(double r, double th) {
-			return null;
+			double bet;
+			double f;
+			if (r < sig*Math.sqrt(3)/2/Math.cos(Math.abs(th)-Math.PI/3)) //empty
+				return null;
+			else if (r*Math.cos(th) < sig*Math.sqrt(3)) { //sinus zone
+				double[] relCoords = fromPolar(r, th);
+				double rA = relCoords[0];
+				double alf = relCoords[1];
+				bet = Math.signum(th)*Math.atan(Math.tan(alf)/2+1/Math.sqrt(12));
+				f = Math.pow(rA, 2) * 2*Math2.cos2(alf)/a0;
+			}
+			else { //primary zone
+				bet = th;
+				f = (r*r*Math2.cos2(bet) - 1.5*sig*sig)/a0;
+			}
+			double lon = NumericalAnalysis.newtonRaphsonApproximation(
+					a0/2*Math.tan(bet)/scale, bet*2,
+					(l) -> l - Math.asin(Math.sin(l)/Math.sqrt(3)),
+					(l) -> 1 - 1/Math.sqrt(1 + 2/Math2.cos2(l)), 1e-4);
+			double lat = Math.asin(1 - f*(1 - 1/Math.sqrt(1+2/Math2.cos2(lon))));
+			return new double[] {lat, lon};
 		}
 		
-		private double[] toPolar(double r, double th, double s) {
-			double x = r*Math.cos(th) + Math.sqrt(sig2)*Math.sqrt(3)/2;
-			double y = r*Math.sin(th) + Math.sqrt(sig2)/2;
+		private double[] toPolar(double rA, double alf, double s) {
+			double x = rA*Math.cos(alf) + sig*Math.sqrt(3)/2;
+			double y = rA*Math.sin(alf) + sig/2;
 			return new double[] {Math.hypot(x, y), s*Math.atan2(y, x)};
 		}
-	};
-	
-	
-	public static final PolyhedralProjection ACTUAUTHAGRAPH_FOLD =
-			new PolyhedralProjection(
-					"EquaHedral Fold", "A holey authalic tetrahedral projection to put AuthaGraph to shame.",
-					0b1010, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.EQUAL_AREA, 2,
-					new String[] {"Sinus length"}, new double[][] {{0,1,.2}}) {
 		
-		private double sig2, scale;
-		
-		public void setParameters(double... params) {
-			this.sig2 = Math.pow(params[0], 2);
-			this.scale = (6*Math.sqrt(3) - 3*Math.sqrt(3)*sig2)/(2*Math.PI);
-		}
-		
-		public double[] faceProject(double lat, double lon) {
-			double a = (Math.PI/6 - Math.abs(lon - Math.asin(Math.sin(lon)/Math.sqrt(3))))*scale;
-			double c2 = Math.sqrt(3)/4*sig2;
-			double c1 = .75*sig2 - 2 + a/Math.sqrt(3);
-			double c0 = a;
-			double bet = Math.atan((-c1 - Math.sqrt(c1*c1-4*c2*c0))/(2*c2));
-			double f = (1-Math.sin(lat))/(1-1/Math.sqrt(1+2/Math2.cos2(lon)));
-			if (f < sig2/(4/Math2.cos2(Math.PI/6-bet) - 2*sig2/Math2.cos2(bet))) {
-				double rA = Math.sqrt(f/2*(1+8*Math2.sin2(bet))*(2/Math2.cos2(Math.PI/6-bet)-sig2/Math2.cos2(bet)));
-				double alf = Math.atan(Math.tan(bet)*3);
-				return toPolar(rA, alf, Math.signum(lon));
-			}
-			else {
-				double rB = Math.sqrt(1.5*sig2/Math2.cos2(bet) + f*(3/Math2.cos2(Math.PI/6-bet)-1.5*sig2/Math2.cos2(bet)));
-				return new double[] {rB, Math.signum(lon)*(Math.PI/6 - bet)};
-			}
-		}
-		
-		public double[] faceInverse(double r, double th) {
-			return null;
-		}
-		
-		private double[] toPolar(double r, double th, double s) {
-			double x = r*Math.cos(th) + Math.sqrt(sig2);
-			double y = r*Math.sin(th);
-			return new double[] {Math.hypot(x, y), s*(Math.PI/6 - Math.atan2(y, x))};
+		private double[] fromPolar(double rB, double bet) {
+			double x = rB*Math.cos(bet) - sig*Math.sqrt(3)/2;
+			double y = Math.abs(rB*Math.sin(bet)) - sig/2;
+			return new double[] {Math.hypot(x, y), Math.atan2(y, x)};
 		}
 	};
 	

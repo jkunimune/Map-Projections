@@ -78,14 +78,13 @@ public class MapPlotter extends Application {
 	private static final Projection[] AZIMUTHAL = { Azimuthal.POLAR };
 	private static final Projection[] PSEUDOCYL = { Pseudocylindrical.MOLLWEIDE, Arbitrary.ROBINSON,
 			Arbitrary.NATURAL_EARTH, Pseudocylindrical.KAVRAYSKIY_VII, Tobler.TOBLER };
-	private static final Projection[] PSEUDOAZM = { Lenticular.AITOFF,
-			MyProjections.PSEUDOSTEREOGRAPHIC };
+	private static final Projection[] LENTICULAR = { Lenticular.AITOFF,
+			Lenticular.VAN_DER_GRINTEN, WinkelTripel.WINKEL_TRIPEL };
 	private static final Projection[] TETRAHEDRAL = { Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
-			Polyhedral.AUTHAGRAPH, Polyhedral.TETRAPOWER };
+			Polyhedral.AUTHAGRAPH, Polyhedral.ACTUAUTHAGRAPH, Polyhedral.TETRAPOWER };
 	private static final Projection[] CHEATY = { Pseudocylindrical.LEMONS,
-			CahillKeyes.M_MAP, Polyhedral.DYMAXION, Waterman.BUTTERFLY };
-	private static final Projection[] OTHER = { Lenticular.VAN_DER_GRINTEN,
-			WinkelTripel.WINKEL_TRIPEL, Misc.PEIRCE_QUINCUNCIAL };
+			CahillKeyes.M_MAP, Polyhedral.DYMAXION };
+	private static final Projection[] OTHER = { Misc.PEIRCE_QUINCUNCIAL };
 	
 	
 	private StackPane stack;
@@ -113,8 +112,8 @@ public class MapPlotter extends Application {
 		
 		plotProjections(plot, overlay, labels, data, AZIMUTHAL, "Azimuthal ", points);
 		plotProjections(plot, overlay, labels, data, CYLINDRICAL, "Cylindrical ", points);
-		plotProjections(plot, overlay, labels, data, PSEUDOAZM, "Pseudoazimuthal ", points);
 		plotProjections(plot, overlay, labels, data, PSEUDOCYL, "Pseudocylindrical ", points);
+		plotProjections(plot, overlay, labels, data, LENTICULAR, "Lenticular ", points);
 		plotProjections(plot, overlay, labels, data, TETRAHEDRAL, "Tetrahedral ", points);
 		plotProjections(plot, overlay, labels, data, CHEATY, "Interrupted ", points);
 		plotProjections(plot, overlay, labels, data, OTHER, "Other ", points);
