@@ -199,5 +199,15 @@ public class Math2 {
 	public static double cscd(double angdeg) {
 		return 1/Math.sin(Math.toRadians(angdeg));
 	}
+	
+	
+	public static double sin2(double a) {
+		return Math.pow(Math.sin(a), 2);
+	}
+	
+	
+	public static double cos2(double a) {
+		return Math.pow(Math.cos(a), 2);
+	}
 
 }
