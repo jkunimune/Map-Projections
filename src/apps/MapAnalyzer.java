@@ -24,7 +24,8 @@
 package apps;
 import java.io.File;
 import java.io.IOException;
-import java.util.function.DoubleFunction;
+import java.util.function.DoubleUnaryOperator;
+
 import javax.imageio.ImageIO;
 
 import dialogs.ProgressBarDialog;
@@ -145,14 +146,14 @@ public class MapAnalyzer extends MapApplication {
 	
 	
 	private Region buildTextDisplay() {
-		this.avgSizeDistort = new Text(". . .");
-		this.avgShapeDistort = new Text(". . .");
+		this.avgSizeDistort = new Text("...");
+		this.avgShapeDistort = new Text("...");
 		final Text txt = new Text("Blue areas are dilated, red areas are compressed, and black areas are stretched.");
 		txt.setWrappingWidth(GUI_WIDTH);
 		
 		VBox box = new VBox(3,
-				new HBox(new Label("Average area distortion: "), avgSizeDistort),
-				new HBox(new Label("Average angle distortion: "), avgShapeDistort),
+				new HBox(new Label("Average size distortion: "),avgSizeDistort),
+				new HBox(new Label("Average shape distortion: "),avgShapeDistort),
 				txt);
 		box.setAlignment(Pos.CENTER_LEFT);
 		return box;
@@ -172,7 +173,7 @@ public class MapAnalyzer extends MapApplication {
 		this.shapeChart = new BarChart<String, Number>(new CategoryAxis(), new NumberAxis());
 		this.shapeChart.setPrefWidth(CHART_WIDTH);
 		this.shapeChart.setPrefHeight(IMG_WIDTH/2);
-		this.shapeChart.getXAxis().setLabel("Angle displacement");
+		this.shapeChart.getXAxis().setLabel("Stretch factor");
 		this.shapeChart.setBarGap(0);
 		this.shapeChart.setCategoryGap(0);
 		this.shapeChart.setAnimated(false);
@@ -189,8 +190,8 @@ public class MapAnalyzer extends MapApplication {
 			sizeChart.getData().clear();
 			shapeChart.getData().clear();
 			
-			avgSizeDistort.setText("\u2026");
-			avgShapeDistort.setText("\u2026");
+			avgSizeDistort.setText("...");
+			avgShapeDistort.setText("...");
 		});
 		
 		loadParameters();
@@ -204,13 +205,13 @@ public class MapAnalyzer extends MapApplication {
 		final double[][][] distortionG = proj.calculateDistortion(Projection.globe(GLOBE_RES));
 		
 		Platform.runLater(() -> {
-				sizeChart.getData().add(histogram(distortionG[0], -LN_10, LN_10, 20,
-						(x) -> Double.toString(Math.round(100*Math.exp(x))/100.)));
-				shapeChart.getData().add(histogram(distortionG[1], 0.0, Math.PI/2, 18,
-						(x) -> Integer.toString((int) Math.toDegrees(x))+"\u00B0"));
+				sizeChart.getData().add(histogram(distortionG[0],
+						-LN_10, LN_10, 20, Math::exp));
+				shapeChart.getData().add(histogram(distortionG[1],
+						   0.0, LN_10, 20, Math::exp));
 				
-				avgSizeDistort.setText(format(Math2.toDecibels(Math2.stdDev(distortionG[0])))+"dB");
-				avgShapeDistort.setText(format(Math.toDegrees(Math2.mean(distortionG[1])))+"\u00B0");
+				avgSizeDistort.setText(format(Math2.stdDev(distortionG[0])/LN_10*10));
+				avgShapeDistort.setText(format(Math2.mean(distortionG[1])/LN_10*10));
 				
 				enable(ButtonType.UPDATE_MAP, ButtonType.SAVE_GRAPH);
 			});
@@ -270,7 +271,7 @@ public class MapAnalyzer extends MapApplication {
 			for (int x = 0; x < distortion[0][y].length; x ++) {
 				final double sizeDistort = distortion[0][y][x], shapeDistort = distortion[1][y][x];
 				final double sizeContour = Math.round(sizeDistort/(LN_10/10))*LN_10/10; //contour the size by decibels
-				final double shapeContour = Math.round(shapeDistort/(Math.PI/36))*Math.PI/36; //contour the size by semidecibels
+				final double shapeContour = Math.round(shapeDistort/(LN_10/20))*LN_10/20; //contour the size by semidecibels
 				if (Double.isNaN(sizeDistort) || Double.isNaN(shapeDistort)) {
 					writer.setArgb(x, y, 0);
 					continue;
@@ -278,14 +279,14 @@ public class MapAnalyzer extends MapApplication {
 				
 				final int r, g, b;
 				if (sizeDistort < 0) { //if compressing
-					r = (int)(255.9*(1-shapeContour/(Math.PI/2)));
-					g = (int)(255.9*(1-shapeContour/(Math.PI/2))*Math.exp(sizeContour*.6));
+					r = (int)(255.9*Math.exp(-shapeContour*.6));
+					g = (int)(255.9*Math.exp(-shapeContour*.6)*Math.exp(sizeContour*.6));
 					b = g;
 				}
 				else { //if dilating
-					r = (int)(255.9*(1-shapeContour/(Math.PI/2))*Math.exp(-sizeContour*.6));
+					r = (int)(255.9*Math.exp(-shapeContour*.6)*Math.exp(-sizeContour*.6));
 					g = r; //I find .6 to be a rather visually pleasing sensitivity
-					b = (int)(255.9*(1-shapeContour/(Math.PI/2)));
+					b = (int)(255.9*Math.exp(-shapeContour*.6));
 				}
 				
 				final int argb = ((((((0xFF)<<8)+r)<<8)+g)<<8)+b;
@@ -297,7 +298,7 @@ public class MapAnalyzer extends MapApplication {
 	
 	
 	private static final Series<String, Number> histogram(double[][] values,
-			double min, double max, int num, DoubleFunction<String> converter) {
+			double min, double max, int num, DoubleUnaryOperator converter) {
 		int[] hist = new int[num+1]; //this array is the histogram values for min, min+dx, ..., max-dx, max
 		int tot = 0;
 		for (double[] row: values) {
@@ -312,8 +313,9 @@ public class MapAnalyzer extends MapApplication {
 		}
 		Series<String, Number> output = new Series<String, Number>();
 		for (int i = 0; i <= num; i ++) {
+			double x = converter.applyAsDouble(i*(max-min)/num+min);
 			output.getData().add(new Data<String, Number>(
-					converter.apply(i*(max-min)/num+min),
+					Double.toString(Math.round(100*x)/100.),
 					(double)hist[i]/tot*100));
 		}
 		return output;

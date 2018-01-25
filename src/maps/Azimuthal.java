@@ -90,7 +90,7 @@ public class Azimuthal {
 					4, 4, 0b0111, Type.AZIMUTHAL, Property.GNOMONIC, 2) {
 		
 		public double[] project(double lat, double lon) {
-			if (lat < 0.01) 	lat = 0.01;
+			if (lat < 0.2) 	lat = 0.2;
 			final double r = Math.tan(Math.PI/2 - lat);
 			return new double[] { r*Math.sin(lon), -r*Math.cos(lon)};
 		}

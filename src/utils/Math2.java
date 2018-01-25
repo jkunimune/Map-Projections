@@ -171,11 +171,6 @@ public class Math2 {
 	}
 	
 	
-	public static double toDecibels(double ratio) {
-		return ratio/Math.log(10)*10;
-	}
-	
-	
 	public static double sind(double angdeg) {
 		return Math.sin(Math.toRadians(angdeg));
 	}
