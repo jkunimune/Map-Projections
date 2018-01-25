@@ -367,8 +367,9 @@ public abstract class Projection {
 		
 		final double s1ps2 = Math.hypot((pE[0]-pC[0])+(pN[1]-pC[1]), (pE[1]-pC[1])-(pN[0]-pC[0]));
 		final double s1ms2 = Math.hypot((pE[0]-pC[0])-(pN[1]-pC[1]), (pE[1]-pC[1])+(pN[0]-pC[0]));
-		output[1] = Math.abs(Math.log(Math.abs((s1ps2-s1ms2)/(s1ps2+s1ms2)))); //the first output is the shape (angle) distortion
-		if (Math.abs(output[1]) > 25)
+		final double sig = Math.abs((s1ps2+s1ms2)/(s1ps2-s1ms2));
+		output[1] = Math.atan((sig - 1)/Math.sqrt(sig)/2); //the first output is the shape (angle) distortion
+		if (sig > 1e10)
 			output[1] = Double.NaN; //discard outliers
 		
 		return output;

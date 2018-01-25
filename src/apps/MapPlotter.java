@@ -47,19 +47,18 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import maps.Arbitrary;
 import maps.Azimuthal;
 import maps.CahillKeyes;
 import maps.Cylindrical;
 import maps.Lenticular;
 import maps.Misc;
-import maps.MyProjections;
+import maps.Polyhedral;
 import maps.Projection;
 import maps.Pseudocylindrical;
-import maps.Arbitrary;
-import maps.Polyhedral;
 import maps.Tobler;
-import maps.Waterman;
 import maps.WinkelTripel;
+import utils.Math2;
 
 /**
  * A simple script that creates an annotated ScatterPlot of map projections
@@ -67,8 +66,6 @@ import maps.WinkelTripel;
  * @author jkunimune
  */
 public class MapPlotter extends Application {
-
-	private static final double DECIBEL = Math.log(10)/10;
 	
 	private static final double GLOBE_RES = .005;
 	
@@ -101,7 +98,7 @@ public class MapPlotter extends Application {
 		final ScatterChart<Number, Number> plot =
 				new ScatterChart<Number, Number>(
 				new NumberAxis("Size distortion", 0, 4, .5),
-				new NumberAxis("Shape distortion", 0, 3, .5));
+				new NumberAxis("Shape distortion", 0, 20, 5));
 		plot.setLegendSide(Side.RIGHT);
 		final AnchorPane overlay = new AnchorPane();
 		stack = new StackPane(plot, overlay);
@@ -152,7 +149,7 @@ public class MapPlotter extends Application {
 			final double[] params = projection.getDefaultParameters();
 			final double distortion[] = projection.avgDistortion(points, params);
 			final Data<Number, Number> datum = new Data<Number, Number>(
-					distortion[0]/DECIBEL, distortion[1]/DECIBEL);
+					Math2.toDecibels(distortion[0]), Math.toDegrees(distortion[1]));
 			series.getData().add(datum);
 			final Label lbl = new Label(projection.getName());
 			overlay.getChildren().add(lbl);

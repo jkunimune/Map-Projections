@@ -42,7 +42,6 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -69,6 +68,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -183,7 +183,7 @@ public abstract class MapApplication extends Application {
 	public void start(Stage root) {
 		this.root = root;
 		this.root.setTitle(this.name);
-		this.root.setScene(new Scene(new StackPane(makeWidgets())));
+		this.root.setScene(new Scene(new StackPane(makeWidgets()), Color.ANTIQUEWHITE)); //Why can't I set this color?
 		this.root.show();
 		
 		this.suppressListeners.set();
@@ -192,7 +192,7 @@ public abstract class MapApplication extends Application {
 	}
 	
 	
-	protected abstract Node makeWidgets();
+	protected abstract Region makeWidgets();
 	
 	
 	/**
