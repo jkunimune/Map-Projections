@@ -47,18 +47,16 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import maps.Arbitrary;
 import maps.Azimuthal;
 import maps.CahillKeyes;
 import maps.Cylindrical;
 import maps.Lenticular;
 import maps.Misc;
-import maps.MyProjections;
+import maps.Polyhedral;
 import maps.Projection;
 import maps.Pseudocylindrical;
-import maps.Arbitrary;
-import maps.Polyhedral;
 import maps.Tobler;
-import maps.Waterman;
 import maps.WinkelTripel;
 
 /**

@@ -146,8 +146,8 @@ public class MapAnalyzer extends MapApplication {
 	
 	
 	private Region buildTextDisplay() {
-		this.avgSizeDistort = new Text("...");
-		this.avgShapeDistort = new Text("...");
+		this.avgSizeDistort = new Text("\u2026");
+		this.avgShapeDistort = new Text("\u2026");
 		final Text txt = new Text("Blue areas are dilated, red areas are compressed, and black areas are stretched.");
 		txt.setWrappingWidth(GUI_WIDTH);
 		
@@ -190,8 +190,8 @@ public class MapAnalyzer extends MapApplication {
 			sizeChart.getData().clear();
 			shapeChart.getData().clear();
 			
-			avgSizeDistort.setText("...");
-			avgShapeDistort.setText("...");
+			avgSizeDistort.setText("\u2026");
+			avgShapeDistort.setText("\u2026");
 		});
 		
 		loadParameters();
@@ -210,8 +210,8 @@ public class MapAnalyzer extends MapApplication {
 				shapeChart.getData().add(histogram(distortionG[1],
 						   0.0, LN_10, 20, Math::exp));
 				
-				avgSizeDistort.setText(format(Math2.stdDev(distortionG[0])/LN_10*10));
-				avgShapeDistort.setText(format(Math2.mean(distortionG[1])/LN_10*10));
+				avgSizeDistort.setText(format(Math2.stdDev(distortionG[0])/LN_10*10)+"dB");
+				avgShapeDistort.setText(format(Math2.mean(distortionG[1])/LN_10*10)+"dB");
 				
 				enable(ButtonType.UPDATE_MAP, ButtonType.SAVE_GRAPH);
 			});
