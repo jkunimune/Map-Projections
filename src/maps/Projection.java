@@ -305,6 +305,17 @@ public abstract class Projection {
 	}
 	
 	
+	public static double[][][] hemisphere(double dt) { //like globe(), but for the eastern hemisphere. Good for doing projections that are symmetrical in longitude (i.e. pretty much all of them)
+		List<double[]> points = new ArrayList<double[]>();
+		for (double phi = -Math.PI/2+dt/2; phi < Math.PI/2; phi += dt) { // make sure phi is never exactly +-tau/4
+			for (double lam = dt/Math.cos(phi)/2; lam < Math.PI; lam += dt/Math.cos(phi)) {
+				points.add(new double[] {phi, lam});
+			}
+		}
+		return new double[][][] {points.toArray(new double[0][])};
+	}
+	
+	
 	public double[] avgDistortion(double[][][] points, double[] params) {
 		this.setParameters(params);
 		return avgDistortion(points);
@@ -368,7 +379,7 @@ public abstract class Projection {
 		final double s1ps2 = Math.hypot((pE[0]-pC[0])+(pN[1]-pC[1]), (pE[1]-pC[1])-(pN[0]-pC[0]));
 		final double s1ms2 = Math.hypot((pE[0]-pC[0])-(pN[1]-pC[1]), (pE[1]-pC[1])+(pN[0]-pC[0]));
 		output[1] = Math.abs(Math.log(Math.abs((s1ps2-s1ms2)/(s1ps2+s1ms2)))); //the first output is the shape (angle) distortion
-		if (Math.abs(output[1]) > 25)
+		if (output[1] > 25)
 			output[1] = Double.NaN; //discard outliers
 		
 		return output;
