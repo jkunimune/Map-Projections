@@ -57,14 +57,13 @@ import utils.linalg.Vector;
 public class MapOptimizer extends Application {
 	
 	private static final Projection[] EXISTING_PROJECTIONS = { Cylindrical.BEHRMANN,
-			Arbitrary.ROBINSON, Cylindrical.GALL_STEREOGRAPHIC, Misc.PEIRCE_QUINCUNCIAL };
+			Arbitrary.ROBINSON, Cylindrical.PLATE_CARREE, Cylindrical.GALL_STEREOGRAPHIC,
+			Misc.PEIRCE_QUINCUNCIAL };
 	private static final Projection[] PROJECTIONS_TO_OPTIMIZE = { Tobler.TOBLER,
 			WinkelTripel.WINKEL_TRIPEL, Polyhedral.TETRAPOWER, Polyhedral.AUTHAPOWER };
-//	private static final double[] WEIGHTS = { 0., .125, .25, .375, .5, .625, .75, .875, 1. };
-	private static final double[] WEIGHTS = {0};
-	private static final int NUM_SAMPLE = 1;
+	private static final double[] WEIGHTS = { 0., .125, .25, .375, .5, .625, .75, .875, 1. };
 	private static final int NUM_BRUTE_FORCE = 30;
-	private static final int NUM_BFGS_ITERATE = 6;
+	private static final int NUM_BFGS_ITERATE = 7;
 	private static final double GOLDSTEIN_C = 0.5;
 	private static final double BACKTRACK_TAU = 0.5;
 	private static final double BACKTRACK_ALF0 = 4;
@@ -126,17 +125,8 @@ public class MapOptimizer extends Application {
 	}
 	
 	
-	private static final double weighDistortion(Projection proj, double[] params, double weight) {
-		double areaDist = 0, anglDist = 0;
-		for (int i = 0; i < NUM_SAMPLE; i ++) {
-			double[] mcParams = new double[params.length];
-			for (int j = 0; j < mcParams.length; j ++)
-				mcParams[j] = params[j];// + (Math.random()-.5)*1e-3; //is it weird that I'm introducing stochasticity into this?
-			double[] distortions = proj.avgDistortion(GLOBE, mcParams);
-			areaDist += distortions[0];
-			anglDist += distortions[1];
-		}
-		return areaDist/NUM_SAMPLE*weight + anglDist/NUM_SAMPLE*(1-weight);
+	private static final double weighDistortion(double[] distortions, double weight) {
+		return distortions[0]*weight + distortions[1]*(1-weight);
 	}
 	
 	
@@ -149,10 +139,10 @@ public class MapOptimizer extends Application {
 		for (int k = 0; k < WEIGHTS.length; k ++) {
 			final double weighFactor = WEIGHTS[k];
 			double[] currentBest = bruteForceMinimise(
-					(params) -> weighDistortion(proj, params, weighFactor),
+					(params) -> weighDistortion(proj.avgDistortion(GLOBE, params), weighFactor),
 					proj.getParameterValues());
 			best[k] = bfgsMinimise(
-					(params) -> weighDistortion(proj, params, weighFactor),
+					(params) -> weighDistortion(proj.avgDistortion(GLOBE, params), weighFactor),
 					currentBest);
 		}
 		
@@ -181,7 +171,6 @@ public class MapOptimizer extends Application {
 	 * parameter sweep.
 	 * @param func The function to minimise
 	 * @param bounds Parameter limits for each argument
-	 * @param numTries The approximate number of samples to take
 	 * @return An array containing the best input to func that it found
 	 */
 	private static double[] bruteForceMinimise(Function<double[], Double> func, double[][] bounds) {
@@ -222,6 +211,13 @@ public class MapOptimizer extends Application {
 	}
 	
 	
+	/**
+	 * Calculates the set of parameters that minimises the function using BFGS optimisation with
+	 * a backtracking line search
+	 * @param arrFunction The function that takes a parameter array and returns a double value
+	 * @param x0 The initial guess
+	 * @return The array of parameters that mimimise arrFunction
+	 */
 	private static double[] bfgsMinimise(Function<double[], Double> arrFunction, double[] x0) { //The Broyden-Fletcher-Goldfarb-Shanno algorithm
 		System.out.println("BFGS = [");
 		final int n = x0.length;
@@ -230,22 +226,8 @@ public class MapOptimizer extends Application {
 		
 		Vector xk = new Vector(x0); //initial variable values
 		double fxk = func.apply(xk);
-//		System.out.println(hessian(func, xk, fxk));
-//		System.out.println(grad(func, xk, fxk));
-//		Matrix H = hessian(func, xk, fxk);
 		Matrix Binv = hessian(func, xk, fxk).inverse();
-//		Matrix Binv = Matrix.identity(n); //initial approximate Hessian inverse
 		Vector gradFxk = grad(func, xk, fxk); //function at current location
-		
-//		System.out.println("anetauson!");
-//		System.out.print("A"+NUM_SAMPLE+" = [");
-//		for (double d = 0; d <= 1e-1; d += 5e-4) {
-//			xk = new Vector(17.8, -17.8);
-//			Vector dx = Vector.unit(0, n).times(d);
-//			double f = func.apply(xk.minus(new Vector(-1,1)).plus(dx));
-//			System.out.println(xk.minus(new Vector(-1,1)).plus(dx).getElement(0)+", "+f+";");
-//		}
-//		System.out.println("];");
 		
 		for (int k = 0; k < NUM_BFGS_ITERATE; k ++) { //(I'm not sure how to test for convergence here, so I'm just running a set number of iterations)
 			Vector pk = Vector.fromMatrix(Binv.times(gradFxk)); //apply Newton's method for initial step direction
@@ -271,7 +253,6 @@ public class MapOptimizer extends Application {
 			
 			Matrix a = I.minus(sk.times(yk.T()).times(1/yk.dot(sk)));
 			Matrix b = sk.times(sk.T()).times(1/yk.dot(sk));
-//			Binv = hessian(func, xkp1, fxkp1).inverse();
 			Binv = a.times(Binv).times(a.T()).plus(b); //update Binv
 			
 			xk = xkp1;
@@ -283,6 +264,13 @@ public class MapOptimizer extends Application {
 	}
 	
 	
+	/**
+	 * Calculates the gradient of f at x
+	 * @param f The function to differentiate
+	 * @param x The point at which to differentiate
+	 * @param fx The value of f(x), to speed computations
+	 * @return
+	 */
 	private static Vector grad(Function<Vector, Double> f, Vector x, double fx) {
 		final int n = x.getLength();
 		Vector gradF = new Vector(n); //compute the gradient
@@ -294,12 +282,18 @@ public class MapOptimizer extends Application {
 		}
 		for (double d: x.asArray())
 			System.out.print(d+", ");
-//		System.out.println(gradF.getElement(0)+", "+gradF.getElement(1)+";");
 		System.out.println(fx+";");
 		return gradF;
 	}
 	
 	
+	/**
+	 * Computes the Hessian matrix of f at x
+	 * @param f The function to differentiate
+	 * @param x The point at which to differentiate
+	 * @param fx The value of f(x), to aid in computation
+	 * @return The Jacobian of the gradient, a symmetric Matrix of second derivatives
+	 */
 	private static Matrix hessian(Function<Vector, Double> f, Vector x, double fx) {
 		final int n = x.getLength();
 		
@@ -316,7 +310,6 @@ public class MapOptimizer extends Application {
 			values[k] = f.apply(x.plus(dx));
 		}
 		
-//		System.out.println(Arrays.toString(values));
 		Matrix h = new Matrix(n, n);
 		for (int i = 0; i < n; i ++) { //compute the derivatives and fill the matrix
 			for (int j = i; j < n; j ++) {
@@ -324,7 +317,6 @@ public class MapOptimizer extends Application {
 				int dxj = (int)Math.pow(3, j);
 				double dfdx0 = (values[dxi] - values[0])/DEL_X;
 				double dfdx1 = (values[dxi+dxj] - values[dxj])/DEL_X;
-//				System.out.println(dfdx0+", "+dfdx1);
 				double d2fdx2 = (dfdx1 - dfdx0)/DEL_X;
 				h.setElement(i, j, d2fdx2);
 				h.setElement(j, i, d2fdx2);

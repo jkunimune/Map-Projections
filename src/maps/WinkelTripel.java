@@ -48,7 +48,7 @@ public final class WinkelTripel {
 	public static final Projection WINKEL_TRIPEL =
 			new Projection("Winkel Tripel", "National Geographic's compromise projection of choice.",
 					0, 2*Math.PI, 0b1011, Type.OTHER, Property.COMPROMISE, 3,
-					new String[] {"Std. Parallel"}, new double[][] {{0,90,50.4598}}) {
+					new String[] {"Std. Parallel"}, new double[][] {{0,90,40}}) {
 		
 		private double stdParallel;
 		
@@ -66,7 +66,7 @@ public final class WinkelTripel {
 					x, y,
 					y/2, x*(1 + Math.cos(y*Math.PI/2))/(2 + 2*Math.cos(stdParallel)), //inital guess is Eckert V
 					this::f1pX, this::f2pY,
-					this::df1dphi, this::df1dlam, this::df2dphi, this::df2dlam, .002);
+					this::df1dphi, this::df1dlam, this::df2dphi, this::df2dlam, .001);
 		}
 		
 		private double f1pX(double phi, double lam) {

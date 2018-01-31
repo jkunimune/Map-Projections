@@ -236,7 +236,7 @@ public class Polyhedral {
 					"TetraPower", "A parameterised tetrahedral projection that I invented.", 0b1111,
 					Configuration.TETRAHEDRON_WIDE_FACE, Property.COMPROMISE, 2,
 					new String[] {"k1","k2","k3"},
-					new double[][] {{.01,2.,.98},{.01,2.,1.2},{.01,2.,.98}}) {
+					new double[][] {{.01,2.,1.01},{.01,2.,1.19},{.01,2.,1.01}}) {
 		
 		private double k1, k2, k3;
 		
