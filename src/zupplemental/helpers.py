@@ -1,4 +1,5 @@
 import math
+import random as rng
 
 
 def obliquify(lat1, lon1, lat0, lon0):
@@ -21,14 +22,20 @@ def obliquify(lat1, lon1, lat0, lon0):
 
 	while lonf > math.pi:
 		lonf -= 2*math.pi
+	while lonf < -math.pi:
+		lonf += 2*math.pi
 		
 	return latf, lonf
 
 
-def plot(coords, midx=[0], close=True, fourmat='pr'):
-	tag = '\t\t\t<path d="'
+def plot(coords, midx=[0], close=True, fourmat='pr', clazz=None, ident=None, tabs=3):
+	class_attr = 'class="{}" '.format(clazz) if clazz is not None else ''
+	ident_attr = 'id="{}" '.format(ident) if ident is not None else ''
+	tag = '\t'*tabs+'<path {}{}d="'.format(class_attr, ident_attr)
 	last_move = None
 	for i, coord in enumerate(coords):
+		if i > 0 and coords[i-1] == coords[i]:
+			continue #no point repeating commands, though that sometimes happens
 		if coord == last_move:
 			tag += 'Z'
 			continue #save space by removing unnecessary repetitions
@@ -51,9 +58,76 @@ def plot(coords, midx=[0], close=True, fourmat='pr'):
 	print(tag.replace('.000',''))
 
 
-def is_widdershins(coords): #this method is not exact, but it should work well enough for my purposes.
-	x1, y1 = coords[0]
-	x2, y2 = coords[len(coords)//4]
-	x3, y3 = coords[len(coords)*3//4]
+def trim_edges(coast):
+	"""remove the extra points placed along the edges of the Plate Carree map"""
+	for i in range(len(coast)-1, -1, -1):
+		x0, y0 = coast[i-1] if i > 0 else coast[i]
+		x1, y1 = coast[i]
+		x2, y2 = coast[i+1] if i < len(coast)-1 else coast[i]
+		if (abs(x0) > 179.99 or abs(y0) > 89.99) and (abs(x1) > 179.99 or abs(y1) > 89.99) and (abs(x2) > 179.99 or abs(y2) > 89.99):
+			coast.pop(i)
+	return coast
 
-	return (x2-x1)*(y3-y1) - (x3-x1)*(y2-y1) > 0
+
+def line_break(line):
+	"""replace some space with a newline; whichever space is closest to the center"""
+	total_length = len(line)
+	words = line.split(' ')
+	best_length = float('inf')
+	left_length = 0
+	for i in range(len(words)-1):
+		left_length += len(words[i])+1
+		if max(left_length, total_length-left_length) < best_length:
+			best_length = max(left_length, total_length-left_length)
+			best_idx = left_length
+	return line[:best_idx-1] + '\n' + line[best_idx:]
+
+
+def get_centroid(points, parts=None):
+	"""Compute the centroid of the spherical shape"""
+	minL = min([p[0] for p in points])
+	minP = min([p[1] for p in points])
+	maxL = max([p[0] for p in points])
+	maxP = max([p[1] for p in points])
+
+	if maxL-minL < 90:
+		return ((maxL+minL)/2, (maxP+minP)/2)
+	elif parts: #if there are multiple parts, try guessing the centroid of just one; the biggest one by bounding box
+		parts.append(len(points))
+		max_area = 0
+		for i in range(1, len(parts)):
+			part = points[parts[i-1]:parts[i]]
+			minL = min([p[0] for p in part])
+			minP = min([p[1] for p in part])
+			maxL = max([p[0] for p in part])
+			maxP = max([p[1] for p in part])
+			if (maxL-minL)*(maxP-minP) > max_area:
+				max_area = (maxL-minL)*(maxP-minP)
+				best_part = (parts[i-1], parts[i])
+		return get_centroid(points[best_part[0]:best_part[1]])
+
+	lines = []
+	for i in range(1, len(points)):
+		lines += [(*points[i-1], *points[i])]
+	xc, yc, zc = 0, 0, 0
+	j = 0
+	num_in = 0
+	while j < 4000 or num_in < 10:
+		j += 1
+		latr = math.asin(rng.random()*2-1)
+		lonr = rng.random()*2*math.pi - math.pi
+		latd, lond = math.degrees(latr), math.degrees(lonr)
+		num_crosses = 0
+		for l1, p1, l2, p2 in lines: #count the lines a northward ray crosses
+			if ((l1 <= lond and l2 > lond) or (l2 <= lond and l1 > lond)) and (p1*(l2-lond)/(l2-l1) + p2*(l1-lond)/(l1-l2) > latd):
+				num_crosses += 1
+
+		if num_crosses%2 == 1: #if odd,
+			num_in += 1
+			xc += math.cos(latr)*math.cos(lonr) #this point is in.
+			yc += math.cos(latr)*math.sin(lonr) #update the centroid
+			zc += math.sin(latr)
+
+	loncr = math.atan2(yc, xc)
+	latcr = math.atan2(zc, math.hypot(xc, yc))
+	return (math.degrees(loncr), math.degrees(latcr))

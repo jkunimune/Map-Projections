@@ -1,34 +1,30 @@
 import math
 
 
-GRATICULE = 15
-INCLUDE_TROPICS = True
-ADJUST_POLES = True #set to True to reduce the number of meridians as you approach the pole
-GRANULARITY = .25
-
 AXIAL_TILT = 23.43694
-ANTI_TILT = 66.56306
+ANTI_TILT = 66.56306 #I have both of these because it's the easiest way to deal with roundoff
 
 
-def plot_meridian(lamd, cut=0, clazz=None):
+def plot_meridian(lamd, granularity, cut=0, clazz=None):
 	class_attr = 'class="{}" '.format(clazz) if clazz is not None else ''
-	tag = '\t\t\t<path {}d="M{},{}'.format(class_attr, lamd, cut-90) + 'v{}'.format(GRANULARITY)*round((180-2*cut)/GRANULARITY) + '" />'
+	tag = '\t\t\t<path {}d="M{},{}'.format(class_attr, lamd, cut-90) + 'v{}'.format(granularity)*round((180-2*cut)/granularity) + '" />'
 	print(tag)
 
 
-def plot_parallel(phid, cut=0, clazz=None):
+def plot_parallel(phid, granularity, cut=0, clazz=None):
 	class_attr = 'class="{}" '.format(clazz) if clazz is not None else ''
-	tag = '\t\t\t<path {}d="M{},{}'.format(class_attr, cut-180, phid) + 'h{}'.format(GRANULARITY)*round((360-2*cut)/GRANULARITY) + '" />'
+	tag = '\t\t\t<path {}d="M{},{}'.format(class_attr, cut-180, phid) + 'h{}'.format(granularity)*round((360-2*cut)/granularity) + '" />'
 	print(tag)
 
 
-if __name__ == '__main__':
-	NUM_BASE = 90//GRATICULE
+def generate_graticule(spacing, granularity, include_tropics=False, adjust_poles=False, double_dateline=False):
+	"""Generate a mesh of latitude and longitude lines"""
+	NUM_BASE = 90//spacing
 	cuts = [0]*(4*NUM_BASE)
-	if ADJUST_POLES:
+	if adjust_poles: #if this is True, reduce the number of meridians as you approach the pole
 		old_num = 1
-		for p in range(0, 90, GRATICULE):
-			new_num = old_num*int(1/math.cos(math.radians(p+GRATICULE/2))/old_num)
+		for p in range(0, 90, spacing):
+			new_num = old_num*int(1/math.cos(math.radians(p+spacing/2))/old_num)
 			while NUM_BASE%new_num != 0: 	new_num -= 1
 			if new_num >= 2*old_num:
 				for i in range(len(cuts)):
@@ -36,17 +32,17 @@ if __name__ == '__main__':
 						cuts[i] = 90-p
 				old_num = new_num
 
-	for x in range(GRATICULE, 180, GRATICULE):
-		plot_meridian(-x, cut=cuts[x//GRATICULE%len(cuts)])
-		plot_meridian(x, cut=cuts[x//GRATICULE%len(cuts)])
-	for y in range(GRATICULE, 90, GRATICULE):
-		plot_parallel(-y)
-		plot_parallel(y)
-	for x in [-180, 0, 180]:
-		plot_meridian(x, clazz="prime-m")
-	plot_parallel(0, clazz="equator")
-	if INCLUDE_TROPICS:
-		plot_parallel(-AXIAL_TILT, clazz="tropics")
-		plot_parallel(AXIAL_TILT, clazz="tropics")
-		plot_parallel(-ANTI_TILT, clazz="circles")
-		plot_parallel(ANTI_TILT, clazz="circles")
+	for x in range(spacing, 180, spacing):
+		plot_meridian(-x, granularity, cut=cuts[x//spacing%len(cuts)])
+		plot_meridian(x, granularity, cut=cuts[x//spacing%len(cuts)])
+	for y in range(spacing, 90, spacing):
+		plot_parallel(-y, granularity)
+		plot_parallel(y, granularity)
+	for x in [-180, 0, 180] if double_dateline else [-180, 0]:
+		plot_meridian(x, granularity, clazz="prime-m")
+	plot_parallel(0, granularity, clazz="equator")
+	if include_tropics:
+		plot_parallel(-AXIAL_TILT, granularity, clazz="tropics")
+		plot_parallel(AXIAL_TILT, granularity, clazz="tropics")
+		plot_parallel(-ANTI_TILT, granularity, clazz="circles")
+		plot_parallel(ANTI_TILT, granularity, clazz="circles")

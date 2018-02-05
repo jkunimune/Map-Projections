@@ -14,7 +14,8 @@ def plot_orthodrome(phi0, lam0, tht0):
 	plot(points, close=False)
 
 
-if __name__ == '__main__':
+def generate_orthodromes():
+	"""generate an icosohedral orthodromic mesh, like the Brilliant logo (#notsponsored)"""
 	for l in range(-180, 180, 36):
 		plot_orthodrome(math.pi/2, 0, math.radians(l))
 	for l in range(0, 360, 72):
