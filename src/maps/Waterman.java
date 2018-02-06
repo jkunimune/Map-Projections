@@ -1,6 +1,4 @@
 package maps;
-import maps.Projection.Property;
-import maps.Projection.Type;
 import utils.Math2;
 
 /**
@@ -28,8 +26,7 @@ import utils.Math2;
  */
 
 /**
- * A class devoted to the Waterman butterfly, because it doesn't really fit into Polyhedral.java or
- * CahillKeyes.java, and Misc.java has too many projections already.
+ * A class of methods pertaining to the Waterman projection.
  * http://www.watermanpolyhedron.com/methodp.html
  * 
  * @author jkunimune
@@ -40,58 +37,12 @@ public class Waterman {
 		{(Math.sqrt(3)-1)/2, .5*Math.sqrt(3), 1.5*Math.sqrt(3), Double.NaN};
 	private static final double[] dYdL = {0, 2/Math.PI, 6/Math.PI, (4+Math.sqrt(8))/Math.PI};
 	
-	private static final double lossX = (Math.sqrt(3)-1)/2; //horizontal dimension interruption loss
-	private static final double lossY = lossX*Math.sqrt(3)/2; //vertical dimension interruption loss
 	private static final double lonDiag = Math.PI/(4+Math.sqrt(8));
 	private static final double sin15 = (Math.sqrt(3)-1)/Math.sqrt(8);
 	private static final double cos15 = (Math.sqrt(3)+1)/Math.sqrt(8);
 	
 	
-	public static final Projection BUTTERFLY =
-			new Projection(
-					"Waterman", "An aesthetically pleasing octohedral map arrangement.",
-					8*Math.sqrt(3)-2*lossX, 8-2*lossY, 0b1010,
-					Type.TETRADECAHEDRAL, Property.COMPROMISE, 3) {
-		
-		public double[] project(double lat, double lon) {
-			double centralLon = Math.floor(lon/(Math.PI/2))*Math.PI/2 + Math.PI/4; //get the octant longitude
-			if (lon == Math.PI) 	centralLon = 3*Math.PI/4; //a hack to fix a minor issue with the IDL
-			
-			double[] mjCoords = faceProject(Math.abs(lat), Math.abs(lon - centralLon));
-			double mjX = mjCoords[0]; //"mj" stands for "Mary Jo Graca". I know she had nothing to do with the Waterman projection, but it means the same thing here as it does in Cahill-Keyes
-			double mjY = mjCoords[1];
-			
-			if (lat < 0) //if it's in the southern hemisphere
-				mjX = 4*Math.sqrt(3) - mjX; //flip it around
-			if (lon < centralLon) //if the relative longitude is negative
-				mjY = -mjY; //flip it the other way
-			return new double[] {
-					mjX*Math.sin(centralLon*2/3) + mjY*Math.cos(centralLon*2/3),
-					-mjX*Math.cos(centralLon*2/3) + mjY*Math.sin(centralLon*2/3) + 2 };
-		}
-		
-		public double[] inverse(double x, double y) {
-			y -= 2;
-			double tht = Math.atan2(x, -y);
-			if (Math.abs(tht) > 5*Math.PI/6) 	return null; //only show a little bit of extra
-			
-			double quadrAngle = (Math.floor(tht/(Math.PI/3))+2)*Math.PI/3; //the angle of the centre of the quadrant, measured widdershins from -y
-			double centralLon = quadrAngle*1.5 - 3*Math.PI/4; //the central meridian of this quadrant
-			double mjX = -x*Math.cos(quadrAngle) - y*Math.sin(quadrAngle);
-			double mjY =  x*Math.sin(quadrAngle) - y*Math.cos(quadrAngle);
-			
-			double[] relCoords = faceInverse(Math.min(mjX, 4*Math.sqrt(3)-mjX), Math.abs(mjY));
-			if (relCoords == null)
-				return null;
-			
-			if (mjY < 0) 	relCoords[1] *= -1; //the left half of the octant gets shifted west
-			if (mjX > 2*Math.sqrt(3)) 	relCoords[0] *= -1; //the outer rim of the map is the southern hemisphere
-			return new double[] { relCoords[0], relCoords[1] + centralLon };
-		}
-	};
-	
-	
-	private static double[] faceProject(double lat, double lon) {
+	public static double[] faceProject(double lat, double lon) {
 		double[] yELD = jointHeights(lon);
 		double desirLength = Math2.linInterp(lat, Math.PI/2, 0, 0, totalLength(xELD, yELD));
 		
@@ -107,7 +58,7 @@ public class Waterman {
 		return null;
 	}
 
-	private static double[] faceInverse(double x, double y) {
+	public static double[] faceInverse(double x, double y) {
 		if (y > x-(Math.sqrt(3)-1)/2 || y > x/Math.sqrt(3) || y > (2-Math.sqrt(3))*(x+3) ||
 				y > (7+4*Math.sqrt(3))-(2+Math.sqrt(3))*x  || x > 2*Math.sqrt(3)) //this describes the footprint of the octant
 			return null;

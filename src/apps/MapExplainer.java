@@ -30,19 +30,19 @@ import java.io.PrintStream;
 
 import javax.imageio.ImageIO;
 
+import maps.Arbitrary;
 import maps.Azimuthal;
 import maps.Conic;
 import maps.Cylindrical;
 import maps.Lenticular;
 import maps.Misc;
 import maps.MyProjections;
+import maps.Octohedral;
+import maps.Polyhedral;
 import maps.Projection;
 import maps.Pseudocylindrical;
-import maps.Arbitrary;
 import maps.Snyder;
-import maps.Polyhedral;
 import maps.Tobler;
-import maps.Waterman;
 import maps.WinkelTripel;
 import utils.ImageUtils;
 import utils.PixelMap;
@@ -66,7 +66,7 @@ public class MapExplainer {
 			Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.AUTHAGRAPH,
 			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER,
 			Lenticular.HAMMER, Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN, Arbitrary.ROBINSON,
-			WinkelTripel.WINKEL_TRIPEL, Waterman.BUTTERFLY, Misc.PEIRCE_QUINCUNCIAL.transverse(),
+			WinkelTripel.WINKEL_TRIPEL, Octohedral.WATERMAN, Misc.PEIRCE_QUINCUNCIAL.transverse(),
 			Snyder.GS50, Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Misc.FLAT_EARTH },
 			
 			{ MyProjections.PSEUDOSTEREOGRAPHIC, Polyhedral.TETRAGRAPH, Polyhedral.AUTHAPOWER,

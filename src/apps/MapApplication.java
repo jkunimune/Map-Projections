@@ -81,12 +81,12 @@ import maps.Cylindrical;
 import maps.Lenticular;
 import maps.Misc;
 import maps.MyProjections;
+import maps.Octohedral;
 import maps.Polyhedral;
 import maps.Projection;
 import maps.Pseudocylindrical;
 import maps.Snyder;
 import maps.Tobler;
-import maps.Waterman;
 import maps.WinkelTripel;
 import utils.Flag;
 import utils.Math2;
@@ -114,7 +114,7 @@ public abstract class MapApplication extends Application {
 	private static final KeyCombination CTRL_ENTER = new KeyCodeCombination(KeyCode.ENTER, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	public static final Projection[] FEATURED_PROJECTIONS = { Cylindrical.MERCATOR,
+	public static final Projection[] FEATURED_PROJECTIONS = { Octohedral.WATERMAN, Cylindrical.MERCATOR,
 			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL_STEREOGRAPHIC,
 			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
 			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
@@ -135,7 +135,7 @@ public abstract class MapApplication extends Application {
 			{ Conic.ALBERS, Conic.LAMBERT, Conic.EQUIDISTANT },
 			{ Polyhedral.AUTHAGRAPH, CahillKeyes.M_MAP, Polyhedral.DYMAXION,
 				Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
-				Waterman.BUTTERFLY },
+				Octohedral.WATERMAN },
 			{ Pseudocylindrical.ECKERT_IV, Pseudocylindrical.KAVRAYSKIY_VII,
 					Pseudocylindrical.MOLLWEIDE, Arbitrary.NATURAL_EARTH, Arbitrary.ROBINSON,
 					Pseudocylindrical.SINUSOIDAL, Tobler.TOBLER },
