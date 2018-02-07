@@ -49,10 +49,10 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import maps.Arbitrary;
 import maps.Azimuthal;
-import maps.CahillKeyes;
 import maps.Cylindrical;
 import maps.Lenticular;
 import maps.Misc;
+import maps.Octohedral;
 import maps.Polyhedral;
 import maps.Projection;
 import maps.Pseudocylindrical;
@@ -81,7 +81,7 @@ public class MapPlotter extends Application {
 	private static final Projection[] TETRAHEDRAL = { Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
 			Polyhedral.AUTHAGRAPH, Polyhedral.ACTUAUTHAGRAPH, Polyhedral.TETRAPOWER };
 	private static final Projection[] CHEATY = { Pseudocylindrical.LEMONS,
-			CahillKeyes.M_MAP, Polyhedral.DYMAXION };
+			Octohedral.KEYES_BASIC_M, Polyhedral.DYMAXION };
 	private static final Projection[] OTHER = { Misc.PEIRCE_QUINCUNCIAL };
 	
 	

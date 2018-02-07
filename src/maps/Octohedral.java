@@ -48,6 +48,40 @@ public class Octohedral {
 	};
 	
 	
+	public static final Projection KEYES_BUTTERFLY = new OctohedralProjection(
+			"Cahill-Keyes Butterfly", "A simple Cahill-esque octohedral map arrangement, with Antarctica left on.",
+			CahillKeyes.lMG, CahillKeyes.lMA, 0b1010, Property.COMPROMISE, 4,
+			Configuration.BUTTERFLY) {
+		
+		protected double[] faceProject(double lat, double lon) {
+			return CahillKeyes.faceProjectD(Math.toDegrees(lat), Math.toDegrees(lon));
+		}
+		
+		protected double[] faceInverse(double x, double y) {
+			double[] coords = CahillKeyes.faceInverseD(x, y);
+			return (coords == null) ? null :
+				new double[] {Math.toRadians(coords[0]), Math.toRadians(coords[1])};
+		}
+	};
+	
+	
+	public static final Projection KEYES_BASIC_M = new OctohedralProjection(
+			"Cahill-Keyes Basic", "A simple M-shaped octohedral projection, with Antarctica broken into three pieces.",
+			CahillKeyes.lMG, CahillKeyes.lMA, 0b1010, Property.COMPROMISE, 4,
+			Configuration.M_PROFILE) {
+		
+		protected double[] faceProject(double lat, double lon) {
+			return CahillKeyes.faceProjectD(Math.toDegrees(lat), Math.toDegrees(lon));
+		}
+		
+		protected double[] faceInverse(double x, double y) {
+			double[] coords = CahillKeyes.faceInverseD(x, y);
+			return (coords == null) ? null :
+				new double[] {Math.toRadians(coords[0]), Math.toRadians(coords[1])};
+		}
+	};
+	
+	
 	
 	private static abstract class OctohedralProjection extends Projection {
 		
@@ -116,9 +150,9 @@ public class Octohedral {
 			private final double Y_OFFSET = -1/Math.sqrt(3);
 			
 			public double[] project(double lat, double lon) {
-				if (Math.abs(lon) > Math.PI && lat < 0) {
+				if (Math.abs(lon) >= Math.PI && lat < 0) {
 					double sign = Math.signum(lon);
-					return new double[] {sign, 2/Math.sqrt(3), sign*Math.PI/6, sign*Math.PI};
+					return new double[] {sign, 2/Math.sqrt(3), sign*Math.PI/6, 5*sign*Math.PI/4};
 				}
 				double centralMerid = Math.floor(lon/(Math.PI/2))*Math.PI/2 + Math.PI/4;
 				return new double[] { 0, Y_OFFSET, centralMerid*2/3., centralMerid };
@@ -138,22 +172,28 @@ public class Octohedral {
 		},
 		
 		
-		M_PROFILE(4, 0, Math.sqrt(3), Math.sqrt(3)) {
+		M_PROFILE(4, 0, Math.sqrt(3), Math.sqrt(3)) { //The more compact zigzag configuration with Antarctica divided and attached
 			
 			public double[] project(double lat, double lon) {
-				// TODO: Implement this
-				return null;
+				double centralMerid = Math.floor(lon/(Math.PI/2))*Math.PI/2 + Math.PI/4;
+				double sign = Math.signum(centralMerid);
+				return new double[] {
+						sign, 0, sign*(Math.abs(centralMerid)*2/3.-Math.PI/3), centralMerid };
 			}
 			
 			public double[] inverse(double x, double y) {
-				// TODO: Implement this
-				return null;
-			} //The more compact zigzag configuration with Antarctica divided and attached
+				double tht = Math.atan2(Math.abs(x)-1, -y);
+				if (tht < -Math.PI/3) 	return null;
+				double centralAngle = Math.floor(tht/(Math.PI/3))*Math.PI/3 + Math.PI/6;
+				double sign = Math.signum(x);
+				return new double[] {
+						sign*(centralAngle*3/2.+Math.PI/2), sign, 0, sign*centralAngle };
+			}
 		
 		},
 		
 		
-		M_W_S_POLE(4, 0, 3.5/Math.sqrt(3), 1.5*Math.sqrt(3)) {
+		M_W_S_POLE(4, 0, 3.5/Math.sqrt(3), 1.5*Math.sqrt(3)) { //Keyes's current configuration, with Antarctica reassembled in the center
 			
 			public double[] project(double lat, double lon) {
 				// TODO: Implement this
@@ -163,11 +203,11 @@ public class Octohedral {
 			public double[] inverse(double x, double y) {
 				// TODO: Implement this
 				return null;
-			} //Keyes's current configuration, with Antarctica reassembled in the center
+			}
 		},
 		
 		
-		BAT_SHAPE(2*Math.sqrt(3), 0, 2, 0) {
+		BAT_SHAPE(2*Math.sqrt(3), 0, 2, 0) { //Luca Concialdi's obscure "Bat" arrangement that I liked. I don't think it's the best map possible as Luca does, but I do think it's quite neat
 			
 			public double[] project(double lat, double lon) {
 				// TODO: Implement this
@@ -177,7 +217,7 @@ public class Octohedral {
 			public double[] inverse(double x, double y) {
 				// TODO: Implement this
 				return null;
-			} //Luca Concialdi's obscure "Bat" arrangement that I liked. I don't think it's the best map possible as Luca does, but I do think it's quite neat
+			}
 		};
 		
 		

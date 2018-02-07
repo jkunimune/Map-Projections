@@ -106,12 +106,6 @@ public abstract class Projection {
 				type, property, rating, paramNames, paramValues, hasAspect);
 	}
 	
-	protected Projection(Projection base) {
-		this(	base.name, base.description, base.width, base.height, base.finite, base.invertable,
-				base.solveable, base.continuous, base.type, base.property, base.rating,
-				base.paramNames, base.paramValues, base.hasAspect);
-	}
-	
 	protected Projection (
 			String name, String description, double width, double height,
 			boolean f, boolean i, boolean s, boolean c, Type type, Property property, int rating,
@@ -132,6 +126,11 @@ public abstract class Projection {
 		this.rating = rating;
 	}
 	
+	protected Projection(Projection base) {
+		this(	base.name, base.description, base.width, base.height, base.finite, base.invertable,
+				base.solveable, base.continuous, base.type, base.property, base.rating,
+				base.paramNames, base.paramValues, base.hasAspect);
+	}
 	
 	private static String buildDescription(Type type, Property property, String adjective, String addendum) { //these should all be lowercase
 		String description = property+" "+type+" projection";
@@ -586,9 +585,9 @@ public abstract class Projection {
 		CYLINDRICAL("Cylindrical"), CONIC("Conic"), AZIMUTHAL("Azimuthal"),
 		PSEUDOCYLINDRICAL("Pseudocylindrical"), PSEUDOCONIC("Pseudoconic"),
 		PSEUDOAZIMUTHAL("Pseudoazimuthal"), QUASIAZIMUTHAL("Quasiazimuthal"),
-		TETRAHEDRAL("Tetrahedral"), TETRADECAHEDRAL("Truncated Octohedral"),
-		ICOSOHEDRAL("Icosohedral"), POLYNOMIAL("Polynomial"), STREBE("Strebe Blend"),
-		PLANAR("Planar"), OTHER("Other");
+		TETRAHEDRAL("Tetrahedral"), OCTOHEDRAL("Octohedral"),
+		TETRADECAHEDRAL("Truncated Octohedral"), ICOSOHEDRAL("Icosohedral"),
+		POLYNOMIAL("Polynomial"), STREBE("Strebe Blend"), PLANAR("Planar"), OTHER("Other");
 		
 		private String name;
 		

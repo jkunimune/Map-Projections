@@ -75,7 +75,6 @@ import javafx.stage.Stage;
 import javafx.util.converter.DoubleStringConverter;
 import maps.Arbitrary;
 import maps.Azimuthal;
-import maps.CahillKeyes;
 import maps.Conic;
 import maps.Cylindrical;
 import maps.Lenticular;
@@ -114,12 +113,12 @@ public abstract class MapApplication extends Application {
 	private static final KeyCombination CTRL_ENTER = new KeyCodeCombination(KeyCode.ENTER, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	public static final Projection[] FEATURED_PROJECTIONS = { Octohedral.WATERMAN, Cylindrical.MERCATOR,
+	public static final Projection[] FEATURED_PROJECTIONS = { Cylindrical.MERCATOR,
 			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL_STEREOGRAPHIC,
 			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
 			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
 			Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.ACTUAUTHAGRAPH,
-			Polyhedral.AUTHAPOWER, CahillKeyes.M_MAP, Pseudocylindrical.SINUSOIDAL,
+			Polyhedral.AUTHAPOWER, Octohedral.KEYES_BASIC_M, Pseudocylindrical.SINUSOIDAL,
 			Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Lenticular.AITOFF,
 			Lenticular.VAN_DER_GRINTEN, Arbitrary.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
 			Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT, Pseudocylindrical.LEMONS }; //the set of featured projections for the ComboBox
@@ -133,7 +132,7 @@ public abstract class MapApplication extends Application {
 			{ Azimuthal.EQUAL_AREA, Azimuthal.POLAR, Azimuthal.GNOMONIC, Azimuthal.ORTHOGRAPHIC,
 					Azimuthal.PERSPECTIVE, Azimuthal.STEREOGRAPHIC },
 			{ Conic.ALBERS, Conic.LAMBERT, Conic.EQUIDISTANT },
-			{ Polyhedral.AUTHAGRAPH, CahillKeyes.M_MAP, Polyhedral.DYMAXION,
+			{ Polyhedral.AUTHAGRAPH, Octohedral.KEYES_BASIC_M, Octohedral.KEYES_BUTTERFLY, Polyhedral.DYMAXION,
 				Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
 				Octohedral.WATERMAN },
 			{ Pseudocylindrical.ECKERT_IV, Pseudocylindrical.KAVRAYSKIY_VII,

@@ -37,6 +37,7 @@ import utils.NumericalAnalysis;
 public class Polyhedral {
 	
 	private static final double ASIN_ONE_THD = Math.asin(1/3.); //the complement of the angular radius of a tetrahedron face
+	private static final double ATAN_RT_TWO = Math.atan(Math.sqrt(2)); //half the angular length of a tetrohedron edge
 	private static final double ATAN_ONE_HLF = Math.atan(1/2.); //the complement of the angular length of an icosahedron edge
 	
 	
@@ -455,6 +456,7 @@ public class Polyhedral {
 				{-Math.PI/2,	 0,			-2*Math.PI/3,	 Math.PI/3,		-2,	-Math.sqrt(3) },
 				{ ASIN_ONE_THD,	 Math.PI/3,	-2*Math.PI/3,	 Math.PI,		 1,	 0 },
 				{ ASIN_ONE_THD,	-Math.PI/3,	 2*Math.PI/3,	 0,				-1,	 0 }}),
+		
 		TRIANGLE_FACE(3, 3, 4*Math.sqrt(3), 6., new double[][] { // \delta arrangement, like they are often published
 				{ ASIN_ONE_THD,	 Math.PI/3,	 0,				-5*Math.PI/6,	 Math.sqrt(3),	2 },
 				{ ASIN_ONE_THD,	-Math.PI/3,	 0,				-Math.PI/6,		-Math.sqrt(3),	2 },
@@ -465,10 +467,10 @@ public class Polyhedral {
 			}
 		},
 		TETRAHEDRON_WIDE_VERTEX(3, 6, 6., 2*Math.sqrt(3), new double[][] { // [<|>] arrangement, vertex-centred
-				{ Math.PI/2,	 0,				 0,				-Math.PI/2,		 0,	 Math.sqrt(3) },
-				{-ASIN_ONE_THD,	 0,				 Math.PI,		 Math.PI/2,		 0,	-Math.sqrt(3) },
-				{-ASIN_ONE_THD,	 2*Math.PI/3,	 Math.PI,		 5*Math.PI/6,	 3,	 0 },
-				{-ASIN_ONE_THD,	-2*Math.PI/3,	 Math.PI,		 Math.PI/6,		-3,	 0 }}) {
+				{ ATAN_RT_TWO,	 0,				 0,				-Math.PI/2,		 0,	 Math.sqrt(3) },
+				{ 0,	 Math.PI-ATAN_RT_TWO,	-5*Math.PI/6,	 Math.PI/2,		 0,	-Math.sqrt(3) },
+				{ 0,	 ATAN_RT_TWO-Math.PI,	 5*Math.PI/6,	 5*Math.PI/6,	 3,	 0 },
+				{-ATAN_RT_TWO,	-2*Math.PI/3,	 Math.PI,		 Math.PI/6,		-3,	 0 }}) {
 			@Override public double[] rotateOOB(double x, double y, double xCen, double yCen) {
 				if (Math.abs(x) > width/2)
 					return new double[] {2*xCen - x, -y};

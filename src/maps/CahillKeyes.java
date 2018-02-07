@@ -23,8 +23,6 @@
  */
 package maps;
 
-import maps.Projection.Property;
-import maps.Projection.Type;
 import utils.Math2;
 import utils.NumericalAnalysis;
 
@@ -37,8 +35,8 @@ import utils.NumericalAnalysis;
  */
 public class CahillKeyes {
 	
-	private static final double lMA = 940; //the distance from triangle vertex M to octant vertex A (the red length)
-	private static final double lMG = 10000; //the altitude of the triangle
+	public static final double lMA = 940; //the distance from triangle vertex M to octant vertex A (the red length)
+	public static final double lMG = 10000; //the altitude of the triangle
 	private static final double lNG = lMG/Math.sqrt(3); //the height of the triangle
 	private static final double lENy = lMA*Math.sqrt(3)/2; //the height difference between the triangle and the octant
 	private static final double lMB = lMA*2/(Math.sqrt(3)-1); //the distance from triangle vertex M to octant vertex B (the blue length)
@@ -60,84 +58,7 @@ public class CahillKeyes {
 	private static final double TOLERANCE = 10; //this is a reasonable tolerance when you recall that we're operating on the order of 10,000 units
 	
 	
-	public static final Projection M_MAP =
-			new Projection(
-					"Cahill-Keyes", "A horizontally arranged octohedral map designed to end all maps.",
-					4*lMG, 3*lNG-2*lENy, 0b1010, Type.TETRADECAHEDRAL, Property.COMPROMISE, 4) {
-		
-		public double[] project(double lat, double lon) {
-			int octantNum = (int)Math.floor(lon/(Math.PI/2));
-			if (lon == Math.PI) 	octantNum = 1; //a hack to fix a minor issue with the IDL
-			double centralLon = octantNum*Math.PI/2 + Math.PI/4; //get the octant longitude
-			final double[] mjCoords = faceProjectD(
-					Math.toDegrees(Math.abs(lat)), Math.toDegrees(Math.abs(lon - centralLon)));
-			double mjX = 10000 - mjCoords[0];
-			double mjY = mjCoords[1];
-			
-			if (lat < 0) //if it's in the southern hemisphere
-				mjX = -mjX; //flip it around
-			if (lon < centralLon) //if the relative longitude is negative
-				mjY = -mjY; //flip it the other way
-			double offsetX = centralLon*20000/Math.PI;
-			double rotDirec = (octantNum%2 == 0) ? 1. : -1.;
-			double sinRot = Math.sqrt(0.75);
-			double cosRot = 0.5;
-			return new double[] {
-					rotDirec*cosRot*mjX + sinRot*mjY + offsetX,
-					sinRot*mjX - rotDirec*cosRot*mjY };
-		}
-		
-		public double[] inverse(double x, double y) {
-			double side = Math.signum(x);
-			x = Math.abs(x) - lMG;
-			y -= 1.5*lNG;
-			double tht = Math.atan2(x, -y);
-			if (Math.abs(tht) > 5*Math.PI/6) 	return null; //only show a little bit of extra
-			
-			double quadrAngle = (Math.floor(tht/(Math.PI/3))+2)*Math.PI/3; //the angle of the centre of the quadrant, measured widdershins from -y
-			double centralLon = quadrAngle*1.5 - Math.PI/4; //the central meridian of this quadrant
-			if (centralLon < 0) 	return null;
-			double mjX = -x*Math.cos(quadrAngle) - y*Math.sin(quadrAngle);
-			double mjY =  x*Math.sin(quadrAngle) - y*Math.cos(quadrAngle);
-			
-			double[] relCoords = faceInverseD(Math.min(mjX, 2*lMG-mjX), Math.abs(mjY));
-			if (relCoords == null)
-				return null;
-			
-			if (mjY < 0) 	relCoords[1] *= -1; //the left half of the octant gets shifted west
-			if (mjX > lMG) 	relCoords[0] *= -1; //the outer rim of the map is the southern hemisphere
-			return new double[] {
-					Math.toRadians(relCoords[0]), (Math.toRadians(relCoords[1]) + centralLon)*side };
-		}
-	};
-	
-	
-	public static final Projection HALF_OCTANT = 
-			new Projection(
-					"Cahill-Keyes Half-Octant", "A single sixteenth of a Cahill-Keyes projection.",
-					lMG-lMA, lNG, 0b0011, Type.TETRADECAHEDRAL, Property.COMPROMISE, 4) {
-		
-		public double[] project(double lat, double lon) {
-			lat = Math.max(0, lat);
-			lon = Math.max(0, Math.min(Math.PI/4, lon));
-			final double[] mjCoords = faceProjectD(
-					Math2.round(Math.toDegrees(Math.abs(lat)),9), //I apply the round so that graticule lines exactly on the thing get done properly
-					Math2.round(Math.toDegrees(Math.abs(lon)),9));
-			return new double[] { mjCoords[0] - (lMG+lMA)/2, mjCoords[1] - lNG/2 };
-		}
-		
-		public double[] inverse(double x, double y) {
-			double[] coordsD = faceInverseD(x + (lMG+lMA)/2, y + lNG/2);
-			if (coordsD == null)
-				return null;
-			else
-				return new double[] { Math.toRadians(coordsD[0]), Math.toRadians(coordsD[1]) };
-		}
-	};
-	
-	
-	
-	private static final double[] faceProjectD(double latD, double lonD) { //convert adjusted lat and lon in degrees to Mary Jo's coordinates
+	public static final double[] faceProjectD(double latD, double lonD) { //convert adjusted lat and lon in degrees to Mary Jo's coordinates
 		final double[][] mer = meridian(lonD);
 		
 		if (latD >= 75) { //zone c (frigid zone)
@@ -167,7 +88,7 @@ public class CahillKeyes {
 	}
 	
 	
-	private static final double[] faceInverseD(double x, double y) { //convert Mary Jo's coordinates to relative lat and lon in degrees
+	public static final double[] faceInverseD(double x, double y) { //convert Mary Jo's coordinates to relative lat and lon in degrees
 		if (y > x-lMA || y > x/Math.sqrt(3) || y > x*(2-Math.sqrt(3))+bDE ||
 				y > (lMG-x)*(2+Math.sqrt(3))+lGF || x > lMG) //this describes the footprint of the octant
 			return null;
