@@ -4,7 +4,7 @@
 import math
 
 from generate_borders import generate_borders
-from generate_graticule import generate_graticule
+from generate_graticule import generate_graticule, generate_backdrop
 from generate_indicatrices import generate_indicatrices
 from generate_orthodromes import generate_orthodromes
 from generate_shape import generate_administrivia, generate_disputes, generate_fine_borders, generate_land, generate_rivers, generate_lakes
@@ -66,6 +66,9 @@ def compose_indicatrices():
 
 def compose_indicatrices2(ctr_meridian):
 	print('\t<g transform="matrix(1,0,0,-1,180,90)">')
+	print('\t\t<g class="water">')
+	generate_backdrop(ctr_meridian=ctr_meridian)
+	print('\t\t</g>')
 	print('\t\t<g class="land">')
 	generate_land('ne_110m')
 	print('\t\t</g>')
@@ -76,7 +79,7 @@ def compose_indicatrices2(ctr_meridian):
 	generate_graticule(10, 1, double_dateline=True)
 	print('\t\t</g>')
 	print('\t\t<g class="tissot">')
-	generate_indicatrices(30, 600/6371, ctr_meridian=ctr_meridian, adjust_poles=True)
+	generate_indicatrices(30, 500/6371, ctr_meridian=ctr_meridian, adjust_poles=True)
 	print('\t\t</g>')
 	print('\t</g>')
 
@@ -137,7 +140,7 @@ if __name__ == '__main__':
 	# compose_graticule()
 	# compose_compound()
 	# compose_indicatrices()
-	# compose_indicatrices2(-20)
+	compose_indicatrices2(+0)
 	# compose_political()
 	# compose_orthodromes()
-	compose_everything()
+	# compose_everything()
