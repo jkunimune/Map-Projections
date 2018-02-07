@@ -23,6 +23,7 @@
  */
 package maps;
 
+import de.jtem.mfc.field.Complex;
 import maps.Projection.Property;
 
 /**
@@ -67,7 +68,7 @@ public class Octohedral {
 	
 	public static final Projection KEYES_BASIC_M = new OctohedralProjection(
 			"Cahill-Keyes Basic", "A simple M-shaped octohedral projection, with Antarctica broken into three pieces.",
-			CahillKeyes.lMG, CahillKeyes.lMA, 0b1010, Property.COMPROMISE, 4,
+			CahillKeyes.lMG, CahillKeyes.lMA, 0b1010, Property.COMPROMISE, 3,
 			Configuration.M_PROFILE) {
 		
 		protected double[] faceProject(double lat, double lon) {
@@ -78,6 +79,42 @@ public class Octohedral {
 			double[] coords = CahillKeyes.faceInverseD(x, y);
 			return (coords == null) ? null :
 				new double[] {Math.toRadians(coords[0]), Math.toRadians(coords[1])};
+		}
+	};
+	
+	
+	public static final Projection KEYES_CONCIALDI = new OctohedralProjection(
+			"Cahill-Keyes Bat", "I doubt I'll include this mashup in the final product; I just kind of want to see like what it looks.",
+			CahillKeyes.lMG, CahillKeyes.lMA, 0b1010, Property.COMPROMISE, 4,
+			Configuration.BAT_SHAPE) {
+		
+		protected double[] faceProject(double lat, double lon) {
+			return CahillKeyes.faceProjectD(Math.toDegrees(lat), Math.toDegrees(lon));
+		}
+		
+		protected double[] faceInverse(double x, double y) {
+			double[] coords = CahillKeyes.faceInverseD(x, y);
+			return (coords == null) ? null :
+				new double[] {Math.toRadians(coords[0]), Math.toRadians(coords[1])};
+		}
+	};
+	
+	
+	public static final Projection CAHILL_CONCIALDI = new OctohedralProjection(
+			"Cahill-Concialdi Bat", "A conformal octohedral projection with no cuts and a unique arrangement.",
+			Math.sqrt(3)/2, 0, 0b1000, Property.CONFORMAL, 3, Configuration.BAT_SHAPE) {
+		
+		protected double[] faceProject(double lat, double lon) {
+			final Complex w = Complex.fromPolar(
+					Math.pow(Math.tan(Math.PI/4-lat/2), 2/3.), lon*2/3.-Math.PI/6);
+			Complex z = w.plus(w.pow(7).divide(3)).plus(w.pow(11).divide(9)).plus(w.pow(13).divide(99/16.));
+			if (z.isInfinite() || z.isNaN())	z = new Complex(0);
+			z = z.times(new Complex(Math.sqrt(3)/2, 1/2.));
+			return new double[] { z.getRe(), z.getIm() };
+		}
+		
+		protected double[] faceInverse(double x, double y) {
+			return null;
 		}
 	};
 	
@@ -210,8 +247,13 @@ public class Octohedral {
 		BAT_SHAPE(2*Math.sqrt(3), 0, 2, 0) { //Luca Concialdi's obscure "Bat" arrangement that I liked. I don't think it's the best map possible as Luca does, but I do think it's quite neat
 			
 			public double[] project(double lat, double lon) {
-				// TODO: Implement this
-				return null;
+				double centralMerid = Math.floor((lon+Math.PI/4)/(Math.PI/2))*Math.PI/2;
+				if (Math.abs(centralMerid) == Math.PI && lat < 0) //the outer wings
+					return new double[] { Math.signum(lon)*Math.sqrt(3), .5, 0, centralMerid };
+				else if (centralMerid == 0 && lat < -Math.PI/4) //the bottoms of the wings
+					return new double[] { 0, -2.5, Math.signum(lon)*2*Math.PI/3, centralMerid };
+				else //the bulk of the map
+					return new double[] { 0, -.5, centralMerid*2/3., centralMerid };
 			}
 			
 			public double[] inverse(double x, double y) {

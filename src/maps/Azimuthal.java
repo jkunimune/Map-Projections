@@ -28,10 +28,9 @@ import maps.Projection.Type;
 
 public class Azimuthal {
 	
-	public static final Projection STEREOGRAPHIC =
-			new Projection(
-					"Stereographic", 4, 4, 0b0111, Type.AZIMUTHAL, Property.CONFORMAL, 2,
-					"mathematically important") {
+	public static final Projection STEREOGRAPHIC = new Projection(
+			"Stereographic", 4, 4, 0b0111, Type.AZIMUTHAL, Property.CONFORMAL, 2,
+			"mathematically important") {
 		
 		public double[] project(double lat, double lon) {
 			if (lat < -1.5) 	lat = -1.5;
@@ -45,10 +44,9 @@ public class Azimuthal {
 	};
 	
 	
-	public static final Projection POLAR =
-			new Projection(
-					"Azimuthal Equidistant", 2*Math.PI, 2*Math.PI, 0b1111,
-					Type.AZIMUTHAL, Property.EQUIDISTANT, 2) {
+	public static final Projection POLAR = new Projection(
+			"Azimuthal Equidistant", 2*Math.PI, 2*Math.PI, 0b1111, Type.AZIMUTHAL,
+			Property.EQUIDISTANT, 2) {
 		
 		public double[] project(double lat, double lon) {
 			final double r = Math.PI/2 - lat;
@@ -65,9 +63,8 @@ public class Azimuthal {
 	};
 	
 	
-	public static final Projection EQUAL_AREA =
-			new Projection(
-					"Azimuthal Equal-Area", 2, 2, 0b1111, Type.AZIMUTHAL, Property.EQUAL_AREA, 1) {
+	public static final Projection EQUAL_AREA = new Projection(
+			"Azimuthal Equal-Area", 2, 2, 0b1111, Type.AZIMUTHAL, Property.EQUAL_AREA, 1) {
 		
 		public double[] project(double lat, double lon) {
 			final double r = Math.cos((Math.PI/2+lat)/2);
@@ -84,10 +81,9 @@ public class Azimuthal {
 	};
 	
 	
-	public static final Projection GNOMONIC =
-			new Projection(
-					"Gnomonic", "A projection that draws all great circles as straight lines.",
-					4, 4, 0b0111, Type.AZIMUTHAL, Property.GNOMONIC, 2) {
+	public static final Projection GNOMONIC = new Projection(
+			"Gnomonic", "A projection that draws all great circles as straight lines.",
+			4, 4, 0b0111, Type.AZIMUTHAL, Property.GNOMONIC, 2) {
 		
 		public double[] project(double lat, double lon) {
 			if (lat < 0.2) 	lat = 0.2;
@@ -101,10 +97,9 @@ public class Azimuthal {
 	};
 	
 	
-	public static final Projection ORTHOGRAPHIC =
-			new Projection(
-					"Orthographic", "A projection that mimics the Earth viewed from a great distance.",
-					2, 2, 0b0111, Type.AZIMUTHAL, Property.PERSPECTIVE, 3) {
+	public static final Projection ORTHOGRAPHIC = new Projection(
+			"Orthographic", "A projection that mimics the Earth viewed from a great distance.",
+			2, 2, 0b0111, Type.AZIMUTHAL, Property.PERSPECTIVE, 3) {
 		
 		public double[] project(double lat, double lon) {
 			if (lat < 0)	lat = 0;
@@ -121,11 +116,10 @@ public class Azimuthal {
 	};
 	
 	
-	public static final Projection PERSPECTIVE =
-			new Projection(
-					"Perspective", "A projection that mimics the actual appearance of the Earth.",
-					0, 0, 0b0111, Type.AZIMUTHAL, Property.PERSPECTIVE, 4,
-					new String[] {"Percentage"}, new double[][] {{1,99,33.3}}) {
+	public static final Projection PERSPECTIVE = new Projection(
+			"Perspective", "A projection that mimics the actual appearance of the Earth.",
+			0, 0, 0b0111, Type.AZIMUTHAL, Property.PERSPECTIVE, 4,
+			new String[] {"Percentage"}, new double[][] {{1,99,33.3}}) {
 		
 		private double d; //viewing distance in sphere radii
 		
