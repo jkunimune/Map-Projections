@@ -105,11 +105,25 @@ public class Octohedral {
 			Math.sqrt(3)/2, 0, 0b1000, Property.CONFORMAL, 3, Configuration.BAT_SHAPE) {
 		
 		protected double[] faceProject(double lat, double lon) {
+			double[] poleCoords = {lat, lon};
+			double[] vertCoords = obliquifySphc(lat, lon, new double[] {0, Math.PI/4, -3*Math.PI/4}); //look at an oblique aspect from the nearest vertex
+			if (poleCoords[0] > vertCoords[0]) { //if this point is closer to the pole
+				return fortyoctantProject(lat, lon); //project it as normal
+			}
+			else { //if it is closer to the vertex
+				double[] skewCoords = fortyoctantProject(vertCoords[0], vertCoords[1]); //use the maclaurin series centered there
+				return new double[] {
+						-1/2.*skewCoords[0] + Math.sqrt(3)/2*skewCoords[1] + Math.sqrt(3)/2,
+						-Math.sqrt(3)/2*skewCoords[0] - 1/2.*skewCoords[1] + 1/2. };
+			}
+		}
+		
+		private double[] fortyoctantProject(double lat, double lon) { //an even finer projection than the half-octant
 			final Complex w = Complex.fromPolar(
 					Math.pow(Math.tan(Math.PI/4-lat/2), 2/3.), lon*2/3.-Math.PI/6);
-			Complex z = w.plus(w.pow(7).divide(3)).plus(w.pow(11).divide(9)).plus(w.pow(13).divide(99/16.));
+			Complex z = w.plus(w.pow(7).divide(21)).plus(w.pow(11).divide(99)).plus(w.pow(13).divide(1287/16.));
 			if (z.isInfinite() || z.isNaN())	z = new Complex(0);
-			z = z.times(new Complex(Math.sqrt(3)/2, 1/2.));
+			z = z.times(new Complex(Math.sqrt(3)/2, 1/2.)).divide(1.112913); //this number is 2^(2/3)/6*\int_0^\pi sin^(-1/3) x dx
 			return new double[] { z.getRe(), z.getIm() };
 		}
 		

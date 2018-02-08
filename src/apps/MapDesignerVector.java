@@ -87,9 +87,7 @@ public class MapDesignerVector extends MapApplication {
 	public void start(Stage root) {
 		super.start(root);
 		new Thread(() -> {
-			System.out.println("Check 0");
 			setInput(new File("input/Basic.svg")); //this automatically updates the map
-			System.out.println("Check 1");
 		}).start();
 	}
 	
