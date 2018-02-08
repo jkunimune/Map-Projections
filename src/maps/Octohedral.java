@@ -83,10 +83,10 @@ public class Octohedral {
 	};
 	
 	
-	public static final Projection KEYES_CONCIALDI = new OctohedralProjection(
-			"Cahill-Keyes Bat", "I doubt I'll include this mashup in the final product; I just kind of want to see like what it looks.",
-			CahillKeyes.lMG, CahillKeyes.lMA, 0b1010, Property.COMPROMISE, 4,
-			Configuration.BAT_SHAPE) {
+	public static final Projection CAHILL_KEYES = new OctohedralProjection(
+			"Cahill-Keyes", "An M-shaped octohedral projection with Antarctica assembled in the center.",
+			CahillKeyes.lMG, CahillKeyes.lMA, 0b1010, Property.COMPROMISE, 3,
+			Configuration.M_W_S_POLE) {
 		
 		protected double[] faceProject(double lat, double lon) {
 			return CahillKeyes.faceProjectD(Math.toDegrees(lat), Math.toDegrees(lon));
@@ -178,6 +178,7 @@ public class Octohedral {
 					(cutSize == 0) ? Type.OCTOHEDRAL : Type.TETRADECAHEDRAL, property, rating);
 			this.size = altitude;
 			this.config = config;
+			this.config.setCutRatio(cutSize/altitude);
 		}
 		
 		
@@ -278,16 +279,54 @@ public class Octohedral {
 		},
 		
 		
-		M_W_S_POLE(4, 0, 3.5/Math.sqrt(3), 1.5*Math.sqrt(3)) { //Keyes's current configuration, with Antarctica reassembled in the center
+		M_W_S_POLE(4, 0, 3.56/Math.sqrt(3), Math.sqrt(3)) { //Keyes's current configuration, with Antarctica reassembled in the center
+			
+			private double southPoleX, southPoleY; //location of the South Pole
+			
+			@Override
+			public void setCutRatio(double cutRatio) {
+				super.setCutRatio(cutRatio);
+				this.southPoleX = -cutRatio/2;
+				this.southPoleY = cutRatio*Math.sqrt(3)/2 - Math.sqrt(3);
+			}
 			
 			public double[] project(double lat, double lon) {
-				// TODO: Implement this
-				return null;
+				double centralMerid = Math.floor(lon/(Math.PI/2))*Math.PI/2 + Math.PI/4;
+				if (lat < -Math.PI/3) { //antarctica is tricky
+					double centralAngle =  -Math.PI/12 - centralMerid;
+					return new double[] {
+							southPoleX - (2-cutRatio)*Math.sin(centralAngle),
+							southPoleY + (2-cutRatio)*Math.cos(centralAngle),
+							centralAngle, centralMerid };
+				}
+				else { //the rest of the map is pretty straightforward
+					double sign = Math.signum(centralMerid);
+					return new double[] {
+							sign, 0, sign*(Math.abs(centralMerid)*2/3.-Math.PI/3), centralMerid };
+				}
 			}
 			
 			public double[] inverse(double x, double y) {
-				// TODO: Implement this
-				return null;
+				if (Math.hypot(x-southPoleX, y-southPoleY) < 0.325) { //do the special Antarctica thing
+					double tht = Math.atan2(southPoleX-x, y-southPoleY);
+					double centralAngle =
+							Math.floor((tht+Math.PI/12)/(Math.PI/2))*Math.PI/2 + Math.PI/6;
+					double maxLat = (centralAngle != Math.PI/6) ? -Math.PI/3 : Math.PI/2;
+					return new double[] {
+							southPoleX - (2-cutRatio)*Math.sin(centralAngle),
+							southPoleY + (2-cutRatio)*Math.cos(centralAngle),
+							centralAngle, -Math.PI/12 - centralAngle, -Math.PI/2, maxLat};
+				}
+				else {
+					double tht = Math.atan2(Math.abs(x)-1, -y);
+					if (tht < -Math.PI/3) 	return null;
+					double centralAngle = Math.floor(tht/(Math.PI/3))*Math.PI/3 + Math.PI/6;
+					double sign = Math.signum(x);
+					double centralMerid = sign*(centralAngle*3/2.+Math.PI/2);
+					double minLat = (centralMerid == Math.PI/4) ? -Math.PI/3 : -Math.PI/2;
+					return new double[] { sign, 0, sign*centralAngle, centralMerid,
+							minLat, Math.PI/2 };
+				}
 			}
 		},
 		
@@ -337,17 +376,22 @@ public class Octohedral {
 		
 		
 		public final double fullWidth, cutWidth, fullHeight, cutHeight;
+		protected double cutRatio; //this variable should be set by the map projection so that the configuration knows how big the cuts actually are
 		
 		private Configuration(double fullWidth, double cutWidth,
 				double fullHeight, double cutHeight) {
-			this.fullWidth = fullWidth;
-			this.cutWidth = cutWidth;
-			this.fullHeight = fullHeight;
+			this.fullWidth = fullWidth; //the size of the configuration
+			this.cutWidth = cutWidth; //given in terms of both the triangle altitudes
+			this.fullHeight = fullHeight; //and the cut sizes
 			this.cutHeight = cutHeight;
 		}
 		
 		public abstract double[] project(double lat, double lon); //calculate the x, y, rotation, and central meridian for this quadrant
 		public abstract double[] inverse(double x, double y); //calculate the x, y, rotation, central meridian, and min and max latitude for this quadrant
+		
+		public void setCutRatio(double cutRatio) {
+			this.cutRatio = cutRatio;
+		}
 	}
 	
 }

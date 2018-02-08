@@ -112,7 +112,7 @@ public class MapDesignerRaster extends MapApplication {
 	protected Region makeWidgets() {
 		this.aspect = new double[3];
 		this.cropAtIDL = new Flag(false);
-		this.graticuleSpacing = new MutableDouble(15);
+		this.graticuleSpacing = new MutableDouble();
 		final Region inputSelector = buildInputSelector(READABLE_TYPES,
 				RASTER_TYPES[0], this::setInput);
 		final Region projectionSelector = buildProjectionSelector(this::hideAspect);

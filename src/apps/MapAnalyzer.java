@@ -109,7 +109,7 @@ public class MapAnalyzer extends MapApplication {
 	@Override
 	protected Region makeWidgets() {
 		this.cropAtIDL = new Flag(true);
-		this.graticuleSpacing = new MutableDouble(15);
+		this.graticuleSpacing = new MutableDouble();
 		final Region projectionSelector = buildProjectionSelector(Procedure.NONE);
 		final Region parameterSelector = buildParameterSelector(Procedure.NONE);
 		final Region optionPane = buildOptionPane(cropAtIDL, graticuleSpacing);

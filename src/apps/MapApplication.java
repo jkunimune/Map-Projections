@@ -132,8 +132,8 @@ public abstract class MapApplication extends Application {
 			{ Azimuthal.EQUAL_AREA, Azimuthal.POLAR, Azimuthal.GNOMONIC, Azimuthal.ORTHOGRAPHIC,
 					Azimuthal.PERSPECTIVE, Azimuthal.STEREOGRAPHIC },
 			{ Conic.ALBERS, Conic.LAMBERT, Conic.EQUIDISTANT },
-			{ Polyhedral.AUTHAGRAPH, Octohedral.CAHILL_CONCIALDI, Octohedral.KEYES_BASIC_M,
-					Octohedral.KEYES_BUTTERFLY, Polyhedral.DYMAXION,
+			{ Polyhedral.AUTHAGRAPH, Octohedral.CAHILL_CONCIALDI, Octohedral.CAHILL_KEYES,
+					Octohedral.KEYES_BASIC_M, Octohedral.KEYES_BUTTERFLY, Polyhedral.DYMAXION,
 					Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
 					Octohedral.WATERMAN },
 			{ Pseudocylindrical.ECKERT_IV, Pseudocylindrical.KAVRAYSKIY_VII,
@@ -395,7 +395,7 @@ public abstract class MapApplication extends Application {
 	protected Region buildOptionPane(Flag cropAtIDL, MutableDouble graticule) {
 		final CheckBox cropBox = new CheckBox("Crop at International Dateline"); //the CheckBox for whether there should be shown imagery outside the International Dateline
 		cropBox.setSelected(cropAtIDL.isSet());
-		cropBox.setTooltip(new Tooltip("Show every point exactly once."));
+		cropBox.setTooltip(new Tooltip("Hide points of extreme longitude."));
 		cropBox.selectedProperty().addListener((observable, old, now) -> {
 				cropAtIDL.set(now);
 			});
@@ -406,8 +406,8 @@ public abstract class MapApplication extends Application {
 				factorsOf90.add((double)f);
 		final Spinner<Double> gratSpinner = new Spinner<Double>(factorsOf90); //spinner for the graticule value
 		gratSpinner.getValueFactory().setConverter(new DoubleStringConverter());
-		gratSpinner.getValueFactory().setValue(graticule.get());
-		gratSpinner.setDisable(graticule.isZero());
+		gratSpinner.getValueFactory().setValue(15.);
+		gratSpinner.setDisable(true);
 		gratSpinner.setEditable(true);
 		gratSpinner.setTooltip(new Tooltip("The spacing in degrees between shown parallels and meridians."));
 		gratSpinner.setPrefWidth(SPINNER_WIDTH);
@@ -416,7 +416,7 @@ public abstract class MapApplication extends Application {
 			});
 		
 		final CheckBox gratBox = new CheckBox("Graticule: "); //the CheckBox for whether there should be a graticule
-		gratBox.setSelected(!graticule.isZero());
+		gratBox.setSelected(false);
 		gratBox.setTooltip(new Tooltip("Overlay a mesh of parallels and meridians."));
 		gratBox.selectedProperty().addListener((observable, old, now) -> {
 				if (now)
