@@ -102,33 +102,63 @@ public class Octohedral {
 	
 	public static final Projection CAHILL_CONCIALDI = new OctohedralProjection(
 			"Cahill-Concialdi Bat", "A conformal octohedral projection with no cuts and a unique arrangement.",
-			Math.sqrt(3)/2, 0, 0b1000, Property.CONFORMAL, 3, Configuration.BAT_SHAPE) {
+			Math.sqrt(3)/2, 0, 0b1000, Property.CONFORMAL, 4, Configuration.BAT_SHAPE) {
+		
+		private final double HEXAGON_SCALE = 1.112913; //this is 2^(2/3)/6*\int_0^\pi sin^(-1/3) x dx
+		private final double TOLERANCE = 1e-3;
+		private final double[] VERTEX = {0, Math.PI/4, -3*Math.PI/4};
 		
 		protected double[] faceProject(double lat, double lon) {
 			double[] poleCoords = {lat, lon};
-			double[] vertCoords = obliquifySphc(lat, lon, new double[] {0, Math.PI/4, -3*Math.PI/4}); //look at an oblique aspect from the nearest vertex
+			double[] vertCoords = obliquifySphc(lat, lon, VERTEX); //look at an oblique aspect from the nearest vertex
 			if (poleCoords[0] > vertCoords[0]) { //if this point is closer to the pole
-				return fortyoctantProject(lat, lon); //project it as normal
+				Complex w = Complex.fromPolar(Math.pow(Math.tan(Math.PI/4-lat/2), 2/3.), lon*2/3.);
+				Complex z = polynomial(w); //project it as normal
+				return new double[] {z.getRe(), z.getIm()};
 			}
 			else { //if it is closer to the vertex
-				double[] skewCoords = fortyoctantProject(vertCoords[0], vertCoords[1]); //use the maclaurin series centered there
+				Complex w = Complex.fromPolar(
+						Math.pow(Math.tan(Math.PI/4-vertCoords[0]/2), 2/3.), vertCoords[1]*2/3.);
+				Complex zSkew = polynomial(w); //use the maclaurin series centred there
 				return new double[] {
-						-1/2.*skewCoords[0] + Math.sqrt(3)/2*skewCoords[1] + Math.sqrt(3)/2,
-						-Math.sqrt(3)/2*skewCoords[0] - 1/2.*skewCoords[1] + 1/2. };
+						-1/2.*zSkew.getRe() + Math.sqrt(3)/2*zSkew.getIm() + Math.sqrt(3)/2,
+						-Math.sqrt(3)/2*zSkew.getRe() - 1/2.*zSkew.getIm() + 1/2. };
 			}
-		}
-		
-		private double[] fortyoctantProject(double lat, double lon) { //an even finer projection than the half-octant
-			final Complex w = Complex.fromPolar(
-					Math.pow(Math.tan(Math.PI/4-lat/2), 2/3.), lon*2/3.-Math.PI/6);
-			Complex z = w.plus(w.pow(7).divide(21)).plus(w.pow(11).divide(99)).plus(w.pow(13).divide(1287/16.));
-			if (z.isInfinite() || z.isNaN())	z = new Complex(0);
-			z = z.times(new Complex(Math.sqrt(3)/2, 1/2.)).divide(1.112913); //this number is 2^(2/3)/6*\int_0^\pi sin^(-1/3) x dx
-			return new double[] { z.getRe(), z.getIm() };
 		}
 		
 		protected double[] faceInverse(double x, double y) {
-			return null;
+			Complex z;
+			if (x < (1-y)/Math.sqrt(3)) //do the Newton Raphson from whichever vertex to which it is closest
+				z = new Complex(x, y);
+			else
+				z = new Complex(-1/2.*(x-Math.sqrt(3)/2) - Math.sqrt(3)/2*(y-1/2.),
+						Math.sqrt(3)/2*(x-Math.sqrt(3)/2) - 1/2.*(y-1/2.));
+			Complex w = z.divide(HEXAGON_SCALE);
+			Complex error = polynomial(w).minus(z);
+			for (int i = 0; i < 8 && error.abs() > TOLERANCE; i ++) {
+				Complex dzdw = derivative(w);
+				w = w.minus(error.divide(dzdw));
+				error = polynomial(w).minus(z);
+			}
+			double[] latLon = { Math.PI/2 - 2*Math.atan(Math.pow(w.abs(), 3/2.)), w.arg()*3/2. }; //inverse conic it back to spherical coordinates
+			if (x < (1-y)/Math.sqrt(3)) //if it was closest to that vertex, the result is easy
+				return latLon;
+			else //if it was closer to the other vertex, do some obliquifying
+				return obliquifyPlnr(latLon, VERTEX);
+		}
+		
+		private Complex polynomial(Complex w) { //an approximation of the true conformal mapping function
+			w = w.times(Complex.fromPolar(1, -Math.PI/6));
+			Complex z = w.plus(w.pow(7).divide(21))
+					.plus(w.pow(11).divide(99)).plus(w.pow(13).divide(1287/16.));
+			return z.divide(Complex.fromPolar(HEXAGON_SCALE, -Math.PI/6));
+		}
+		
+		private Complex derivative(Complex w) { //the derivative of polynomial()
+			w = w.times(Complex.fromPolar(1, -Math.PI/6));
+			Complex z = new Complex(1).plus(w.pow(6).divide(3))
+					.plus(w.pow(10).divide(9)).plus(w.pow(12).divide(99/16.));
+			return z.divide(Complex.fromPolar(HEXAGON_SCALE, -Math.PI/6));
 		}
 	};
 	
@@ -178,16 +208,20 @@ public class Octohedral {
 			y = y - config.fullHeight*size/2; //measure from extrapolated top of map, not centre
 			double[] octant = config.inverse(x/size, y/size);
 			if (octant == null) 	return null;
-			double lon0 = octant[0], x0 = size*octant[1], y0 = size*octant[2], tht0 = octant[3];
+			double x0 = size*octant[0], y0 = size*octant[1], tht0 = octant[2], lon0 = octant[3];
 			
 			double xMj = Math.sin(tht0)*(x-x0) - Math.cos(tht0)*(y-y0);
 			double yMj = Math.cos(tht0)*(x-x0) + Math.sin(tht0)*(y-y0);
 			
+			if (Math.abs(yMj) > Math.min(xMj, 2*size-xMj)/Math.sqrt(3)) 	return null; //restrict to one rhombus
 			double[] coords = this.faceInverse(Math.min(xMj, 2*size-xMj), Math.abs(yMj));
 			if (coords == null) 	return null;
 			double lat = coords[0], lon = coords[1];
+			lat *= Math.signum(size-xMj);
+			lon *= Math.signum(yMj);
 			
-			return new double[] { Math.signum(size-xMj)*lat, Math.signum(yMj)*lon + lon0 };
+			if (octant.length > 5 && (lat < octant[4] || lat > octant[5])) 	return null; //optional latitude limits
+			return new double[] { lat, lon + lon0 };
 		}
 		
 	}
@@ -212,13 +246,13 @@ public class Octohedral {
 			public double[] inverse(double x, double y) {
 				if (y > (1-Math.abs(x))/Math.sqrt(3)) {
 					double sign = Math.signum(x);
-					return new double[] { sign*5*Math.PI/4, sign, 2/Math.sqrt(3), sign*Math.PI/6 };
+					return new double[] { sign, 2/Math.sqrt(3), sign*Math.PI/6, sign*5*Math.PI/4 };
 				}
 				double tht = Math.atan2(x, -y+Y_OFFSET);
 				if (Math.abs(tht) > 5*Math.PI/6)
 					return null;
 				double centralAngle = Math.floor(tht/(Math.PI/3))*Math.PI/3 + Math.PI/6;
-				return new double[] { centralAngle*3/2., 0, Y_OFFSET, centralAngle };
+				return new double[] { 0, Y_OFFSET, centralAngle, centralAngle*3/2. };
 			}
 		},
 		
@@ -238,7 +272,7 @@ public class Octohedral {
 				double centralAngle = Math.floor(tht/(Math.PI/3))*Math.PI/3 + Math.PI/6;
 				double sign = Math.signum(x);
 				return new double[] {
-						sign*(centralAngle*3/2.+Math.PI/2), sign, 0, sign*centralAngle };
+						sign, 0, sign*centralAngle, sign*(centralAngle*3/2.+Math.PI/2) };
 			}
 		
 		},
@@ -271,8 +305,33 @@ public class Octohedral {
 			}
 			
 			public double[] inverse(double x, double y) {
-				// TODO: Implement this
-				return null;
+						double sign = Math.signum(x);
+				if (y+.5 > Math.sqrt(3)*Math.abs(x))
+					return null; //the empty top
+				else if (y >= Math.sqrt(3)*(Math.sqrt(3)/2-Math.abs(x))) {
+					if (y > -.5) 	return null; //more empty space
+					return new double[] { sign*Math.sqrt(3), .5, 0, sign*Math.PI }; //the outer wings
+				}
+				else if (y <= -1.5 && Math.abs(x) > 1) {
+					if (y+2.5 >= Math.abs(x)/Math.sqrt(3))
+						return new double[] { 0, -2.5, Math.signum(x)*2*Math.PI/3, 0,
+								-Math.PI/2, -Math.PI/4 }; //the bottoms of the wings
+					else if (y+4.5 >= Math.abs(x)*Math.sqrt(3))
+						return new double[] { 0, -2.5, sign*2*Math.PI/3, sign*2*Math.PI,
+								-Math.PI/2, -Math.PI/4 }; //some more wing bottom
+					else
+						return new double[] { sign*Math.sqrt(3), -3.5, Math.PI, sign*3*Math.PI/2,
+								-Math.PI/2, -Math.PI/4 }; //the bottoms of the bottoms of the wings
+				}
+				else {
+					double tht = Math.atan2(x, -y-.5);
+					double centralAngle = Math.floor((tht+Math.PI/6)/(Math.PI/3))*Math.PI/3;
+					if (centralAngle != 0)
+						return new double[] { 0, -.5, centralAngle, centralAngle*3/2.}; //the bulk of the map
+					else
+						return new double[] { 0, -.5, centralAngle, centralAngle*3/2.,
+								-Math.PI/4, Math.PI/2 }; //the part with Antarctica cut off
+				}
 			}
 		};
 		
@@ -288,7 +347,7 @@ public class Octohedral {
 		}
 		
 		public abstract double[] project(double lat, double lon); //calculate the x, y, rotation, and central meridian for this quadrant
-		public abstract double[] inverse(double x, double y); //calculate the central meridian, x, y, and rotation for this quadrant
+		public abstract double[] inverse(double x, double y); //calculate the x, y, rotation, central meridian, and min and max latitude for this quadrant
 	}
 	
 }

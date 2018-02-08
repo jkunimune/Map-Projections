@@ -34,9 +34,9 @@ import utils.NumericalAnalysis;
  */
 public class Pseudocylindrical {
 	
-	public static final Projection SINUSOIDAL =
-			new Projection("Sinusoidal", "An equal-area map shaped like a sine-wave.",
-					2*Math.PI, Math.PI, 0b1111, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 1) {
+	public static final Projection SINUSOIDAL = new Projection(
+			"Sinusoidal", "An equal-area map shaped like a sine-wave.",
+			2*Math.PI, Math.PI, 0b1111, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 1) {
 		
 		public double[] project(double lat, double lon) {
 			return new double[] { Math.cos(lat)*lon, lat };
@@ -48,9 +48,9 @@ public class Pseudocylindrical {
 	};
 	
 	
-	public static final Projection MOLLWEIDE =
-			new Projection("Mollweide", "An equal-area projection shaped like an ellipse.",
-					4, 2, 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
+	public static final Projection MOLLWEIDE = new Projection(
+			"Mollweide", "An equal-area projection shaped like an ellipse.",
+			4, 2, 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
 		
 		public double[] project(double lat, double lon) {
 			double tht = NumericalAnalysis.newtonRaphsonApproximation(
@@ -69,10 +69,9 @@ public class Pseudocylindrical {
 	};
 	
 	
-	public static final Projection ECKERT_IV =
-			new Projection(
-					"Eckert IV", "An equal-area projection released in a set of six (I'm only giving you the one because the others are useless).",
-					4, 2, 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
+	public static final Projection ECKERT_IV = new Projection(
+			"Eckert IV", "An equal-area projection released in a set of six (I'm only giving you the one because the others are useless).",
+			4, 2, 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
 		
 		public double[] project(double lat, double lon) {
 			double tht = NumericalAnalysis.newtonRaphsonApproximation(
@@ -92,11 +91,9 @@ public class Pseudocylindrical {
 	};
 	
 	
-	public static final Projection KAVRAYSKIY_VII =
-			new Projection(
-					"Kavrayskiy VII", Math.PI*Math.sqrt(3), Math.PI, 0b1111,
-					Type.PSEUDOCYLINDRICAL, Property.COMPROMISE, 3,
-					"mostly popular in the former Soviet Union") {
+	public static final Projection KAVRAYSKIY_VII = new Projection(
+			"Kavrayskiy VII", Math.PI*Math.sqrt(3), Math.PI, 0b1111, Type.PSEUDOCYLINDRICAL,
+			Property.COMPROMISE, 3, "mostly popular in the former Soviet Union") {
 		
 		public double[] project(double lat, double lon) {
 			return new double[] { 1.5*lon*Math.sqrt(1/3.-Math.pow(lat/Math.PI, 2)), lat };
@@ -109,10 +106,9 @@ public class Pseudocylindrical {
 	};
 	
 	
-	public static final Projection LEMONS =
-			new Projection(
-					"Lemons", "BURN LIFE'S HOUSE DOWN!!!", 2*Math.PI, Math.PI, 0b1110,
-					Type.CYLINDRICAL, Property.COMPROMISE, 2) {
+	public static final Projection LEMONS = new Projection(
+			"Lemons", "BURN LIFE'S HOUSE DOWN!!!", 2*Math.PI, Math.PI, 0b1110,
+			Type.CYLINDRICAL, Property.COMPROMISE, 2) {
 		
 		private static final int NUM_LEMONS = 12; //number of lemons
 		private static final double LEM_WIDTH = 2*Math.PI/NUM_LEMONS; //longitude span of 1 lemon

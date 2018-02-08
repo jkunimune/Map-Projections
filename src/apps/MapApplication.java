@@ -123,8 +123,8 @@ public abstract class MapApplication extends Application {
 			Lenticular.VAN_DER_GRINTEN, Arbitrary.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
 			Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT, Pseudocylindrical.LEMONS }; //the set of featured projections for the ComboBox
 	
-	public static final String[] PROJECTION_CATEGORIES = { "Cylindrical", "Azimuthal", "Conic", "Polyhedral",
-			"Pseudocylindrical", "Lenticular", "Other", "Invented by Justin" }; //the overarching categories by which I organise my projections
+	public static final String[] PROJECTION_CATEGORIES = { "Cylindrical", "Azimuthal", "Conic",
+			"Polyhedral", "Pseudocylindrical", "Lenticular", "Other", "Invented by Justin" }; //the overarching categories by which I organise my projections
 	public static final Projection[][] ALL_PROJECTIONS = {
 			{ Cylindrical.EQUAL_AREA, Cylindrical.EQUIRECTANGULAR, Cylindrical.GALL_ORTHOGRAPHIC,
 					Cylindrical.GALL_STEREOGRAPHIC, Cylindrical.HOBO_DYER, Cylindrical.LAMBERT,
@@ -132,9 +132,10 @@ public abstract class MapApplication extends Application {
 			{ Azimuthal.EQUAL_AREA, Azimuthal.POLAR, Azimuthal.GNOMONIC, Azimuthal.ORTHOGRAPHIC,
 					Azimuthal.PERSPECTIVE, Azimuthal.STEREOGRAPHIC },
 			{ Conic.ALBERS, Conic.LAMBERT, Conic.EQUIDISTANT },
-			{ Polyhedral.AUTHAGRAPH, Octohedral.KEYES_BASIC_M, Octohedral.KEYES_BUTTERFLY, Polyhedral.DYMAXION,
-				Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
-				Octohedral.WATERMAN },
+			{ Polyhedral.AUTHAGRAPH, Octohedral.CAHILL_CONCIALDI, Octohedral.KEYES_BASIC_M,
+					Octohedral.KEYES_BUTTERFLY, Polyhedral.DYMAXION,
+					Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
+					Octohedral.WATERMAN },
 			{ Pseudocylindrical.ECKERT_IV, Pseudocylindrical.KAVRAYSKIY_VII,
 					Pseudocylindrical.MOLLWEIDE, Arbitrary.NATURAL_EARTH, Arbitrary.ROBINSON,
 					Pseudocylindrical.SINUSOIDAL, Tobler.TOBLER },

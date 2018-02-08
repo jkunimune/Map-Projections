@@ -37,14 +37,12 @@ import utils.NumericalAnalysis;
 public class Polyhedral {
 	
 	private static final double ASIN_ONE_THD = Math.asin(1/3.); //the complement of the angular radius of a tetrahedron face
-	private static final double ATAN_RT_TWO = Math.atan(Math.sqrt(2)); //half the angular length of a tetrohedron edge
 	private static final double ATAN_ONE_HLF = Math.atan(1/2.); //the complement of the angular length of an icosahedron edge
 	
 	
-	public static final PolyhedralProjection LEE_TETRAHEDRAL_RECTANGULAR =
-			new PolyhedralProjection(
-					"Lee Tetrahedral", 0b1001, Configuration.TETRAHEDRON_WIDE_FACE, Property.CONFORMAL,
-					4, null, "that really deserves more attention") {
+	public static final PolyhedralProjection LEE_TETRAHEDRAL_RECTANGULAR = new PolyhedralProjection(
+			"Lee Tetrahedral", 0b1001, Configuration.TETRAHEDRON_WIDE_FACE, Property.CONFORMAL,
+			4, null, "that really deserves more attention") {
 		
 		public double[] faceProject(double lat, double lon) {
 			final de.jtem.mfc.field.Complex z = de.jtem.mfc.field.Complex.fromPolar(
@@ -64,11 +62,10 @@ public class Polyhedral {
 	};
 	
 	
-	public static final PolyhedralProjection LEE_TETRAHEDRAL_TRIANGULAR =
-			new PolyhedralProjection(
-					"Lee Tetrahedral (triangular)", 0b1001, Configuration.TRIANGLE_FACE,
-					Property.CONFORMAL, 2, null,
-					"in a triangle, because this is the form in which it was published, even though the rectangle is clearly better") {
+	public static final PolyhedralProjection LEE_TETRAHEDRAL_TRIANGULAR = new PolyhedralProjection(
+			"Lee Tetrahedral (triangular)", 0b1001, Configuration.TRIANGLE_FACE, Property.CONFORMAL,
+			2, null,
+			"in a triangle, because this is the form in which it was published, even though the rectangle is clearly better") {
 		
 		public double[] faceProject(double lat, double lon) {
 			return LEE_TETRAHEDRAL_RECTANGULAR.faceProject(lat, lon);
@@ -80,10 +77,9 @@ public class Polyhedral {
 	};
 	
 	
-	public static final PolyhedralProjection TETRAGRAPH =
-			new PolyhedralProjection(
-					"TetraGraph", 0b1111, Configuration.TETRAHEDRON_WIDE_FACE, Property.EQUIDISTANT,
-					2, null, "that I invented") {
+	public static final PolyhedralProjection TETRAGRAPH = new PolyhedralProjection(
+			"TetraGraph", 0b1111, Configuration.TETRAHEDRON_WIDE_FACE, Property.EQUIDISTANT,
+			2, null, "that I invented") {
 		
 		public double[] faceProject(double lat, double lon) {
 			return new double[] {
@@ -99,10 +95,9 @@ public class Polyhedral {
 	};
 	
 	
-	public static final PolyhedralProjection AUTHAGRAPH = 
-			new PolyhedralProjection(
-					"AuthaGraph", "A hip new Japanese map that is almost equal-area and would be super great if they actually published their equations.",
-					0b1011, Configuration.AUTHAGRAPH, Property.COMPROMISE, 3) {
+	public static final PolyhedralProjection AUTHAGRAPH = new PolyhedralProjection(
+			"AuthaGraph", "A hip new Japanese map that is almost equal-area and would be super great if they actually published their equations.",
+			0b1011, Configuration.AUTHAGRAPH, Property.COMPROMISE, 3) {
 		
 		private final double[] POLE = {Math.toRadians(77), Math.toRadians(143), Math.toRadians(17)};
 		
@@ -136,11 +131,10 @@ public class Polyhedral {
 	};
 	
 	
-	public static final PolyhedralProjection AUTHAPOWER =
-			new PolyhedralProjection(
-					"AuthaPower", "A parametrised, rearranged, open-source version of my AuthaGraph approximation.",
-					0b1011, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.COMPROMISE, 4,
-					new String[] {"Power"}, new double[][] {{.25,1,.7}}) {
+	public static final PolyhedralProjection AUTHAPOWER = new PolyhedralProjection(
+			"AuthaPower", "A parametrised, rearranged, open-source version of my AuthaGraph approximation.",
+			0b1011, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.COMPROMISE, 4,
+			new String[] {"Power"}, new double[][] {{.25,1,.7}}) {
 		
 		private double k;
 		
@@ -166,11 +160,10 @@ public class Polyhedral {
 	};
 	
 	
-	public static final PolyhedralProjection ACTUAUTHAGRAPH =
-			new PolyhedralProjection(
-					"EquaHedral", "A holey authalic tetrahedral projection to put AuthaGraph to shame.",
-					0b1010, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.EQUAL_AREA, 2,
-					new String[] {"Sinus length"}, new double[][] {{0, 60, 20}}) {
+	public static final PolyhedralProjection ACTUAUTHAGRAPH = new PolyhedralProjection(
+			"EquaHedral", "A holey authalic tetrahedral projection to put AuthaGraph to shame.",
+			0b1010, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.EQUAL_AREA, 2,
+			new String[] {"Sinus length"}, new double[][] {{0, 60, 20}}) {
 		
 		private double sig, a0, scale;
 		
@@ -232,12 +225,11 @@ public class Polyhedral {
 	};
 	
 	
-	public static final PolyhedralProjection TETRAPOWER =
-			new PolyhedralProjection(
-					"TetraPower", "A parameterised tetrahedral projection that I invented.", 0b1111,
-					Configuration.TETRAHEDRON_WIDE_FACE, Property.COMPROMISE, 2,
-					new String[] {"k1","k2","k3"},
-					new double[][] {{.01,2.,1.01},{.01,2.,1.19},{.01,2.,1.01}}) {
+	public static final PolyhedralProjection TETRAPOWER = new PolyhedralProjection(
+			"TetraPower", "A parameterised tetrahedral projection that I invented.", 0b1111,
+			Configuration.TETRAHEDRON_WIDE_FACE, Property.COMPROMISE, 2,
+			new String[] {"k1","k2","k3"},
+			new double[][] {{.01,2.,1.01},{.01,2.,1.19},{.01,2.,1.01}}) {
 		
 		private double k1, k2, k3;
 		
@@ -267,10 +259,9 @@ public class Polyhedral {
 	};
 	
 	
-	public static final Projection DYMAXION =
-			new PolyhedralProjection(
-					"Dymaxion", "A polyhedral projection that slices up the oceans as much as possible without slicing up any landmasses.",
-					0b1110, Configuration.DYMAXION, Property.COMPROMISE, 3) {
+	public static final Projection DYMAXION = new PolyhedralProjection(
+			"Dymaxion", "A polyhedral projection that slices up the oceans as much as possible without slicing up any landmasses.",
+			0b1110, Configuration.DYMAXION, Property.COMPROMISE, 3) {
 		
 		private final double[] POLE = {0.040158, -0.091549,-2.015269}; //I derived these numbers from [Robert Gray](http://www.rwgrayprojects.com/rbfnotes/maps/graymap4.html)
 		private final double X_0 = 0.75;
@@ -467,10 +458,10 @@ public class Polyhedral {
 			}
 		},
 		TETRAHEDRON_WIDE_VERTEX(3, 6, 6., 2*Math.sqrt(3), new double[][] { // [<|>] arrangement, vertex-centred
-				{ ATAN_RT_TWO,	 0,				 0,				-Math.PI/2,		 0,	 Math.sqrt(3) },
-				{ 0,	 Math.PI-ATAN_RT_TWO,	-5*Math.PI/6,	 Math.PI/2,		 0,	-Math.sqrt(3) },
-				{ 0,	 ATAN_RT_TWO-Math.PI,	 5*Math.PI/6,	 5*Math.PI/6,	 3,	 0 },
-				{-ATAN_RT_TWO,	-2*Math.PI/3,	 Math.PI,		 Math.PI/6,		-3,	 0 }}) {
+				{ Math.PI/2,	 0,				 0,				-Math.PI/2,		 0,	 Math.sqrt(3) },
+				{-ASIN_ONE_THD,	 0,				 Math.PI,		 Math.PI/2,		 0,	-Math.sqrt(3) },
+				{-ASIN_ONE_THD,	 2*Math.PI/3,	 Math.PI,		 5*Math.PI/6,	 3,	 0 },
+				{-ASIN_ONE_THD,	-2*Math.PI/3,	 Math.PI,		 Math.PI/6,		-3,	 0 }}) {
 			@Override public double[] rotateOOB(double x, double y, double xCen, double yCen) {
 				if (Math.abs(x) > width/2)
 					return new double[] {2*xCen - x, -y};
