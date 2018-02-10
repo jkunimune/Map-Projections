@@ -543,14 +543,18 @@ public abstract class MapApplication extends Application {
 	
 	
 	protected void disable(ButtonType... buttons) {
-		for (ButtonType bt: buttons)
-			this.buttons.get(bt).setDisable(true);
+		Platform.runLater(() -> {
+			for (ButtonType bt: buttons)
+				this.buttons.get(bt).setDisable(true);
+		});
 	}
 	
 	
 	protected void enable(ButtonType... buttons) {
-		for (ButtonType bt: buttons)
-			this.buttons.get(bt).setDisable(false);
+		Platform.runLater(() -> {
+			for (ButtonType bt: buttons)
+				this.buttons.get(bt).setDisable(false);
+		});
 	}
 	
 	

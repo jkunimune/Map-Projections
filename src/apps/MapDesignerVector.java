@@ -33,6 +33,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 
 import dialogs.ProgressBarDialog;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
@@ -160,14 +161,18 @@ public class MapDesignerVector extends MapApplication {
 		final Iterable<Path> transformed = map(input, input.length()/maxVtx+1, aspect.clone(), null);
 		
 		if (this.getProjection().getWidth() > this.getProjection().getHeight()) {
-			viewer.setWidth(IMG_WIDTH);
-			viewer.setHeight(IMG_WIDTH/this.getProjection().getAspectRatio());
+			Platform.runLater(() -> {
+				viewer.setWidth(IMG_WIDTH);
+				viewer.setHeight(IMG_WIDTH/this.getProjection().getAspectRatio());
+			});
 		}
 		else {
-			viewer.setWidth(IMG_WIDTH*this.getProjection().getAspectRatio());
-			viewer.setHeight(IMG_WIDTH);
+			Platform.runLater(() -> {
+				viewer.setWidth(IMG_WIDTH*this.getProjection().getAspectRatio());
+				viewer.setHeight(IMG_WIDTH);
+			});
 		}
-		drawImage(transformed, viewer);
+		Platform.runLater(() -> drawImage(transformed, viewer));
 		
 		enable(ButtonType.SAVE_MAP);
 	}
@@ -228,7 +233,7 @@ public class MapDesignerVector extends MapApplication {
 	
 	
 	private void drawImage(
-			Iterable<Path> paths, Canvas c) { //parse the SVG path, with a few modifications
+			Iterable<Path> paths, Canvas c) { //parse the SVG path, with a few modifications (run this from the GUI thread!)
 		final double mX = this.getProjection().getWidth()/2;
 		final double mY = this.getProjection().getHeight()/2;
 		GraphicsContext g = c.getGraphicsContext2D();

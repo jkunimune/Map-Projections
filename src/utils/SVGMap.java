@@ -31,6 +31,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -279,7 +280,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		
 		out.write(replacePlaceholders(formatIterator.next(), inWidth/inHeight));
 		while (curveIterator.hasNext()) {
-			out.write(curveIterator.next().toString(inMinX, inMaxY, vbMinX, vbMinY,
+			out.write(breakWraps(curveIterator.next()).toString(inMinX, inMaxY, vbMinX, vbMinY,
 					Math.max(vbWidth, vbHeight)/Math.max(inWidth, inHeight)));
 			out.write(formatIterator.next());
 			tracker.accept((double)i/paths.size());
@@ -312,6 +313,32 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 	}
 	
 	
+	private Path breakWraps(Path continuous) { //break excessively long commands, as they are likely wrapping over a discontinuity
+		if (continuous.size() <= 2) 	return continuous;
+		Path broken = new Path();
+		double[] lens = {Double.NaN, Double.NaN, Double.NaN}; //the revolving array of command lengths
+		for (int i = 0; i < continuous.size(); i ++) {
+			if (i < continuous.size()-1 && continuous.get(i+1).type != 'M')
+				lens[2] = Math.hypot( //compute this next length
+						continuous.get(i+1).args[0] - continuous.get(i).args[0],
+						continuous.get(i+1).args[1] - continuous.get(i).args[1]);
+			else
+				lens[2] = Double.NaN;
+			
+			char type = continuous.get(i).type;
+			if ((Double.isNaN(lens[0]) || lens[1] > 20*lens[0]) //and compare it to the last two lengths
+					&& (Double.isNaN(lens[2]) || lens[1] > 20*lens[2]))
+				type = 'M';
+			
+			broken.add(new Command(type, continuous.get(i).args.clone()));
+			lens[0] = lens[1];
+			lens[1] = lens[2];
+		}
+		
+		return broken;
+	}
+	
+	
 	private static boolean isNonELetter(char c) {
 		return (c >= 'A' && c <= 'Z' && c != 'E') || (c >= 'a' && c <= 'z' && c != 'e');
 	}
@@ -337,6 +364,11 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			super();
 		}
 		
+		public Path(Command... commands) {
+			this();
+			this.addAll(Arrays.asList(commands));
+		}
+		
 		public Path(String d, double vbWidth, double vbHeight) throws Exception {
 			this(d, new double[] {1,1,0,0}, 0, 0, vbWidth, vbHeight);
 		}
@@ -346,7 +378,8 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			super();
 			
 			int i = 0;
-			double[] last = new double[] {0,0}; //for relative coordinates
+			double[] lastMove = {0, 0}; //for closepaths
+			double[] last = {0, 0}; //for relative coordinates
 			while (i < d.length()) {
 				char type = d.charAt(i);
 				String argString = "";
@@ -374,6 +407,10 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 					last[direcIdx] = args[direcIdx];
 					type = 'L';
 				}
+				else if (type == 'z' || type == 'Z') { //change this to 'L', too
+					args = new double[] {lastMove[0], lastMove[1]};
+					type = 'L';
+				}
 				else {
 					args = new double[argStrings.length];
 					for (int j = 0; j < args.length; j ++) {
@@ -385,6 +422,10 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 					}
 					if (type >= 'a') //make all letters uppercase
 						type -= 32;
+				}
+				if (type == 'M') { //make note, so we can interpret closepaths properly
+					lastMove[0] = args[args.length-2];
+					lastMove[1] = args[args.length-1];
 				}
 				
 				for (int j = 0; j < args.length; j ++) {
@@ -406,10 +447,8 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			}
 		}
 		
-		public boolean addAll(Path p) {
-			for (Command c: p)
-				add(c);
-			return true;
+		public Path(Command command) {
+			// TODO: Implement this
 		}
 		
 		public String toString(
@@ -433,6 +472,10 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		public Command(char type, double[] args) {
 			this.type = type;
 			this.args = args;
+		}
+		
+		public Command(Command command) {
+			this(command.type, command.args.clone());
 		}
 		
 		public String toString() {

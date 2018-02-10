@@ -307,17 +307,19 @@ public class Octohedral {
 			}
 			
 			public double[] inverse(double x, double y) {
-				if (Math.hypot(x-southPoleX, y-southPoleY) < 0.325) { //do the special Antarctica thing
+				if (Math.hypot(x-southPoleX, y-southPoleY) < 0.324) { //do the special Antarctica thing
 					double tht = Math.atan2(southPoleX-x, y-southPoleY);
 					double centralAngle =
 							Math.floor((tht+Math.PI/12)/(Math.PI/2))*Math.PI/2 + Math.PI/6;
+					if (centralAngle == 7*Math.PI/6)
+						centralAngle = -5*Math.PI/6;
 					double maxLat = (centralAngle != Math.PI/6) ? -Math.PI/3 : Math.PI/2;
 					return new double[] {
 							southPoleX - (2-cutRatio)*Math.sin(centralAngle),
 							southPoleY + (2-cutRatio)*Math.cos(centralAngle),
 							centralAngle, -Math.PI/12 - centralAngle, -Math.PI/2, maxLat};
 				}
-				else {
+				else { //everything besides Antarctica is pretty straightforward
 					double tht = Math.atan2(Math.abs(x)-1, -y);
 					if (tht < -Math.PI/3) 	return null;
 					double centralAngle = Math.floor(tht/(Math.PI/3))*Math.PI/3 + Math.PI/6;
