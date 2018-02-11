@@ -27,9 +27,9 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleConsumer;
 
-import dialogs.ProgressBarDialog;
 import utils.Math2;
 import utils.SVGMap.Command;
 import utils.SVGMap.Path;
@@ -327,13 +327,16 @@ public abstract class Projection {
 	
 	
 	public double[][][] calculateDistortion(double[][][] points) {
-		return calculateDistortion(points, null);
+		return calculateDistortion(points, () -> false, (d) -> {});
 	}
 	
-	public double[][][] calculateDistortion(double[][][] points, ProgressBarDialog pBar) { //calculate both kinds of distortion over the given region
+	public double[][][] calculateDistortion(double[][][] points,
+			BooleanSupplier cancelation, DoubleConsumer progressTracker) { //calculate both kinds of distortion over the given region
 		double[][][] output = new double[2][points.length][points[0].length]; //the distortion matrix
 		
 		for (int y = 0; y < points.length; y ++) {
+			if (cancelation.getAsBoolean()) 	return null;
+			progressTracker.accept((double)y/points.length);
 			for (int x = 0; x < points[y].length; x ++) {
 				if (points[y][x] != null) {
 					final double[] dists = getDistortionAt(points[y][x]);
@@ -345,8 +348,6 @@ public abstract class Projection {
 					output[1][y][x] = Double.NaN; //NaN means no map here
 				}
 			}
-			if (pBar != null)
-				pBar.setProgress((double)(y+1)/points.length);
 		}
 		
 		final double avgArea = Math2.mean(output[0]); //don't forget to normalize output[0] so the average is zero
@@ -554,6 +555,10 @@ public abstract class Projection {
 	
 	public final double getSize() {
 		return Math.max(this.width, this.height);
+	}
+	
+	public final boolean isLandscape() {
+		return this.width > this.height;
 	}
 	
 	public final double[] getDimensions() {

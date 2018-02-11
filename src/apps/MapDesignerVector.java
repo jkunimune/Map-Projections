@@ -26,14 +26,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.DoubleConsumer;
-
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.xml.sax.SAXException;
 
-import dialogs.ProgressBarDialog;
-import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
@@ -47,10 +44,10 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import maps.Projection;
 import utils.Math2;
-import utils.Procedure;
 import utils.SVGMap;
 import utils.SVGMap.Command;
 import utils.SVGMap.Path;
+import utils.SavableImage;
 
 /**
  * An application to make vector oblique aspects of map projections
@@ -74,7 +71,7 @@ public class MapDesignerVector extends MapApplication {
 	private Region aspectSelector;
 	private double[] aspect;
 	private SVGMap input;
-	private Canvas viewer;
+	private StackPane viewer;
 	
 	
 	
@@ -98,12 +95,11 @@ public class MapDesignerVector extends MapApplication {
 		this.aspect = new double[3];
 		final Region inputSelector = buildInputSelector(VECTOR_TYPES,
 				VECTOR_TYPES[0], this::setInput);
-		final Region projectionSelector = buildProjectionSelector(
-				Procedure.concat(this::updateMap, this::hideAspect));
+		final Region projectionSelector = buildProjectionSelector(this::updateAspect);
 		this.aspectSelector = buildAspectSelector(this.aspect, this::updateMap);
 		final Region parameterSelector = buildParameterSelector(this::updateMap);
 		final Region saveBtn = buildSaveButton(true, "map", VECTOR_TYPES,
-				VECTOR_TYPES[0], ()->true, this::calculateAndSaveMap);
+				VECTOR_TYPES[0], ()->true, this::calculateMapForSaving);
 		
 		final VBox layout = new VBox(V_SPACE,
 				inputSelector, new Separator(), projectionSelector,
@@ -113,12 +109,11 @@ public class MapDesignerVector extends MapApplication {
 		layout.setAlignment(Pos.CENTER);
 		layout.setPrefWidth(GUI_WIDTH);
 		
-		viewer = new Canvas(1,1);
-		final StackPane pane = new StackPane(viewer);
-		pane.setMinWidth(IMG_WIDTH);
-		pane.setMinHeight(IMG_WIDTH);
+		viewer = new StackPane();
+		viewer.setMinWidth(IMG_SIZE);
+		viewer.setMinHeight(IMG_SIZE);
 		
-		final HBox gui = new HBox(MARGIN, layout, pane);
+		final HBox gui = new HBox(MARGIN, layout, viewer);
 		gui.setAlignment(Pos.CENTER);
 		StackPane.setMargin(gui, new Insets(MARGIN));
 		
@@ -127,8 +122,6 @@ public class MapDesignerVector extends MapApplication {
 	
 	
 	private void setInput(File file) {
-		disable(ButtonType.LOAD_INPUT, ButtonType.SAVE_MAP);
-		
 		try {
 			input = new SVGMap(file);
 		} catch (IOException e) {
@@ -141,101 +134,114 @@ public class MapDesignerVector extends MapApplication {
 			showError("Parser Configuration Error!",
 					"My parser configured incorrectly. I blame you.");
 		} finally {
-			enable(ButtonType.LOAD_INPUT);
 			updateMap();
 		}
 		
 	}
 	
 	
-	private void hideAspect() {
+	private void updateAspect() { //check the visibility of the aspect sliders
 		aspectSelector.setVisible(this.getProjection().hasAspect());
+		updateMap();
 	}
 	
 	
-	private void updateMap() {
-		disable(ButtonType.SAVE_MAP);
-		
-		loadParameters();
+	private void updateMap() { //execute a new calculation Task immediately
+		new Thread(calculateMapForUpdate()).start();
+	}
+	
+	
+	private Task<SavableImage> calculateMapForUpdate() {
 		int maxVtx = this.getParamsChanging() ? FAST_MAX_VTX : DEF_MAX_VTX;
-		final Iterable<Path> transformed = map(input, input.length()/maxVtx+1, aspect.clone(), null);
-		
-		if (this.getProjection().getWidth() > this.getProjection().getHeight()) {
-			Platform.runLater(() -> {
-				viewer.setWidth(IMG_WIDTH);
-				viewer.setHeight(IMG_WIDTH/this.getProjection().getAspectRatio());
-			});
-		}
-		else {
-			Platform.runLater(() -> {
-				viewer.setWidth(IMG_WIDTH*this.getProjection().getAspectRatio());
-				viewer.setHeight(IMG_WIDTH);
-			});
-		}
-		Platform.runLater(() -> drawImage(transformed, viewer));
-		
-		enable(ButtonType.SAVE_MAP);
+		int step = input.length()/maxVtx+1;
+		return calculateMap(step, true);
 	}
 	
+	private Task<SavableImage> calculateMapForSaving() {
+		return calculateMap(1, false);
+	}
 	
-	private void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
-		disable(ButtonType.SAVE_MAP);
-		
+	private Task<SavableImage> calculateMap(int step, boolean render) {
 		loadParameters();
-		final List<Path> transformed = map(input, 1, aspect.clone(), pBar::setProgress); //calculate
-		try {
-			Projection proj = this.getProjection();
-			SVGMap altered = input.replace("Equirectangular", proj.getName());
-			altered.save(transformed, file, -proj.getWidth()/2, proj.getHeight()/2,
-					proj.getWidth(), proj.getHeight(), pBar::setProgress); //save
-		} catch (IOException e) {
-			showError("Failure!",
-					"Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
-		} finally {
-			enable(ButtonType.SAVE_MAP);
-		}
-	}
-	
-	
-	private List<Path> map(SVGMap input, int step, double[] pole, DoubleConsumer tracker) {
-		Projection proj = this.getProjection();
-		List<Path> output = new LinkedList<Path>();
-		int i = 0;
-		for (Path path0: input) {
-			Path path1 = new Path();
-			int counter = 0;
-			for (Command cmdS: path0) {
-				counter --;
-				if (counter > 0 && cmdS.type != 'M' && cmdS.type != 'Z') 	continue;
-				counter = step;
-				
-				Command cmdP = new Command(cmdS.type, new double[cmdS.args.length]);
-				for (int k = 0; k < cmdS.args.length; k += 2) {
-					double[] coords = proj.project(cmdS.args[k+1], cmdS.args[k], pole);
-					cmdP.args[k] =
-							Math.max(Math.min(coords[0], proj.getWidth()), -proj.getWidth());
-					cmdP.args[k+1] =
-							Math.max(Math.min(coords[1], proj.getHeight()), -proj.getHeight());
-					if (Double.isNaN(cmdP.args[k]) || Double.isNaN(cmdP.args[k+1]))
-						System.err.println(this.getProjection()+" returns "+cmdP.args[k]+","+cmdP.args[k+1]+" at "+cmdS.args[k+1]+","+cmdS.args[k]+"!");
-				}
-				path1.add(cmdP); //TODO: if I was smart, I would divide landmasses that hit an interruption so that I didn't get those annoying lines that cross the map, and then run adaptive resampling to make sure the cuts look clean and not polygonal (e.g. so Antarctica extends all the way to the bottom), but that sounds really hard.
-			}
-			output.add(path1);
+		final Projection proj = this.getProjection();
+		final double[] aspect = this.aspect.clone();
+		
+		return new Task<SavableImage>() {
+			private Canvas rendered;
 			
-			if (tracker != null) {
-				i ++;
-				tracker.accept((double)i/input.numCurves());
+			protected SavableImage call() {
+				updateProgress(-1, 1);
+				updateMessage("Making map...");
+				
+				List<Path> theMap = new LinkedList<Path>();
+				int i = 0;
+				for (Path path0: input) {
+					updateProgress(i, input.numCurves());
+					if (path0.size() <= step) 	continue; //don't bother drawing singular points
+					Path path1 = new Path();
+					int counter = 0;
+					for (Command cmdS: path0) {
+						counter --; //skip the requisite number of 'L's
+						if (counter > 0 && cmdS.type != 'M' && cmdS.type != 'Z') 	continue;
+						counter = step;
+						
+						Command cmdP = new Command(cmdS.type, new double[cmdS.args.length]);
+						for (int k = 0; k < cmdS.args.length; k += 2) {
+							double[] coords = proj.project(cmdS.args[k+1], cmdS.args[k], aspect);
+							cmdP.args[k] =
+									Math.max(Math.min(coords[0], proj.getWidth()), -proj.getWidth());
+							cmdP.args[k+1] =
+									Math.max(Math.min(coords[1], proj.getHeight()), -proj.getHeight());
+							if (Double.isNaN(cmdP.args[k]) || Double.isNaN(cmdP.args[k+1]))
+								System.err.println(getProjection()+" returns "+cmdP.args[k]+","+cmdP.args[k+1]+" at "+cmdS.args[k+1]+","+cmdS.args[k]+"!");
+						}
+						path1.add(cmdP); //TODO: if I was smart, I would divide landmasses that hit an interruption so that I didn't get those annoying lines that cross the map, and then run adaptive resampling to make sure the cuts look clean and not polygonal (e.g. so Antarctica extends all the way to the bottom), but that sounds really hard.
+					}
+					theMap.add(path1);
+					
+					i ++;
+				}
+				
+				if (render) {
+					updateProgress(-1, 1);
+					updateMessage("Rendering map...");
+					
+					int width, height;
+					if (getProjection().isLandscape()) { //fit it to an IMG_SIZE x IMG_SIZE box
+						width = IMG_SIZE;
+						height = (int)Math.max(IMG_SIZE/getProjection().getAspectRatio(), 1);
+					}
+					else {
+						width = (int)Math.max(IMG_SIZE/getProjection().getAspectRatio(), 1);
+						height = IMG_SIZE;
+					}
+					rendered = drawImage(theMap, width, height);
+				}
+				
+				return new SavableImage() {
+					public void save(File file) throws IOException {
+						Projection proj = getProjection();
+						SVGMap altered = input.replace("Equirectangular", proj.getName());
+						altered.save(theMap, file, -proj.getWidth()/2, proj.getHeight()/2,
+								proj.getWidth(), proj.getHeight()); //save
+					}
+				};
 			}
-		}
-		return output;
+			
+			protected void succeeded() { //draw the image once successful
+				if (render) {
+					viewer.getChildren().clear();
+					viewer.getChildren().add(rendered);
+				}
+			}
+		};
 	}
 	
 	
-	private void drawImage(
-			Iterable<Path> paths, Canvas c) { //parse the SVG path, with a few modifications (run this from the GUI thread!)
+	private Canvas drawImage(Iterable<Path> paths, int width, int height) { //parse the SVG path, with a few modifications
 		final double mX = this.getProjection().getWidth()/2;
 		final double mY = this.getProjection().getHeight()/2;
+		Canvas c = new Canvas(width, height);
 		GraphicsContext g = c.getGraphicsContext2D();
 		g.clearRect(0, 0, c.getWidth(), c.getHeight());
 		g.beginPath();
@@ -258,7 +264,7 @@ public class MapDesignerVector extends MapApplication {
 				case 'L':
 				case 'T':
 					for (int i = 0; i < args.length; i += 2)
-						if (Math.hypot(args[i+0]-lastX, args[i+1]-lastY) < IMG_WIDTH/4) // break lines that are too long
+						if (Math.hypot(args[i+0]-lastX, args[i+1]-lastY) < IMG_SIZE/4) // break lines that are too long
 							g.lineTo(args[i+0], args[i+1]); //TODO: I really need to actually look for interruptions or something
 						else
 							g.moveTo(args[i+0], args[i+1]);
@@ -274,7 +280,7 @@ public class MapDesignerVector extends MapApplication {
 								args[i+0], args[i+1], args[i+2], args[i+3], args[i+4], args[i+5]);
 					break;
 				case 'Z':
-					if (Math.hypot(startX-lastX, startY-lastY) < IMG_WIDTH/4)
+					if (Math.hypot(startX-lastX, startY-lastY) < IMG_SIZE/4)
 						g.lineTo(startX, startY);
 					break;
 				default:
@@ -288,6 +294,6 @@ public class MapDesignerVector extends MapApplication {
 			}
 		}
 		g.stroke();
+		return c;
 	}
-
 }

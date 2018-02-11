@@ -37,7 +37,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
-import java.util.function.DoubleConsumer;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -271,10 +270,9 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 	
 	
 	public void save(List<Path> paths, File file, double inMinX, double inMaxY, double inWidth,
-			double inHeight, DoubleConsumer tracker) throws IOException {
+			double inHeight) throws IOException {
 		BufferedWriter out = new BufferedWriter(new FileWriter(file));
 		
-		int i = 0;
 		final Iterator<String> formatIterator = format.iterator();
 		final Iterator<Path> curveIterator = paths.iterator();
 		
@@ -283,8 +281,6 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			out.write(breakWraps(curveIterator.next()).toString(inMinX, inMaxY, vbMinX, vbMinY,
 					Math.max(vbWidth, vbHeight)/Math.max(inWidth, inHeight)));
 			out.write(formatIterator.next());
-			tracker.accept((double)i/paths.size());
-			i ++;
 		}
 		out.close();
 	}

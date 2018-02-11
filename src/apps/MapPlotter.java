@@ -173,14 +173,14 @@ public class MapPlotter extends Application {
 					);
 		}
 		Platform.runLater(() -> {
-				try {
-					ImageIO.write(
-							SwingFXUtils.fromFXImage(stack.snapshot(null, null), null),
-							"png", new File("output/graph - plotter.png"));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			});
+			try {
+				ImageIO.write(
+						SwingFXUtils.fromFXImage(stack.snapshot(null, null), null),
+						"png", new File("output/graph - plotter.png"));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
 	}
 
 }

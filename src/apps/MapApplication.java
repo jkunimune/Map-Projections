@@ -30,17 +30,20 @@ import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.DoubleUnaryOperator;
+import java.util.function.Supplier;
 
-import dialogs.ProgressBarDialog;
+import dialogs.ProgressDialog;
 import dialogs.ProjectionSelectionDialog;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -91,6 +94,7 @@ import utils.Flag;
 import utils.Math2;
 import utils.MutableDouble;
 import utils.Procedure;
+import utils.SavableImage;
 
 
 /**
@@ -101,7 +105,7 @@ import utils.Procedure;
 public abstract class MapApplication extends Application {
 
 	protected static final int GUI_WIDTH = 300;
-	protected static final int IMG_WIDTH = 450;
+	protected static final int IMG_SIZE = 450;
 	protected static final int V_SPACE = 6;
 	protected static final int H_SPACE = 4;
 	protected static final int MARGIN = 10;
@@ -367,7 +371,8 @@ public abstract class MapApplication extends Application {
 			paramSliders[i] = new Slider();
 			if (i != 0)
 				paramSpinners[i] = new Spinner<Double>(0.,0.,0.);
-			link(paramSliders[i], paramSpinners[i], i, currentParams, (d)->d, parameterSetter, isChanging, suppressListeners);
+			link(paramSliders[i], paramSpinners[i], i, currentParams, (d)->d, parameterSetter,
+					isChanging, suppressListeners);
 		}
 		
 		for (int i = 0; i < 4; i ++) {
@@ -436,11 +441,12 @@ public abstract class MapApplication extends Application {
 	 * Create a default button that will update the map
 	 * @return the button
 	 */
-	protected Region buildUpdateButton(String text, Runnable mapUpdater) {
-		final Button updateButton = new Button(text);
+	protected Region buildUpdateButton(String text, Supplier<Task<SavableImage>> mapUpdater) {
+		Button updateButton = new Button(text);
 		updateButton.setOnAction((event) -> {
-				new Thread(mapUpdater).start();
-			});
+			Task<SavableImage> task = mapUpdater.get();
+			new Thread(task).start();
+		});
 		updateButton.setTooltip(new Tooltip(
 				"Update the current map with your parameters"));
 		
@@ -463,15 +469,14 @@ public abstract class MapApplication extends Application {
 	 * @param savee The name of the thing being saved
 	 * @param allowedExtensions The allowed file formats that can be saved
 	 * @param defaultExtension The default file format to be saved
-	 * @param settingCollector A callback to run just before the saving happens that returns true if it should commence
-	 * @param calculateAndSaver The callback that saves the thing
+	 * @param mapVerifier A callback to run just before the saving happens that returns true if it should commence
+	 * @param mapCalculater The callback that saves the thing
 	 * @return the button, ready to be pressed
 	 */
 	protected Region buildSaveButton(boolean bindCtrlS, String savee,
 			FileChooser.ExtensionFilter[] allowedExtensions,
 			FileChooser.ExtensionFilter defaultExtension,
-			BooleanSupplier settingCollector,
-			BiConsumer<File, ProgressBarDialog> calculateAndSaver) {
+			BooleanSupplier mapVerifier, Supplier<Task<SavableImage>> mapCalculater) {
 		final FileChooser saver = new FileChooser();
 		saver.setInitialDirectory(new File("output"));
 		saver.setInitialFileName("my"+savee+defaultExtension.getExtensions().get(0).substring(1));
@@ -484,31 +489,40 @@ public abstract class MapApplication extends Application {
 		} catch (SecurityException e) {}
 		
 		final Button saveButton = new Button("Save "+savee+"...");
-		saveButton.setOnAction((event) -> {
-				File file;
-				try {
-					file = saver.showSaveDialog(root);
-				} catch(IllegalArgumentException e) {
-					saver.setInitialDirectory(new File("."));
-					file = saver.showSaveDialog(root);
+		saveButton.setOnAction((actionEvent) -> {
+			File file;
+			try {
+				file = saver.showSaveDialog(root); //let the user pick a file
+			} catch(IllegalArgumentException e) {
+				saver.setInitialDirectory(new File("."));
+				file = saver.showSaveDialog(root);
+			}
+			if (file != null) { //progress only if a File was chosen
+				saver.setInitialDirectory(file.getParentFile()); //remember this directory for next time
+				final File f = file;
+				
+				if (mapVerifier.getAsBoolean()) { //if the optional verification process verifies it
+					Task<SavableImage> task = mapCalculater.get(); //create the Task
+					ProgressDialog<SavableImage> pBar = new ProgressDialog<SavableImage>(task); //and track its progress all the while
+					pBar.show();
+					task.setOnSucceeded((succeedEvent) -> { //save the result to disk when it finishes
+						pBar.unbindAndSetProgress(-1);
+						pBar.unbindAndSetHeaderText("Saving to disk...");
+						try {
+							task.getValue().save(f);
+						} catch (IOException e) {
+							showError("Failure!",
+									"Could not access "+f.getAbsolutePath()+". It's possible that another program has it open.");
+						}
+						pBar.close();
+						try {
+							Desktop.getDesktop().open(f.getParentFile());
+						} catch (IOException e) {} //if you can't open the directory for some reason, don't worry about it.
+					});
+					new Thread(task).start(); //now execute!
 				}
-				if (file != null) {
-					saver.setInitialDirectory(file.getParentFile()); //remember this directory for next time
-					final File f = file;
-					if (settingCollector.getAsBoolean()) {
-						final ProgressBarDialog pBar = new ProgressBarDialog();
-						pBar.setContentText("Finalizing "+savee+"...");
-						pBar.show();
-						new Thread(() -> {
-							calculateAndSaver.accept(f, pBar);
-							Platform.runLater(pBar::close);
-							try {
-								Desktop.getDesktop().open(f.getParentFile());
-							} catch (IOException e) {} //if you can't open the file for any reason, just don't worry about it
-						}).start();
-					}
-				}
-			});
+			}
+		});
 		saveButton.setTooltip(new Tooltip("Save the "+savee+" with current settings"));
 		
 		if (bindCtrlS) // ctrl+S saves
@@ -542,19 +556,9 @@ public abstract class MapApplication extends Application {
 	}
 	
 	
-	protected void disable(ButtonType... buttons) {
-		Platform.runLater(() -> {
-			for (ButtonType bt: buttons)
-				this.buttons.get(bt).setDisable(true);
-		});
-	}
-	
-	
-	protected void enable(ButtonType... buttons) {
-		Platform.runLater(() -> {
-			for (ButtonType bt: buttons)
-				this.buttons.get(bt).setDisable(false);
-		});
+	protected void disableWhile(ReadOnlyBooleanProperty condition, ButtonType... buttons) {
+		for (ButtonType bt: buttons)
+			this.buttons.get(bt).disableProperty().bind(condition);
 	}
 	
 	

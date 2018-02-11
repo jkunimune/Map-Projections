@@ -32,10 +32,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-import javax.imageio.ImageIO;
-
 import dialogs.MapConfigurationDialog;
-import dialogs.ProgressBarDialog;
+import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -55,6 +53,7 @@ import utils.PixelMap;
 import utils.Procedure;
 import utils.SVGMap.Command;
 import utils.SVGMap.Path;
+import utils.SavableImage;
 
 /**
  * An application to make raster oblique aspects of map projections
@@ -102,9 +101,9 @@ public class MapDesignerRaster extends MapApplication {
 	public void start(Stage root) {
 		super.start(root);
 		new Thread(() -> {
-			setInput(new File("input/Basic.png"));
-			updateMap();
-		}).start();
+			setInput(new File("input/Basic.png")); //it does bother me a bit to start a Thread from
+			new Thread(calculateMapForUpdate()).start(); //a Thread like this for no reason, but
+		}).start(); //I can't call call() by myself, so this is the easiest way I can figure to do this.
 	}
 	
 	
@@ -115,13 +114,13 @@ public class MapDesignerRaster extends MapApplication {
 		this.graticuleSpacing = new MutableDouble();
 		final Region inputSelector = buildInputSelector(READABLE_TYPES,
 				RASTER_TYPES[0], this::setInput);
-		final Region projectionSelector = buildProjectionSelector(this::hideAspect);
+		final Region projectionSelector = buildProjectionSelector(this::updateAspect);
 		this.aspectSelector = buildAspectSelector(this.aspect, Procedure.NONE);
 		final Region parameterSelector = buildParameterSelector(Procedure.NONE);
 		final Region optionPane = buildOptionPane(cropAtIDL, graticuleSpacing);
-		final Region updateBtn = buildUpdateButton("Update Map", this::updateMap);
+		final Region updateBtn = buildUpdateButton("Update Map", this::calculateMapForUpdate);
 		final Region saveMapBtn = buildSaveButton(true, "map", RASTER_TYPES,
-				RASTER_TYPES[0], this::collectFinalSettings, this::calculateAndSaveMap);
+				RASTER_TYPES[0], this::collectFinalSettings, this::calculateMapForSaving);
 		final HBox buttons = new HBox(H_SPACE, updateBtn, saveMapBtn);
 		buttons.setAlignment(Pos.CENTER);
 		
@@ -133,12 +132,12 @@ public class MapDesignerRaster extends MapApplication {
 		layout.setPrefWidth(GUI_WIDTH);
 		
 		this.display = new ImageView();
-		this.display.setFitWidth(IMG_WIDTH);
-		this.display.setFitHeight(IMG_WIDTH);
+		this.display.setFitWidth(IMG_SIZE);
+		this.display.setFitHeight(IMG_SIZE);
 		this.display.setPreserveRatio(true);
 		final StackPane pane = new StackPane(display);
-		pane.setMinWidth(IMG_WIDTH);
-		pane.setMinHeight(IMG_WIDTH);
+		pane.setMinWidth(IMG_SIZE);
+		pane.setMinHeight(IMG_SIZE);
 		
 		final HBox gui = new HBox(MARGIN, layout, pane);
 		gui.setAlignment(Pos.CENTER);
@@ -149,29 +148,17 @@ public class MapDesignerRaster extends MapApplication {
 	
 	
 	private void setInput(File file) {
-		disable(ButtonType.LOAD_INPUT, ButtonType.UPDATE_MAP, ButtonType.SAVE_MAP);
-		
 		try {
 			input = new PixelMap(file);
 		} catch (IOException e) {
 			showError("File not found!",
 					"Couldn't find "+file.getAbsolutePath()+".");
-		} finally {
-			enable(ButtonType.LOAD_INPUT, ButtonType.UPDATE_MAP, ButtonType.SAVE_MAP);
 		}
 	}
 	
 	
-	private void hideAspect() {
+	private void updateAspect() {
 		aspectSelector.setVisible(this.getProjection().hasAspect());
-	}
-	
-	
-	private void updateMap() {
-		disable(ButtonType.UPDATE_MAP, ButtonType.SAVE_MAP);
-		loadParameters();
-		display.setImage(SwingFXUtils.toFXImage(makeImage(), null));
-		enable(ButtonType.UPDATE_MAP, ButtonType.SAVE_MAP);
 	}
 	
 	
@@ -184,86 +171,91 @@ public class MapDesignerRaster extends MapApplication {
 	}
 	
 	
-	private void calculateAndSaveMap(File file, ProgressBarDialog pBar) {
-		disable(ButtonType.SAVE_MAP);
-		
-		final int[] outDims = configDialog.getDims();
-		final int smoothing = configDialog.getSmoothing();
-		BufferedImage theMap = makeImage(outDims[0], outDims[1], smoothing, pBar); //calculate
-		
-		pBar.setProgress(-1);
-		
-		final String filename = file.getName();
-		final String extension = filename.substring(filename.lastIndexOf('.')+1);
-		try {
-			ImageIO.write(theMap, extension, file); //save
-		} catch (IOException e) {
-			showError("Failure!",
-					"Could not access "+file.getAbsolutePath()+". It's possible that another program has it open.");
-		} finally {
-			enable(ButtonType.SAVE_MAP);
-		}
-		display.setImage(SwingFXUtils.toFXImage(theMap, null));
-	}
-	
-	
-	private BufferedImage makeImage() { //why is this a BufferedImage when the rest of this program uses JavaFX? Because the only JavaFX alternatives are WritableImage, which doesn't do anything but single-pixel-editing, and Canvas, which doesn't properly support transparency.
-		final double aspRat = this.getProjection().getAspectRatio();
-		if (aspRat >= 1)
-			return makeImage(IMG_WIDTH, (int)Math.max(IMG_WIDTH/aspRat,1), 1, null);
+	private Task<SavableImage> calculateMapForUpdate() {
+		if (getProjection().isLandscape()) //either fit it to an IMG_SIZE x IMG_SIZE box
+			return calculateMap(
+					IMG_SIZE, (int)Math.max(IMG_SIZE/getProjection().getAspectRatio(),1), 1);
 		else
-			return makeImage((int)Math.max(IMG_WIDTH*aspRat,1), IMG_WIDTH, 1, null);
+			return calculateMap(
+					(int)Math.max(IMG_SIZE/getProjection().getAspectRatio(),1), IMG_SIZE, 1);
 	}
 	
-	private BufferedImage makeImage(int width, int height, int step, ProgressBarDialog pBar) {
-		return makeImage(width, height, step, pBar, input, this.getProjection(), aspect.clone(),
-				cropAtIDL.isSet(), graticuleSpacing.get());
+	private Task<SavableImage> calculateMapForSaving() {
+		int[] outDims = configDialog.getDims();
+		int step = configDialog.getSmoothing();
+		return calculateMap(outDims[0], outDims[1], step);
 	}
 	
-	static BufferedImage makeImage(int width, int height, int step, ProgressBarDialog pBar,
-			PixelMap input, Projection proj, double[] pole, boolean crop, double gratSpacing) {
-		BufferedImage out = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-		for (int y = 0; y < out.getHeight(); y ++) {
-			if (pBar != null) 	pBar.setProgress((double) y/height);
+	private Task<SavableImage> calculateMap(int width, int height, int step) {
+		final Projection proj = getProjection();
+		final double[] aspect = this.aspect.clone();
+		final boolean crop = cropAtIDL.isSet();
+		final double gratSpacing = graticuleSpacing.get();
+		
+		return new Task<SavableImage>() {
+			private BufferedImage theMap;
 			
-			for (int x = 0; x < out.getWidth(); x ++) {
-				int[] colors = new int[step*step];
-				for (int dy = 0; dy < step; dy ++) {
-					for (int dx = 0; dx < step; dx ++) {
-						double X = ((x+(dx+.5)/step)/width - 1/2.) *proj.getWidth();
-						double Y = (1/2. - (y+(dy+.5)/step)/height) *proj.getHeight();
-						double[] coords = proj.inverse(X, Y, pole, crop);
-						if (coords != null) //if it is null, the default (0:transparent) is used
-							colors[step*dy+dx] = input.getArgb(coords[0], coords[1]);
+			protected SavableImage call() {
+				updateProgress(-1, 1);
+				updateMessage("Making map...");
+				
+				theMap = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB); //why is this a BufferedImage when the rest of this program uses JavaFX? Because the only JavaFX alternatives are WritableImage, which doesn't do anything but single-pixel-editing, and Canvas, which doesn't properly support transparency.
+				for (int y = 0; y < theMap.getHeight(); y ++) { //iterate through the map, filling in pixels
+					if (isCancelled()) 	return null;
+					updateProgress(y, theMap.getHeight());
+					for (int x = 0; x < theMap.getWidth(); x ++) {
+						int[] colors = new int[step*step];
+						for (int dy = 0; dy < step; dy ++) {
+							for (int dx = 0; dx < step; dx ++) {
+								double X = ((x+(dx+.5)/step)/width - 1/2.) *proj.getWidth();
+								double Y = (1/2. - (y+(dy+.5)/step)/height) *proj.getHeight();
+								double[] coords = proj.inverse(X, Y, aspect, crop);
+								if (coords != null) //if it is null, the default (0:transparent) is used
+									colors[step*dy+dx] = input.getArgb(coords[0], coords[1]);
+							}
+						}
+						theMap.setRGB(x, y, ImageUtils.blend(colors));
 					}
 				}
-				out.setRGB(x, y, ImageUtils.blend(colors));
-			}
-		}
-		
-		if (gratSpacing != 0) {
-			Graphics2D g = (Graphics2D)out.getGraphics();
-			g.setStroke(new BasicStroke(GRATICULE_WIDTH));
-			g.setColor(GRATICULE_COLOR);
-			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			Path svgPath = proj.drawGraticule(
-					Math.toRadians(gratSpacing), .02, width, height, Math.PI/2, Math.PI, pole);
-			Path2D awtPath = new Path2D.Double(Path2D.WIND_NON_ZERO, svgPath.size());
-			for (Command svgCmd: svgPath) {
-				switch (svgCmd.type) {
-				case 'M':
-					awtPath.moveTo(svgCmd.args[0], svgCmd.args[1]);
-					break;
-				case 'L':
-					awtPath.lineTo(svgCmd.args[0], svgCmd.args[1]);
-					break;
-				case 'Z':
-					awtPath.closePath();
+				
+				if (gratSpacing != 0) { //draw the graticule, if desired
+					if (isCancelled()) 	return null;
+					updateProgress(-1, 1);
+					updateMessage("Drawing graticule...");
+					
+					Graphics2D g = (Graphics2D)theMap.getGraphics();
+					g.setStroke(new BasicStroke(GRATICULE_WIDTH));
+					g.setColor(GRATICULE_COLOR);
+					g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+					Path svgPath = proj.drawGraticule(
+							Math.toRadians(gratSpacing), .02, width, height, Math.PI/2, Math.PI, aspect);
+					Path2D awtPath = new Path2D.Double(Path2D.WIND_NON_ZERO, svgPath.size());
+					for (Command svgCmd: svgPath) {
+						if (isCancelled()) 	return null;
+						switch (svgCmd.type) {
+						case 'M':
+							awtPath.moveTo(svgCmd.args[0], svgCmd.args[1]);
+							break;
+						case 'L':
+							awtPath.lineTo(svgCmd.args[0], svgCmd.args[1]);
+							break;
+						case 'Z':
+							awtPath.closePath();
+						}
+					}
+					g.draw(awtPath);
 				}
+				
+				return SavableImage.savable(theMap);
 			}
-			g.draw(awtPath);
-		}
-		
-		return out;
+			
+			protected void failed() {
+				getException().printStackTrace();
+			}
+			
+			protected void succeeded() {
+				display.setImage(SwingFXUtils.toFXImage(theMap, null));
+			}
+		};
 	}
 }
