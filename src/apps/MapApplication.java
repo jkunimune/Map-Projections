@@ -37,6 +37,7 @@ import java.util.function.Supplier;
 
 import dialogs.ProgressDialog;
 import dialogs.ProjectionSelectionDialog;
+import image.SavableImage;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -93,7 +94,6 @@ import utils.Flag;
 import utils.Math2;
 import utils.MutableDouble;
 import utils.Procedure;
-import utils.SavableImage;
 
 
 /**

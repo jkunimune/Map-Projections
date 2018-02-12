@@ -21,39 +21,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package utils;
+package image;
 
-import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.Image;
+
 /**
- * An input equirectangular map based on a raster image file
+ * TODO: Write description
  * 
  * @author jkunimune
  */
-public class PixelMap {
+public interface SavableImage {
 	
-	private BufferedImage pixels;
+	public abstract void save(File file) throws IOException;
 	
-	
-	public PixelMap(File f) throws IOException {
-		pixels = ImageIO.read(f);
+	public static SavableImage savable(RenderedImage img) {
+		return new SavableImage() {
+			public void save(File file) throws IOException {
+				String filename = file.getName();
+				String extension = filename.contains(".") ?
+						filename.substring(filename.lastIndexOf(".")+1) : "";
+				ImageIO.write(img, extension, file);
+			}
+		};
 	}
 	
-	
-	public int getArgb(double lat, double lon) {
-		double x = 1/2.0 + lon/(2*Math.PI);
-		x = (x - Math.floor(x)) * pixels.getWidth();
-		
-		double y = pixels.getHeight()*(.5 - lat/Math.PI);
-		if (y < 0)
-			y = 0;
-		else if (y >= pixels.getHeight())
-			y = pixels.getHeight() - 1;
-		
-		return (0xFF000000) | pixels.getRGB((int) x, (int) y);
+	public static SavableImage savable(Image img) {
+		return new SavableImage() {
+			public void save(File file) throws IOException {
+				String filename = file.getName();
+				String extension = filename.contains(".") ?
+						filename.substring(filename.lastIndexOf(".")+1) : "";
+				ImageIO.write(SwingFXUtils.fromFXImage(img, null), extension, file);
+			}
+		};
 	}
+	
 }

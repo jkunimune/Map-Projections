@@ -30,6 +30,10 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.xml.sax.SAXException;
 
+import image.SVGMap;
+import image.SavableImage;
+import image.SVGMap.Command;
+import image.SVGMap.Path;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -44,10 +48,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import maps.Projection;
 import utils.Math2;
-import utils.SVGMap;
-import utils.SVGMap.Command;
-import utils.SVGMap.Path;
-import utils.SavableImage;
 
 /**
  * An application to make vector oblique aspects of map projections

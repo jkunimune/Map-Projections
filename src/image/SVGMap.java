@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package utils;
+package image;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
@@ -47,6 +47,8 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
+
+import utils.Math2;
 
 /**
  * An input equirectangular map based on an SVG file

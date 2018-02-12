@@ -30,9 +30,9 @@ import java.util.Queue;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleConsumer;
 
+import image.SVGMap.Command;
+import image.SVGMap.Path;
 import utils.Math2;
-import utils.SVGMap.Command;
-import utils.SVGMap.Path;
 
 /**
  * An object that transforms coordinates between spheres and planes.

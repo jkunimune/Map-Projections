@@ -26,11 +26,11 @@ package maps;
 import org.apache.commons.math3.complex.Complex;
 
 import de.jtem.ellipticFunctions.Jacobi;
+import image.SVGMap.Path;
 import maps.Projection.Property;
 import maps.Projection.Type;
 import utils.Elliptic;
 import utils.Math2;
-import utils.SVGMap.Path;
 
 /**
  * All the projections that don't fit into any of the other categories.

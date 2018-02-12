@@ -21,36 +21,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package utils;
+package image;
+
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
 
 /**
- * A collection of (currently just one) methods for dealing with images and coordinates
+ * An input equirectangular map based on a raster image file
  * 
  * @author jkunimune
  */
-public class ImageUtils {
+public class PixelMap {
 	
-	public static final int blend(int[] colors) {
-		return blend(colors, 2.2);
+	private BufferedImage pixels;
+	
+	
+	public PixelMap(File f) throws IOException {
+		pixels = ImageIO.read(f);
 	}
 	
-	public static final int blend(int[] colors, double gamma) {
-		int a_tot = 0;
-		int r_tot = 0;
-		int g_tot = 0;
-		int b_tot = 0;
-		for (int argb: colors) {
-			int a = ((argb >> 24)&0xFF);
-			a_tot += a;
-			r_tot += a*(Math.pow((argb>>16)&0xFF, gamma));
-			g_tot += a*(Math.pow((argb>> 8)&0xFF, gamma));
-			b_tot += a*(Math.pow((argb>> 0)&0xFF, gamma));
-		}
-		if (a_tot == 0)	return 0;
-		else
-			return (a_tot/colors.length << 24) +
-					((int)Math.pow(r_tot/a_tot, 1/gamma) << 16) +
-					((int)Math.pow(g_tot/a_tot, 1/gamma) << 8) +
-					((int)Math.pow(b_tot/a_tot, 1/gamma) << 0);
+	
+	public int getArgb(double lat, double lon) {
+		double x = 1/2.0 + lon/(2*Math.PI);
+		x = (x - Math.floor(x)) * pixels.getWidth();
+		
+		double y = pixels.getHeight()*(.5 - lat/Math.PI);
+		if (y < 0)
+			y = 0;
+		else if (y >= pixels.getHeight())
+			y = pixels.getHeight() - 1;
+		
+		return (0xFF000000) | pixels.getRGB((int) x, (int) y);
 	}
 }

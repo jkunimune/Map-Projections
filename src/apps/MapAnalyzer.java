@@ -24,6 +24,7 @@
 package apps;
 import java.util.function.DoubleUnaryOperator;
 
+import image.SavableImage;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -50,7 +51,6 @@ import utils.Flag;
 import utils.Math2;
 import utils.MutableDouble;
 import utils.Procedure;
-import utils.SavableImage;
 
 /**
  * An application to analyse the characteristics of map projections

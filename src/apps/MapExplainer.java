@@ -30,6 +30,8 @@ import java.io.PrintStream;
 
 import javax.imageio.ImageIO;
 
+import image.ImageUtils;
+import image.PixelMap;
 import maps.Arbitrary;
 import maps.Azimuthal;
 import maps.Conic;
@@ -44,8 +46,6 @@ import maps.Pseudocylindrical;
 import maps.Snyder;
 import maps.Tobler;
 import maps.WinkelTripel;
-import utils.ImageUtils;
-import utils.PixelMap;
 
 /**
  * A program to generate and output an HTML snippet listing and explaining all of my maps

@@ -33,6 +33,11 @@ import java.io.File;
 import java.io.IOException;
 
 import dialogs.MapConfigurationDialog;
+import image.ImageUtils;
+import image.PixelMap;
+import image.SavableImage;
+import image.SVGMap.Command;
+import image.SVGMap.Path;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
@@ -47,13 +52,8 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import maps.Projection;
 import utils.Flag;
-import utils.ImageUtils;
 import utils.MutableDouble;
-import utils.PixelMap;
 import utils.Procedure;
-import utils.SVGMap.Command;
-import utils.SVGMap.Path;
-import utils.SavableImage;
 
 /**
  * An application to make raster oblique aspects of map projections

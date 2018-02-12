@@ -21,46 +21,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package utils;
-
-import java.awt.image.RenderedImage;
-import java.io.File;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
-
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.image.Image;
+package image;
 
 /**
- * TODO: Write description
+ * A collection of (currently just one) methods for dealing with images and coordinates
  * 
  * @author jkunimune
  */
-public interface SavableImage {
+public class ImageUtils {
 	
-	public abstract void save(File file) throws IOException;
-	
-	public static SavableImage savable(RenderedImage img) {
-		return new SavableImage() {
-			public void save(File file) throws IOException {
-				String filename = file.getName();
-				String extension = filename.contains(".") ?
-						filename.substring(filename.lastIndexOf(".")+1) : "";
-				ImageIO.write(img, extension, file);
-			}
-		};
+	public static final int blend(int[] colors) {
+		return blend(colors, 2.2);
 	}
 	
-	public static SavableImage savable(Image img) {
-		return new SavableImage() {
-			public void save(File file) throws IOException {
-				String filename = file.getName();
-				String extension = filename.contains(".") ?
-						filename.substring(filename.lastIndexOf(".")+1) : "";
-				ImageIO.write(SwingFXUtils.fromFXImage(img, null), extension, file);
-			}
-		};
+	public static final int blend(int[] colors, double gamma) {
+		int a_tot = 0;
+		int r_tot = 0;
+		int g_tot = 0;
+		int b_tot = 0;
+		for (int argb: colors) {
+			int a = ((argb >> 24)&0xFF);
+			a_tot += a;
+			r_tot += a*(Math.pow((argb>>16)&0xFF, gamma));
+			g_tot += a*(Math.pow((argb>> 8)&0xFF, gamma));
+			b_tot += a*(Math.pow((argb>> 0)&0xFF, gamma));
+		}
+		if (a_tot == 0)	return 0;
+		else
+			return (a_tot/colors.length << 24) +
+					((int)Math.pow(r_tot/a_tot, 1/gamma) << 16) +
+					((int)Math.pow(g_tot/a_tot, 1/gamma) << 8) +
+					((int)Math.pow(b_tot/a_tot, 1/gamma) << 0);
 	}
-	
 }
