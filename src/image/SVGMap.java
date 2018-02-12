@@ -280,7 +280,8 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		
 		out.write(replacePlaceholders(formatIterator.next(), inWidth/inHeight));
 		while (curveIterator.hasNext()) {
-			out.write(breakWraps(curveIterator.next()).toString(inMinX, inMaxY, vbMinX, vbMinY,
+			out.write(closePaths(breakWraps(curveIterator.next())).toString(
+					inMinX, inMaxY, vbMinX, vbMinY,
 					Math.max(vbWidth, vbHeight)/Math.max(inWidth, inHeight)));
 			out.write(formatIterator.next());
 		}
@@ -325,8 +326,8 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			
 			char type = continuous.get(i).type;
 			if ((Double.isNaN(lens[0]) || lens[1] > 20*lens[0]) //and compare it to the last two lengths
-					&& (Double.isNaN(lens[2]) || lens[1] > 20*lens[2]))
-				type = 'M';
+					&& (Double.isNaN(lens[2]) || lens[1] > 20*lens[2])) //if both sides are far longer or nonexistent
+				type = 'M'; //break this line
 			
 			broken.add(new Command(type, continuous.get(i).args.clone()));
 			lens[0] = lens[1];
@@ -334,6 +335,44 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		}
 		
 		return broken;
+	}
+	
+	
+	private Path closePaths(Path open) { //replace plain loops with 'Z's and combine connected parts
+		List<Path> parts = new ArrayList<Path>();
+		Path currentPart = null;
+		for (Command cmd: open) { //start by breaking the Path into parts,
+			if (cmd.type == 'M') { //separated by movetos
+				if (currentPart != null)
+					parts.add(currentPart);
+				currentPart = new Path();
+			}
+			currentPart.add(cmd);
+		}
+		parts.add(currentPart);
+		
+		Path closed = new Path();
+		for (int i = 0; i < parts.size(); i ++) { //now look through those parts
+			Path partI = parts.get(i);
+			if (partI.size() > 1
+					&& Arrays.equals(partI.get(0).args, partI.get(partI.size()-1).args)) { //if it is self-enclosing
+				partI.set(partI.size()-1, new Command('Z', new double[0])); //give it a closepath and send it on its way
+			}
+			else { //if it is open
+				for (int j = i+1; j < parts.size(); j ++) { //look to see if there is anything that completes it
+					Path partJ = parts.get(j);
+					if (Arrays.equals(partI.get(0).args, partJ.get(partJ.size()-1).args)) { //if so,
+						partI.remove(0); //remove the useless moveto
+						partJ.addAll(partI); //combine them
+						partI = partJ;
+						parts.remove(j); //don't look at J anymone; it has been absorbed.
+						break;
+					}
+				}
+			}
+			closed.addAll(partI); //now turn in whatever you've got
+		}
+		return closed;
 	}
 	
 	
@@ -445,10 +484,6 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			}
 		}
 		
-		public Path(Command command) {
-			// TODO: Implement this
-		}
-		
 		public String toString(
 				double inMinX, double inMaxY, double outMinX, double outMinY, double outScale) {
 			String s = "";
@@ -489,7 +524,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 				else
 					s += formatDouble(outMinY + (inMaxY-args[i])*outScale)+",";
 			}
-			return s.substring(0, s.length()-1);
+			return s.substring(0, Math.max(1, s.length()-1));
 		}
 	}
 	

@@ -183,16 +183,13 @@ public class MapDesignerVector extends MapApplication {
 				
 				List<Path> theMap = new LinkedList<Path>();
 				int i = 0;
-				for (Path path0: input) {
+				for (Path pathS: input) {
 					updateProgress(i, input.numCurves());
-					if (path0.size() <= step) 	continue; //don't bother drawing singular points
-					Path path1 = new Path();
-					int counter = 0;
-					for (Command cmdS: path0) {
-						counter --; //skip the requisite number of 'L's
-						if (counter > 0 && cmdS.type != 'M' && cmdS.type != 'Z') 	continue;
-						counter = step;
-						
+					if (pathS.size() <= step) 	continue; //don't bother drawing singular points
+					Path pathP = new Path();
+					int j = 0;
+					while (j < pathS.size()) {
+						Command cmdS = pathS.get(j);
 						Command cmdP = new Command(cmdS.type, new double[cmdS.args.length]);
 						for (int k = 0; k < cmdS.args.length; k += 2) {
 							double[] coords = proj.project(cmdS.args[k+1], cmdS.args[k], aspect);
@@ -203,9 +200,17 @@ public class MapDesignerVector extends MapApplication {
 							if (Double.isNaN(cmdP.args[k]) || Double.isNaN(cmdP.args[k+1]))
 								System.err.println(getProjection()+" returns "+cmdP.args[k]+","+cmdP.args[k+1]+" at "+cmdS.args[k+1]+","+cmdS.args[k]+"!");
 						}
-						path1.add(cmdP); //TODO: if I was smart, I would divide landmasses that hit an interruption so that I didn't get those annoying lines that cross the map, and then run adaptive resampling to make sure the cuts look clean and not polygonal (e.g. so Antarctica extends all the way to the bottom), but that sounds really hard.
+						pathP.add(cmdP); //TODO: if I was smart, I would divide landmasses that hit an interruption so that I didn't get those annoying lines that cross the map, and then run adaptive resampling to make sure the cuts look clean and not polygonal (e.g. so Antarctica extends all the way to the bottom), but that sounds really hard.
+						
+						for (int k = 0; k < step; k ++) { //increment j by at least 1 and at most step
+							if (k != 0 && (j >= pathS.size() - 1 || pathS.get(j).type == 'M'
+									|| pathS.get(j).type == 'Z'))
+								break; //but pause for every moveto and closepath, and for the last command in the path
+							else
+								j ++;
+						}
 					}
-					theMap.add(path1);
+					theMap.add(pathP);
 					
 					i ++;
 				}
