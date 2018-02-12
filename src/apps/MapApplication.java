@@ -31,15 +31,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
 import java.util.function.DoubleUnaryOperator;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import dialogs.ProgressDialog;
 import dialogs.ProjectionSelectionDialog;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -209,7 +208,7 @@ public abstract class MapApplication extends Application {
 	protected Region buildInputSelector(
 			FileChooser.ExtensionFilter[] allowedExtensions,
 			FileChooser.ExtensionFilter defaultExtension,
-			Consumer<File> inputSetter) {
+			Function<File, Task<Void>> inputSetter) {
 		final Label label = new Label("Current input:");
 		final Text inputLabel = new Text("Basic"+defaultExtension.getExtensions().get(0).substring(1)); //this line kind of cheats, since it assumes the first input will be called "Basic", but I couldn't figure out a good way for this to update when the subclass programatically sets the input
 		
@@ -219,22 +218,24 @@ public abstract class MapApplication extends Application {
 		inputChooser.getExtensionFilters().addAll(allowedExtensions);
 		inputChooser.setSelectedExtensionFilter(defaultExtension);
 		
-		final Button loadButton = new Button("Choose input...");
+		final Button loadButton = new Button("Choose input\u2026");
 		loadButton.setTooltip(new Tooltip(
 				"Choose the image to determine the style of your map"));
 		loadButton.setOnAction((event) -> {
 				File file;
 				try {
-					file = inputChooser.showOpenDialog(root);
+					file = inputChooser.showOpenDialog(root); //have the user choose a file
 				} catch (IllegalArgumentException e) {
-					inputChooser.setInitialDirectory(new File("."));
+					inputChooser.setInitialDirectory(new File(".")); //use the current directory if ./input/ doesn't exist for some reason
 					file = inputChooser.showOpenDialog(root);
 				}
 				if (file != null) {
 					inputChooser.setInitialDirectory(file.getParentFile()); //remember this directory for next time
-					final File f = file;
-					new Thread(() -> inputSetter.accept(f)).start();
-					inputLabel.setText(f.getName());
+					Task<Void> loadTask = inputSetter.apply(file);
+					disableWhile(loadTask.runningProperty(), ButtonType.LOAD_INPUT,
+							ButtonType.UPDATE_MAP, ButtonType.SAVE_MAP, ButtonType.SAVE_GRAPH);
+					new Thread(loadTask).start(); //start loading
+					inputLabel.setText(file.getName());
 				}
 			});
 		loadButton.setTooltip(new Tooltip(
@@ -273,7 +274,7 @@ public abstract class MapApplication extends Application {
 				
 				final boolean suppressedListeners = suppressListeners.isSet(); //save this value, because revealParameters()...
 				if (projectionChooser.getValue() == Projection.NULL_PROJECTION) {
-					chooseProjectionFromExpandedList(old); //<aside>NULL_PROJECTION is the "More..." button. It triggers the expanded list</aside>
+					chooseProjectionFromExpandedList(old); //<aside>NULL_PROJECTION is the "More" button. It triggers the expanded list</aside>
 				}
 				else {
 					description.setText(projectionChooser.getValue().getDescription());
@@ -444,19 +445,21 @@ public abstract class MapApplication extends Application {
 	protected Region buildUpdateButton(String text, Supplier<Task<SavableImage>> mapUpdater) {
 		Button updateButton = new Button(text);
 		updateButton.setOnAction((event) -> {
-			Task<SavableImage> task = mapUpdater.get();
-			new Thread(task).start();
+			Task<SavableImage> updateTask = mapUpdater.get();
+			disableWhile(updateTask.runningProperty(),
+					ButtonType.UPDATE_MAP, ButtonType.SAVE_GRAPH, ButtonType.SAVE_MAP);
+			new Thread(updateTask).start();
 		});
 		updateButton.setTooltip(new Tooltip(
-				"Update the current map with your parameters"));
+				"Update the current map with your parameters."));
 		
 		updateButton.setDefaultButton(true);
 		root.addEventHandler(KeyEvent.KEY_PRESSED, (event) -> {
-				if (CTRL_ENTER.match(event)) {
-					updateButton.requestFocus();
-					updateButton.fire();
-				}
-			});
+			if (CTRL_ENTER.match(event)) {
+				updateButton.requestFocus();
+				updateButton.fire();
+			}
+		});
 		
 		this.buttons.put(ButtonType.UPDATE_MAP, updateButton);
 		return updateButton;
@@ -477,7 +480,7 @@ public abstract class MapApplication extends Application {
 			FileChooser.ExtensionFilter[] allowedExtensions,
 			FileChooser.ExtensionFilter defaultExtension,
 			BooleanSupplier mapVerifier, Supplier<Task<SavableImage>> mapCalculater) {
-		final FileChooser saver = new FileChooser();
+		FileChooser saver = new FileChooser();
 		saver.setInitialDirectory(new File("output"));
 		saver.setInitialFileName("my"+savee+defaultExtension.getExtensions().get(0).substring(1));
 		saver.setTitle("Save "+savee);
@@ -488,8 +491,11 @@ public abstract class MapApplication extends Application {
 				saver.getInitialDirectory().mkdirs();
 		} catch (SecurityException e) {}
 		
-		final Button saveButton = new Button("Save "+savee+"...");
-		saveButton.setOnAction((actionEvent) -> {
+		final Button saveButton = new Button("Save "+savee+"\u2026");
+		final ButtonType buttonType =
+				savee.equals("map") ? ButtonType.SAVE_MAP : ButtonType.SAVE_GRAPH;
+		this.buttons.put(buttonType, saveButton);
+		saveButton.setOnAction((actionEvent) -> { //when this save button is pressed...
 			File file;
 			try {
 				file = saver.showSaveDialog(root); //let the user pick a file
@@ -507,7 +513,7 @@ public abstract class MapApplication extends Application {
 					pBar.show();
 					task.setOnSucceeded((succeedEvent) -> { //save the result to disk when it finishes
 						pBar.unbindAndSetProgress(-1);
-						pBar.unbindAndSetHeaderText("Saving to disk...");
+						pBar.unbindAndSetHeaderText("Saving to disk\u2026");
 						try {
 							task.getValue().save(f);
 						} catch (IOException e) {
@@ -519,6 +525,7 @@ public abstract class MapApplication extends Application {
 							Desktop.getDesktop().open(f.getParentFile());
 						} catch (IOException e) {} //if you can't open the directory for some reason, don't worry about it.
 					});
+					disableWhile(task.runningProperty(), buttonType);
 					new Thread(task).start(); //now execute!
 				}
 			}
@@ -533,10 +540,6 @@ public abstract class MapApplication extends Application {
 				}
 			});
 		
-		if (savee.equals("map"))
-			this.buttons.put(ButtonType.SAVE_MAP, saveButton);
-		else
-			this.buttons.put(ButtonType.SAVE_GRAPH, saveButton);
 		return saveButton;
 	}
 	
@@ -558,7 +561,8 @@ public abstract class MapApplication extends Application {
 	
 	protected void disableWhile(ReadOnlyBooleanProperty condition, ButtonType... buttons) {
 		for (ButtonType bt: buttons)
-			this.buttons.get(bt).disableProperty().bind(condition);
+			if (this.buttons.containsKey(bt))
+				this.buttons.get(bt).disableProperty().bind(condition);
 	}
 	
 	
@@ -671,13 +675,11 @@ public abstract class MapApplication extends Application {
 	}
 	
 	
-	protected static void showError(String header, String message) { //a simple thread-safe error handling thing
-		Platform.runLater(() -> {
-				final Alert alert = new Alert(Alert.AlertType.ERROR);
-				alert.setHeaderText(header);
-				alert.setContentText(message);
-				alert.showAndWait();
-			});
+	protected static void showError(String header, String message) { //a simple error handling thing
+		final Alert alert = new Alert(Alert.AlertType.ERROR);
+		alert.setHeaderText(header);
+		alert.setContentText(message);
+		alert.showAndWait();
 	}
 	
 	

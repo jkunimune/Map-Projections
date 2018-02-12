@@ -84,9 +84,7 @@ public class MapDesignerVector extends MapApplication {
 	@Override
 	public void start(Stage root) {
 		super.start(root);
-		new Thread(() -> {
-			setInput(new File("input/Basic.svg")); //this automatically updates the map
-		}).start();
+		new Thread(setInputTask(new File("input/Basic.svg"))).start(); //this automatically updates the map
 	}
 	
 	
@@ -94,12 +92,12 @@ public class MapDesignerVector extends MapApplication {
 	protected Region makeWidgets() {
 		this.aspect = new double[3];
 		final Region inputSelector = buildInputSelector(VECTOR_TYPES,
-				VECTOR_TYPES[0], this::setInput);
+				VECTOR_TYPES[0], this::setInputTask);
 		final Region projectionSelector = buildProjectionSelector(this::updateAspect);
 		this.aspectSelector = buildAspectSelector(this.aspect, this::updateMap);
 		final Region parameterSelector = buildParameterSelector(this::updateMap);
 		final Region saveBtn = buildSaveButton(true, "map", VECTOR_TYPES,
-				VECTOR_TYPES[0], ()->true, this::calculateMapForSaving);
+				VECTOR_TYPES[0], ()->true, this::calculateTaskForSaving);
 		
 		final VBox layout = new VBox(V_SPACE,
 				inputSelector, new Separator(), projectionSelector,
@@ -121,21 +119,31 @@ public class MapDesignerVector extends MapApplication {
 	}
 	
 	
-	private void setInput(File file) {
-		try {
-			input = new SVGMap(file);
-		} catch (IOException e) {
-			showError("File not found!",
-					"We couldn't find "+file.getAbsolutePath()+".");
-		} catch (SAXException e) {
-			showError("Unreadable file!",
-					"We couldn't read "+file.getAbsolutePath()+". It may be corrupt or an unreadable format.");
-		} catch (ParserConfigurationException e) {
-			showError("Parser Configuration Error!",
-					"My parser configured incorrectly. I blame you.");
-		} finally {
-			updateMap();
-		}
+	private Task<Void> setInputTask(File file) {
+		return new Task<Void>() {
+			protected Void call() throws IOException, SAXException, ParserConfigurationException {
+				input = new SVGMap(file);
+				return null;
+			}
+			
+			protected void failed() {
+				if (getException() instanceof IOException)
+					showError("File not found!",
+							"We couldn't find "+file.getAbsolutePath()+".");
+				else if (getException() instanceof SAXException)
+					showError("Unreadable file!",
+							"We couldn't read "+file.getAbsolutePath()+". It may be corrupt or an unreadable format.");
+				else if (getException() instanceof ParserConfigurationException)
+					showError("Parser Configuration Error!",
+							"My parser configured incorrectly. I blame you.");
+				else
+					showError("Unexpected error!", getException().getMessage());
+			}
+			
+			protected void succeeded() {
+				updateMap();
+			}
+		};
 		
 	}
 	
@@ -147,21 +155,21 @@ public class MapDesignerVector extends MapApplication {
 	
 	
 	private void updateMap() { //execute a new calculation Task immediately
-		new Thread(calculateMapForUpdate()).start();
+		new Thread(calculateTaskForUpdate()).start();
 	}
 	
 	
-	private Task<SavableImage> calculateMapForUpdate() {
+	private Task<SavableImage> calculateTaskForUpdate() {
 		int maxVtx = this.getParamsChanging() ? FAST_MAX_VTX : DEF_MAX_VTX;
 		int step = input.length()/maxVtx+1;
-		return calculateMap(step, true);
+		return calculateTask(step, true);
 	}
 	
-	private Task<SavableImage> calculateMapForSaving() {
-		return calculateMap(1, false);
+	private Task<SavableImage> calculateTaskForSaving() {
+		return calculateTask(1, false);
 	}
 	
-	private Task<SavableImage> calculateMap(int step, boolean render) {
+	private Task<SavableImage> calculateTask(int step, boolean render) {
 		loadParameters();
 		final Projection proj = this.getProjection();
 		final double[] aspect = this.aspect.clone();
@@ -171,7 +179,7 @@ public class MapDesignerVector extends MapApplication {
 			
 			protected SavableImage call() {
 				updateProgress(-1, 1);
-				updateMessage("Making map...");
+				updateMessage("Generating map\u2026");
 				
 				List<Path> theMap = new LinkedList<Path>();
 				int i = 0;
@@ -204,7 +212,7 @@ public class MapDesignerVector extends MapApplication {
 				
 				if (render) {
 					updateProgress(-1, 1);
-					updateMessage("Rendering map...");
+					updateMessage("Rendering map\u2026");
 					
 					int width, height;
 					if (getProjection().isLandscape()) { //fit it to an IMG_SIZE x IMG_SIZE box

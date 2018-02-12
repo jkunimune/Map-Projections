@@ -37,7 +37,8 @@ import javafx.scene.layout.Priority;
 
 public class ProgressDialog<V> extends Dialog<V> {
 	
-	public final double DEF_SIZE = 1000;
+	private static final double BAR_WIDTH = 250;
+	private static final double WORD_WIDTH = 40;
 	
 	
 	private final Worker<V> worker;
@@ -58,18 +59,21 @@ public class ProgressDialog<V> extends Dialog<V> {
 	public ProgressDialog(Worker<V> worker) {
 		this.worker = worker;
 			
-		DialogPane pane = this.getDialogPane();
-		pane.setHeaderText("Please wait.");
-		pane.headerTextProperty().bind(worker.messageProperty()); //the Worker's message is the header text;
-		pane.getButtonTypes().add(ButtonType.CLOSE);
-		((Button) pane.lookupButton(ButtonType.CLOSE)).setTooltip(new Tooltip("Please don't deactivate me!"));
+		final DialogPane pane = this.getDialogPane();
+		pane.getButtonTypes().add(ButtonType.CANCEL);
+		((Button) pane.lookupButton(ButtonType.CANCEL)).setTooltip(new Tooltip("Please don't deactivate me!"));
+		pane.setHeaderText("Please wait."); //the Worker's message is the header text
+		worker.messageProperty().addListener((old, now, observable) -> { //but only once the message gets set
+			pane.headerTextProperty().bind(worker.messageProperty());
+		});
 		
-		this.words = new Label();
-		this.words.setMinWidth(50); //the words are the progress in text form;
+		
+		this.words = new Label("\u2026");
+		this.words.setMinWidth(WORD_WIDTH); //the words are the progress in text form;
 		this.words.setAlignment(Pos.BASELINE_RIGHT);
 		
 		this.bar = new ProgressBar();
-		this.bar.setPrefWidth(300);
+		this.bar.setPrefWidth(BAR_WIDTH);
 		this.bar.progressProperty().addListener((old, now, observable) -> { //update the percentage text whenever the progress changes{
 			if (now.doubleValue() >= 0) {
 				String percentage = (Math.round(1000*now.doubleValue())/10.0)+"%";
@@ -77,7 +81,7 @@ public class ProgressDialog<V> extends Dialog<V> {
 				this.setTitle("Please wait - "+percentage);
 			}
 			else {
-				this.words.setText("...");
+				this.words.setText("\u2026");
 				this.setTitle("Please wait.");
 			}
 		});

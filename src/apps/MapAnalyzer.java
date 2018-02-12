@@ -94,7 +94,7 @@ public class MapAnalyzer extends MapApplication {
 	@Override
 	public void start(Stage root) {
 		super.start(root);
-		new Thread(calculateGraphicForUpdate()).start();
+		new Thread(calculateGraphicTaskForUpdate()).start();
 	}
 	
 	
@@ -106,11 +106,12 @@ public class MapAnalyzer extends MapApplication {
 		final Region parameterSelector = buildParameterSelector(Procedure.NONE);
 		final Region optionPane = buildOptionPane(cropAtIDL, graticuleSpacing);
 		final Region textDisplay = buildTextDisplay();
-		final Region updateBtn = buildUpdateButton("Calculate", this::calculateGraphicForUpdate);
+		final Region updateBtn = buildUpdateButton("Calculate",
+				this::calculateGraphicTaskForUpdate);
 		final Region saveMapBtn = buildSaveButton(true, "map", RASTER_TYPES,
-				RASTER_TYPES[0], ()->true, this::calculateGraphicForSaving);
+				RASTER_TYPES[0], ()->true, this::calculateGraphicTaskForSaving);
 		final Region savePltBtn = buildSaveButton(true, "plots", RASTER_TYPES,
-				RASTER_TYPES[0], ()->true, this::calculatePlot);
+				RASTER_TYPES[0], ()->true, this::calculatePlotTask);
 		final HBox buttons = new HBox(H_SPACE, updateBtn, saveMapBtn, savePltBtn);
 		buttons.setAlignment(Pos.CENTER);
 		
@@ -175,7 +176,7 @@ public class MapAnalyzer extends MapApplication {
 	}
 	
 	
-	private Task<SavableImage> calculatePlot() {
+	private Task<SavableImage> calculatePlotTask() {
 		Task<SavableImage> task = new Task<SavableImage>() {
 			private SnapshotResult snapRes = null;
 			
@@ -188,7 +189,7 @@ public class MapAnalyzer extends MapApplication {
 			
 			protected SavableImage call() { //yeah, this is weird and dumb, but only because the
 				updateProgress(-1, 1); //snapshot method is dumb. Why does it have to be called on
-				updateMessage("Converting graph..."); //the GUI thread? It's clearly doing Thread
+				updateMessage("Converting graph\u2026"); //the GUI thread? It's clearly doing Thread
 				while (!isCancelled() && snapRes == null) {} //things, judging by the fact that it
 				return SavableImage.savable(snapRes.getImage()); //_has_ a Callback version
 			}
@@ -198,19 +199,19 @@ public class MapAnalyzer extends MapApplication {
 	}
 	
 	
-	private Task<SavableImage> calculateGraphicForUpdate() {
-		Task<SavableImage> task = calculateGraphic(IMG_SIZE, true);
+	private Task<SavableImage> calculateGraphicTaskForUpdate() {
+		Task<SavableImage> task = calculateGraphicTask(IMG_SIZE, true);
 		disableWhile(task.runningProperty(), ButtonType.UPDATE_MAP, ButtonType.SAVE_MAP);
 		return task;
 	}
 	
-	private Task<SavableImage> calculateGraphicForSaving() {
-		Task<SavableImage> task = calculateGraphic(FINE_SAMP_NUM, false);
+	private Task<SavableImage> calculateGraphicTaskForSaving() {
+		Task<SavableImage> task = calculateGraphicTask(FINE_SAMP_NUM, false);
 		disableWhile(task.runningProperty(), ButtonType.SAVE_MAP);
 		return task;
 	}
 	
-	private Task<SavableImage> calculateGraphic(int imgSize, boolean detailedAnalysis) {
+	private Task<SavableImage> calculateGraphicTask(int imgSize, boolean detailedAnalysis) {
 		loadParameters();
 		final Projection proj = getProjection();
 		final boolean crop = cropAtIDL.isSet();
@@ -223,7 +224,7 @@ public class MapAnalyzer extends MapApplication {
 			
 			protected SavableImage call() {
 				updateProgress(-1, 1);
-				updateMessage("Calculating distortion...");
+				updateMessage("Calculating distortion\u2026");
 				
 				double[][][] distortionM = proj.calculateDistortion(proj.map(imgSize, crop),
 						this::isCancelled, (p) -> updateProgress(p, 2)); //calculate
@@ -235,7 +236,7 @@ public class MapAnalyzer extends MapApplication {
 				
 				if (isCancelled()) 	return null;
 				updateProgress(1, 2);
-				updateMessage("Making graphic...");
+				updateMessage("Generating graphic\u2026");
 				
 				graphic = new WritableImage(
 						distortionM[0][0].length, distortionM[0].length);

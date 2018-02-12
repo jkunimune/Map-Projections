@@ -100,10 +100,9 @@ public class MapDesignerRaster extends MapApplication {
 	@Override
 	public void start(Stage root) {
 		super.start(root);
-		new Thread(() -> {
-			setInput(new File("input/Basic.png")); //it does bother me a bit to start a Thread from
-			new Thread(calculateMapForUpdate()).start(); //a Thread like this for no reason, but
-		}).start(); //I can't call call() by myself, so this is the easiest way I can figure to do this.
+		Task<Void> task = setInputTask(new File("input/Basic.png"));
+		task.setOnSucceeded((event) -> new Thread(calculateTaskForUpdate()).start());
+		new Thread(task).start();
 	}
 	
 	
@@ -113,14 +112,14 @@ public class MapDesignerRaster extends MapApplication {
 		this.cropAtIDL = new Flag(false);
 		this.graticuleSpacing = new MutableDouble();
 		final Region inputSelector = buildInputSelector(READABLE_TYPES,
-				RASTER_TYPES[0], this::setInput);
+				RASTER_TYPES[0], this::setInputTask);
 		final Region projectionSelector = buildProjectionSelector(this::updateAspect);
 		this.aspectSelector = buildAspectSelector(this.aspect, Procedure.NONE);
 		final Region parameterSelector = buildParameterSelector(Procedure.NONE);
 		final Region optionPane = buildOptionPane(cropAtIDL, graticuleSpacing);
-		final Region updateBtn = buildUpdateButton("Update Map", this::calculateMapForUpdate);
+		final Region updateBtn = buildUpdateButton("Update Map", this::calculateTaskForUpdate);
 		final Region saveMapBtn = buildSaveButton(true, "map", RASTER_TYPES,
-				RASTER_TYPES[0], this::collectFinalSettings, this::calculateMapForSaving);
+				RASTER_TYPES[0], this::collectFinalSettings, this::calculateTaskForSaving);
 		final HBox buttons = new HBox(H_SPACE, updateBtn, saveMapBtn);
 		buttons.setAlignment(Pos.CENTER);
 		
@@ -147,13 +146,18 @@ public class MapDesignerRaster extends MapApplication {
 	}
 	
 	
-	private void setInput(File file) {
-		try {
-			input = new PixelMap(file);
-		} catch (IOException e) {
-			showError("File not found!",
-					"Couldn't find "+file.getAbsolutePath()+".");
-		}
+	private Task<Void> setInputTask(File file) {
+		return new Task<Void>() {
+			protected Void call() throws IOException {
+				input = new PixelMap(file);
+				return null;
+			}
+			
+			protected void failed() {
+				showError("File not found!",
+						"Couldn't find "+file.getAbsolutePath()+".");
+			}
+		};
 	}
 	
 	
@@ -171,22 +175,22 @@ public class MapDesignerRaster extends MapApplication {
 	}
 	
 	
-	private Task<SavableImage> calculateMapForUpdate() {
+	private Task<SavableImage> calculateTaskForUpdate() {
 		if (getProjection().isLandscape()) //either fit it to an IMG_SIZE x IMG_SIZE box
-			return calculateMap(
+			return calculateTask(
 					IMG_SIZE, (int)Math.max(IMG_SIZE/getProjection().getAspectRatio(),1), 1);
 		else
-			return calculateMap(
+			return calculateTask(
 					(int)Math.max(IMG_SIZE/getProjection().getAspectRatio(),1), IMG_SIZE, 1);
 	}
 	
-	private Task<SavableImage> calculateMapForSaving() {
+	private Task<SavableImage> calculateTaskForSaving() {
 		int[] outDims = configDialog.getDims();
 		int step = configDialog.getSmoothing();
-		return calculateMap(outDims[0], outDims[1], step);
+		return calculateTask(outDims[0], outDims[1], step);
 	}
 	
-	private Task<SavableImage> calculateMap(int width, int height, int step) {
+	private Task<SavableImage> calculateTask(int width, int height, int step) {
 		final Projection proj = getProjection();
 		final double[] aspect = this.aspect.clone();
 		final boolean crop = cropAtIDL.isSet();
@@ -197,7 +201,7 @@ public class MapDesignerRaster extends MapApplication {
 			
 			protected SavableImage call() {
 				updateProgress(-1, 1);
-				updateMessage("Making map...");
+				updateMessage("Generating map\u2026");
 				
 				theMap = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB); //why is this a BufferedImage when the rest of this program uses JavaFX? Because the only JavaFX alternatives are WritableImage, which doesn't do anything but single-pixel-editing, and Canvas, which doesn't properly support transparency.
 				for (int y = 0; y < theMap.getHeight(); y ++) { //iterate through the map, filling in pixels
@@ -221,7 +225,7 @@ public class MapDesignerRaster extends MapApplication {
 				if (gratSpacing != 0) { //draw the graticule, if desired
 					if (isCancelled()) 	return null;
 					updateProgress(-1, 1);
-					updateMessage("Drawing graticule...");
+					updateMessage("Drawing graticule\u2026");
 					
 					Graphics2D g = (Graphics2D)theMap.getGraphics();
 					g.setStroke(new BasicStroke(GRATICULE_WIDTH));
