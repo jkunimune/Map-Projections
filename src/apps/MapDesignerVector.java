@@ -171,9 +171,22 @@ public class MapDesignerVector extends MapApplication {
 	
 	private Task<SavableImage> calculateTask(int step, boolean render) {
 		loadParameters();
-		final Projection proj = this.getProjection();
-		final double[] aspect = this.aspect.clone();
-		
+		return calculateTask(step, input, getProjection(), aspect.clone(), render ? viewer : null);
+	}
+	
+	/**
+	 * Prepare a task that will load a new map from the given projection and return it as a savable
+	 * image, and perhaps render it to a StackPane.
+	 * @param step - The number of points to skip on the given input, if you're in a rush.
+	 * @param input - The equirectangular input image.
+	 * @param proj - The projection to do the mapping.
+	 * @param aspect - The oblique axis for the map.
+	 * @param viewer - The pane in which to place the newly rendered image, or null if it is not to
+	 * 		be rendered.
+	 * @return A Task upon which will produce and return the SavableImage when called.
+	 */
+	public static Task<SavableImage> calculateTask(int step,
+			SVGMap input, Projection proj, double[] aspect, StackPane viewer) {
 		return new Task<SavableImage>() {
 			private Canvas rendered;
 			
@@ -198,7 +211,7 @@ public class MapDesignerVector extends MapApplication {
 							cmdP.args[k+1] =
 									Math.max(Math.min(coords[1], proj.getHeight()), -proj.getHeight());
 							if (Double.isNaN(cmdP.args[k]) || Double.isNaN(cmdP.args[k+1]))
-								System.err.println(getProjection()+" returns "+cmdP.args[k]+","+cmdP.args[k+1]+" at "+cmdS.args[k+1]+","+cmdS.args[k]+"!");
+								System.err.println(proj+" returns "+cmdP.args[k]+","+cmdP.args[k+1]+" at "+cmdS.args[k+1]+","+cmdS.args[k]+"!");
 						}
 						pathP.add(cmdP); //TODO: if I was smart, I would divide landmasses that hit an interruption so that I didn't get those annoying lines that cross the map, and then run adaptive resampling to make sure the cuts look clean and not polygonal (e.g. so Antarctica extends all the way to the bottom), but that sounds really hard.
 						
@@ -215,25 +228,24 @@ public class MapDesignerVector extends MapApplication {
 					i ++;
 				}
 				
-				if (render) {
+				if (viewer != null) { //if we are to render,
 					updateProgress(-1, 1);
-					updateMessage("Rendering map\u2026");
+					updateMessage("Rendering map\u2026"); //then render
 					
 					int width, height;
-					if (getProjection().isLandscape()) { //fit it to an IMG_SIZE x IMG_SIZE box
+					if (proj.isLandscape()) { //fit it to an IMG_SIZE x IMG_SIZE box
 						width = IMG_SIZE;
-						height = (int)Math.max(IMG_SIZE/getProjection().getAspectRatio(), 1);
+						height = (int)Math.max(IMG_SIZE/proj.getAspectRatio(), 1);
 					}
 					else {
-						width = (int)Math.max(IMG_SIZE/getProjection().getAspectRatio(), 1);
+						width = (int)Math.max(IMG_SIZE/proj.getAspectRatio(), 1);
 						height = IMG_SIZE;
 					}
-					rendered = drawImage(theMap, width, height);
+					rendered = drawImage(theMap, proj.getWidth(), proj.getHeight(), width, height);
 				}
 				
 				return new SavableImage() {
 					public void save(File file) throws IOException {
-						Projection proj = getProjection();
 						SVGMap altered = input.replace("Equirectangular", proj.getName());
 						altered.save(theMap, file, -proj.getWidth()/2, proj.getHeight()/2,
 								proj.getWidth(), proj.getHeight()); //save
@@ -241,8 +253,12 @@ public class MapDesignerVector extends MapApplication {
 				};
 			}
 			
+			protected void failed() {
+				getException().printStackTrace();
+			}
+			
 			protected void succeeded() { //draw the image once successful
-				if (render) {
+				if (viewer != null) {
 					viewer.getChildren().clear();
 					viewer.getChildren().add(rendered);
 				}
@@ -251,10 +267,11 @@ public class MapDesignerVector extends MapApplication {
 	}
 	
 	
-	private Canvas drawImage(Iterable<Path> paths, int width, int height) { //parse the SVG path, with a few modifications
-		final double mX = this.getProjection().getWidth()/2;
-		final double mY = this.getProjection().getHeight()/2;
-		Canvas c = new Canvas(width, height);
+	private static Canvas drawImage(Iterable<Path> paths, double inWidth, double inHeight,
+			int outWidth, int outHeight) { //parse the SVG path, with a few modifications
+		final double mX = inWidth/2;
+		final double mY = inHeight/2;
+		Canvas c = new Canvas(outWidth, outHeight);
 		GraphicsContext g = c.getGraphicsContext2D();
 		g.clearRect(0, 0, c.getWidth(), c.getHeight());
 		g.beginPath();
@@ -277,7 +294,7 @@ public class MapDesignerVector extends MapApplication {
 				case 'L':
 				case 'T':
 					for (int i = 0; i < args.length; i += 2)
-						if (Math.hypot(args[i+0]-lastX, args[i+1]-lastY) < IMG_SIZE/4) // break lines that are too long
+						if (Math.hypot(args[i+0]-lastX, args[i+1]-lastY) < outWidth/4) // break lines that are too long
 							g.lineTo(args[i+0], args[i+1]); //TODO: I really need to actually look for interruptions or something
 						else
 							g.moveTo(args[i+0], args[i+1]);
@@ -293,7 +310,7 @@ public class MapDesignerVector extends MapApplication {
 								args[i+0], args[i+1], args[i+2], args[i+3], args[i+4], args[i+5]);
 					break;
 				case 'Z':
-					if (Math.hypot(startX-lastX, startY-lastY) < IMG_SIZE/4)
+					if (Math.hypot(startX-lastX, startY-lastY) < outWidth/4)
 						g.lineTo(startX, startY);
 					break;
 				default:

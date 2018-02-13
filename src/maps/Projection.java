@@ -126,8 +126,8 @@ public abstract class Projection {
 		this.rating = rating;
 	}
 	
-	protected Projection(Projection base) {
-		this(	base.name, base.description, base.width, base.height, base.finite, base.invertable,
+	protected Projection(String name, Projection base) {
+		this(	name, base.description, base.width, base.height, base.finite, base.invertable,
 				base.solveable, base.continuous, base.type, base.property, base.rating,
 				base.paramNames, base.paramValues, base.hasAspect);
 	}
@@ -472,13 +472,21 @@ public abstract class Projection {
 	
 	
 	@Override
-	public final String toString() {
+	public String toString() {
 		return this.getName();
 	}
 	
 	
 	public final Projection transverse() {
-		return new Transverse(this);
+		return transverse(getName());
+	}
+	
+	public final Projection transverse(String name) {
+		return new Oblique(this, name, 0, 0, 0);
+	}
+	
+	public final Projection withAspect(String name ,double... aspect) {
+		return new Oblique(this, name, aspect);
 	}
 	
 	

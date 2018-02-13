@@ -169,9 +169,9 @@ public class MapOptimizer extends Application {
 	/**
 	 * Returns the parameters that minimise the function, based on a simple brute-force
 	 * parameter sweep.
-	 * @param func The function to minimise
-	 * @param bounds Parameter limits for each argument
-	 * @return An array containing the best input to func that it found
+	 * @param func - The function to minimise.
+	 * @param bounds - Parameter limits for each argument.
+	 * @return An array containing the best input to func that it found.
 	 */
 	private static double[] bruteForceMinimise(Function<double[], Double> func, double[][] bounds) {
 		System.out.println("BF = [");
@@ -213,10 +213,10 @@ public class MapOptimizer extends Application {
 	
 	/**
 	 * Calculates the set of parameters that minimises the function using BFGS optimisation with
-	 * a backtracking line search
-	 * @param arrFunction The function that takes a parameter array and returns a double value
-	 * @param x0 The initial guess
-	 * @return The array of parameters that mimimise arrFunction
+	 * a backtracking line search.
+	 * @param arrFunction - The function that takes a parameter array and returns a double value.
+	 * @param x0 - The initial guess.
+	 * @return The array of parameters that mimimise arrFunction.
 	 */
 	private static double[] bfgsMinimise(Function<double[], Double> arrFunction, double[] x0) { //The Broyden-Fletcher-Goldfarb-Shanno algorithm
 		System.out.println("BFGS = [");
@@ -238,9 +238,6 @@ public class MapOptimizer extends Application {
 			while ((!Double.isFinite(fxkp1) || fxkp1 > fxk + alfk*pk.dot(gradFxk)*GOLDSTEIN_C)) {
 				if (alfk <= 1e-5)
 					return xk.asArray(); //a simple way to check for convergence: if xk gets ridiculously small, we're done here.
-//				for (double d: xk.plus(pk.times(alfk)).asArray())
-//					System.out.print(d+", ");
-//				System.out.println(fxkp1+";");
 				alfk *= BACKTRACK_TAU;
 				fxkp1 = func.apply(xk.plus(pk.times(alfk)));
 			}
@@ -265,11 +262,11 @@ public class MapOptimizer extends Application {
 	
 	
 	/**
-	 * Calculates the gradient of f at x
-	 * @param f The function to differentiate
-	 * @param x The point at which to differentiate
-	 * @param fx The value of f(x), to speed computations
-	 * @return
+	 * Calculates the gradient vector of f at x.
+	 * @param f - The function to differentiate.
+	 * @param x - The point at which to differentiate.
+	 * @param fx - The value of f(x), to speed computations.
+	 * @return The vector of partial derivatives of f at x.
 	 */
 	private static Vector grad(Function<Vector, Double> f, Vector x, double fx) {
 		final int n = x.getLength();
@@ -288,11 +285,11 @@ public class MapOptimizer extends Application {
 	
 	
 	/**
-	 * Computes the Hessian matrix of f at x
-	 * @param f The function to differentiate
-	 * @param x The point at which to differentiate
-	 * @param fx The value of f(x), to aid in computation
-	 * @return The Jacobian of the gradient, a symmetric Matrix of second derivatives
+	 * Computes the Hessian matrix of f at x.
+	 * @param f - The function to differentiate.
+	 * @param x - The point at which to differentiate.
+	 * @param fx - The value of f(x), to aid in computation.
+	 * @return The Jacobian of the gradient, a symmetric Matrix of second derivatives.
 	 */
 	private static Matrix hessian(Function<Vector, Double> f, Vector x, double fx) {
 		final int n = x.getLength();

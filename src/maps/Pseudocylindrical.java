@@ -57,6 +57,8 @@ public class Pseudocylindrical {
 					Math.PI*Math.sin(lat), lat,
 					(t) -> (2*t + Math.sin(2*t)),
 					(t) -> (2 + 2*Math.cos(2*t)), 1e-6);
+			if (Double.isNaN(tht))
+				tht = Math.PI*Math.signum(lat);
 			return new double[] { lon/Math.PI*2*Math.cos(tht), Math.sin(tht) };
 		}
 		

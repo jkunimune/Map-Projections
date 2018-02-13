@@ -199,11 +199,11 @@ public abstract class MapApplication extends Application {
 	
 	
 	/**
-	 * Create a set of widgets to select an input image
-	 * @param allowedExtensions The List of possible file types for the input
-	 * @param setInput The method to be called when an input file is loaded.
+	 * Create a set of widgets to select an input image.
+	 * @param allowedExtensions - The List of possible file types for the input
+	 * @param setInput - The method to be called when an input file is loaded.
 	 * 		This method will be called from a nongui thread.
-	 * @return the full formatted Region
+	 * @return The full formatted Region.
 	 */
 	protected Region buildInputSelector(
 			FileChooser.ExtensionFilter[] allowedExtensions,
@@ -255,9 +255,9 @@ public abstract class MapApplication extends Application {
 	
 	
 	/**
-	 * Create a set of widgets to choose a Projection
-	 * @param defProj The default projection, before the user chooses anything
-	 * @return the full formatted Region
+	 * Create a set of widgets to choose a Projection.
+	 * @param defProj - The default projection, before the user chooses anything.
+	 * @return The full formatted Region.
 	 */
 	protected Region buildProjectionSelector(Procedure projectionSetter) {
 		final Label label = new Label("Projection:");
@@ -291,9 +291,9 @@ public abstract class MapApplication extends Application {
 	
 	
 	/**
-	 * Create a set of widgets to choose an aspect either from a preset or numbers
-	 * Also bind aspectArr to the sliders
-	 * @return the full formatted Region
+	 * Create a set of widgets to choose an aspect either from a preset or numbers.
+	 * Also bind aspectArr to the sliders.
+	 * @return The full formatted Region.
 	 */
 	protected Region buildAspectSelector(double[] aspectArr, Procedure aspectSetter) {
 		final MenuButton presetChooser = new MenuButton("Aspect Presets");
@@ -354,9 +354,9 @@ public abstract class MapApplication extends Application {
 	
 	
 	/**
-	 * Create a grid of sliders and spinners not unlike the aspectSelector
-	 * @param parameterSetter The function to execute when the parameters change
-	 * @return the full formatted Region
+	 * Create a grid of sliders and spinners not unlike the aspectSelector.
+	 * @param parameterSetter - The function to execute when the parameters change.
+	 * @return The full formatted Region.
 	 */
 	@SuppressWarnings("unchecked")
 	protected Region buildParameterSelector(Procedure parameterSetter) {
@@ -394,9 +394,9 @@ public abstract class MapApplication extends Application {
 	/**
 	 * Create a block of niche options - specifically International Dateline cropping and whether
 	 * there should be a graticule
-	 * @param cropAtIDL The mutable boolean value to which to bind the "Crop at Dateline" CheckBox
-	 * @param graticule The mutable double value to which to bind the "Graticule" Spinner
-	 * @return the full formatted Region
+	 * @param cropAtIDL - The mutable boolean value to which to bind the "Crop at Dateline" CheckBox.
+	 * @param graticule - The mutable double value to which to bind the "Graticule" Spinner.
+	 * @return The full formatted Region.
 	 */
 	protected Region buildOptionPane(Flag cropAtIDL, MutableDouble graticule) {
 		final CheckBox cropBox = new CheckBox("Crop at International Dateline"); //the CheckBox for whether there should be shown imagery outside the International Dateline
@@ -439,8 +439,8 @@ public abstract class MapApplication extends Application {
 	
 	
 	/**
-	 * Create a default button that will update the map
-	 * @return the button
+	 * Create a default button that will update the map.
+	 * @return The button.
 	 */
 	protected Region buildUpdateButton(String text, Supplier<Task<SavableImage>> mapUpdater) {
 		Button updateButton = new Button(text);
@@ -468,18 +468,18 @@ public abstract class MapApplication extends Application {
 	
 	/**
 	 * Build a button that will save something
-	 * @param bindCtrlS Should ctrl+S trigger this button?
-	 * @param savee The name of the thing being saved
-	 * @param allowedExtensions The allowed file formats that can be saved
-	 * @param defaultExtension The default file format to be saved
-	 * @param mapVerifier A callback to run just before the saving happens that returns true if it should commence
-	 * @param mapCalculater The callback that saves the thing
-	 * @return the button, ready to be pressed
+	 * @param bindCtrlS - Should ctrl+S trigger this button?
+	 * @param savee - The name of the thing being saved.
+	 * @param allowedExtensions - The allowed file formats that can be saved.
+	 * @param defaultExtension - The default file format to be saved.
+	 * @param mapVerifier - A callback to run just before the saving happens that returns true if it should commence.
+	 * @param mapCalculator - The callback that saves the thing.
+	 * @return The button, ready to be pressed.
 	 */
 	protected Region buildSaveButton(boolean bindCtrlS, String savee,
 			FileChooser.ExtensionFilter[] allowedExtensions,
 			FileChooser.ExtensionFilter defaultExtension,
-			BooleanSupplier mapVerifier, Supplier<Task<SavableImage>> mapCalculater) {
+			BooleanSupplier mapVerifier, Supplier<Task<SavableImage>> mapCalculator) {
 		FileChooser saver = new FileChooser();
 		saver.setInitialDirectory(new File("output"));
 		saver.setInitialFileName("my"+savee+defaultExtension.getExtensions().get(0).substring(1));
@@ -508,7 +508,7 @@ public abstract class MapApplication extends Application {
 				final File f = file;
 				
 				if (mapVerifier.getAsBoolean()) { //if the optional verification process verifies it
-					Task<SavableImage> task = mapCalculater.get(); //create the Task
+					Task<SavableImage> task = mapCalculator.get(); //create the Task
 					ProgressDialog<SavableImage> pBar = new ProgressDialog<SavableImage>(task); //and track its progress all the while
 					pBar.show();
 					task.setOnSucceeded((succeedEvent) -> { //save the result to disk when it finishes

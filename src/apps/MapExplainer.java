@@ -23,15 +23,15 @@
  */
 package apps;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import javax.imageio.ImageIO;
-
-import image.ImageUtils;
 import image.PixelMap;
+import image.SavableImage;
+import javafx.application.Application;
+import javafx.concurrent.Task;
+import javafx.stage.Stage;
 import maps.Arbitrary;
 import maps.Azimuthal;
 import maps.Conic;
@@ -52,29 +52,34 @@ import maps.WinkelTripel;
  * 
  * @author jkunimune
  */
-public class MapExplainer {
+public class MapExplainer extends Application {
 	
 	public static final int IMG_WIDTH = 800;
 	public static final int SMOOTHING = 3;
 	
-	public static final Projection[][] ALL_PROJECTIONS = { { Cylindrical.MERCATOR,
-			Cylindrical.PLATE_CARREE, Cylindrical.GALL_ORTHOGRAPHIC, Cylindrical.HOBO_DYER,
-			Cylindrical.BEHRMANN, Cylindrical.LAMBERT, Cylindrical.GALL_STEREOGRAPHIC,
-			Azimuthal.STEREOGRAPHIC.transverse(), Azimuthal.POLAR.transverse(),
-			Azimuthal.EQUAL_AREA.transverse(), Azimuthal.GNOMONIC.transverse(),
-			Azimuthal.ORTHOGRAPHIC.transverse(), Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
-			Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.AUTHAGRAPH,
-			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER,
-			Lenticular.HAMMER, Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN, Arbitrary.ROBINSON,
-			WinkelTripel.WINKEL_TRIPEL, Octohedral.WATERMAN, Misc.PEIRCE_QUINCUNCIAL.transverse(),
-			Snyder.GS50, Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Misc.FLAT_EARTH },
-			
+	public static final Projection[][] ALL_PROJECTIONS = {
+			{ Cylindrical.MERCATOR, Cylindrical.PLATE_CARREE, Cylindrical.GALL_ORTHOGRAPHIC,
+					Cylindrical.HOBO_DYER, Cylindrical.BEHRMANN, Cylindrical.LAMBERT,
+					Cylindrical.GALL_STEREOGRAPHIC, Azimuthal.STEREOGRAPHIC.transverse(),
+					Azimuthal.POLAR.transverse(), Azimuthal.EQUAL_AREA.transverse(),
+					Azimuthal.GNOMONIC.transverse(), Azimuthal.ORTHOGRAPHIC.transverse(),
+					Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
+					Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.AUTHAGRAPH,
+					Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER,
+					Lenticular.HAMMER, Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN,
+					Arbitrary.ROBINSON, WinkelTripel.WINKEL_TRIPEL, Octohedral.WATERMAN,
+					Misc.PEIRCE_QUINCUNCIAL.transverse(), Snyder.GS50, Misc.TWO_POINT_EQUIDISTANT,
+					Misc.HAMMER_RETROAZIMUTHAL, Misc.FLAT_EARTH },
 			{ MyProjections.PSEUDOSTEREOGRAPHIC, Polyhedral.TETRAGRAPH, Polyhedral.AUTHAPOWER,
 					Polyhedral.TETRAPOWER, MyProjections.TWO_POINT_EQUALIZED.transverse() } };
 	
 	
-	public static void main(String[] args) throws IOException {
-		
+	public static void main(String[] args) {
+		launch(args);
+	}
+	
+	
+	public void start(Stage stage) throws Exception {
 		new File("images").mkdirs();
 		final PixelMap inputSkew = new PixelMap(new File("input/Tissot-alt2.jpg"));
 		final PixelMap inputPole = new PixelMap(new File("input/Tissot-alt1.jpg"));
@@ -86,9 +91,17 @@ public class MapExplainer {
 			for (Projection proj: projs) {
 				out.println("<h2>"+proj.getName()+"</h2>");
 				
-				ImageIO.write(
-						makeImage(proj, proj.hasAspect() ? inputSkew : inputPole),
-						"gif", new File("images/"+proj+".gif"));
+				Task<SavableImage> task = MapDesignerRaster.calculateTask(
+						IMG_WIDTH, (int)(IMG_WIDTH/proj.getAspectRatio()), 2,
+						proj.hasAspect() ? inputSkew : inputPole, proj, null, false, 0, null);
+				task.setOnSucceeded((event) -> {
+					try {
+						task.getValue().save(new File("images/"+proj+".gif"));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				});
+				task.run();
 				
 				out.println("<div class=\"row\">");
 				out.println("  <div class=\"col-left\">");
@@ -124,28 +137,6 @@ public class MapExplainer {
 			}
 		}
 		
-	}
-	
-	
-	private static BufferedImage makeImage(Projection proj, PixelMap input) {
-		proj.setParameters(proj.getDefaultParameters());
-		final BufferedImage out = new BufferedImage(
-				IMG_WIDTH, (int) (IMG_WIDTH/proj.getAspectRatio()), BufferedImage.TYPE_INT_ARGB);
-		for (int y = 0; y < out.getHeight(); y ++) {
-			for (int x = 0; x < out.getWidth(); x ++) {
-				int[] colors = new int[SMOOTHING*SMOOTHING];
-				for (int dy = 0; dy < SMOOTHING; dy ++) {
-					for (int dx = 0; dx < SMOOTHING; dx ++) {
-						final double X = 2*(x+(dx+.5)/SMOOTHING)/out.getWidth()-1;
-						final double Y = 1-2*(y+(dy+.5)/SMOOTHING)/out.getHeight();
-						final double[] coords = proj.inverse(X, Y);
-						if (coords != null)
-							colors[SMOOTHING*dy+dx] = input.getArgb(coords[0], coords[1]);
-					}
-				}
-				out.setRGB(x, y, ImageUtils.blend(colors));
-			}
-		}
-		return out;
+		stop();
 	}
 }

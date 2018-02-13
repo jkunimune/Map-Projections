@@ -213,10 +213,29 @@ public class MapAnalyzer extends MapApplication {
 	
 	private Task<SavableImage> calculateGraphicTask(int imgSize, boolean detailedAnalysis) {
 		loadParameters();
-		final Projection proj = getProjection();
-		final boolean crop = cropAtIDL.isSet();
-		final double gratSpace = graticuleSpacing.get();
-		
+		return calculateGraphicTask(imgSize, getProjection(), cropAtIDL.isSet(),
+				graticuleSpacing.get(), mapDisplay, detailedAnalysis ? sizeChart : null,
+				shapeChart, avgShapeDistort, avgShapeDistort);
+	}
+	
+	/**
+	 * Prepare a task that will make a new distortion graphic, maybe update the plots, and maybe
+	 * show some numbers.
+	 * @param imgSize - The desired graphic size.
+	 * @param proj - The projection to analyze.
+	 * @param crop - Should points at extreme longitudes be hidden?
+	 * @param gratSpace - The number of degrees between graticule lines, or 0 if no graticule.
+	 * @param mapDisplay - The optional ImageView into which to put the new Image.
+	 * @param sizeChart - The optional BarChart to update with the area histogram.
+	 * @param shapeChart - The optional BarChart to update with the stretch histogram.
+	 * @param avgSizeDistort - The optional Text element to fill with the average size distortion.
+	 * @param avgShapeDistort - The optional Text element to fill with the average shape distortion.
+	 * @return The new graphic as a SavableImage.
+	 */
+	public static Task<SavableImage> calculateGraphicTask(int imgSize,
+			Projection proj, boolean crop, double gratSpace, ImageView mapDisplay,
+			BarChart<String, Number> sizeChart, BarChart<String, Number> shapeChart,
+			Text avgSizeDistort, Text avgShapeDistort) { //TODO graticule still does nothing; just paste it in!
 		return new Task<SavableImage>() {
 			double[][][] distortionG; //some variables that might get used later
 			double sizeDistort, shapeDistort;
@@ -228,7 +247,7 @@ public class MapAnalyzer extends MapApplication {
 				
 				double[][][] distortionM = proj.calculateDistortion(proj.map(imgSize, crop),
 						this::isCancelled, (p) -> updateProgress(p, 2)); //calculate
-				if (detailedAnalysis) {
+				if (sizeChart != null) {
 					distortionG = proj.calculateDistortion(Projection.globe(GLOBE_RES));
 					sizeDistort = Math2.stdDev(distortionG[0]);
 					shapeDistort = Math2.mean(distortionG[1]);
@@ -274,9 +293,10 @@ public class MapAnalyzer extends MapApplication {
 			}
 			
 			protected void succeeded() {
-				mapDisplay.setImage(graphic);
+				if (mapDisplay != null)
+					mapDisplay.setImage(graphic);
 				
-				if (detailedAnalysis) {
+				if (sizeChart != null) {
 					sizeChart.getData().clear();
 					sizeChart.getData().add(histogram(distortionG[0],
 							-LN_10, LN_10, 20, Math::exp));

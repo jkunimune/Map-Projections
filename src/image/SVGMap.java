@@ -124,12 +124,8 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			
 			@Override
 			public void characters(char[] ch, int start, int length) {
-				for (int i = 0; i < length; i ++) {
-					if (ch[start+i] >= 128)
-						currentFormatString += "&#" + (int)ch[start+i] + ";";
-					else
-						currentFormatString += ch[start+i];
-				}
+				for (int i = 0; i < length; i ++)
+					currentFormatString += ch[start+i];
 			}
 			
 			@Override
@@ -283,7 +279,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			out.write(closePaths(breakWraps(curveIterator.next())).toString(
 					inMinX, inMaxY, vbMinX, vbMinY,
 					Math.max(vbWidth, vbHeight)/Math.max(inWidth, inHeight)));
-			out.write(formatIterator.next());
+			out.write(encode(formatIterator.next()));
 		}
 		out.close();
 	}
@@ -385,6 +381,18 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		String str = String.format("%04d", (int)Math.round(d*1000));
 		str = str.substring(0, str.length()-3) + "." + str.substring(str.length()-3);
 		return str.replaceFirst("\\.?0*$", "");
+	}
+	
+	
+	private static String encode(String s0) { //encode with the ampersand notation (I'm not sure what it's called)
+		String s1 = "";
+		for (int i = 0; i < s0.length(); i ++) {
+			if (s0.charAt(i) >= 128)
+				s1 += "&#" + (int)s0.charAt(i) + ";";
+			else
+				s1 += s0.charAt(i);
+		}
+		return s1;
 	}
 	
 	

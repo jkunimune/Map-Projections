@@ -69,6 +69,22 @@ def trim_edges(coast):
 	return coast
 
 
+def lengthen_edges(coast):
+	"""add more points to any long straight bits"""
+	for i in range(len(coast)-2, -1, -1):
+		x0, y0 = coast[i]
+		x1, y1 = coast[i+1]
+		if x0 == x1 and abs(y1-y0) > 1:
+			step = 1 if y0 > y1 else -1
+			for j in range(math.ceil(abs(y1-y0))-1):
+				coast.insert(i+1, (x1, y1+step*(j+1)))
+		elif y0 == y1 and abs(x1-x0) > 1:
+			step = 1 if x0 > x1 else -1
+			for j in range(math.ceil(abs(x1-x0))-1):
+				coast.insert(i+1, (x1+step*(j+1), y1))
+	return coast
+
+
 def line_break(line):
 	"""replace some space with a newline; whichever space is closest to the center"""
 	total_length = len(line)

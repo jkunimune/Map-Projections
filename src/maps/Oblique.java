@@ -23,36 +23,35 @@
  */
 package maps;
 
-
 /**
  * A projection that uses the same equations as another, but shifts the aspect
  * 
  * @author jkunimune
  */
-public class Transverse extends Projection {
-	
-	public static final double[] TRANSVERSE_AXIS = {0, 0, 0};
+public class Oblique extends Projection {
 	
 	private final Projection base;
+	private final double[] axis;
 	
 	
 	
-	public Transverse(Projection base) {
-		super(base);
+	public Oblique(Projection base, String name, double... axis) {
+		super(name, base);
 		this.base = base;
+		this.axis = axis;
 	}
 	
 	
 	
 	@Override
 	public double[] project(double lat, double lon) {
-		return base.project(obliquifySphc(lat, lon, TRANSVERSE_AXIS));
+		return base.project(obliquifySphc(lat, lon, axis));
 	}
 	
 	
 	@Override
 	public double[] inverse(double x, double y) {
-		return obliquifyPlnr(base.inverse(x, y), TRANSVERSE_AXIS);
+		return obliquifyPlnr(base.inverse(x, y), axis);
 	}
 	
 	

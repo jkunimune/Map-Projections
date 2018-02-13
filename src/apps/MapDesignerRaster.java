@@ -191,15 +191,34 @@ public class MapDesignerRaster extends MapApplication {
 	}
 	
 	private Task<SavableImage> calculateTask(int width, int height, int step) {
-		final Projection proj = getProjection();
-		final double[] aspect = this.aspect.clone();
-		final boolean crop = cropAtIDL.isSet();
-		final double gratSpacing = graticuleSpacing.get();
-		
+		return calculateTask(width, height, step,
+				input, getProjection(), aspect.clone(), cropAtIDL.isSet(), graticuleSpacing.get(),
+				display);
+	}
+	
+	/**
+	 * Prepare a task to create a new savable raster map.
+	 * @param width - The desired map width.
+	 * @param height - The desired map height.
+	 * @param step - The desired amount of smoothing to apply.
+	 * @param input - The input equirectangular image.
+	 * @param proj - The Projection to do the mapping.
+	 * @param aspect - The oblique axis of the map.
+	 * @param crop - Should points with extreme longitudes be hidden?
+	 * @param gratSpacing - The number of degrees between graticule lines, or 0 for no graticule.
+	 * @param display - The ImageViewer in which to put the new image, or null if you don't want us
+	 * 		to do that.
+	 * @return
+	 */
+	public static Task<SavableImage> calculateTask(int width, int height, int step,
+			PixelMap input, Projection proj, double[] aspect, boolean crop, double gratSpacing,
+			ImageView display) {
+		System.out.println("Let's make a task!");
 		return new Task<SavableImage>() {
 			private BufferedImage theMap;
 			
 			protected SavableImage call() {
+				System.out.println("Here we go!");
 				updateProgress(-1, 1);
 				updateMessage("Generating map\u2026");
 				
@@ -258,7 +277,8 @@ public class MapDesignerRaster extends MapApplication {
 			}
 			
 			protected void succeeded() {
-				display.setImage(SwingFXUtils.toFXImage(theMap, null));
+				if (display != null)
+					display.setImage(SwingFXUtils.toFXImage(theMap, null));
 			}
 		};
 	}
