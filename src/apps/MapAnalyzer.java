@@ -215,7 +215,7 @@ public class MapAnalyzer extends MapApplication {
 		loadParameters();
 		return calculateGraphicTask(imgSize, getProjection(), cropAtIDL.isSet(),
 				graticuleSpacing.get(), mapDisplay, detailedAnalysis ? sizeChart : null,
-				shapeChart, avgShapeDistort, avgShapeDistort);
+				shapeChart, avgSizeDistort, avgShapeDistort);
 	}
 	
 	/**

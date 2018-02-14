@@ -231,16 +231,17 @@ public class Octohedral {
 	
 	private enum Configuration {
 		
-		BUTTERFLY(4, 2, 4/Math.sqrt(3), Math.sqrt(3)) { //the classic four octants splayed out in a nice butterfly shape, with Antarctica divided and attached
+		BUTTERFLY(4, 2, 4/Math.sqrt(3), Math.sqrt(3)) { //the classic four quadrants splayed out in a nice butterfly shape, with Antarctica divided and attached
 			
 			private final double Y_OFFSET = -1/Math.sqrt(3);
 			
 			public double[] project(double lat, double lon) {
-				if (Math.abs(lon) >= Math.PI && lat < 0) {
+				if (Math.abs(lon) > Math.PI && lat < 0) {
 					double sign = Math.signum(lon);
 					return new double[] {sign, 2/Math.sqrt(3), sign*Math.PI/6, 5*sign*Math.PI/4};
 				}
 				double centralMerid = Math.floor(lon/(Math.PI/2))*Math.PI/2 + Math.PI/4;
+				if (lon == Math.PI) 	centralMerid = 3*Math.PI/4; //override positioning of the IDL
 				return new double[] { 0, Y_OFFSET, centralMerid*2/3., centralMerid };
 			}
 			
@@ -262,6 +263,7 @@ public class Octohedral {
 			
 			public double[] project(double lat, double lon) {
 				double centralMerid = Math.floor(lon/(Math.PI/2))*Math.PI/2 + Math.PI/4;
+				if (lon == Math.PI) 	centralMerid = 3*Math.PI/4; //override positioning of the IDL
 				double sign = Math.signum(centralMerid);
 				return new double[] {
 						sign, 0, sign*(Math.abs(centralMerid)*2/3.-Math.PI/3), centralMerid };
@@ -292,6 +294,7 @@ public class Octohedral {
 			
 			public double[] project(double lat, double lon) {
 				double centralMerid = Math.floor(lon/(Math.PI/2))*Math.PI/2 + Math.PI/4;
+				if (lon == Math.PI) 	centralMerid = 3*Math.PI/4; //override positioning of the IDL
 				if (lat < -Math.PI/3) { //antarctica is tricky
 					double centralAngle =  -Math.PI/12 - centralMerid;
 					return new double[] {

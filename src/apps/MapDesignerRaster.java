@@ -213,12 +213,10 @@ public class MapDesignerRaster extends MapApplication {
 	public static Task<SavableImage> calculateTask(int width, int height, int step,
 			PixelMap input, Projection proj, double[] aspect, boolean crop, double gratSpacing,
 			ImageView display) {
-		System.out.println("Let's make a task!");
 		return new Task<SavableImage>() {
 			private BufferedImage theMap;
 			
 			protected SavableImage call() {
-				System.out.println("Here we go!");
 				updateProgress(-1, 1);
 				updateMessage("Generating map\u2026");
 				

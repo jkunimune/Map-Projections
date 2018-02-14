@@ -77,7 +77,6 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		final SAXParser parser = SAXParserFactory.newInstance().newSAXParser();
 		
 		final DefaultHandler handler = new DefaultHandler() {
-			
 			private Stack<double[]> transformStack = new Stack<double[]>();
 			private String currentFormatString = "";
 			
@@ -274,7 +273,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		final Iterator<String> formatIterator = format.iterator();
 		final Iterator<Path> curveIterator = paths.iterator();
 		
-		out.write(replacePlaceholders(formatIterator.next(), inWidth/inHeight));
+		out.write(encode(replacePlaceholders(formatIterator.next(), inWidth/inHeight)));
 		while (curveIterator.hasNext()) {
 			out.write(closePaths(breakWraps(curveIterator.next())).toString(
 					inMinX, inMaxY, vbMinX, vbMinY,
@@ -384,7 +383,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 	}
 	
 	
-	private static String encode(String s0) { //encode with the ampersand notation (I'm not sure what it's called)
+	private static String encode(String s0) { //encode with the ampersand notation
 		String s1 = "";
 		for (int i = 0; i < s0.length(); i ++) {
 			if (s0.charAt(i) >= 128)

@@ -44,33 +44,27 @@ public class Misc {
 					"Peirce Quincuncial", "A conformal projection that uses complex elliptic functions.",
 					2, 2, 0b1001, Type.OTHER, Property.CONFORMAL, 3) {
 		
-		private static final double K_RT_HALF = 1.85407; //this is approx K(sqrt(1/2))
+		private static final double K_RT_HALF = 1.854074677; //this is approx K(sqrt(1/2))
 		
 		public double[] project(double lat, double lon) {
-			final double alat = Math.abs(lat);
-			final double wMag = Math.tan(Math.PI/4-alat/2);
-			final Complex w = new Complex(wMag*Math.sin(lon), -wMag*Math.cos(lon)); //this Complex comes from Apache Commons
-			final Complex k = new Complex(Math.sqrt(0.5));
-			Complex z = Elliptic.F(w.acos(),k).divide(K_RT_HALF).subtract(Complex.ONE).negate();
-			if (z.isInfinite() || z.isNaN())	z = new Complex(0);
+			double quadNum = Math.floor((lon-Math.PI/4)/(Math.PI/2));
+			double wArg = lon - quadNum*Math.PI/2;
+			double wAbs = Math.tan(Math.PI/4-Math.abs(lat)/2);
+			Complex w = new Complex(wAbs*Math.sin(wArg), -wAbs*Math.cos(wArg)); //this Complex comes from Apache Commons
+			Complex k = new Complex(Math.sqrt(0.5));
+			Complex z = Elliptic.F(w.acos(),k).divide(K_RT_HALF).subtract(Complex.ONE);
+			z = z.multiply(Complex.I.pow(quadNum-2));
 			double x = z.getReal(), y = z.getImaginary();
-			
-			if (lat < 0) {
-				if (x >= 0 && y >= 0)
-					z = new Complex(1-y, 1-x);
-				else if (x >= 0 && y < 0)
-					z = new Complex(1+y, -1+x);
-				else if (y >= 0)
-					z = new Complex(-1+y, 1+x);
-				else
-					z = new Complex(-1-y, -1-x);
-			}
-			return new double[] {z.getReal(), z.getImaginary()};
+			if (lat < 0)
+				return new double[] {Math2.sigone(x)*(1 - Math.abs(y)),
+						Math2.sigone(y)*(1 - Math.abs(x))}; //reflect over equator if necessary
+			else
+				return new double[] {x, y};
 		}
 		
 		public double[] inverse(double x, double y) {
 			de.jtem.mfc.field.Complex u = new de.jtem.mfc.field.Complex(K_RT_HALF*(x+1), K_RT_HALF*y);
-			de.jtem.mfc.field.Complex k = new de.jtem.mfc.field.Complex(Math.sqrt(0.5)); //the rest comes from some fancy complex calculus
+			de.jtem.mfc.field.Complex k = new de.jtem.mfc.field.Complex(Math.sqrt(0.5)); //This Complex comes from a German university
 			de.jtem.mfc.field.Complex ans = Jacobi.cn(u, k);
 			double p = 2 * Math.atan(ans.abs());
 			double theta = Math.atan2(-ans.getRe(), ans.getIm());
@@ -82,23 +76,26 @@ public class Misc {
 	
 	public static final Projection GUYOU =
 			new Projection(
-					"Guyou", "Peirce Quincuncial, rearranged a bit.", 2., 1, 0b1001,
+					"Guyou", "Peirce Quincuncial, rearranged a bit.", 2., 1., 0b1001,
 					Type.OTHER, Property.CONFORMAL, 3) {
 		
-		private static final double K_RT_HALF = 1.854; //this is approx K(sqrt(1/2))
+		private static final double K_RT_HALF = 1.854074677; //this is approx K(sqrt(1/2))
 		private final double[] POLE = {0, -Math.PI/2, Math.PI/4};
 		
 		public double[] project(double lat, double lon) {
 			final double[] coords = obliquifySphc(lat,lon, POLE);
-			final double alat = Math.abs(coords[0]);
-			final double wMag = Math.tan(Math.PI/4-alat/2);
-			final Complex w = new Complex(wMag*Math.sin(coords[1]), -wMag*Math.cos(coords[1]));
-			final Complex k = new Complex(Math.sqrt(0.5));
-			Complex z = Elliptic.F(w.acos(),k).divide(-2*K_RT_HALF)
-					.multiply(new Complex(1,1)).add(new Complex(0,0.5));
-			if (z.isInfinite() || z.isNaN()) 	z = new Complex(0);
-			if (coords[0] < 0) 	z = z.conjugate().negate();
-			return new double[] {z.getReal(), z.getImaginary()};
+			double quadNum = Math.floor((coords[1]-Math.PI/4)/(Math.PI/2));
+			double wArg = coords[1] - quadNum*Math.PI/2;
+			double wAbs = Math.tan(Math.PI/4-Math.abs(coords[0])/2);
+			Complex w = new Complex(wAbs*Math.sin(wArg), -wAbs*Math.cos(wArg)); //this Complex comes from Apache Commons
+			Complex k = new Complex(Math.sqrt(0.5));
+			Complex z = Elliptic.F(w.acos(),k).divide(K_RT_HALF).subtract(Complex.ONE);
+			z = z.multiply(Complex.I.pow(quadNum-1.5));
+			double x = z.getReal()/Math.sqrt(2), y = z.getImaginary()/Math.sqrt(2);
+			if (coords[0] < 0)
+				return new double[] {.5 - x, y}; //reflect over equator if necessary
+			else
+				return new double[] {x - .5, y};
 		}
 		
 		public double[] inverse(double x, double y) {

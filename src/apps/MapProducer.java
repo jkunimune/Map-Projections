@@ -67,11 +67,11 @@ public class MapProducer extends Application {
 					Conic.EQUIDISTANT, Conic.LAMBERT, Conic.ALBERS, Azimuthal.POLAR,
 					Azimuthal.GNOMONIC, Azimuthal.EQUAL_AREA, Azimuthal.STEREOGRAPHIC,
 					Azimuthal.ORTHOGRAPHIC, Azimuthal.PERSPECTIVE, Misc.TWO_POINT_EQUIDISTANT,
-					Misc.GUYOU, Misc.PEIRCE_QUINCUNCIAL.transverse("Adams Doubly-Periodic"),
+					Misc.PEIRCE_QUINCUNCIAL.transverse("Adams Doubly-Periodic"),
 					Polyhedral.DYMAXION, Misc.HAMMER_RETROAZIMUTHAL, Snyder.GS50,
-					Azimuthal.STEREOGRAPHIC.withAspect("Qblique Stereographic", 1,-1,1),
-					Cylindrical.MERCATOR.withAspect("Oblique Mercator", 1,-1,1) },
-			{ Misc.PEIRCE_QUINCUNCIAL, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
+					Azimuthal.STEREOGRAPHIC.withAspect("Qblique Stereographic", .5,2.5,-2.5),
+					Cylindrical.MERCATOR.withAspect("Oblique Mercator", .5,2.5,2.5) },
+			{ Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
 					Octohedral.CAHILL_KEYES, Octohedral.WATERMAN } };
 	
 	
@@ -111,6 +111,6 @@ public class MapProducer extends Application {
 			}
 		}
 		
-		stage.close(); //this doesn't actually work; not sure why
+		stage.close();
 	}
 }

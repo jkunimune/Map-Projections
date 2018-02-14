@@ -88,6 +88,14 @@ public class Math2 {
 	}
 	
 	
+	public static double sigone(double x) {
+		if (x >= 0)
+			return 1;
+		else
+			return -1;
+	}
+	
+	
 	public static double coerceAngle(double ang) {
 		return floorMod(ang+Math.PI, 2*Math.PI) - Math.PI;
 	}
