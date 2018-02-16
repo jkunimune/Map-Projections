@@ -48,12 +48,12 @@ def generate_graticule(spacing, granularity, include_tropics=False, adjust_poles
 		plot_parallel(ANTI_TILT, granularity, clazz="circles")
 
 
-def generate_backdrop(ctr_meridian=0):
+def generate_backdrop(resolution, ctr_meridian=0):
 	"""generate a backdrop type thing that will only work in standard aspect"""
 	left_side = (ctr_meridian+.001)%360 - 180
 	middle = (ctr_meridian+180)%360 - 180
 	right_side = (ctr_meridian-.001)%360 - 180
-	tag = '\t\t\t<path d="M{:.3f},-90'.format(left_side) + 'v1'*180 +\
-			'L{:.3f},90L{:.3f},90'.format(middle, right_side) + 'v-1'*180 +\
+	tag = '\t\t\t<path d="M{:.3f},-90'.format(left_side) + 'v{}'.format(resolution)*int(180//resolution) +\
+			'L{:.3f},90L{:.3f},90'.format(middle, right_side) + 'v-{}'.format(resolution)*int(180//resolution) +\
 			'L{:.3f},-90 Z" />'.format(middle)
 	print(tag)

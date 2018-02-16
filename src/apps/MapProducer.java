@@ -69,7 +69,7 @@ public class MapProducer extends Application {
 					Azimuthal.ORTHOGRAPHIC, Azimuthal.PERSPECTIVE, Misc.TWO_POINT_EQUIDISTANT,
 					Misc.PEIRCE_QUINCUNCIAL.transverse("Adams Doubly-Periodic"),
 					Polyhedral.DYMAXION, Misc.HAMMER_RETROAZIMUTHAL, Snyder.GS50,
-					Azimuthal.STEREOGRAPHIC.withAspect("Qblique Stereographic", .5,2.5,-2.5),
+					Azimuthal.STEREOGRAPHIC.withAspect("Oblique Stereographic", .5,2.5,-2.5),
 					Cylindrical.MERCATOR.withAspect("Oblique Mercator", .5,2.5,2.5) },
 			{ Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
 					Octohedral.CAHILL_KEYES, Octohedral.WATERMAN } };

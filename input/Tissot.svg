@@ -37,7 +37,7 @@
 	<desc>
 		A map of the world, showing all landmasses with Tissot's indicatrices of radius 3&#0176;&#0160;45&#8242; and spacing 15&#0176;. Coastlines precise to 50&#0160;km.
 	</desc>
-	<style>
+	<style type="text/css">
 		.water, .lakes {
 			fill:#c8ebff;
 		}

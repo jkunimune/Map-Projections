@@ -71,7 +71,7 @@ public class MapExplainer extends Application {
 					Misc.PEIRCE_QUINCUNCIAL.transverse(), Snyder.GS50, Misc.TWO_POINT_EQUIDISTANT,
 					Misc.HAMMER_RETROAZIMUTHAL, Misc.FLAT_EARTH },
 			{ MyProjections.PSEUDOSTEREOGRAPHIC, Polyhedral.TETRAGRAPH, Polyhedral.AUTHAPOWER,
-					Polyhedral.TETRAPOWER, MyProjections.TWO_POINT_EQUALIZED.transverse() } };
+					MyProjections.TWO_POINT_EQUALIZED.transverse() } };
 	
 	
 	public static void main(String[] args) {

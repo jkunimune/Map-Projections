@@ -37,7 +37,7 @@
 	<desc>
 		A map of the world, showing all landmasses as SVG paths. Coastlines precise to 50&#0160;km.
 	</desc>
-	<style>
+	<style type="text/css">
 		.water {
 			fill:#ffffff;
 			stroke:none;

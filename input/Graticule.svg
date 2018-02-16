@@ -37,7 +37,7 @@
 	<desc>
 		An Equirectangular graticule, showing all landmasses with 5&#0176; graticule, including the Polar Circles and the Tropics.
 	</desc>
-	<style>
+	<style type="text/css">
 		.graticule {
 			fill:none;
 			stroke:#000000;

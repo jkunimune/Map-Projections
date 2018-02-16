@@ -60,7 +60,6 @@ public class CahillKeyes {
 	
 	public static final double[] faceProjectD(double latD, double lonD) { //convert adjusted lat and lon in degrees to Mary Jo's coordinates
 		final double[][] mer = meridian(lonD);
-		
 		if (latD >= 75) { //zone c (frigid zone)
 			return new double[] { lMA + 104*(90-latD)*Math2.cosd(lonD),
 					104*(90-latD)*Math2.sind(lonD) };

@@ -37,7 +37,7 @@
 	<desc>
 		A mesh of great circles that intersect with 10-fold symmetry at 12 principal nodes and 6-fold symmetry at 20 minor nodes. Aligns with the edges of an icosohedron and its dual dodecahedron.
 	</desc>
-	<style>
+	<style type="text/css">
 		.lines {
 			stroke:#000000;
 			fill:none;

@@ -132,7 +132,7 @@ public class Polyhedral {
 	
 	
 	public static final PolyhedralProjection AUTHAPOWER = new PolyhedralProjection(
-			"AuthaPower", "A parametrised, rearranged, open-source version of my AuthaGraph approximation.",
+			"TetraPower", "A parametrised, rearranged, open-source version of my AuthaGraph approximation.",
 			0b1011, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.COMPROMISE, 4,
 			new String[] {"Power"}, new double[][] {{.25,1,.7}}) {
 		
@@ -221,40 +221,6 @@ public class Polyhedral {
 			double x = rB*Math.cos(bet) - sig*Math.sqrt(3)/2;
 			double y = Math.abs(rB*Math.sin(bet)) - sig/2;
 			return new double[] {Math.hypot(x, y), Math.atan2(y, x)};
-		}
-	};
-	
-	
-	public static final PolyhedralProjection TETRAPOWER = new PolyhedralProjection(
-			"TetraPower", "A parameterised tetrahedral projection that I invented.", 0b1111,
-			Configuration.TETRAHEDRON_WIDE_FACE, Property.COMPROMISE, 2,
-			new String[] {"k1","k2","k3"},
-			new double[][] {{.01,2.,1.01},{.01,2.,1.19},{.01,2.,1.01}}) {
-		
-		private double k1, k2, k3;
-		
-		public void setParameters(double... params) {
-			this.k1 = params[0];
-			this.k2 = params[1];
-			this.k3 = params[2];
-		}
-		
-		public double[] faceProject(double lat, double lon) {
-			final double thtP = Math.PI/3*(1 - Math.pow(1-Math.abs(lon)/(Math.PI/2),k1))/(1 - 1/Math.pow(3,k1))*Math.signum(lon);
-			final double kRad = k3*Math.abs(thtP)/(Math.PI/3) + k2*(1-Math.abs(thtP)/(Math.PI/3));
-			final double rmax = 0.5/Math.cos(thtP); //the max normalised radius of this triangle (in the plane)
-			final double rtgf = Math.atan(1/Math.tan(lat)*Math.cos(lon))/Math.atan(Math.sqrt(2))*rmax;
-			return new double[] {
-					(1 - Math.pow(1-rtgf,kRad))/(1 - Math.pow(1-rmax,kRad))*rmax*2, thtP };
-		}
-		
-		public double[] faceInverse(double r, double tht) {
-			final double lamS = (1-Math.pow(1-Math.abs(tht)*(1-1/Math.pow(3,k1))/(Math.PI/3), 1/k1))*Math.PI/2*Math.signum(tht);
-			final double kRad = k3*Math.abs(tht)/(Math.PI/3) + k2*(1-Math.abs(tht)/(Math.PI/3));
-			final double rmax = 0.5/Math.cos(tht); //the max normalized radius of this triangle (in the plane)
-			final double rtgf = 1-Math.pow(1-r/2/rmax*(1-Math.pow(Math.abs(1-rmax), kRad)), 1/kRad); //normalized tetragraph radius
-			return new double[] {
-					Math.atan(Math.cos(lamS)/Math.tan(rtgf/rmax*Math.atan(Math.sqrt(2)))), lamS };
 		}
 	};
 	

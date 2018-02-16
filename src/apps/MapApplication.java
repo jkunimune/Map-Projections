@@ -148,8 +148,7 @@ public abstract class MapApplication extends Application {
 					Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT, Misc.FLAT_EARTH },
 			{ MyProjections.EXPERIMENT, Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH,
 					MyProjections.MAGNIFIER, MyProjections.PSEUDOSTEREOGRAPHIC,
-					Polyhedral.TETRAGRAPH, Polyhedral.TETRAPOWER,
-					MyProjections.TWO_POINT_EQUALIZED } }; // every projection I have programmed
+					Polyhedral.TETRAGRAPH, MyProjections.TWO_POINT_EQUALIZED } }; // every projection I have programmed
 	
 	private static final String[] ASPECT_NAMES = { "Standard", "Transverse", "Cassini", "Atlantis",
 			"Jerusalem", "Point Nemo", "Longest Line", "Cylindrical", "Tetrahedral", "Antipode",

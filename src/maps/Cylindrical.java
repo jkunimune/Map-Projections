@@ -112,7 +112,7 @@ public class Cylindrical {
 	
 	
 	public static final Projection BEHRMANN = new Projection(
-			"Behrmann", 2*Math.PI, 3, 0b1111, Type.CYLINDRICAL, Property.EQUAL_AREA, 3,
+			"Behrmann", 2*Math.PI, 8/3., 0b1111, Type.CYLINDRICAL, Property.EQUAL_AREA, 3,
 			null, "with least distortion at 30\u00B0") {
 		
 		public double[] project(double lat, double lon) {

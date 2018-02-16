@@ -79,7 +79,7 @@ public class MapPlotter extends Application {
 	private static final Projection[] LENTICULAR = { Lenticular.AITOFF,
 			Lenticular.VAN_DER_GRINTEN, WinkelTripel.WINKEL_TRIPEL };
 	private static final Projection[] TETRAHEDRAL = { Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
-			Polyhedral.AUTHAGRAPH, Polyhedral.ACTUAUTHAGRAPH, Polyhedral.TETRAPOWER };
+			Polyhedral.AUTHAGRAPH, Polyhedral.ACTUAUTHAGRAPH };
 	private static final Projection[] CHEATY = { Pseudocylindrical.LEMONS,
 			Octohedral.KEYES_BASIC_M, Polyhedral.DYMAXION };
 	private static final Projection[] OTHER = { Misc.PEIRCE_QUINCUNCIAL };

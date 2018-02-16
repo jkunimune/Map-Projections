@@ -67,7 +67,7 @@ def compose_indicatrices():
 def compose_indicatrices2(ctr_meridian):
 	print('\t<g transform="matrix(1,0,0,-1,180,90)">')
 	print('\t\t<g class="water">')
-	generate_backdrop(ctr_meridian=ctr_meridian)
+	generate_backdrop(.5, ctr_meridian=ctr_meridian)
 	print('\t\t</g>')
 	print('\t\t<g class="land">')
 	generate_land('ne_110m', flesh_out_antarctica=True)
@@ -79,7 +79,7 @@ def compose_indicatrices2(ctr_meridian):
 	generate_graticule(10, .5, double_dateline=(ctr_meridian==0))
 	print('\t\t</g>')
 	print('\t\t<g class="tissot">')
-	generate_indicatrices(30, 500/6371, ctr_meridian=ctr_meridian, adjust_poles=True, resolution=60, side_res=5, pole_res=120)
+	generate_indicatrices(30, 500/6371, ctr_meridian=ctr_meridian, adjust_poles=True, resolution=120, side_res=5, pole_res=120)
 	print('\t\t</g>')
 	print('\t</g>')
 
@@ -140,7 +140,7 @@ if __name__ == '__main__':
 	# compose_graticule()
 	# compose_compound()
 	# compose_indicatrices()
-	compose_indicatrices2(-20)
+	compose_indicatrices2(-0)
 	# compose_political()
 	# compose_orthodromes()
 	# compose_everything()
