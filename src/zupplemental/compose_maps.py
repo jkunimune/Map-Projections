@@ -92,6 +92,7 @@ def compose_political():
 	generate_lakes('ne_50m', max_rank=4)
 	print('\t\t</g>')
 	print('\t</g>')
+	generate_political_labels('ne_50m')
 
 def compose_orthodromes():
 	print('\t<g transform="matrix(1,0,0,-1,180,90)">')
@@ -140,7 +141,7 @@ if __name__ == '__main__':
 	# compose_graticule()
 	# compose_compound()
 	# compose_indicatrices()
-	compose_indicatrices2(-0)
+	# compose_indicatrices2(-0)
 	# compose_political()
 	# compose_orthodromes()
-	# compose_everything()
+	compose_everything()

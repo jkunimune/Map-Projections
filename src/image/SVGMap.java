@@ -30,13 +30,15 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -49,6 +51,7 @@ import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
 
 import utils.Math2;
+import utils.SAXUtils;
 
 /**
  * An input equirectangular map based on an SVG file
@@ -77,7 +80,8 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		final SAXParser parser = SAXParserFactory.newInstance().newSAXParser();
 		
 		final DefaultHandler handler = new DefaultHandler() {
-			private Stack<double[]> transformStack = new Stack<double[]>();
+			private Deque<double[]> transformStack =
+					new ArrayDeque<double[]>(Collections.singleton(NULL_TRANSFORM));
 			private String currentFormatString = "";
 			
 			@Override
@@ -91,27 +95,30 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 				currentFormatString += "<"+qName;
 				
 				if (attributes.getIndex("transform") >= 0)
-					parseTransform(attributes.getValue("transform"));
+					attributes = parseTransform(attributes);
 				else
 					parseTransform();
-				
-				if (qName.equals("path")) {
-					try {
-						parsePath(attributes.getValue("d"));
-					} catch (Exception e) {
-						throw new SAXException(e.getLocalizedMessage(), null);
-					}
-				}
 				
 				if (qName.equals("svg")) {
 					attributes = parseViewBox(attributes);
 				}
+				else if (qName.equals("path")) {
+					try {
+						attributes = parsePath(attributes);
+					} catch (Exception e) {
+						throw new SAXException(e.getLocalizedMessage(), null);
+					}
+				}
+				else if (attributes.getIndex("x") >= 0 && attributes.getIndex("y") >= 0) {
+					attributes = parsePoint(attributes, false);
+				}
+				else if (attributes.getIndex("cx") >= 0 && attributes.getIndex("cy") >= 0) {
+					attributes = parsePoint(attributes, true);
+				}
 				
 				for (int i = 0; i < attributes.getLength(); i ++)
-					if (!attributes.getQName(i).equals("d") && //d is already taken care of
-							!attributes.getQName(i).equals("transform")) //there shall be no transforms in the final output
-						currentFormatString +=
-								" "+attributes.getQName(i)+"=\""+attributes.getValue(i)+"\"";
+					currentFormatString +=
+							" "+attributes.getQName(i)+"=\""+attributes.getValue(i)+"\"";
 				currentFormatString += ">";
 			}
 			
@@ -167,13 +174,11 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			}
 			
 			private void parseTransform() {
-				if (transformStack.isEmpty())
-					transformStack.push(NULL_TRANSFORM);
-				else
-					transformStack.push(transformStack.peek());
+				transformStack.push(transformStack.peek());
 			}
 			
-			private void parseTransform(String transString) {
+			private Attributes parseTransform(Attributes attrs) {
+				String transString = attrs.getValue("transform");
 				double xScale = 1, yScale = 1, xTrans = 0, yTrans = 0;
 				int i;
 				while ((i = transString.indexOf('(')) >= 0) {
@@ -208,14 +213,36 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 					transString = transString.substring(j+1);
 				}
 				transformStack.push(new double[] {xScale, yScale, xTrans, yTrans});
+				return SAXUtils.removeAttribute(attrs, "transform");
 			}
 			
-			private void parsePath(String d) throws Exception {
+			private Attributes parsePath(Attributes attrs) throws Exception {
 				currentFormatString += " d=\"";
 				format.add(currentFormatString);
-				paths.add(new Path(d, transformStack.peek(), vbMinX, vbMinY, vbWidth, vbHeight));
+				paths.add(new Path(attrs.getValue("d"), transformStack.peek(),
+						vbMinX, vbMinY, vbWidth, vbHeight));
 				currentFormatString = "\"";
 				length += paths.get(paths.size()-1).size();
+				return SAXUtils.removeAttribute(attrs, "d");
+			}
+			
+			private Attributes parsePoint(Attributes attrs, boolean center) {
+				format.add(currentFormatString); //points are represented as single-point paths
+				double[] transform = transformStack.peek();
+				double[] coords = new double[2];
+				coords[0] = Double.parseDouble(attrs.getValue(center ? "cx" : "x")); //get the coordinates from the attributes
+				coords[1] = Double.parseDouble(attrs.getValue(center ? "cy" : "y"));
+				coords[0] = transform[0]*coords[0] + transform[2]; //apply any necessary transformation
+				coords[1] = transform[1]*coords[1] + transform[3];
+				coords[0] = Math2.linInterp(coords[0], vbMinX, vbMinX+vbWidth, -Math.PI, Math.PI);
+				coords[1] = Math2.linInterp(coords[1], vbMinY+vbHeight, vbMinY, -Math.PI/2, Math.PI/2);
+				paths.add(new Path(new Command(center ? 'O' : 'P', coords)));
+				currentFormatString = "";
+				length += 1;
+				if (center)
+					return SAXUtils.removeAttribute(attrs, "cx", "cy");
+				else
+					return SAXUtils.removeAttribute(attrs, "x", "y");
 			}
 		};
 		
@@ -273,12 +300,12 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		final Iterator<String> formatIterator = format.iterator();
 		final Iterator<Path> curveIterator = paths.iterator();
 		
-		out.write(encode(replacePlaceholders(formatIterator.next(), inWidth/inHeight)));
+		out.write(SAXUtils.encode(replacePlaceholders(formatIterator.next(), inWidth/inHeight)));
 		while (curveIterator.hasNext()) {
 			out.write(closePaths(breakWraps(curveIterator.next())).toString(
 					inMinX, inMaxY, vbMinX, vbMinY,
 					Math.max(vbWidth, vbHeight)/Math.max(inWidth, inHeight)));
-			out.write(encode(formatIterator.next()));
+			out.write(SAXUtils.encode(formatIterator.next()));
 		}
 		out.close();
 	}
@@ -334,6 +361,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 	
 	
 	private Path closePaths(Path open) { //replace plain loops with 'Z's and combine connected parts
+		if (open.size() <= 1) 	return open;
 		List<Path> parts = new ArrayList<Path>();
 		Path currentPart = null;
 		for (Command cmd: open) { //start by breaking the Path into parts,
@@ -380,18 +408,6 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		String str = String.format("%04d", (int)Math.round(d*1000));
 		str = str.substring(0, str.length()-3) + "." + str.substring(str.length()-3);
 		return str.replaceFirst("\\.?0*$", "");
-	}
-	
-	
-	private static String encode(String s0) { //encode with the ampersand notation
-		String s1 = "";
-		for (int i = 0; i < s0.length(); i ++) {
-			if (s0.charAt(i) >= 128)
-				s1 += "&#" + (int)s0.charAt(i) + ";";
-			else
-				s1 += s0.charAt(i);
-		}
-		return s1;
 	}
 	
 	
@@ -524,6 +540,13 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		
 		public String toString(
 				double inMinX, double inMaxY, double outMinX, double outMinY, double outScale) {
+			if (type == 'O') //'O' and 'P' are special; specific points
+				return " cx=\""+formatDouble(outMinX + (args[0]-inMinX)*outScale)+
+						"\" cy=\""+formatDouble(outMinY + (inMaxY-args[1])*outScale)+"\"";
+			else if (type == 'P')
+				return " x=\""+formatDouble(outMinX + (args[0]-inMinX)*outScale)+
+						"\" y=\""+formatDouble(outMinY + (inMaxY-args[1])*outScale)+"\"";
+			
 			String s = Character.toString(type);
 			for (int i = 0; i < args.length; i ++) {
 				if (i%2 == 0)

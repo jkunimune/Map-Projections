@@ -26,14 +26,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.xml.sax.SAXException;
 
 import image.SVGMap;
-import image.SavableImage;
 import image.SVGMap.Command;
 import image.SVGMap.Path;
+import image.SavableImage;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -166,7 +167,7 @@ public class MapDesignerVector extends MapApplication {
 	}
 	
 	private Task<SavableImage> calculateTaskForSaving() {
-		return calculateTask(1, false);
+		return calculateTask(0, false);
 	}
 	
 	private Task<SavableImage> calculateTask(int step, boolean render) {
@@ -198,7 +199,8 @@ public class MapDesignerVector extends MapApplication {
 				int i = 0;
 				for (Path pathS: input) {
 					updateProgress(i, input.numCurves());
-					if (pathS.size() <= step) 	continue; //don't bother drawing singular points
+					if (step > 0 && pathS.size() <= step)
+						continue; //don't bother drawing singular points unless step is zero
 					Path pathP = new Path();
 					int j = 0;
 					while (j < pathS.size()) {
@@ -215,7 +217,7 @@ public class MapDesignerVector extends MapApplication {
 						}
 						pathP.add(cmdP); //TODO: if I was smart, I would divide landmasses that hit an interruption so that I didn't get those annoying lines that cross the map, and then run adaptive resampling to make sure the cuts look clean and not polygonal (e.g. so Antarctica extends all the way to the bottom), but that sounds really hard.
 						
-						for (int k = 0; k < step; k ++) { //increment j by at least 1 and at most step
+						for (int k = 0; k < Math.max(1, step); k ++) { //increment j by at least 1 and at most step
 							if (k != 0 && (j >= pathS.size() - 1 || pathS.get(j).type == 'M'
 									|| pathS.get(j).type == 'Z'))
 								break; //but pause for every moveto and closepath, and for the last command in the path

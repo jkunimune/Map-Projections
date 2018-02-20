@@ -106,7 +106,7 @@ def get_centroid(points, parts=None):
 	maxL = max([p[0] for p in points])
 	maxP = max([p[1] for p in points])
 
-	if maxL-minL < 90:
+	if maxL-minL < 15 and maxP-minP < 60:
 		return ((maxL+minL)/2, (maxP+minP)/2)
 	elif parts: #if there are multiple parts, try guessing the centroid of just one; the biggest one by bounding box
 		parts.append(len(points))
@@ -128,10 +128,14 @@ def get_centroid(points, parts=None):
 	xc, yc, zc = 0, 0, 0
 	j = 0
 	num_in = 0
-	while j < 4000 or num_in < 10:
+	min_latnum = math.sin(math.radians(minP))
+	max_latnum = math.sin(math.radians(maxP))
+	min_lonnum = math.radians(minL)
+	max_lonnum = math.radians(maxL)
+	while j < 4000 or num_in < 10: #monte carlo
 		j += 1
-		latr = math.asin(rng.random()*2-1)
-		lonr = rng.random()*2*math.pi - math.pi
+		latr = math.asin(rng.random()*(max_latnum-min_latnum)+min_latnum)
+		lonr = rng.random()*(max_lonnum-min_lonnum) + min_lonnum
 		latd, lond = math.degrees(latr), math.degrees(lonr)
 		num_crosses = 0
 		for l1, p1, l2, p2 in lines: #count the lines a northward ray crosses

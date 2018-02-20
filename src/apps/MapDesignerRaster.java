@@ -176,12 +176,13 @@ public class MapDesignerRaster extends MapApplication {
 	
 	
 	private Task<SavableImage> calculateTaskForUpdate() {
-		if (getProjection().isLandscape()) //either fit it to an IMG_SIZE x IMG_SIZE box
+		loadParameters();
+		if (getProjection().isLandscape()) //fit it to an IMG_SIZE x IMG_SIZE box
 			return calculateTask(
-					IMG_SIZE, (int)Math.max(IMG_SIZE/getProjection().getAspectRatio(),1), 1);
+					IMG_SIZE, (int)Math.max(1,IMG_SIZE/getProjection().getAspectRatio()), 1);
 		else
 			return calculateTask(
-					(int)Math.max(IMG_SIZE/getProjection().getAspectRatio(),1), IMG_SIZE, 1);
+					(int)Math.max(1,IMG_SIZE*getProjection().getAspectRatio()), IMG_SIZE, 1);
 	}
 	
 	private Task<SavableImage> calculateTaskForSaving() {
