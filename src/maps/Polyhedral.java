@@ -436,10 +436,12 @@ public class Polyhedral {
 			}
 		},
 		AUTHAGRAPH(3, 6, 4*Math.sqrt(3), 3, new double[][] { // |\/\/`| arrangement, vertex-centred
+				{-ASIN_ONE_THD,	 Math.PI,		 Math.PI,	 0,	-2*Math.sqrt(3)-.6096,	 1.5 },
 				{-ASIN_ONE_THD,	-Math.PI/3,		 Math.PI/3,	 0,	-Math.sqrt(3)-.6096,	-1.5 },
 				{ Math.PI/2,	 0,				 Math.PI,	 0,	 0-.6096,				 1.5 },
 				{-ASIN_ONE_THD,	 Math.PI/3,		-Math.PI/3,	 0,	 Math.sqrt(3)-.6096,	-1.5 },
-				{-ASIN_ONE_THD,	 Math.PI,		 Math.PI,	 0,	 2*Math.sqrt(3)-.6096,	 1.5 }}) {
+				{-ASIN_ONE_THD,	 Math.PI,		 Math.PI,	 0,	 2*Math.sqrt(3)-.6096,	 1.5 },
+				{-ASIN_ONE_THD,	-Math.PI/3,		 Math.PI/3,	 0,	 3*Math.sqrt(3)-.6096,	-1.5 }}) {
 			@Override public double[] rotateOOB(double x, double y, double xCen, double yCen) {
 				if (Math.abs(y) > height/2) {
 					x = 2*xCen - x;

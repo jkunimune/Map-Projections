@@ -51,7 +51,9 @@ public class Oblique extends Projection {
 	
 	@Override
 	public double[] inverse(double x, double y) {
-		return obliquifyPlnr(base.inverse(x, y), axis);
+		double[] coords = base.inverse(x, y);
+		if (coords == null) 	return null;
+		return obliquifyPlnr(coords, axis);
 	}
 	
 	

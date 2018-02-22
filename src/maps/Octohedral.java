@@ -214,7 +214,7 @@ public class Octohedral {
 			double xMj = Math.sin(tht0)*(x-x0) - Math.cos(tht0)*(y-y0);
 			double yMj = Math.cos(tht0)*(x-x0) + Math.sin(tht0)*(y-y0);
 			
-			if (Math.abs(yMj) > Math.min(xMj, 2*size-xMj)/Math.sqrt(3)) 	return null; //restrict to one rhombus
+			if (Math.abs(yMj) > Math.min(xMj, 2*size-xMj)/Math.sqrt(3)+1e-12) 	return null; //restrict to one rhombus (plus a little, to account for roundoff)
 			double[] coords = this.faceInverse(Math.min(xMj, 2*size-xMj), Math.abs(yMj));
 			if (coords == null) 	return null;
 			double lat = coords[0], lon = coords[1];
@@ -356,7 +356,7 @@ public class Octohedral {
 					if (y > -.5) 	return null; //more empty space
 					return new double[] { sign*Math.sqrt(3), .5, 0, sign*Math.PI }; //the outer wings
 				}
-				else if (y <= -1.5 && Math.abs(x) > 1) {
+				else if (y <= -1.5 && Math.abs(x) >= 1) {
 					if (y+2.5 >= Math.abs(x)/Math.sqrt(3))
 						return new double[] { 0, -2.5, Math.signum(x)*2*Math.PI/3, 0,
 								-Math.PI/2, -Math.PI/4 }; //the bottoms of the wings

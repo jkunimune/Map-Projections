@@ -23,6 +23,15 @@
  */
 package image;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.geom.Path2D;
+
+import image.SVGMap.Command;
+import image.SVGMap.Path;
+
 /**
  * A collection of (currently just one) methods for dealing with images and coordinates
  * 
@@ -33,6 +42,7 @@ public class ImageUtils {
 	public static final int blend(int[] colors) {
 		return blend(colors, 2.2);
 	}
+	
 	
 	public static final int blend(int[] colors, double gamma) {
 		int a_tot = 0;
@@ -52,5 +62,31 @@ public class ImageUtils {
 					((int)Math.pow(r_tot/a_tot, 1/gamma) << 16) +
 					((int)Math.pow(g_tot/a_tot, 1/gamma) << 8) +
 					((int)Math.pow(b_tot/a_tot, 1/gamma) << 0);
+	}
+	
+	
+	public static final void drawSVGPath(Path path, Color stroke, float strokeWidth, boolean antialias, Graphics2D g) {
+		g.setStroke(new BasicStroke(strokeWidth));
+		g.setColor(stroke);
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+				antialias ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
+		drawSVGPath(path, g);
+	}
+	
+	public static final void drawSVGPath(Path path, Graphics2D g) {
+		Path2D awtPath = new Path2D.Double(Path2D.WIND_NON_ZERO, path.size());
+		for (Command svgCmd: path) {
+			switch (svgCmd.type) {
+			case 'M':
+				awtPath.moveTo(svgCmd.args[0], svgCmd.args[1]);
+				break;
+			case 'L':
+				awtPath.lineTo(svgCmd.args[0], svgCmd.args[1]);
+				break;
+			case 'Z':
+				awtPath.closePath();
+			}
+		}
+		g.draw(awtPath);
 	}
 }

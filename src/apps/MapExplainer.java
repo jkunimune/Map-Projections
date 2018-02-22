@@ -67,11 +67,13 @@ public class MapExplainer extends Application {
 					Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.AUTHAGRAPH,
 					Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER,
 					Lenticular.HAMMER, Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN,
-					Arbitrary.ROBINSON, WinkelTripel.WINKEL_TRIPEL, Octohedral.WATERMAN,
-					Misc.PEIRCE_QUINCUNCIAL.transverse(), Snyder.GS50, Misc.TWO_POINT_EQUIDISTANT,
-					Misc.HAMMER_RETROAZIMUTHAL, Misc.FLAT_EARTH },
+					Arbitrary.ROBINSON, WinkelTripel.WINKEL_TRIPEL, Octohedral.CAHILL_KEYES,
+					Octohedral.CAHILL_CONCIALDI, Misc.PEIRCE_QUINCUNCIAL.transverse(), Snyder.GS50,
+					Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Misc.FLAT_EARTH },
 			{ MyProjections.PSEUDOSTEREOGRAPHIC, Polyhedral.TETRAGRAPH, Polyhedral.AUTHAPOWER,
-					MyProjections.TWO_POINT_EQUALIZED.transverse() } };
+					Polyhedral.ACTUAUTHAGRAPH, MyProjections.TWO_POINT_EQUALIZED.transverse() } };
+	
+	private PixelMap inputSkew, inputPole, inputNone, inputEast, inputWest;
 	
 	
 	public static void main(String[] args) {
@@ -81,19 +83,39 @@ public class MapExplainer extends Application {
 	
 	public void start(Stage stage) throws Exception {
 		new File("images").mkdirs();
-		final PixelMap inputSkew = new PixelMap(new File("input/Tissot-alt2.jpg"));
-		final PixelMap inputPole = new PixelMap(new File("input/Tissot-alt1.jpg"));
-		final PrintStream out = System.out;
+		try {
+			inputSkew = new PixelMap(new File("input/Advanced/Tissot Oblique.jpg"));
+			inputPole = new PixelMap(new File("input/Advanced/Tissot Standard.jpg"));
+			inputEast = new PixelMap(new File("input/Advanced/Tissot Shift East.jpg"));
+			inputWest = new PixelMap(new File("input/Advanced/Tissot Shift West.jpg"));
+			inputNone = new PixelMap(new File("input/Advanced/Tissot Not.jpg"));
+		} catch(IOException e) {
+			e.printStackTrace();
+			stop();
+			return;
+		}
 		
+		final PrintStream out = System.out;
 		for (Projection[] projs: ALL_PROJECTIONS) {
 			out.println("<h1>Map Projections</h1>");
 			
 			for (Projection proj: projs) {
+				proj.setParameters(proj.getDefaultParameters());
 				out.println("<h2>"+proj.getName()+"</h2>");
 				
+				PixelMap input = inputSkew;
+				if (!proj.hasAspect() || proj == Polyhedral.AUTHAGRAPH)
+					input = inputPole;
+				if (proj == Octohedral.CAHILL_KEYES) //some projections only look good in standard aspect
+					input = inputWest;
+				if (proj == Octohedral.CAHILL_CONCIALDI)
+					input = inputEast;
+				if (proj == Misc.FLAT_EARTH) //or can't be seen with indicatrices
+					input = inputNone;
+				
 				Task<SavableImage> task = MapDesignerRaster.calculateTask(
-						IMG_WIDTH, (int)(IMG_WIDTH/proj.getAspectRatio()), 2,
-						proj.hasAspect() ? inputSkew : inputPole, proj, null, false, 0, null);
+						IMG_WIDTH, (int)(IMG_WIDTH/proj.getAspectRatio()), 2, input, proj, null,
+						false, 0, null);
 				task.setOnSucceeded((event) -> {
 					try {
 						task.getValue().save(new File("images/"+proj+".gif"));
@@ -108,6 +130,13 @@ public class MapExplainer extends Application {
 				out.println("    <p>"+proj.getDescription()+"</p>");
 				
 				out.println("    <dl>");
+				out.println("      <dt>Rating:&nbsp;</dt>");
+				out.print("      <dd>");
+				for (int i = 0; i < proj.getRating(); i ++)
+					out.print("&#9733;");
+				for (int i = 0; i < 4-proj.getRating(); i ++)
+					out.print("&#9734;");
+				out.println("</dt>");
 				out.println("      <dt>Geometry:&nbsp;</dt>");
 				out.println("      <dd>"+proj.getType().getName()+"</dd>");
 				out.println("      <dt>Property:&nbsp;</dt>");

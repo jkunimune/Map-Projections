@@ -549,6 +549,10 @@ public abstract class Projection {
 		return this.property;
 	}
 	
+	public final int getRating() {
+		return this.rating;
+	}
+	
 	public final double getWidth() {
 		return this.width;
 	}

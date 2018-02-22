@@ -22,10 +22,15 @@
  * SOFTWARE.
  */
 package apps;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.util.function.DoubleUnaryOperator;
 
+import image.ImageUtils;
 import image.SavableImage;
 import javafx.concurrent.Task;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.SnapshotResult;
@@ -37,8 +42,6 @@ import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelWriter;
-import javafx.scene.image.WritableImage;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -75,6 +78,9 @@ public class MapAnalyzer extends MapApplication {
 			new FileChooser.ExtensionFilter("PNG", "*.png"),
 			new FileChooser.ExtensionFilter("JPG", "*.jpg","*.jpeg","*.jpe","*.jfif"),
 			new FileChooser.ExtensionFilter("GIF", "*.gif") };
+	
+	private static final Color GRATICULE_COLOR = Color.BLACK;
+	private static final float GRATICULE_WIDTH = 0.5f;
 	
 	private Flag cropAtIDL;
 	private MutableDouble graticuleSpacing;
@@ -224,7 +230,7 @@ public class MapAnalyzer extends MapApplication {
 	 * @param imgSize - The desired graphic size.
 	 * @param proj - The projection to analyze.
 	 * @param crop - Should points at extreme longitudes be hidden?
-	 * @param gratSpace - The number of degrees between graticule lines, or 0 if no graticule.
+	 * @param gratSpacing - The number of degrees between graticule lines, or 0 if no graticule.
 	 * @param mapDisplay - The optional ImageView into which to put the new Image.
 	 * @param sizeChart - The optional BarChart to update with the area histogram.
 	 * @param shapeChart - The optional BarChart to update with the stretch histogram.
@@ -233,13 +239,13 @@ public class MapAnalyzer extends MapApplication {
 	 * @return The new graphic as a SavableImage.
 	 */
 	public static Task<SavableImage> calculateGraphicTask(int imgSize,
-			Projection proj, boolean crop, double gratSpace, ImageView mapDisplay,
+			Projection proj, boolean crop, double gratSpacing, ImageView mapDisplay,
 			BarChart<String, Number> sizeChart, BarChart<String, Number> shapeChart,
 			Text avgSizeDistort, Text avgShapeDistort) { //TODO graticule still does nothing; just paste it in!
 		return new Task<SavableImage>() {
 			double[][][] distortionG; //some variables that might get used later
 			double sizeDistort, shapeDistort;
-			WritableImage graphic;
+			BufferedImage graphic;
 			
 			protected SavableImage call() {
 				updateProgress(-1, 1);
@@ -257,22 +263,23 @@ public class MapAnalyzer extends MapApplication {
 				updateProgress(1, 2);
 				updateMessage("Generating graphic\u2026");
 				
-				graphic = new WritableImage(
-						distortionM[0][0].length, distortionM[0].length);
-				PixelWriter writer = graphic.getPixelWriter();
-				for (int y = 0; y < distortionM[0].length; y ++) {
+				int width = distortionM[0][0].length;
+				int height = distortionM[0].length;
+				graphic = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+				for (int y = 0; y < height; y ++) {
 					if (isCancelled()) 	return null;
 					updateProgress(1 + (double)y/distortionM[0].length, 2);
-					for (int x = 0; x < distortionM[0][y].length; x ++) {
-						final double sizeDistort = distortionM[0][y][x], shapeDistort = distortionM[1][y][x];
-						final double sizeContour = Math.round(sizeDistort/(LN_10/10))*LN_10/10; //contour the size by decibels
-						final double shapeContour = Math.round(shapeDistort/(LN_10/20))*LN_10/20; //contour the size by semidecibels
+					for (int x = 0; x < width; x ++) {
+						double sizeDistort = distortionM[0][y][x];
+						double shapeDistort = distortionM[1][y][x];
+						double sizeContour = Math.round(sizeDistort/(LN_10/10))*LN_10/10; //contour the size by decibels
+						double shapeContour = Math.round(shapeDistort/(LN_10/20))*LN_10/20; //contour the size by semidecibels
 						if (Double.isNaN(sizeDistort) || Double.isNaN(shapeDistort)) {
-							writer.setArgb(x, y, 0);
+							graphic.setRGB(x, y, 0);
 							continue;
 						}
 						
-						final int r, g, b;
+						int r, g, b;
 						if (sizeDistort < 0) { //if compressing
 							r = (int)(255.9*Math.exp(-shapeContour*.6));
 							g = (int)(255.9*Math.exp(-shapeContour*.6)*Math.exp(sizeContour*.6));
@@ -285,8 +292,19 @@ public class MapAnalyzer extends MapApplication {
 						}
 						
 						final int argb = ((((((0xFF)<<8)+r)<<8)+g)<<8)+b;
-						writer.setArgb(x, y, argb);
+						graphic.setRGB(x, y, argb);
 					}
+				}
+				
+				if (gratSpacing != 0) { //draw the graticule, if desired
+					if (isCancelled()) 	return null;
+					updateProgress(-1, 1);
+					updateMessage("Drawing graticule\u2026");
+					ImageUtils.drawSVGPath(
+							proj.drawGraticule(Math.toRadians(gratSpacing), .02,
+									width, height, Math.PI/2, Math.PI, null),
+							GRATICULE_COLOR, GRATICULE_WIDTH, true,
+							(Graphics2D)graphic.getGraphics());
 				}
 				
 				return SavableImage.savable(graphic);
@@ -294,7 +312,7 @@ public class MapAnalyzer extends MapApplication {
 			
 			protected void succeeded() {
 				if (mapDisplay != null)
-					mapDisplay.setImage(graphic);
+					mapDisplay.setImage(SwingFXUtils.toFXImage(graphic, null));
 				
 				if (sizeChart != null) {
 					sizeChart.getData().clear();

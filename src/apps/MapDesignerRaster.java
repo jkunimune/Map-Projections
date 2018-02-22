@@ -23,11 +23,8 @@
  */
 package apps;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -36,8 +33,6 @@ import dialogs.MapConfigurationDialog;
 import image.ImageUtils;
 import image.PixelMap;
 import image.SavableImage;
-import image.SVGMap.Command;
-import image.SVGMap.Path;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
@@ -78,8 +73,8 @@ public class MapDesignerRaster extends MapApplication {
 			new FileChooser.ExtensionFilter("JPG", "*.jpg"),
 			new FileChooser.ExtensionFilter("GIF", "*.gif") };
 	
-	private static final float GRATICULE_WIDTH = 0.5f;
 	private static final Color GRATICULE_COLOR = Color.WHITE;
+	private static final float GRATICULE_WIDTH = 0.5f;
 	
 	private Region aspectSelector;
 	private double[] aspect;
@@ -244,28 +239,11 @@ public class MapDesignerRaster extends MapApplication {
 					if (isCancelled()) 	return null;
 					updateProgress(-1, 1);
 					updateMessage("Drawing graticule\u2026");
-					
-					Graphics2D g = (Graphics2D)theMap.getGraphics();
-					g.setStroke(new BasicStroke(GRATICULE_WIDTH));
-					g.setColor(GRATICULE_COLOR);
-					g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-					Path svgPath = proj.drawGraticule(
-							Math.toRadians(gratSpacing), .02, width, height, Math.PI/2, Math.PI, aspect);
-					Path2D awtPath = new Path2D.Double(Path2D.WIND_NON_ZERO, svgPath.size());
-					for (Command svgCmd: svgPath) {
-						if (isCancelled()) 	return null;
-						switch (svgCmd.type) {
-						case 'M':
-							awtPath.moveTo(svgCmd.args[0], svgCmd.args[1]);
-							break;
-						case 'L':
-							awtPath.lineTo(svgCmd.args[0], svgCmd.args[1]);
-							break;
-						case 'Z':
-							awtPath.closePath();
-						}
-					}
-					g.draw(awtPath);
+					ImageUtils.drawSVGPath(
+							proj.drawGraticule(Math.toRadians(gratSpacing), .02,
+									width, height, Math.PI/2, Math.PI, aspect),
+							GRATICULE_COLOR, GRATICULE_WIDTH, true,
+							(Graphics2D)theMap.getGraphics());
 				}
 				
 				return SavableImage.savable(theMap);

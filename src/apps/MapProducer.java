@@ -111,6 +111,6 @@ public class MapProducer extends Application {
 			}
 		}
 		
-		stage.close();
+		stop();
 	}
 }
