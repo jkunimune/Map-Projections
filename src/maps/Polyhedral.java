@@ -162,7 +162,7 @@ public class Polyhedral {
 	
 	public static final PolyhedralProjection ACTUAUTHAGRAPH = new PolyhedralProjection(
 			"EquaHedral", "A holey authalic tetrahedral projection to put AuthaGraph to shame.",
-			0b1010, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.EQUAL_AREA, 2,
+			0b1010, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.EQUAL_AREA, 3,
 			new String[] {"Sinus length"}, new double[][] {{0, 60, 20}}) {
 		
 		private double sig, a0, scale;

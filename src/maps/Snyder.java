@@ -52,7 +52,7 @@ public class Snyder {
 	
 	public static final Projection GS50 =
 			new Projection(
-					"GS50", "'MURKA!", 1.6, 1.1, 0b0011, Type.POLYNOMIAL, Property.CONFORMAL, 3,
+					"GS50", "'MURKA!", 1.6, 1.1, 0b0011, Type.POLYNOMIAL, Property.CONFORMAL, 4,
 					new String[] {}, new double[][] {}, false) {
 		
 		public double[] project(double lat, double lon) {

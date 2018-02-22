@@ -85,7 +85,7 @@ public class Octohedral {
 	
 	public static final Projection CAHILL_KEYES = new OctohedralProjection(
 			"Cahill-Keyes", "An M-shaped octohedral projection with Antarctica assembled in the center.",
-			CahillKeyes.lMG, CahillKeyes.lMA, 0b1010, Property.COMPROMISE, 3,
+			CahillKeyes.lMG, CahillKeyes.lMA, 0b1010, Property.COMPROMISE, 4,
 			Configuration.M_W_S_POLE) {
 		
 		protected double[] faceProject(double lat, double lon) {
