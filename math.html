@@ -75,7 +75,7 @@
             The average size distortion, then, is given by the standard deviation of the log of scale,
           </p>
           <p lang="latex">
-            D_\mathrm{size} = \sqrt{\left<\left(\ln{\frac{A}{a}}-\left<\ln{\frac{A}{a}}\right>\right)^2\right>}
+            D_\mathrm{size} = \sqrt{\left\langle\left(\ln{\frac{A}{a}}-\left\langle\ln{\frac{A}{a}}\right\rangle\right)^2\right\rangle}
           </p>
           <p>
             The shape distortion is measured in a similar fashion. The stretch factor at any point is given by the formula
@@ -93,7 +93,7 @@
             The average shape distortion is then defined as the mean of the log of stretch,
           </p>
           <p lang="latex">
-            D_\mathrm{shape} = \left<\left|\ln{\frac{\sigma_1}{\sigma_2}}\right|\right>
+            D_\mathrm{shape} = \left\langle\left|\ln{\frac{\sigma_1}{\sigma_2}}\right|\right\rangle
           </p>
 
           <h2>Invented projections</h2>
@@ -186,16 +186,6 @@
           </p>
           <p lang="latex">
             \phi=\arctan\left[\cos\lambda\cot\left(\frac{r_\circ}{r_\triangle}\arctan\sqrt{2}\right)\right]
-          </p>
-          <p>
-            TetraFillet is similar to TetraPower, but the quadrants on the plane render as piecewise curves rather than simple triangles. The equations are the same as those for TetraPower, save the following substitution:
-          </p>
-          <p lang="latex">
-            r_\triangle=\left\{\begin{array}{ll}
-              \frac{1}{2}\sec\theta, &amp; |\theta| &lt; 0.70123892\\
-              \\
-              \frac{3}{4}-0.79863870\left(\frac{\pi}{3}-|\theta|\right)^2, &amp; |\theta|\ge0.70123892
-            \end{array}\right.
           </p>
           <p>
             Finally, we have Two-point Equalised, based heavily on Two-point Equidistant. The forward equations work out as follows:
