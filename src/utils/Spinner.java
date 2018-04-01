@@ -40,4 +40,8 @@ public class Spinner<T> extends javafx.scene.control.Spinner<T> {
 		});
 	}
 	
+	public void commitValue() {
+		this.increment(0); //stupid workarounds
+	}
+	
 }

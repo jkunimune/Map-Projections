@@ -103,13 +103,12 @@ import utils.Procedure;
  */
 public abstract class MapApplication extends Application {
 
-	protected static final int GUI_WIDTH = 300;
-	protected static final int IMG_SIZE = 450;
-	protected static final int V_SPACE = 6;
-	protected static final int H_SPACE = 4;
-	protected static final int MARGIN = 10;
-	protected static final int COMBOBOX_WIDTH = 200;
-	protected static final int SPINNER_WIDTH = 80;
+	protected static final int GUI_WIDTH = 350;
+	protected static final int IMG_SIZE = 560;
+	protected static final int V_SPACE = 7;
+	protected static final int H_SPACE = 5;
+	protected static final int MARGIN = 15;
+	protected static final int SPINNER_WIDTH = 90;
 	
 	private static final KeyCombination CTRL_O = new KeyCodeCombination(KeyCode.O, KeyCodeCombination.CONTROL_DOWN);
 	private static final KeyCombination CTRL_S = new KeyCodeCombination(KeyCode.S, KeyCodeCombination.CONTROL_DOWN);
@@ -263,7 +262,6 @@ public abstract class MapApplication extends Application {
 		projectionChooser =
 				new ComboBox<Projection>(FXCollections.observableArrayList(FEATURED_PROJECTIONS));
 		projectionChooser.getItems().add(Projection.NULL_PROJECTION);
-		projectionChooser.setPrefWidth(COMBOBOX_WIDTH);
 		
 		final Text description = new Text();
 		description.setWrappingWidth(GUI_WIDTH);

@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -68,8 +69,14 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 	private double svgWidth, svgHeight; //the actual SVG dimensions
 	private int length; //the total number of path commands, for optimization purposes
 	
-	private static final Map<String, String> ATTRIBUTE_PLACEHOLDERS = Map.of(
-			"width","hmxMLwhWHeqMA8Ba", "height","VlMBunXsmQUtmCw4", "viewBox","UrFo1q9niPDkKSNC"); //attributes of the SVG object to change
+	private static final Map<String, String> ATTRIBUTE_PLACEHOLDERS;
+	static {
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("width", "hmxMLwhWHeqMA8Ba");
+		map.put("height", "VlMBunXsmQUtmCw4");
+		map.put("viewBox", "UrFo1q9niPDkKSNC"); //attributes of the SVG object to change
+		ATTRIBUTE_PLACEHOLDERS = Collections.unmodifiableMap(map);
+	}
 	
 	
 	
