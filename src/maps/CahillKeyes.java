@@ -97,10 +97,10 @@ public class CahillKeyes {
 		double len = meridianDistance(mer, x, y);
 		
 		if (len <= rC) { //zone c (frigid zone)
-			return new double[] {90 - len/100, lonD};
+			return new double[] {90 - len/104, lonD};
 		}
 		else if (len <= rE && lonD < 30) { //zone e ()
-			return new double[] {75 - (len-rC)/104, lonD};
+			return new double[] {75 - (len-rC)/100, lonD};
 		}
 		else if (lonD <= 29) { //zone i (central zone)
 			return new double[] {Math2.linInterp(len, rE, meridianLength(mer), 73, 0), lonD};

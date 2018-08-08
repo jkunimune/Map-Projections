@@ -33,7 +33,7 @@ import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
 /**
- * TODO: Write description
+ * An image that can be saved. It provides a convenient interface for both vector and raster images.
  * 
  * @author jkunimune
  */

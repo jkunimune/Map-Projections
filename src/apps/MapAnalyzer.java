@@ -70,7 +70,7 @@ public class MapAnalyzer extends MapApplication {
 	
 	private static final double LN_10 = Math.log(10);
 	
-	private static final int CHART_WIDTH = 500;
+	private static final int CHART_WIDTH = 450;
 	private static final int FINE_SAMP_NUM = 2048;
 	private static final double GLOBE_RES = .01;
 	
