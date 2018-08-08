@@ -103,10 +103,10 @@ import utils.Procedure;
  */
 public abstract class MapApplication extends Application {
 
-	protected static final int GUI_WIDTH = 250;
-	protected static final int IMG_SIZE = 500;
+	protected static final int GUI_WIDTH = 280;
+	protected static final int IMG_SIZE = 480;
 	protected static final int V_SPACE = 7;
-	protected static final int H_SPACE = 5;
+	protected static final int H_SPACE = 6;
 	protected static final int MARGIN = 15;
 	protected static final int SPINNER_WIDTH = 90;
 	
@@ -164,7 +164,7 @@ public abstract class MapApplication extends Application {
 	private Stage root;
 	private ComboBox<Projection> projectionChooser;
 	private GridPane paramGrid;
-	private Label[] paramLabels;
+	private Text[] paramLabels;
 	private Slider[] paramSliders;
 	private Spinner<Double>[] paramSpinners;
 	private double[] currentParams;
@@ -333,14 +333,14 @@ public abstract class MapApplication extends Application {
 		grid.setVgap(V_SPACE);
 		grid.setHgap(H_SPACE);
 		grid.getColumnConstraints().addAll(
-				new ColumnConstraints(SPINNER_WIDTH,Control.USE_COMPUTED_SIZE,Control.USE_COMPUTED_SIZE),
+				new ColumnConstraints(Control.USE_COMPUTED_SIZE),
 				new ColumnConstraints(), new ColumnConstraints(SPINNER_WIDTH));
 		for (int i = 0; i < 3; i ++) {
 			GridPane.setHgrow(sliders[i], Priority.ALWAYS);
 			sliders[i].setTooltip(new Tooltip("Change the aspect of the map"));
 			spinners[i].setTooltip(new Tooltip("Change the aspect of the map"));
 			spinners[i].setEditable(true);
-			grid.addRow(i, new Label(labels[i]), sliders[i], spinners[i]);
+			grid.addRow(i, new Text(labels[i]), sliders[i], spinners[i]);
 		}
 		
 		VBox all = new VBox(V_SPACE, presetChooser, grid);
@@ -358,14 +358,14 @@ public abstract class MapApplication extends Application {
 	@SuppressWarnings("unchecked")
 	protected Region buildParameterSelector(Procedure parameterSetter) {
 		currentParams = new double[4];
-		paramLabels = new Label[4];
+		paramLabels = new Text[4];
 		paramSliders = new Slider[4]; // I don't think any projection has more than four parameters
 		final Spinner<Double> spin0 = new Spinner<Double>(0.,0.,0.); //yes, this is awkward. Java gets weird about arrays with generic types
 		paramSpinners = (Spinner<Double>[])Array.newInstance(spin0.getClass(), 4);
 		paramSpinners[0] = spin0;
 		
 		for (int i = 0; i < 4; i ++) {
-			paramLabels[i] = new Label();
+			paramLabels[i] = new Text();
 			paramSliders[i] = new Slider();
 			if (i != 0)
 				paramSpinners[i] = new Spinner<Double>(0.,0.,0.);
@@ -382,7 +382,7 @@ public abstract class MapApplication extends Application {
 		paramGrid.setVgap(V_SPACE);
 		paramGrid.setHgap(H_SPACE);
 		paramGrid.getColumnConstraints().addAll(
-				new ColumnConstraints(SPINNER_WIDTH,Control.USE_COMPUTED_SIZE,Control.USE_COMPUTED_SIZE),
+				new ColumnConstraints(Control.USE_COMPUTED_SIZE),
 				new ColumnConstraints(), new ColumnConstraints(SPINNER_WIDTH));
 		return paramGrid;
 	}
@@ -418,7 +418,7 @@ public abstract class MapApplication extends Application {
 				graticule.set(now); //which is tied to the mutable graticule spacing variable
 			});
 		
-		final CheckBox gratBox = new CheckBox("Graticule: "); //the CheckBox for whether there should be a graticule
+		final CheckBox gratBox = new CheckBox("Graticule:"); //the CheckBox for whether there should be a graticule
 		gratBox.setSelected(false);
 		gratBox.setTooltip(new Tooltip("Overlay a mesh of parallels and meridians."));
 		gratBox.selectedProperty().addListener((observable, old, now) -> {
