@@ -408,7 +408,7 @@ public abstract class MapApplication extends Application {
 			if (90%f == 0)
 				factorsOf90.add((double)f);
 		final Spinner<Double> gratSpinner = new Spinner<Double>(factorsOf90); //spinner for the graticule value
-		gratSpinner.getValueFactory().setConverter(new DoubleStringConverter());
+//		gratSpinner.getValueFactory().setConverter(new DoubleStringConverter());
 		gratSpinner.getValueFactory().setValue(15.);
 		gratSpinner.setDisable(true);
 		gratSpinner.setEditable(true);
@@ -609,9 +609,9 @@ public abstract class MapApplication extends Application {
 			}
 		}
 		
-		for (int i = 0; i < 3; i ++)
-			spinners[i].getEditor().textProperty().set(
-					Double.toString(sliders[i].getValue()));
+//		for (int i = 0; i < 3; i ++)
+//			spinners[i].getEditor().textProperty().set(
+//					spinners[i].getValueFactory().getConverter().toString(sliders[i].getValue()));
 		this.suppressListeners.clear();
 	}
 	
