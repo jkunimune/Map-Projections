@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project name="Map Projections" default="cleanup">
 	
-	<property name="dir.workspace" value="C:/Program Files (x86)/eclipse"/>
+	<property name="dir.workspace" value="C:/Users/jkunimune/eclipse-workspace"/>
 	<property name="dir.jarfile" value="."/>
-	<property name="version" value="3.3.2"/>
+	<property name="version" value="3.3.3"/>
 	
 	<target name="setup">
 		<mkdir dir="build"/>

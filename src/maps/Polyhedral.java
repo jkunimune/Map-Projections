@@ -123,7 +123,7 @@ public class Polyhedral {
 			final double lon = NumericalAnalysis.newtonRaphsonApproximation(th, th*2,
 					(l) -> Math.atan((l - Math.asin(Math.sin(l)/Math.sqrt(3)))/Math.PI*Math.sqrt(12)),
 					(l) -> (1-1/Math.sqrt(1+2*Math.pow(Math.cos(l),-2)))/Math.sqrt(Math.pow(Math.PI,2)/12+Math.pow(l-Math.asin(Math.sin(l)/Math.sqrt(3)),2)),
-					.01);
+					.001);
 			final double R = r / (Math.sqrt(3)/Math.cos(th));
 			return new double[] {
 					Math.PI/2 - Math.pow(R,1.41)*Math.atan(Math.sqrt(2)/Math.cos(lon)), lon };
@@ -152,7 +152,7 @@ public class Polyhedral {
 			final double lon = NumericalAnalysis.newtonRaphsonApproximation(th, th*2,
 					(l) -> Math.atan((l - Math.asin(Math.sin(l)/Math.sqrt(3)))/Math.PI*Math.sqrt(12)),
 					(l) -> (1-1/Math.sqrt(1+2*Math.pow(Math.cos(l),-2)))/Math.sqrt(Math.pow(Math.PI,2)/12+Math.pow(l-Math.asin(Math.sin(l)/Math.sqrt(3)),2)),
-					.01);
+					.001);
 			final double R = r / (Math.sqrt(3)/Math.cos(th));
 			return new double[] {
 					Math.PI/2 - Math.pow(R,1/k)*Math.atan(Math.sqrt(2)/Math.cos(lon)), lon };

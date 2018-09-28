@@ -75,7 +75,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import javafx.util.converter.DoubleStringConverter;
 import maps.Arbitrary;
 import maps.Azimuthal;
 import maps.Conic;
