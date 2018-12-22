@@ -6,7 +6,7 @@ import math
 from helpers import line_break, get_centroid
 
 
-def plot_texts(data, label_class, source, max_rank, regulate_case=False, secondary_attr=None, force_points=False):
+def plot_texts(data, label_class, source, max_rank, regulate_case=False, secondary_attr=None, force_points=False, text_size=None):
 	"""data from http://www.naturalearthdata.com/"""
 	sf = shapefile.Reader("data/{}_{}".format(source, data))
 	lat_idx = None
@@ -39,14 +39,14 @@ def plot_texts(data, label_class, source, max_rank, regulate_case=False, seconda
 				label = label.upper()
 			if secondary_attr is not None and record[7] == 'Dependency':
 				label = "{} ({})".format(label, record[secd_idx]) #indicate dependencies
-			text_size = ['sm', 'md', 'lg', 'xl'][min(3, int(max_rank-rank))] #lower ranks get bigger text
+			label_size = ['sm', 'md', 'lg', 'xl'][min(3, int(max_rank-rank))] if text_size is None else text_size #lower ranks get bigger text
 			print('\t<text class="label-{} label-{}" x="{:.03f}" y="{:.03f}">{}</text>'.format(
-					label_class, text_size, 180+x, 90-y, label))
+					label_class, label_size, 180+x, 90-y, label))
 			if force_points or record[type_idx] in ['mountain', 'depression', 'pole', 'waterfall']: #add circles to the ones that need markers
 				print('\t<circle cx="{:.03f}" cy="{:.03f}" r="{:.03f}" />'.format(180+x, 90-y, math.sqrt(max_rank-rank+1)*0.15))
 
 def generate_political_labels(source, max_rank=4):
-	plot_texts('admin_0_countries', 'pol', source, max_rank, secondary_attr='NOTE_ADM0')
+	plot_texts('admin_0_countries', 'pol', source, max_rank, secondary_attr='NOTE_ADM0', text_size='md')
 
 def generate_topographical_labels(source, max_rank=2):
 	plot_texts('geography_regions_points', 'geo', source, max_rank)
