@@ -34,6 +34,9 @@ def generate_administrivia(source, max_rank=float('inf')):
 def generate_land(source, max_rank=float('inf'), trim_antarctica=False, flesh_out_antarctica=False):
 	plot_shape('land', source, max_rank, trim_antarctica=trim_antarctica, flesh_out_antarctica=flesh_out_antarctica)
 
+def generate_coastlines(source, max_rank=float('inf'), trim_antarctica=False, flesh_out_antarctica=False):
+	plot_shape('coastline', source, max_rank, trim_antarctica=trim_antarctica, flesh_out_antarctica=flesh_out_antarctica)
+
 def generate_rivers(source, max_rank=float('inf')):
 	plot_shape('rivers_lake_centerlines', source, max_rank)
 

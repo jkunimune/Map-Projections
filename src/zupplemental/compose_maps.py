@@ -7,7 +7,7 @@ from generate_borders import generate_borders
 from generate_graticule import generate_graticule, generate_backdrop
 from generate_indicatrices import generate_indicatrices
 from generate_orthodromes import generate_orthodromes
-from generate_shape import generate_administrivia, generate_disputes, generate_fine_borders, generate_land, generate_rivers, generate_lakes
+from generate_shape import generate_administrivia, generate_disputes, generate_fine_borders, generate_land, generate_coastlines, generate_rivers, generate_lakes
 from generate_labels import generate_topographical_labels, generate_political_labels, generate_urban_labels
 
 
@@ -109,23 +109,23 @@ def compose_everything():
 	print('\t\t<g class="sovereign">')
 	generate_fine_borders('ne_50m')
 	print('\t\t</g>')
-	print('\t\t<g class="dispute">')
-	generate_disputes('ne_50m')
-	print('\t\t</g>')
 	print('\t\t<g class="adminis">')
 	generate_administrivia('ne_50m')
 	print('\t\t</g>')
-	print('\t\t<g class="land">')
-	generate_land('ne_50m', trim_antarctica=True)
+	print('\t\t<g class="border">')
+	generate_borders('ne_50m', trim_antarctica=True, borders_only=True)
+	print('\t\t</g>')
+	print('\t\t<g class="dispute">')
+	generate_disputes('ne_50m')
+	print('\t\t</g>')
+	print('\t\t<g class="coastline">')
+	generate_coastlines('ne_50m', trim_antarctica=True)
 	print('\t\t</g>')
 	print('\t\t<g class="river">')
 	generate_rivers('ne_50m')
 	print('\t\t</g>')
 	print('\t\t<g class="lakes">')
 	generate_lakes('ne_50m')
-	print('\t\t</g>')
-	print('\t\t<g class="border">')
-	generate_borders('ne_50m', trim_antarctica=True, borders_only=True)
 	print('\t\t</g>')
 	print('\t\t<g class="graticule">')
 	generate_graticule(5, 1, include_tropics=True, adjust_poles=True)

@@ -503,7 +503,7 @@ public abstract class MapApplication extends Application {
 				saver.setInitialDirectory(file.getParentFile()); //remember this directory for next time
 				final File f = file;
 				
-				if (mapVerifier.getAsBoolean()) { //if the optional verification process verifies it
+				if (mapVerifier.getAsBoolean()) { //if the optional verification process verifies it (TODO: do this before choosing a file)
 					Task<SavableImage> task = mapCalculator.get(); //create the Task
 					ProgressDialog<SavableImage> pBar = new ProgressDialog<SavableImage>(task); //and track its progress all the while
 					pBar.show();
@@ -518,7 +518,7 @@ public abstract class MapApplication extends Application {
 						}
 						pBar.close();
 						try {
-							Desktop.getDesktop().open(f.getParentFile());
+							Desktop.getDesktop().open(f.getParentFile()); // TODO: show a popup here with a button to open the folder insteaf of doing it automatically
 						} catch (IOException e) {} //if you can't open the directory for some reason, don't worry about it.
 					});
 					disableWhile(task.runningProperty(), buttonType);
