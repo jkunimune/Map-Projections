@@ -7,7 +7,7 @@ from helpers import plot, trim_edges, lengthen_edges
 
 def plot_shape(data, source, max_rank, trim_antarctica=False, flesh_out_antarctica=False):
 	"""data from http://www.naturalearthdata.com/"""
-	sf = shapefile.Reader("data/{}_{}".format(source, data))
+	sf = shapefile.Reader("../data/{}_{}".format(source, data))
 	for i, field in enumerate(sf.fields):
 		if 'rank' in field[0]:
 			rank_idx = i-1

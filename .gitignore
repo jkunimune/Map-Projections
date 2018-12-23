@@ -4,7 +4,13 @@
 /output/myplots.png
 
 # Large data files from the internet
-/src/zupplemental/data/*
+/src/data/*.cpg
+/src/data/*.dbf
+/src/data/*.prj
+/src/data/*.html
+/src/data/*.shp
+/src/data/*.shx
+/src/data/*.txt
 
 # Freakin PyC files
 *.pyc

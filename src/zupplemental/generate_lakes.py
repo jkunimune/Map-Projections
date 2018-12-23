@@ -12,7 +12,7 @@ INCLUDE_LAKES = False
 
 
 """data from http://www.naturalearthdata.com/"""
-sf = shapefile.Reader("data/{}_lakes".format(SOURCE))
+sf = shapefile.Reader("../data/{}_lakes".format(SOURCE))
 for record, lake in zip(sf.records(), sf.shapes()):
 	if float(record[-2]) > MAX_RANK: #if this lake isn't important enough
 		continue #skip it
