@@ -76,6 +76,7 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import maps.Arbitrary;
+import maps.ArbitraryPseudocylindrical;
 import maps.Azimuthal;
 import maps.Conic;
 import maps.Cylindrical;
@@ -114,14 +115,14 @@ public abstract class MapApplication extends Application {
 	private static final KeyCombination CTRL_ENTER = new KeyCodeCombination(KeyCode.ENTER, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	public static final Projection[] FEATURED_PROJECTIONS = { Cylindrical.MERCATOR,
+	public static final Projection[] FEATURED_PROJECTIONS = { Arbitrary.DANSEIJI_III, Cylindrical.MERCATOR,
 			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL_STEREOGRAPHIC,
 			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
 			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
 			Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.ACTUAUTHAGRAPH,
 			Polyhedral.AUTHAPOWER, Octohedral.KEYES_BASIC_M, Pseudocylindrical.SINUSOIDAL,
 			Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Lenticular.AITOFF,
-			Lenticular.VAN_DER_GRINTEN, Arbitrary.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
+			Lenticular.VAN_DER_GRINTEN, ArbitraryPseudocylindrical.ROBINSON, WinkelTripel.WINKEL_TRIPEL,
 			Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT, Pseudocylindrical.LEMONS }; //the set of featured projections for the ComboBox
 	
 	public static final String[] PROJECTION_CATEGORIES = { "Cylindrical", "Azimuthal", "Conic",
@@ -138,8 +139,8 @@ public abstract class MapApplication extends Application {
 					Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
 					Octohedral.WATERMAN },
 			{ Pseudocylindrical.ECKERT_IV, Pseudocylindrical.KAVRAYSKIY_VII,
-					Pseudocylindrical.MOLLWEIDE, Arbitrary.NATURAL_EARTH, Arbitrary.ROBINSON,
-					Pseudocylindrical.SINUSOIDAL, Tobler.TOBLER },
+					Pseudocylindrical.MOLLWEIDE, ArbitraryPseudocylindrical.NATURAL_EARTH,
+					ArbitraryPseudocylindrical.ROBINSON, Pseudocylindrical.SINUSOIDAL, Tobler.TOBLER },
 			{ Lenticular.AITOFF, Lenticular.HAMMER, Lenticular.STREBE_95,
 					Lenticular.VAN_DER_GRINTEN, WinkelTripel.WINKEL_TRIPEL },
 			{ Snyder.GS50, Misc.GUYOU, Misc.HAMMER_RETROAZIMUTHAL, Pseudocylindrical.LEMONS,

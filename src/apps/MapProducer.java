@@ -8,7 +8,7 @@ import image.SavableImage;
 import javafx.application.Application;
 import javafx.concurrent.Task;
 import javafx.stage.Stage;
-import maps.Arbitrary;
+import maps.ArbitraryPseudocylindrical;
 import maps.Azimuthal;
 import maps.Conic;
 import maps.Cylindrical;
@@ -62,7 +62,7 @@ public class MapProducer extends Application {
 					Cylindrical.BEHRMANN, Cylindrical.HOBO_DYER, Cylindrical.GALL_ORTHOGRAPHIC,
 					Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE,
 					Pseudocylindrical.ECKERT_IV, Pseudocylindrical.KAVRAYSKIY_VII,
-					Arbitrary.ROBINSON, Arbitrary.NATURAL_EARTH, Tobler.TOBLER, Lenticular.AITOFF,
+					ArbitraryPseudocylindrical.ROBINSON, ArbitraryPseudocylindrical.NATURAL_EARTH, Tobler.TOBLER, Lenticular.AITOFF,
 					Lenticular.HAMMER, WinkelTripel.WINKEL_TRIPEL, Lenticular.VAN_DER_GRINTEN,
 					Conic.EQUIDISTANT, Conic.LAMBERT, Conic.ALBERS, Azimuthal.POLAR,
 					Azimuthal.GNOMONIC, Azimuthal.EQUAL_AREA, Azimuthal.STEREOGRAPHIC,

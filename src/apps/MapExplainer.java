@@ -32,7 +32,7 @@ import image.SavableImage;
 import javafx.application.Application;
 import javafx.concurrent.Task;
 import javafx.stage.Stage;
-import maps.Arbitrary;
+import maps.ArbitraryPseudocylindrical;
 import maps.Azimuthal;
 import maps.Conic;
 import maps.Cylindrical;
@@ -67,7 +67,7 @@ public class MapExplainer extends Application {
 					Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.AUTHAGRAPH,
 					Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER,
 					Lenticular.HAMMER, Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN,
-					Arbitrary.ROBINSON, WinkelTripel.WINKEL_TRIPEL, Octohedral.CAHILL_KEYES,
+					ArbitraryPseudocylindrical.ROBINSON, WinkelTripel.WINKEL_TRIPEL, Octohedral.CAHILL_KEYES,
 					Octohedral.CAHILL_CONCIALDI, Misc.PEIRCE_QUINCUNCIAL.transverse(), Snyder.GS50,
 					Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Misc.FLAT_EARTH },
 			{ MyProjections.PSEUDOSTEREOGRAPHIC, Polyhedral.TETRAGRAPH, Polyhedral.AUTHAPOWER,

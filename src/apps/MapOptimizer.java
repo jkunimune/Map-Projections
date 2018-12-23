@@ -39,7 +39,7 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.chart.XYChart.Series;
 import javafx.stage.Stage;
-import maps.Arbitrary;
+import maps.ArbitraryPseudocylindrical;
 import maps.Cylindrical;
 import maps.Misc;
 import maps.Polyhedral;
@@ -57,7 +57,7 @@ import utils.linalg.Vector;
 public class MapOptimizer extends Application {
 	
 	private static final Projection[] EXISTING_PROJECTIONS = { Cylindrical.BEHRMANN,
-			Arbitrary.ROBINSON, Cylindrical.PLATE_CARREE, Cylindrical.GALL_STEREOGRAPHIC,
+			ArbitraryPseudocylindrical.ROBINSON, Cylindrical.PLATE_CARREE, Cylindrical.GALL_STEREOGRAPHIC,
 			Misc.PEIRCE_QUINCUNCIAL };
 	private static final Projection[] PROJECTIONS_TO_OPTIMIZE = { Tobler.TOBLER,
 			WinkelTripel.WINKEL_TRIPEL, Polyhedral.AUTHAPOWER };

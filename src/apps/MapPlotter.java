@@ -47,7 +47,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import maps.Arbitrary;
+import maps.ArbitraryPseudocylindrical;
 import maps.Azimuthal;
 import maps.Cylindrical;
 import maps.Lenticular;
@@ -74,8 +74,8 @@ public class MapPlotter extends Application {
 			Cylindrical.PLATE_CARREE, Cylindrical.GALL_ORTHOGRAPHIC, Cylindrical.BEHRMANN,
 			Cylindrical.GALL_STEREOGRAPHIC };
 	private static final Projection[] AZIMUTHAL = { Azimuthal.POLAR };
-	private static final Projection[] PSEUDOCYL = { Pseudocylindrical.MOLLWEIDE, Arbitrary.ROBINSON,
-			Arbitrary.NATURAL_EARTH, Pseudocylindrical.KAVRAYSKIY_VII, Tobler.TOBLER };
+	private static final Projection[] PSEUDOCYL = { Pseudocylindrical.MOLLWEIDE, ArbitraryPseudocylindrical.ROBINSON,
+			ArbitraryPseudocylindrical.NATURAL_EARTH, Pseudocylindrical.KAVRAYSKIY_VII, Tobler.TOBLER };
 	private static final Projection[] LENTICULAR = { Lenticular.AITOFF,
 			Lenticular.VAN_DER_GRINTEN, WinkelTripel.WINKEL_TRIPEL };
 	private static final Projection[] TETRAHEDRAL = { Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,

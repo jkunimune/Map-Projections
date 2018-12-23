@@ -1,7 +1,7 @@
 /**
  * MIT License
  * 
- * Copyright (c) 2017 Justin Kunimune
+ * Copyright (c) 2018 Justin Kunimune
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,74 +23,91 @@
  */
 package maps;
 
-import java.util.Arrays;
-
-import utils.NumericalAnalysis;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import maps.Projection.Property;
+import maps.Projection.Type;
+import utils.Math2;
 
 /**
- * A class specifically for projections that use arbitrary tables of numbers.
+ * A class for completely arbitrary projections, where every square degree can be specified anywhere on the plane.
  * 
- * @author jkunimune
+ * @author Justin Kunimune
  */
 public class Arbitrary {
 	
-	private static final int ORDER = 2; //half the order of the polynomials used
+	private static final int NE = 0, NW = 1, SW = 2, SE = 3;
+	private static final int X = 0, Y = 1;
 	
 	
-	public static final Projection ROBINSON = new ArbitraryProjection(
-			"Robinson", "Arthur Robinson", 0.5072, new double[][] {
-				{ -90,-85,-80,-75,-70,-65,-60,-55,-50,-45,-40,-35,-30,-25,-20,-15,-10,-05, 00,
-					05, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90 }, //Latitude
-				{  0.5322, 0.5722, 0.6213, 0.6732, 0.7186, 0.7597, 0.7986, 0.8350, 0.8679, 0.8962, 0.9216, 0.9427, 0.9600, 0.9730, 0.9822, 0.9900, 0.9954, 0.9986, 1.0000,
-					0.9986, 0.9954, 0.9900, 0.9822, 0.9730, 0.9600, 0.9427, 0.9216, 0.8962, 0.8679, 0.8350, 0.7986, 0.7597, 0.7186, 0.6732, 0.6213, 0.5722, 0.5322 }, //PLEN
-				{ -1.0000,-0.9761,-0.9394,-0.8936,-0.8435,-0.7903,-0.7346,-0.6769,-0.6176,-0.5571,-0.4958,-0.4340,-0.3720,-0.3100,-0.2480,-0.1860,-0.1240,-0.0620, 0.0000,
-					0.0620, 0.1240, 0.1860, 0.2480, 0.3100, 0.3720, 0.4340, 0.4958, 0.5571, 0.6176, 0.6769, 0.7346, 0.7903, 0.8435, 0.8936, 0.9394, 0.9761, 1.0000 } //PDFE
-			});
-	
-	
-	public static final Projection NATURAL_EARTH = new ArbitraryProjection(
-			"Natural Earth", "Tom Patterson", 0.520, new double[][] {
-				{ -90,-85,-80,-75,-70,-65,-60,-55,-50,-45,-40,-35,-30,-25,-20,-15,-10,-05, 00,
-					05, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90 }, //Latitude
-				{  0.5630, 0.6270, 0.6754, 0.7160, 0.7525, 0.7874, 0.8196, 0.8492, 0.8763, 0.9006, 0.9222, 0.9409, 0.9570, 0.9703, 0.9811, 0.9894, 0.9953, 0.9988, 1.0000,
-					0.9988, 0.9953, 0.9894, 0.9811, 0.9703, 0.9570, 0.9409, 0.9222, 0.9006, 0.8763, 0.8492, 0.8196, 0.7874, 0.7525, 0.7160, 0.6754, 0.6270, 0.5630 }, //PLEN
-				{ -1.0000,-0.9761,-0.9394,-0.8936,-0.8435,-0.7903,-0.7346,-0.6769,-0.6176,-0.5571,-0.4958,-0.4340,-0.3720,-0.3100,-0.2480,-0.1860,-0.1240,-0.06200, 0.0000,
-					0.0620, 0.1240, 0.1860, 0.2480, 0.3100, 0.3720, 0.4340, 0.4958, 0.5571, 0.6176, 0.6769, 0.7346, 0.7903, 0.8435, 0.8936, 0.9394, 0.9761, 1.0000 } //PDFE
-			});
+	public static final ArbitraryProjection DANSEIJI_III = new ArbitraryProjection(
+			"Danseiji III", "A map optimised to move distortion from the continents into the oceans",
+			true, Type.OTHER, Property.COMPROMISE, "danseijiIII.csv");
 	
 	
 	
 	private static class ArbitraryProjection extends Projection {
 		
-		private final double yMax;
-		private final double[][] table;
+		private double[][] vertices; // the vertex x-y coordinates
+		private int[][][] cells; // the indices of the corner of each cell
 		
-		public ArbitraryProjection(String title, String inventor, double aspectRatio, double[][] table) {
-			super(title, 2, 2*aspectRatio, 0b1111, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE, 2,
-					null, "designed by "+inventor);
-			this.yMax = aspectRatio;
-			this.table = table;
+		public ArbitraryProjection(String title, String description, boolean interrupted, Type type, Property property, String filename) {
+			super(title, description, 0, 0, interrupted ? 0b1010 : 0b1011, type, property, 4);
+			
+			BufferedReader in = null;
+			try {
+				in = new BufferedReader(new FileReader(String.format("src/data/%s", filename))); // parsing the input mesh is pretty simple
+				String[] row = in.readLine().split(","); // get the header
+				vertices = new double[Integer.parseInt(row[0])][2];
+				cells = new int[Integer.parseInt(row[1])][Integer.parseInt(row[2])][4];
+				width = Double.parseDouble(row[3]);
+				height = Double.parseDouble(row[4]);
+				for (int i = 0; i < vertices.length; i ++) { // do the vertex coordinates
+					row = in.readLine().split(",");
+					for (int j = 0; j < vertices[i].length; j ++)
+						vertices[i][j] = Double.parseDouble(row[j]);
+				}
+				for (int i = 0; i < cells.length; i ++) { // get the cell vertices
+					for (int j = 0; j < cells[i].length; j ++) {
+						row = in.readLine().split(",");
+						for (int k = 0; k < cells[i][j].length; k ++)
+							cells[i][j][k] = Integer.parseInt(row[k]);
+					}
+				} // and skip the edge; it's not relevant here
+			} catch (IOException e) {
+				System.err.println("Could not load mesh: "+e);
+				width = 2;
+				height = 2;
+				vertices = new double[][] {{1,1},{-1,1},{-1,-1},{1,-1}};
+				cells = new int[][][] {{{0,1,2,3}}};
+			} finally {
+				try {
+					if (in != null)	in.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
+		
 		
 		public double[] project(double lat, double lon) {
+			int i = (int)Math2.floorMod((Math.PI/2-lat)/Math.PI*cells.length, cells.length);
+			int j = (int)Math2.floorMod((lon+Math.PI)/(2*Math.PI)*cells[i].length, cells[i].length);
+			double cs = Math2.floorMod((Math.PI/2-lat)/Math.PI*cells.length, 1);
+			double cw = 1 - Math2.floorMod((lon+Math.PI)/(2*Math.PI)*cells[i].length, 1);
+			double cn = 1 - cs;
+			double ce = 1 - cw;
+			double[] ne = vertices[cells[i][j][NE]], nw = vertices[cells[i][j][NW]],
+					sw = vertices[cells[i][j][SW]], se = vertices[cells[i][j][SE]];
 			return new double[] {
-					lon/Math.PI*smartInterpolate(Math.toDegrees(lat), table[0], table[1], ORDER),
-					yMax*smartInterpolate(Math.toDegrees(lat), table[0], table[2], ORDER) };
+					cs*cw*sw[X] + cs*ce*se[X] + cn*cw*nw[X] + cn*ce*ne[X],
+					cs*cw*sw[Y] + cs*ce*se[Y] + cn*cw*nw[Y] + cn*ce*ne[Y] };
 		}
+		
 		
 		public double[] inverse(double x, double y) {
-			return new double[] {
-					Math.toRadians(smartInterpolate(y/yMax, table[2], table[0], ORDER)),
-					Math.PI*x/smartInterpolate(y/yMax, table[2], table[1], ORDER) };
+			return null; // TODO
 		}
-		
-		private static double smartInterpolate(double x, double[] X, double[] f, int k) {
-			int i = Arrays.binarySearch(X, x);
-			if (i < 0)	i = -i - 1; //if you couldn't find it, don't worry about it
-			return NumericalAnalysis.aitkenInterpolate(x, X, f,
-					Math.max(i-k,0), Math.min(i+k,X.length)); //just call aitken with the correct bounds
-		}
-		
 	}
-	
 }
