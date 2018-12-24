@@ -167,6 +167,11 @@ public abstract class Projection {
 		return project(obliquifySphc(lat, lon, pole));
 	}
 	
+	public double[] project(double lat, double lon, double[] pole, double... params) {
+		setParameters(params);
+		return project(lat, lon, pole);
+	}
+	
 	
 	public double[] inverse(double[] coords) {
 		return inverse(coords[0], coords[1]);
@@ -178,6 +183,11 @@ public abstract class Projection {
 	
 	public double[] inverse(double x, double y, double[] pole) {
 		return inverse(x, y, pole, false);
+	}
+	
+	public double[] inverse(double x, double y, double[] pole, double... params) {
+		setParameters(params);
+		return inverse(x, y, pole);
 	}
 	
 	public double[] inverse(double x, double y, double[] pole, boolean cropAtPi) {

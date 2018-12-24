@@ -41,9 +41,29 @@ public class Arbitrary {
 	private static final int X = 0, Y = 1;
 	
 	
+	public static final ArbitraryProjection DANSEIJI_O = new ArbitraryProjection(
+			"Danseiji O", "The optimal conventional lenticular map.",
+			true, Type.OTHER, Property.COMPROMISE, "danseijiO.csv");
+	
+	
+	public static final ArbitraryProjection DANSEIJI_I = new ArbitraryProjection(
+			"Danseiji I", "The optimal conventional equal-area map.",
+			true, Type.OTHER, Property.COMPROMISE, "danseijiI.csv");
+	
+	
+	public static final ArbitraryProjection DANSEIJI_II = new ArbitraryProjection(
+			"Danseiji II", "Like Danseiji O, but with more weight given to shapes.",
+			true, Type.OTHER, Property.COMPROMISE, "danseijiII.csv");
+	
+	
 	public static final ArbitraryProjection DANSEIJI_III = new ArbitraryProjection(
-			"Danseiji III", "A map optimised to move distortion from the continents into the oceans",
+			"Danseiji III", "A map optimised to move distortion from the continents into the oceans.",
 			true, Type.OTHER, Property.COMPROMISE, "danseijiIII.csv");
+	
+	
+	public static final ArbitraryProjection DANSEIJI_IV = new ArbitraryProjection(
+			"Danseiji IV", "A map optimised to show off the continents by compressing the oceans.",
+			true, Type.OTHER, Property.COMPROMISE, "danseijiIV.csv");
 	
 	
 	
@@ -75,7 +95,7 @@ public class Arbitrary {
 							cells[i][j][k] = Integer.parseInt(row[k]);
 					}
 				} // and skip the edge; it's not relevant here
-			} catch (IOException e) {
+			} catch (IOException | NullPointerException | ArrayIndexOutOfBoundsException e) {
 				System.err.println("Could not load mesh: "+e);
 				width = 2;
 				height = 2;
@@ -92,12 +112,14 @@ public class Arbitrary {
 		
 		
 		public double[] project(double lat, double lon) {
-			int i = (int)Math2.floorMod((Math.PI/2-lat)/Math.PI*cells.length, cells.length);
-			int j = (int)Math2.floorMod((lon+Math.PI)/(2*Math.PI)*cells[i].length, cells[i].length);
-			double cs = Math2.floorMod((Math.PI/2-lat)/Math.PI*cells.length, 1);
-			double cw = 1 - Math2.floorMod((lon+Math.PI)/(2*Math.PI)*cells[i].length, 1);
+			int i = (int)((Math.PI/2-lat)/Math.PI*cells.length); // map it to the array
+			i = Math.max(0, Math.min(cells.length-1, i)); // coerce it into bounds
+			int j = (int)((lon+Math.PI)/(2*Math.PI)*cells[i].length);
+			j = Math.max(0, Math.min(cells[i].length-1, j));
+			double cs = (Math.PI/2-lat)/Math.PI*cells.length - i; // do linear interpolation
+			double ce = (lon+Math.PI)/(2*Math.PI)*cells[i].length - j;
 			double cn = 1 - cs;
-			double ce = 1 - cw;
+			double cw = 1 - ce;
 			double[] ne = vertices[cells[i][j][NE]], nw = vertices[cells[i][j][NW]],
 					sw = vertices[cells[i][j][SW]], se = vertices[cells[i][j][SE]];
 			return new double[] {
@@ -107,7 +129,9 @@ public class Arbitrary {
 		
 		
 		public double[] inverse(double x, double y) {
-			return null; // TODO
+			return WinkelTripel.WINKEL_TRIPEL.inverse(
+					x*WinkelTripel.WINKEL_TRIPEL.getWidth()/this.getWidth(),
+					y*WinkelTripel.WINKEL_TRIPEL.getHeight()/this.getHeight(), Projection.NORTH_POLE, 40);
 		}
 	}
 }
