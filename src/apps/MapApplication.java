@@ -115,7 +115,7 @@ public abstract class MapApplication extends Application {
 	private static final KeyCombination CTRL_ENTER = new KeyCodeCombination(KeyCode.ENTER, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	public static final Projection[] FEATURED_PROJECTIONS = { Arbitrary.DANSEIJI_O, Arbitrary.DANSEIJI_I, Arbitrary.DANSEIJI_II, Arbitrary.DANSEIJI_III, Arbitrary.DANSEIJI_IV, Cylindrical.MERCATOR,
+	public static final Projection[] FEATURED_PROJECTIONS = { Arbitrary.DANSEIJI_III, Arbitrary.DANSEIJI_IV, Cylindrical.MERCATOR,
 			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL_STEREOGRAPHIC,
 			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
 			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
@@ -555,7 +555,11 @@ public abstract class MapApplication extends Application {
 	
 	
 	protected void loadParameters() {
-		getProjection().setParameters(currentParams);
+		try {
+			getProjection().setParameters(currentParams);
+		} catch (IllegalArgumentException e) {
+			showError("Failed to load projection", e.getLocalizedMessage());
+		}
 	}
 	
 	

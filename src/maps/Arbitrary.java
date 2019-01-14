@@ -26,9 +26,9 @@ package maps;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+
 import maps.Projection.Property;
 import maps.Projection.Type;
-import utils.Math2;
 
 /**
  * A class for completely arbitrary projections, where every square degree can be specified anywhere on the plane.
@@ -37,7 +37,6 @@ import utils.Math2;
  */
 public class Arbitrary {
 	
-	private static final int NE = 0, NW = 1, SW = 2, SE = 3;
 	private static final int X = 0, Y = 1;
 	
 	
@@ -69,38 +68,71 @@ public class Arbitrary {
 	
 	private static class ArbitraryProjection extends Projection {
 		
-		private double[][] vertices; // the vertex x-y coordinates
-		private int[][][] cells; // the indices of the corner of each cell
+		private String filename; // the data filename
+		private double[][][][] cells; // the values of the corner of each cell
+		private int[][] cellShapes; // the slope of each cell
+		private double[][][] pixels; // the pixel values, for inverse mapping
+		private double[][] edge; // the indices of the edge vertices
 		
 		public ArbitraryProjection(String title, String description, boolean interrupted, Type type, Property property, String filename) {
 			super(title, description, 0, 0, interrupted ? 0b1010 : 0b1011, type, property, 4);
+			this.filename = filename;
+		}
+		
+		
+		public void setParameters(double... params) throws IllegalArgumentException { // these maps don't actually have parameters, but this is the best place to load files
+			if (cells != null)
+				return; // but don't do it if you've already done it
 			
 			BufferedReader in = null;
 			try {
 				in = new BufferedReader(new FileReader(String.format("src/data/%s", filename))); // parsing the input mesh is pretty simple
 				String[] row = in.readLine().split(","); // get the header
-				vertices = new double[Integer.parseInt(row[0])][2];
-				cells = new int[Integer.parseInt(row[1])][Integer.parseInt(row[2])][4];
-				width = Double.parseDouble(row[3]);
-				height = Double.parseDouble(row[4]);
+				double[][] vertices = new double[Integer.parseInt(row[0])][2];
+				cells = new double[Integer.parseInt(row[1])][Integer.parseInt(row[2])][][];
+				cellShapes = new int[cells.length][cells[0].length];
+				edge = new double[Integer.parseInt(row[3])][];
+				pixels = new double[Integer.parseInt(row[4])][Integer.parseInt(row[5])][2];
+				width = Double.parseDouble(row[6]);
+				height = Double.parseDouble(row[7]);
+				
 				for (int i = 0; i < vertices.length; i ++) { // do the vertex coordinates
 					row = in.readLine().split(",");
 					for (int j = 0; j < vertices[i].length; j ++)
 						vertices[i][j] = Double.parseDouble(row[j]);
 				}
+				
 				for (int i = 0; i < cells.length; i ++) { // get the cell vertices
 					for (int j = 0; j < cells[i].length; j ++) {
 						row = in.readLine().split(",");
-						for (int k = 0; k < cells[i][j].length; k ++)
-							cells[i][j][k] = Integer.parseInt(row[k]);
+						cellShapes[i][j] = Integer.parseInt(row[0]);
+						cells[i][j] = new double[row.length-1][];
+						for (int k = 1; k < row.length; k ++)
+							cells[i][j][k-1] = vertices[Integer.parseInt(row[k])];
 					}
-				} // and skip the edge; it's not relevant here
+				}
+				
+				for (int i = 0; i < edge.length; i ++) { // the edge
+					row = in.readLine().split(",");
+					edge[i] = vertices[Integer.parseInt(row[0])];
+				}
+				
+				for (int i = 0; i < pixels.length; i ++) { // the pixels
+					for (int j = 0; j < pixels[i].length; j ++) {
+						row = in.readLine().split(",");
+						for (int k = 0; k < pixels[i][j].length; k ++)
+							pixels[i][j][k] = Double.parseDouble(row[k]);
+					}
+				}
 			} catch (IOException | NullPointerException | ArrayIndexOutOfBoundsException e) {
-				System.err.println("Could not load mesh: "+e);
-				width = 2;
-				height = 2;
-				vertices = new double[][] {{1,1},{-1,1},{-1,-1},{1,-1}};
-				cells = new int[][][] {{{0,1,2,3}}};
+				cells = new double[][][][] {{{{0,0},{0,0},{0,0},{0,0}}}};
+				cellShapes = new int[][] {{0}};
+				edge = new double[][] {{0,0}};
+				pixels = new double[][][] {{{0,0}}};
+				width = 0;
+				height = 0;
+				e.printStackTrace();
+				throw new IllegalArgumentException("Missing or corrupt data file for "+this.getName());
 			} finally {
 				try {
 					if (in != null)	in.close();
@@ -120,11 +152,40 @@ public class Arbitrary {
 			double ce = (lon+Math.PI)/(2*Math.PI)*cells[i].length - j;
 			double cn = 1 - cs;
 			double cw = 1 - ce;
-			double[] ne = vertices[cells[i][j][NE]], nw = vertices[cells[i][j][NW]],
-					sw = vertices[cells[i][j][SW]], se = vertices[cells[i][j][SE]];
-			return new double[] {
-					cs*cw*sw[X] + cs*ce*se[X] + cn*cw*nw[X] + cn*ce*ne[X],
-					cs*cw*sw[Y] + cs*ce*se[Y] + cn*cw*nw[Y] + cn*ce*ne[Y] };
+			double[][] v; // which vertices we use depends on some things
+			double[] c;
+			
+			if (cellShapes[i][j] < 0) { // for negative sloped cells,
+				if (ce >= cs) { // is it in the ne,
+					v = new double[][] {cells[i][j][0], cells[i][j][1], cells[i][j][5]};
+					c = new double[] {         1-cw-cs,             cw,             cs};
+				}
+				else { // or the sw?
+					v = new double[][] {cells[i][j][3], cells[i][j][4], cells[i][j][2]};
+					c = new double[] {         1-ce-cn,             ce,             cn};
+				}
+			}
+			else if (cellShapes[i][j] > 0) { // for positive sloped cells,
+				if (ce >= cn) { // is it in the se,
+					v = new double[][] {cells[i][j][5], cells[i][j][0], cells[i][j][4]};
+					c = new double[] {         1-cn-cw,             cn,             cw};
+				}
+				else { // or the nw?
+					v = new double[][] {cells[i][j][2], cells[i][j][3], cells[i][j][1]};
+					c = new double[] {         1-cs-ce,             cs,             ce};
+				}
+			}
+			else { // for single-element cells
+				v = new double[][] {cells[i][j][0], cells[i][j][1], cells[i][j][2], cells[i][j][3]}; // we can just use all of them
+				c = new double[] {           cn*ce,          cn*cw,          cs*cw,          cs*ce};
+			}
+			
+			double[] coords = new double[] {0, 0};
+			for (int k = 0; k < v.length; k ++) {
+				coords[X] += c[k]*v[k][X];
+				coords[Y] += c[k]*v[k][Y];
+			}
+			return coords;
 		}
 		
 		

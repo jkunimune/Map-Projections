@@ -151,7 +151,7 @@ public abstract class Projection {
 	public abstract double[] inverse(double x, double y); //convert Cartesian coordinates to spherical
 	
 	
-	public void setParameters(double... params) {
+	public void setParameters(double... params) throws IllegalArgumentException {
 	}
 	
 	
