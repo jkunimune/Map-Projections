@@ -12,7 +12,7 @@ def plot_orthodrome(phi0, lam0, tht0):
 	for p in range(-90, 91):
 		points.append(obliquify(math.radians(p), tht0, phi0, lam0))
 	plot(points, close=False)
-
+	
 
 def generate_orthodromes():
 	"""generate an icosohedral orthodromic mesh, like the Brilliant logo (#notsponsored)"""

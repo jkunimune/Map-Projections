@@ -125,7 +125,7 @@ public class Azimuthal {
 		
 		public void setParameters(double... params) {
 			this.d = 1/(1 - 2*params[0]/100);
-			this.width = this.height = 2/Math.sqrt(d*d-1);
+			this.width = this.height = (Double.isFinite(d)) ? 2/Math.sqrt(d*d-1) : ORTHOGRAPHIC.getWidth();
 		}
 		
 		public double[] project(double lat, double lon) {

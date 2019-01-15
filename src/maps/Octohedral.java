@@ -336,7 +336,7 @@ public class Octohedral {
 		},
 		
 		
-		BAT_SHAPE(2*Math.sqrt(3), 0, 2, 0) { //Luca Concialdi's obscure "Bat" arrangement that I liked. I don't think it's the best map possible as Luca does, but I do think it's quite neat
+		BAT_SHAPE(2*Math.sqrt(3), 0, 2, 0) { //Luca Concialdi's obscure "Bat" arrangement that I liked. TODO: this doesn't quite match Concialdi's design
 			
 			public double[] project(double lat, double lon) {
 				double centralMerid = Math.floor((lon+Math.PI/4)/(Math.PI/2))*Math.PI/2;
