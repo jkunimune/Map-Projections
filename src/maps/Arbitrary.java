@@ -65,6 +65,31 @@ public class Arbitrary {
 			true, Type.OTHER, Property.COMPROMISE, "danseijiIV.csv");
 	
 	
+	public static final ArbitraryProjection DANSEIJI_V = new ArbitraryProjection(
+			"Danseiji V", "A map optimised to show off the continents by compressing the oceans.",
+			true, Type.OTHER, Property.COMPROMISE, "danseijiV.csv");
+	
+	
+	public static final ArbitraryProjection DANSEIJI_VI = new ArbitraryProjection(
+			"Danseiji VI", "A map where area is approximately proportional to population.",
+			true, Type.OTHER, Property.COMPROMISE, "danseijiVI.csv");
+	
+	
+	public static final ArbitraryProjection DANSEIJI_VII = new ArbitraryProjection(
+			"Danseiji VII", "A compromise conventional map, where both physical area and population affect size.",
+			true, Type.OTHER, Property.COMPROMISE, "danseijiVII.csv");
+	
+	
+	public static final ArbitraryProjection DANSEIJI_VIII = new ArbitraryProjection(
+			"Danseiji VIII", "A compromise unconventional map, where both physical area and population affect size.",
+			true, Type.OTHER, Property.COMPROMISE, "danseijiVIII.csv");
+	
+	
+	public static final ArbitraryProjection DANSEIJI_IX = new ArbitraryProjection(
+			"Danseiji IX", "A map preserving the oceans over landmasses.",
+			true, Type.OTHER, Property.COMPROMISE, "danseijiIV.csv");
+	
+	
 	
 	private static class ArbitraryProjection extends Projection {
 		
@@ -189,10 +214,37 @@ public class Arbitrary {
 		}
 		
 		
-		public double[] inverse(double x, double y) {
-			return WinkelTripel.WINKEL_TRIPEL.inverse(
-					x*WinkelTripel.WINKEL_TRIPEL.getWidth()/this.getWidth(),
-					y*WinkelTripel.WINKEL_TRIPEL.getHeight()/this.getHeight(), Projection.NORTH_POLE, 40);
+		public double[] inverse(double x, double y) { // this linear interpolation is much simpler
+			boolean inside = false;
+			for (int i = 0; i < edge.length; i ++) {
+				double x0 = edge[i][0], y0 = edge[i][1]; // for each segment of the edge
+				double x1 = edge[(i+1)%edge.length][0], y1 = edge[(i+1)%edge.length][1];
+				if ((y0 > y) != (y1 > y)) // if the two points fall on either side of a rightward ray from (X,Y)
+					if ((y-y0)/(y1-y0)*(x1-x0)+x0 > x) // and the line between them intersects our ray right of (X,Y)
+						inside = !inside; // toggle the boolean
+			}
+			
+			double i = (height/2 - y)/height*(pixels.length-1);
+			int i0 = Math.min((int)i, pixels.length-2);
+			double cy = i - i0;
+			double j = (x + width/2)/width*(pixels[i0].length-1);
+			int j0 = Math.min((int)j, pixels[i0].length-2);
+			double cx = j - j0;
+			
+			double X = 0, Y = 0, Z = 0;
+			for (int di = 0; di <= 1; di ++) {
+				for (int dj = 0; dj <= 1; dj ++) {
+					double weight = ((di == 0) ? 1-cy : cy)*((dj == 0) ? 1-cx : cx);
+					double phiV = pixels[i0+di][j0+dj][0], lamV = pixels[i0+di][j0+dj][1];
+					X += weight*Math.cos(phiV)*Math.cos(lamV);
+					Y += weight*Math.cos(phiV)*Math.sin(lamV);
+					Z += weight*Math.sin(phiV);
+				}
+			}
+			double phi = Math.atan2(Z, Math.hypot(X, Y)), lam = Math.atan2(Y, X);
+			
+			if (!inside)	lam += 2*Math.PI; // signal that this point is outside the normal map, if necessary
+			return new double[] {phi, lam};
 		}
 	}
 }
