@@ -161,7 +161,7 @@ public class Polyhedral {
 	
 	
 	public static final PolyhedralProjection ACTUAUTHAGRAPH = new PolyhedralProjection(
-			"EquaHedral", "A holey authalic tetrahedral projection to put AuthaGraph to shame.",
+			"EquaHedral", "An interrupted authalic tetrahedral projection.",
 			0b1010, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.EQUAL_AREA, 3,
 			new String[] {"Sinus length"}, new double[][] {{0, 60, 20}}) {
 		
@@ -221,6 +221,22 @@ public class Polyhedral {
 			double x = rB*Math.cos(bet) - sig*Math.sqrt(3)/2;
 			double y = Math.abs(rB*Math.sin(bet)) - sig/2;
 			return new double[] {Math.hypot(x, y), Math.atan2(y, x)};
+		}
+	};
+	
+	
+	public static final Projection VAN_LEEUWEN = new PolyhedralProjection(
+			"van Leeuwen", "An uninterrupted equal-area tetrahedral projection. It's more accurately known as \"the Vertex-oriented great circle projection applied to a tetrahedron\", but the guy who copublished it with Leeuwen calls it \"the van Leeuwen projection\" on his website, so I think this is fine.",
+			0b1011, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.EQUAL_AREA, 3) {
+		
+		public double[] faceProject(double lat, double lon) {
+			ACTUAUTHAGRAPH.setParameters(0);
+			return ACTUAUTHAGRAPH.faceProject(lat, lon);
+		}
+		
+		public double[] faceInverse(double r, double th) {
+			ACTUAUTHAGRAPH.setParameters(0);
+			return ACTUAUTHAGRAPH.faceInverse(r, th);
 		}
 	};
 	

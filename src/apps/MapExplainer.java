@@ -32,6 +32,7 @@ import image.SavableImage;
 import javafx.application.Application;
 import javafx.concurrent.Task;
 import javafx.stage.Stage;
+import maps.Arbitrary;
 import maps.ArbitraryPseudocylindrical;
 import maps.Azimuthal;
 import maps.Conic;
@@ -50,7 +51,7 @@ import maps.WinkelTripel;
 /**
  * A program to generate and output an HTML snippet listing and explaining all of my maps
  * 
- * @author jkunimune
+ * @author Justin Kunimune
  */
 public class MapExplainer extends Application {
 	
@@ -63,15 +64,15 @@ public class MapExplainer extends Application {
 					Cylindrical.GALL_STEREOGRAPHIC, Azimuthal.STEREOGRAPHIC.transverse(),
 					Azimuthal.POLAR.transverse(), Azimuthal.EQUAL_AREA.transverse(),
 					Azimuthal.GNOMONIC.transverse(), Azimuthal.ORTHOGRAPHIC.transverse(),
-					Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
-					Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.AUTHAGRAPH,
-					Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER,
-					Lenticular.HAMMER, Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN,
-					ArbitraryPseudocylindrical.ROBINSON, WinkelTripel.WINKEL_TRIPEL, Octohedral.CAHILL_KEYES,
+					Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Pseudocylindrical.SINUSOIDAL,
+					Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Lenticular.AITOFF,
+					Lenticular.VAN_DER_GRINTEN, ArbitraryPseudocylindrical.ROBINSON,
+					WinkelTripel.WINKEL_TRIPEL, Polyhedral.AUTHAGRAPH,
+					Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Octohedral.CAHILL_KEYES,
 					Octohedral.CAHILL_CONCIALDI, Misc.PEIRCE_QUINCUNCIAL.transverse(), Snyder.GS50,
 					Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Misc.FLAT_EARTH },
-			{ MyProjections.PSEUDOSTEREOGRAPHIC, Polyhedral.TETRAGRAPH, Polyhedral.AUTHAPOWER,
-					Polyhedral.ACTUAUTHAGRAPH, MyProjections.TWO_POINT_EQUALIZED.transverse() } };
+			{ Arbitrary.DANSEIJI_O, Arbitrary.DANSEIJI_IV, Arbitrary.DANSEIJI_V, Polyhedral.TETRAGRAPH,
+					Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH } };
 	
 	private PixelMap inputSkew, inputPole, inputNone, inputEast, inputWest;
 	

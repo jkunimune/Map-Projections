@@ -42,52 +42,46 @@ public class Arbitrary {
 	
 	public static final ArbitraryProjection DANSEIJI_O = new ArbitraryProjection(
 			"Danseiji O", "The optimal conventional lenticular map.",
-			true, Type.OTHER, Property.COMPROMISE, "danseijiO.csv");
+			true, Type.OTHER, Property.COMPROMISE, false, "danseijiO.csv");
 	
 	
 	public static final ArbitraryProjection DANSEIJI_I = new ArbitraryProjection(
 			"Danseiji I", "The optimal conventional equal-area map.",
-			true, Type.OTHER, Property.COMPROMISE, "danseijiI.csv");
+			true, Type.OTHER, Property.COMPROMISE, false, "danseijiI.csv");
 	
 	
 	public static final ArbitraryProjection DANSEIJI_II = new ArbitraryProjection(
-			"Danseiji II", "Like Danseiji O, but with more weight given to shapes.",
-			true, Type.OTHER, Property.COMPROMISE, "danseijiII.csv");
+			"Danseiji II", "An optimised map that gives more weight to shapes rather than sizes.",
+			true, Type.OTHER, Property.COMPROMISE, false, "danseijiII.csv");
 	
 	
 	public static final ArbitraryProjection DANSEIJI_III = new ArbitraryProjection(
 			"Danseiji III", "A map optimised to move distortion from the continents into the oceans.",
-			true, Type.OTHER, Property.COMPROMISE, "danseijiIII.csv");
+			true, Type.OTHER, Property.COMPROMISE, true, "danseijiIII.csv");
 	
 	
 	public static final ArbitraryProjection DANSEIJI_IV = new ArbitraryProjection(
 			"Danseiji IV", "A map optimised to show off the continents by compressing the oceans.",
-			true, Type.OTHER, Property.COMPROMISE, "danseijiIV.csv");
+			true, Type.OTHER, Property.COMPROMISE, true, "danseijiIV.csv");
 	
 	
 	public static final ArbitraryProjection DANSEIJI_V = new ArbitraryProjection(
-			"Danseiji V", "A map optimised to show off the continents by compressing the oceans.",
-			true, Type.OTHER, Property.COMPROMISE, "danseijiV.csv");
-	
+			"Danseiji V", "A map optimised to display landmasses accurately and without interruption.",
+			true, Type.OTHER, Property.COMPROMISE, true, "danseijiV.csv");
 	
 	public static final ArbitraryProjection DANSEIJI_VI = new ArbitraryProjection(
-			"Danseiji VI", "A map where area is approximately proportional to population.",
-			true, Type.OTHER, Property.COMPROMISE, "danseijiVI.csv");
+			"Danseiji VI", "A compromise conventional map, where both physical area and population affect size.",
+			true, Type.OTHER, Property.COMPROMISE, true, "danseijiVI.csv");
 	
 	
 	public static final ArbitraryProjection DANSEIJI_VII = new ArbitraryProjection(
-			"Danseiji VII", "A compromise conventional map, where both physical area and population affect size.",
-			true, Type.OTHER, Property.COMPROMISE, "danseijiVII.csv");
+			"Danseiji VII", "A compromise unconventional map, where both physical area and population affect size.",
+			true, Type.OTHER, Property.COMPROMISE, true, "danseijiVII.csv");
 	
 	
 	public static final ArbitraryProjection DANSEIJI_VIII = new ArbitraryProjection(
-			"Danseiji VIII", "A compromise unconventional map, where both physical area and population affect size.",
-			true, Type.OTHER, Property.COMPROMISE, "danseijiVIII.csv");
-	
-	
-	public static final ArbitraryProjection DANSEIJI_IX = new ArbitraryProjection(
-			"Danseiji IX", "A map preserving the oceans over landmasses.",
-			true, Type.OTHER, Property.COMPROMISE, "danseijiIV.csv");
+			"Danseiji VIII", "A map optimised to show off the oceans at the expense of landmasses.",
+			true, Type.OTHER, Property.COMPROMISE, true, "danseijiVIII.csv");
 	
 	
 	
@@ -99,8 +93,11 @@ public class Arbitrary {
 		private double[][][] pixels; // the pixel values, for inverse mapping
 		private double[][] edge; // the indices of the edge vertices
 		
-		public ArbitraryProjection(String title, String description, boolean interrupted, Type type, Property property, String filename) {
-			super(title, description, 0, 0, interrupted ? 0b1010 : 0b1011, type, property, 4);
+		public ArbitraryProjection(
+				String title, String description, boolean interrupted, Type type, Property property,
+				boolean basedOnLand, String filename) {
+			super(title, description, 0, 0, interrupted ? 0b1010 : 0b1011, type, property, 4,
+					new String[0], new double[0][], !basedOnLand);
 			this.filename = filename;
 		}
 		

@@ -115,20 +115,18 @@ public abstract class MapApplication extends Application {
 	private static final KeyCombination CTRL_ENTER = new KeyCodeCombination(KeyCode.ENTER, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	public static final Projection[] FEATURED_PROJECTIONS = { Arbitrary.DANSEIJI_III, Arbitrary.DANSEIJI_IV, Cylindrical.MERCATOR,
+	public static final Projection[] FEATURED_PROJECTIONS = { Cylindrical.MERCATOR, // the set of featured projections for the ComboBox
 			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL_STEREOGRAPHIC,
 			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
 			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
-			Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.ACTUAUTHAGRAPH,
-			Polyhedral.AUTHAPOWER, Octohedral.KEYES_BASIC_M, Pseudocylindrical.SINUSOIDAL,
-			Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Lenticular.AITOFF,
-			Lenticular.VAN_DER_GRINTEN, ArbitraryPseudocylindrical.ROBINSON,
-			WinkelTripel.WINKEL_TRIPEL, Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT,
-			Pseudocylindrical.LEMONS }; //the set of featured projections for the ComboBox
+			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER,
+			Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN, ArbitraryPseudocylindrical.ROBINSON,
+			WinkelTripel.WINKEL_TRIPEL, Arbitrary.DANSEIJI_O, Octohedral.KEYES_BASIC_M,
+			Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Misc.PEIRCE_QUINCUNCIAL, Pseudocylindrical.LEMONS };
 	
 	public static final String[] PROJECTION_CATEGORIES = { "Cylindrical", "Azimuthal", "Conic",
 			"Polyhedral", "Pseudocylindrical", "Lenticular", "Other", "Invented by Justin" }; //the overarching categories by which I organise my projections
-	public static final Projection[][] ALL_PROJECTIONS = {
+	public static final Projection[][] ALL_PROJECTIONS = { // every projection I have programmed
 			{ Cylindrical.EQUAL_AREA, Cylindrical.EQUIRECTANGULAR, Cylindrical.GALL_ORTHOGRAPHIC,
 					Cylindrical.GALL_STEREOGRAPHIC, Cylindrical.HOBO_DYER, Cylindrical.LAMBERT,
 					Cylindrical.MERCATOR, Cylindrical.MILLER, Cylindrical.PLATE_CARREE },
@@ -138,7 +136,7 @@ public abstract class MapApplication extends Application {
 			{ Polyhedral.AUTHAGRAPH, Octohedral.CAHILL_CONCIALDI, Octohedral.CAHILL_KEYES,
 					Octohedral.KEYES_BASIC_M, Octohedral.KEYES_BUTTERFLY, Polyhedral.DYMAXION,
 					Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
-					Octohedral.WATERMAN },
+					Polyhedral.VAN_LEEUWEN, Octohedral.WATERMAN },
 			{ Pseudocylindrical.ECKERT_IV, Pseudocylindrical.KAVRAYSKIY_VII,
 					Pseudocylindrical.MOLLWEIDE, ArbitraryPseudocylindrical.NATURAL_EARTH,
 					ArbitraryPseudocylindrical.ROBINSON, Pseudocylindrical.SINUSOIDAL, Tobler.TOBLER },
@@ -147,10 +145,11 @@ public abstract class MapApplication extends Application {
 			{ Snyder.GS50, Misc.GUYOU, Misc.HAMMER_RETROAZIMUTHAL, Pseudocylindrical.LEMONS,
 					Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT, Misc.FLAT_EARTH },
 			{ Arbitrary.DANSEIJI_O, Arbitrary.DANSEIJI_I, Arbitrary.DANSEIJI_II,
-					Arbitrary.DANSEIJI_III, Arbitrary.DANSEIJI_IV, MyProjections.EXPERIMENT,
-					Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH, MyProjections.MAGNIFIER,
-					MyProjections.PSEUDOSTEREOGRAPHIC, Polyhedral.TETRAGRAPH,
-					MyProjections.TWO_POINT_EQUALIZED } }; // every projection I have programmed
+					Arbitrary.DANSEIJI_III, Arbitrary.DANSEIJI_IV, Arbitrary.DANSEIJI_V,
+					Arbitrary.DANSEIJI_VI, Arbitrary.DANSEIJI_VII, Arbitrary.DANSEIJI_VIII,
+					MyProjections.EXPERIMENT, Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH,
+					MyProjections.MAGNIFIER, MyProjections.PSEUDOSTEREOGRAPHIC,
+					Polyhedral.TETRAGRAPH, MyProjections.TWO_POINT_EQUALIZED } };
 	
 	private static final String[] ASPECT_NAMES = { "Standard", "Transverse", "Cassini", "Atlantis",
 			"Jerusalem", "Point Nemo", "Longest Line", "Cylindrical", "Tetrahedral", "Antipode",
