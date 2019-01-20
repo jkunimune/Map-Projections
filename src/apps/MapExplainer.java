@@ -39,7 +39,6 @@ import maps.Conic;
 import maps.Cylindrical;
 import maps.Lenticular;
 import maps.Misc;
-import maps.MyProjections;
 import maps.Octohedral;
 import maps.Polyhedral;
 import maps.Projection;

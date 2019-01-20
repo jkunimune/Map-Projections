@@ -256,7 +256,7 @@ public class MapAnalyzer extends MapApplication {
 				if (sizeChart != null) {
 					distortionG = proj.calculateDistortion(Projection.globe(GLOBE_RES));
 					sizeDistort = Math2.stdDev(distortionG[0]);
-					shapeDistort = Math2.mean(distortionG[1]);
+					shapeDistort = Math2.rms(distortionG[1]);
 				}
 				
 				if (isCancelled()) 	return null;

@@ -332,7 +332,7 @@ public abstract class Projection {
 	
 	public double[] avgDistortion(double[][][] points) {
 		final double[][][] distDist = calculateDistortion(points);
-		return new double[] {Math2.stdDev(distDist[0]), Math2.mean(distDist[1])};
+		return new double[] {Math2.stdDev(distDist[0]), Math2.rms(distDist[1])};
 	}
 	
 	

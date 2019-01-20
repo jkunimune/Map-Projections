@@ -72,19 +72,19 @@ public class MapPlotter extends Application {
 	private static final double GLOBE_RES = .005;
 	
 	private static final Projection[] CYLINDRICAL = { Cylindrical.MERCATOR,
-			Cylindrical.PLATE_CARREE, Cylindrical.GALL_ORTHOGRAPHIC, Cylindrical.BEHRMANN,
+			Cylindrical.PLATE_CARREE, Cylindrical.GALL_ORTHOGRAPHIC,
 			Cylindrical.GALL_STEREOGRAPHIC };
 	private static final Projection[] AZIMUTHAL = { Azimuthal.POLAR };
 	private static final Projection[] PSEUDOCYL = { Pseudocylindrical.MOLLWEIDE,
 			ArbitraryPseudocylindrical.ROBINSON, ArbitraryPseudocylindrical.NATURAL_EARTH,
 			Pseudocylindrical.KAVRAYSKIY_VII, Tobler.TOBLER };
-	private static final Projection[] LENTICULAR = { Lenticular.AITOFF,
-			Lenticular.VAN_DER_GRINTEN, WinkelTripel.WINKEL_TRIPEL, Arbitrary.DANSEIJI_O,
-			Arbitrary.DANSEIJI_I, Arbitrary.DANSEIJI_II };
+	private static final Projection[] LENTICULAR = { Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN,
+			WinkelTripel.WINKEL_TRIPEL, Arbitrary.DANSEIJI_O, Arbitrary.DANSEIJI_I,
+			Arbitrary.DANSEIJI_II };
 	private static final Projection[] TETRAHEDRAL = { Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
 			Polyhedral.AUTHAGRAPH, Polyhedral.VAN_LEEUWEN };
-	private static final Projection[] CHEATY = { Pseudocylindrical.LEMONS,
-			Octohedral.KEYES_BASIC_M, Polyhedral.DYMAXION, Octohedral.CAHILL_CONCIALDI };
+	private static final Projection[] CHEATY = { Pseudocylindrical.LEMONS, Octohedral.KEYES_BASIC_M,
+			Polyhedral.DYMAXION, Octohedral.CAHILL_CONCIALDI };
 	private static final Projection[] OTHER = { Misc.PEIRCE_QUINCUNCIAL };
 	
 	
@@ -101,8 +101,8 @@ public class MapPlotter extends Application {
 	public void start(Stage root) {
 		final ScatterChart<Number, Number> plot =
 				new ScatterChart<Number, Number>(
-				new NumberAxis("Size distortion", 0, 4, .5),
-				new NumberAxis("Shape distortion", 0, 3, .5));
+				new NumberAxis("RMS scale distortion", 0, 4, .5),
+				new NumberAxis("RMS shape distortion", 0, 4, .5));
 		plot.setLegendSide(Side.RIGHT);
 		final AnchorPane overlay = new AnchorPane();
 		stack = new StackPane(plot, overlay);

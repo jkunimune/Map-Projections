@@ -74,6 +74,15 @@ public class Math2 {
 	}
 	
 	
+	public static double[][] exp(double[][] values) {
+		double[][] output = new double[values.length][values[0].length];
+		for (int i = 0; i < values.length; i ++)
+			for (int j = 0; j < values[i].length; j ++)
+				output[i][j] = Math.exp(values[i][j]);
+		return output;
+	}
+	
+	
 	public static final double combine(double n, int k) {
 		double output = 1;
 		for (int i = k; i > 0; i --) {
