@@ -164,7 +164,7 @@ public abstract class Projection {
 	}
 	
 	public double[] project(double lat, double lon, double[] pole) {
-		return project(obliquifySphc(lat, lon, pole));
+		return project(obliquifySphc(lat, lon, hasAspect ? pole : null));
 	}
 	
 	public double[] project(double lat, double lon, double[] pole, double... params) {
@@ -186,6 +186,7 @@ public abstract class Projection {
 	}
 	
 	public double[] inverse(double x, double y, double[] pole, double... params) {
+		if (!hasAspect)	pole = NORTH_POLE;
 		setParameters(params);
 		return inverse(x, y, pole);
 	}
@@ -195,7 +196,7 @@ public abstract class Projection {
 		if (relCoords == null || (cropAtPi && Math.abs(relCoords[1]) > Math.PI))
 			return null; //cropAtPi removes all points with longitudes outside +- PI
 		else
-			return obliquifyPlnr(relCoords, pole);
+			return obliquifyPlnr(relCoords, hasAspect ? pole : null);
 	}
 	
 	
