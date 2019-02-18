@@ -26,6 +26,7 @@ package maps;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
 
 import maps.Projection.Property;
 import maps.Projection.Type;
@@ -170,44 +171,49 @@ public class Arbitrary {
 			i = Math.max(0, Math.min(cells.length-1, i)); // coerce it into bounds
 			int j = (int)((lon+Math.PI)/(2*Math.PI)*cells[i].length);
 			j = Math.max(0, Math.min(cells[i].length-1, j));
-			double cs = (Math.PI/2-lat)/Math.PI*cells.length - i; // do linear interpolation
-			double ce = (lon+Math.PI)/(2*Math.PI)*cells[i].length - j;
-			double cn = 1 - cs;
-			double cw = 1 - ce;
-			double[][] v; // which vertices we use depends on some things
-			double[] c;
+			double[][] vP = cells[i][j]; // now we know the planar Vertices with which we're working
 			
+			double pN = Math.PI/2 - i*Math.PI/cells.length;
+			double pS = Math.PI/2 - (i+1)*Math.PI/cells.length;
+			double yS = i+1 - (Math.PI/2-lat)/Math.PI*cells.length; // do linear interpolation
+			double xS = (lon+Math.PI)/(2*Math.PI)*cells[i].length - (j+.5);
+			xS *= yS*Math.cos(pN) + (1-yS)*Math.cos(pS); // apply curvature (not strictly necessary, but helps near the poles)
+			double[] vSnw = {-.5*Math.cos(pN), 1}, vSne = {.5*Math.cos(pN), 1}; // compute the relative spherical vertex positions
+			double[] vSsw = {-.5*Math.cos(pS), 0}, vSse = {.5*Math.cos(pS), 0};
+			
+			double[][][] triS; // the triangles from which we interpolate
+			double[][][] triP; // the triangles to which we interpolate
+
 			if (cellShapes[i][j] < 0) { // for negative sloped cells,
-				if (ce >= cs) { // is it in the ne,
-					v = new double[][] {cells[i][j][0], cells[i][j][1], cells[i][j][5]};
-					c = new double[] {         1-cw-cs,             cw,             cs};
-				}
-				else { // or the sw?
-					v = new double[][] {cells[i][j][3], cells[i][j][4], cells[i][j][2]};
-					c = new double[] {         1-ce-cn,             ce,             cn};
-				}
+				triS = new double[][][] {{vSne,  vSnw,  vSse},  {vSsw,  vSse,  vSnw}};
+				triP = new double[][][] {{vP[0], vP[1], vP[5]}, {vP[3], vP[4], vP[2]}};
 			}
 			else if (cellShapes[i][j] > 0) { // for positive sloped cells,
-				if (ce >= cn) { // is it in the se,
-					v = new double[][] {cells[i][j][5], cells[i][j][0], cells[i][j][4]};
-					c = new double[] {         1-cn-cw,             cn,             cw};
-				}
-				else { // or the nw?
-					v = new double[][] {cells[i][j][2], cells[i][j][3], cells[i][j][1]};
-					c = new double[] {         1-cs-ce,             cs,             ce};
-				}
+				triS = new double[][][] {{vSse,  vSne,  vSsw},  {vSnw,  vSsw,  vSne}};
+				triP = new double[][][] {{vP[5], vP[0], vP[4]}, {vP[2], vP[3], vP[1]}};
 			}
-			else { // for single-element cells
-				v = new double[][] {cells[i][j][0], cells[i][j][1], cells[i][j][2], cells[i][j][3]}; // we can just use all of them
-				c = new double[] {           cn*ce,          cn*cw,          cs*cw,          cs*ce};
+			else if (i < cells.length/2) { // for the northern triangular cells,
+				triS = new double[][][] {{vSnw,  vSsw,  vSse}};
+				triP = new double[][][] {{vP[1], vP[2], vP[3]}};
+			}
+			else { // for the southern triangular cells,
+				triS = new double[][][] {{vSsw,  vSne,  vSnw}};
+				triP = new double[][][] {{vP[2], vP[0], vP[1]}};
 			}
 			
-			double[] coords = new double[] {0, 0};
-			for (int k = 0; k < v.length; k ++) {
-				coords[X] += c[k]*v[k][X];
-				coords[Y] += c[k]*v[k][Y];
+			for (int k = 0; k < triS.length; k ++) {
+				double[][] tS = triS[k], tP = triP[k];
+				double detT = (tS[1][Y]-tS[2][Y])*(tS[2][X]-tS[0][X]) + (tS[2][X]-tS[1][X])*(tS[2][Y]-tS[0][Y]); // compute barycentric coordinates on sphere
+				double c0  = ((tS[1][Y]-tS[2][Y])*(tS[2][X]-xS)       + (tS[2][X]-tS[1][X])*(tS[2][Y]-yS))/detT;
+				if (c0 < 0)	continue; // unless the point isn't in this triangle in which case you should skip to the next triangle
+				double c1  = ((tS[2][Y]-tS[0][Y])*(tS[2][X]-xS)       + (tS[0][X]-tS[2][X])*(tS[2][Y]-yS))/detT;
+				double c2 = 1 - c0 - c1;
+				return new double[] {
+						c0*tP[0][X] + c1*tP[1][X] + c2*tP[2][X], // then interpolate into the plane!
+						c0*tP[0][Y] + c1*tP[1][Y] + c2*tP[2][Y]};
 			}
-			return coords;
+			throw new IllegalArgumentException(String.format("[%f,%f] doesn't seem to be in {%s,%s,%s,%s}",
+					xS, yS, Arrays.toString(vSne), Arrays.toString(vSnw), Arrays.toString(vSsw), Arrays.toString(vSse)));
 		}
 		
 		
