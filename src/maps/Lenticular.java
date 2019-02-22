@@ -160,4 +160,37 @@ public class Lenticular {
 		
 	};
 	
+	
+	public static final Projection BERTIN = new Projection(
+			"Bertin", "An artistically conceived oblique map projection", 1.68*2, 2, 0b1011, Type.OTHER, Property.COMPROMISE, 3) {
+		
+		private final double[] POLE = {Math.toRadians(42), Math.toRadians(-163.5), Math.toRadians(180)};
+		
+		public double[] project(double lat, double lon) {
+			double[] oblique = obliquifySphc(lat, lon, POLE); // start with a slightly oblique globe
+			lat = oblique[0];
+			lon = oblique[1];
+			if (lat + lon < -1.4) { // apply controlled smooshing to the resulting coordinates
+				double u = (lon - lat + 1.6)*(lat + lon + 1.4) / 8;
+				lon += u;
+				lat -= 0.8 * u * Math.cos(lat);
+			}
+			
+			double[] coords = HAMMER.project(oblique); // apply a Hammer projection
+			double x = coords[0], y = coords[1];
+			x *= 1.68/2; // change the aspect ratio
+			double d = (1 - Math.cos(lat * lon)) / 12; // apply controlled smooshing to the resulting coordinates
+			if (y < 0)
+				x *= 1 + d; // depending on whether it is in the top
+			else
+				y *= 1 + d / 1.5 * x*x; // or bottom half
+			return new double[] {x, y};
+		}
+		
+		
+		public double[] inverse(double x, double y) {
+			return obliquifyPlnr(HAMMER.inverse(x/1.63*2, y), POLE); // TODO
+		}
+	};
+	
 }

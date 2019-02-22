@@ -140,7 +140,7 @@ public abstract class MapApplication extends Application {
 			{ Pseudocylindrical.ECKERT_IV, Pseudocylindrical.KAVRAYSKIY_VII,
 					Pseudocylindrical.MOLLWEIDE, ArbitraryPseudocylindrical.NATURAL_EARTH,
 					ArbitraryPseudocylindrical.ROBINSON, Pseudocylindrical.SINUSOIDAL, Tobler.TOBLER },
-			{ Lenticular.AITOFF, Lenticular.HAMMER, Lenticular.STREBE_95,
+			{ Lenticular.AITOFF, Lenticular.BERTIN, Lenticular.HAMMER, Lenticular.STREBE_95,
 					Lenticular.VAN_DER_GRINTEN, WinkelTripel.WINKEL_TRIPEL },
 			{ Snyder.GS50, Misc.GUYOU, Misc.HAMMER_RETROAZIMUTHAL, Pseudocylindrical.LEMONS,
 					Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT, Misc.FLAT_EARTH },
