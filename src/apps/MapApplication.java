@@ -23,7 +23,6 @@
  */
 package apps;
 
-import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -520,9 +519,9 @@ public abstract class MapApplication extends Application {
 									"Could not access "+f.getAbsolutePath()+". It's possible that another program has it open.");
 						}
 						pBar.close();
-						try {
-							Desktop.getDesktop().open(f.getParentFile()); // TODO: show a popup here with a button to open the folder insteaf of doing it automatically
-						} catch (IOException e) {} //if you can't open the directory for some reason, don't worry about it.
+//						try {
+//							Desktop.getDesktop().open(f.getParentFile()); // TODO: show a popup here with a button to open the folder inste of of doing it automatically
+//						} catch (IOException e) {} //if you can't open the directory for some reason, don't worry about it.
 					});
 					disableWhile(task.runningProperty(), buttonType);
 					new Thread(task).start(); //now execute!
