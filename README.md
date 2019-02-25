@@ -8,8 +8,8 @@ If you are not on Windows or are otherwise not fancy enough to deserve such exec
 
 You could also compile and run the source code, but if you do, there are a few dependencies. The Java dependencies can be obtained as .jar files:
 
-* [Apache Commons Mathematics Library](http://commons.apache.org/proper/commons-math/download_math.cgi)
-* [Java Tools for Experimental Mathematics "ellipticFunctions" package](http://www3.math.tu-berlin.de/jtem/downloads.html), which requires their "mfc" package
+* [Apache Commons Mathematics Library](http://commons.apache.org/proper/commons-math/download_math.cgi) (you can just download and unzip the whole thing)
+* [Java Tools for Experimental Mathematics "ellipticFunctions" package](http://www3.math.tu-berlin.de/jtem/downloads.html) (you only need "ellipticFunctions.jar" and "mfc.jar")
 
 If you want to use the Python, you'll need a couple of packages from [PyPI](https://pypi.python.org/pypi). Just install Python 3 and pip, and then call the following from a command line (or use Anaconda or something, I don't know. Up to you).
 ~~~~
