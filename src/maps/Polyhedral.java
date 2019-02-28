@@ -234,7 +234,7 @@ public class Polyhedral {
 	
 	
 	public static final Projection VAN_LEEUWEN = new PolyhedralProjection(
-			"van Leeuwen", "An uninterrupted equal-area tetrahedral projection. It's more accurately known as \"the Vertex-oriented great circle projection applied to a tetrahedron\", but the guy who copublished it with Leeuwen calls it \"the van Leeuwen projection\" on his website, so I think this is fine.",
+			"Van Leeuwen", "An uninterrupted equal-area tetrahedral projection. It's more accurately known as \"the Vertex-oriented great circle projection applied to a tetrahedron\", but the guy who copublished it with Leeuwen calls it \"the van Leeuwen projection\" on his website, so I think this is fine.",
 			0b1011, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.EQUAL_AREA, 3) {
 		
 		public double[] faceProject(double lat, double lon) {

@@ -189,7 +189,8 @@ public class Lenticular {
 		
 		
 		public double[] inverse(double x, double y) {
-			return obliquifyPlnr(HAMMER.inverse(x/1.63*2, y), POLE); // TODO
+//			return obliquifyPlnr(HAMMER.inverse(x/1.63*2, y), POLE); // TODO
+			return null;
 		}
 	};
 	

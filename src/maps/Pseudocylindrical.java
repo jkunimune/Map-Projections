@@ -95,7 +95,7 @@ public class Pseudocylindrical {
 	
 	public static final Projection KAVRAYSKIY_VII = new Projection(
 			"Kavrayskiy VII", Math.PI*Math.sqrt(3), Math.PI, 0b1111, Type.PSEUDOCYLINDRICAL,
-			Property.COMPROMISE, 3, null, "mostly popular in the former Soviet Union") {
+			Property.COMPROMISE, 2, null, "mostly popular in the former Soviet Union") {
 		
 		public double[] project(double lat, double lon) {
 			return new double[] { 1.5*lon*Math.sqrt(1/3.-Math.pow(lat/Math.PI, 2)), lat };
