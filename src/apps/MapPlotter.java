@@ -51,6 +51,7 @@ import maps.Arbitrary;
 import maps.ArbitraryPseudocylindrical;
 import maps.Azimuthal;
 import maps.Cylindrical;
+import maps.EqualEarth;
 import maps.Lenticular;
 import maps.Misc;
 import maps.Octohedral;
@@ -77,7 +78,7 @@ public class MapPlotter extends Application {
 	private static final Projection[] AZIMUTHAL = { Azimuthal.POLAR };
 	private static final Projection[] PSEUDOCYL = { Pseudocylindrical.MOLLWEIDE,
 			ArbitraryPseudocylindrical.ROBINSON, ArbitraryPseudocylindrical.NATURAL_EARTH,
-			Pseudocylindrical.KAVRAYSKIY_VII, Tobler.TOBLER };
+			Pseudocylindrical.KAVRAYSKIY_VII, EqualEarth.EQUAL_EARTH };
 	private static final Projection[] LENTICULAR = { Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN,
 			WinkelTripel.WINKEL_TRIPEL, Arbitrary.DANSEIJI_O, Arbitrary.DANSEIJI_I,
 			Arbitrary.DANSEIJI_II };

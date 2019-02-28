@@ -79,6 +79,7 @@ import maps.ArbitraryPseudocylindrical;
 import maps.Azimuthal;
 import maps.Conic;
 import maps.Cylindrical;
+import maps.EqualEarth;
 import maps.Lenticular;
 import maps.Misc;
 import maps.MyProjections;
@@ -120,8 +121,9 @@ public abstract class MapApplication extends Application {
 			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
 			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER,
 			Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN, ArbitraryPseudocylindrical.ROBINSON,
-			WinkelTripel.WINKEL_TRIPEL, Arbitrary.DANSEIJI_O, Octohedral.KEYES_BASIC_M,
-			Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Misc.PEIRCE_QUINCUNCIAL, Pseudocylindrical.LEMONS };
+			WinkelTripel.WINKEL_TRIPEL, EqualEarth.EQUAL_EARTH, Arbitrary.DANSEIJI_O,
+			Octohedral.KEYES_BASIC_M, Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Misc.PEIRCE_QUINCUNCIAL,
+			Pseudocylindrical.LEMONS };
 	
 	public static final String[] PROJECTION_CATEGORIES = { "Cylindrical", "Azimuthal", "Conic",
 			"Polyhedral", "Pseudocylindrical", "Lenticular", "Other", "Invented by Justin" }; //the overarching categories by which I organise my projections
@@ -136,7 +138,7 @@ public abstract class MapApplication extends Application {
 					Octohedral.KEYES_BASIC_M, Octohedral.KEYES_BUTTERFLY, Polyhedral.DYMAXION,
 					Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
 					Polyhedral.VAN_LEEUWEN, Octohedral.WATERMAN },
-			{ Pseudocylindrical.ECKERT_IV, Pseudocylindrical.KAVRAYSKIY_VII,
+			{ Pseudocylindrical.ECKERT_IV, EqualEarth.EQUAL_EARTH, Pseudocylindrical.KAVRAYSKIY_VII,
 					Pseudocylindrical.MOLLWEIDE, ArbitraryPseudocylindrical.NATURAL_EARTH,
 					ArbitraryPseudocylindrical.ROBINSON, Pseudocylindrical.SINUSOIDAL, Tobler.TOBLER },
 			{ Lenticular.AITOFF, Lenticular.HAMMER, Lenticular.STREBE_95,

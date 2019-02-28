@@ -33,6 +33,7 @@ import maps.ArbitraryPseudocylindrical;
 import maps.Azimuthal;
 import maps.Conic;
 import maps.Cylindrical;
+import maps.EqualEarth;
 import maps.Lenticular;
 import maps.Misc;
 import maps.Octohedral;
@@ -51,25 +52,29 @@ import maps.WinkelTripel;
 public class MapProducer extends Application {
 	
 	public static final Projection[][] ALL_PROJECTIONS = {
-			{ Cylindrical.PLATE_CARREE,
-					Cylindrical.PLATE_CARREE.withAspect("Cassini", 0,Math.PI/2, -Math.PI/2),
+			{ 
+					Cylindrical.PLATE_CARREE,
+					Cylindrical.PLATE_CARREE.withAspect("Cassini", 0, Math.PI/2, -Math.PI/2),
 					Cylindrical.MERCATOR,
-					Cylindrical.MERCATOR.withAspect("Transverse Mercator", 0,Math.PI/2,-Math.PI/2),
+					Cylindrical.MERCATOR.withAspect("Transverse Mercator", 0, Math.PI/2, -Math.PI/2),
 					Cylindrical.GALL_STEREOGRAPHIC, Cylindrical.MILLER, Cylindrical.LAMBERT,
 					Cylindrical.BEHRMANN, Cylindrical.HOBO_DYER, Cylindrical.GALL_ORTHOGRAPHIC,
 					Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE,
 					Pseudocylindrical.ECKERT_IV, Pseudocylindrical.KAVRAYSKIY_VII,
-					ArbitraryPseudocylindrical.ROBINSON, ArbitraryPseudocylindrical.NATURAL_EARTH, Tobler.TOBLER, Lenticular.AITOFF,
-					Lenticular.HAMMER, WinkelTripel.WINKEL_TRIPEL, Lenticular.VAN_DER_GRINTEN,
-					Conic.EQUIDISTANT, Conic.LAMBERT, Conic.ALBERS, Azimuthal.POLAR,
-					Azimuthal.GNOMONIC, Azimuthal.EQUAL_AREA, Azimuthal.STEREOGRAPHIC,
-					Azimuthal.ORTHOGRAPHIC, Azimuthal.PERSPECTIVE, Misc.TWO_POINT_EQUIDISTANT,
+					ArbitraryPseudocylindrical.ROBINSON, ArbitraryPseudocylindrical.NATURAL_EARTH,
+					Tobler.TOBLER, Lenticular.AITOFF, Lenticular.HAMMER, WinkelTripel.WINKEL_TRIPEL,
+					Lenticular.VAN_DER_GRINTEN, EqualEarth.EQUAL_EARTH, Conic.EQUIDISTANT,
+					Conic.LAMBERT, Conic.ALBERS, Azimuthal.POLAR, Azimuthal.GNOMONIC,
+					Azimuthal.EQUAL_AREA, Azimuthal.STEREOGRAPHIC, Azimuthal.ORTHOGRAPHIC,
+					Azimuthal.PERSPECTIVE, Misc.TWO_POINT_EQUIDISTANT,
 					Misc.PEIRCE_QUINCUNCIAL.transverse("Adams Doubly-Periodic"),
 					Polyhedral.DYMAXION, Misc.HAMMER_RETROAZIMUTHAL, Snyder.GS50,
-					Azimuthal.STEREOGRAPHIC.withAspect("Oblique Stereographic", .5,2.5,-2.5),
-					Cylindrical.MERCATOR.withAspect("Oblique Mercator", .5,2.5,2.5) },
-			{ Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
+					Azimuthal.STEREOGRAPHIC.withAspect("Oblique Stereographic", .5, 2.5, -2.5),
+					Cylindrical.MERCATOR.withAspect("Oblique Mercator", .5, 2.5, 2.5) },
+			{
+					Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
 					Octohedral.CAHILL_KEYES, Octohedral.WATERMAN } };
+	public static final double[] ctrMerids = {0, Math.toRadians(-20)};
 	
 	
 	public static void main(String[] args) {
@@ -82,7 +87,6 @@ public class MapProducer extends Application {
 		
 		SVGMap[] inputs = { new SVGMap(new File("input/Advanced/Tissot Wikipedia +0.svg")),
 				new SVGMap(new File("input/Advanced/Tissot Wikipedia -20.svg")) };
-		double[] ctrMerids = {0, Math.toRadians(-20)};
 		for (int i = 0; i < 2; i ++) {
 			double[] pole = {Math.PI/2, 0, ctrMerids[i]};
 			for (Projection proj: ALL_PROJECTIONS[i]) {
