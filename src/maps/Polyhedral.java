@@ -96,10 +96,18 @@ public class Polyhedral {
 	
 	
 	public static final PolyhedralProjection AUTHAGRAPH = new PolyhedralProjection(
-			"AuthaGraph", "A hip new Japanese map that is almost equal-area and would be super great if they actually published their equations.",
-			0b1011, Configuration.AUTHAGRAPH, Property.COMPROMISE, 3) {
+			"IMAGO (AuthaGraph)", "Authagraph is a hip new Japanese map that is almost equal-area and would be super great if "
+					+ "they actually published their equations. This is technically just an approximation, also known as the Infinitessimal "
+					+ "Mutated AuthaGraph Offspring.",
+			0b1011, Configuration.AUTHAGRAPH, Property.COMPROMISE, 3,
+			new String[] {"Power"}, new double[][] {{.5,1,.68}}) {
 		
 		private final double[] POLE = {Math.toRadians(77), Math.toRadians(143), Math.toRadians(17)};
+		private double k;
+		
+		public void setParameters(double... params) {
+				this.k = params[0];
+		}
 		
 		@Override
 		public double[] project(double lat, double lon) { //apply a pole shift to AuthaGraph
@@ -116,7 +124,7 @@ public class Polyhedral {
 		public double[] faceProject(double lat, double lon) {
 			final double tht = Math.atan((lon - Math.asin(Math.sin(lon)/Math.sqrt(3)))/Math.PI*Math.sqrt(12));
 			final double p = (Math.PI/2 - lat) / Math.atan(Math.sqrt(2)/Math.cos(lon));
-			return new double[] { Math.pow(p,.707)*Math.sqrt(3)/Math.cos(tht), tht };
+			return new double[] { Math.pow(p,k)*Math.sqrt(3)/Math.cos(tht), tht };
 		}
 		
 		protected double[] faceInverse(double r, double th) {
@@ -126,15 +134,15 @@ public class Polyhedral {
 					.001);
 			final double R = r / (Math.sqrt(3)/Math.cos(th));
 			return new double[] {
-					Math.PI/2 - Math.pow(R,1.41)*Math.atan(Math.sqrt(2)/Math.cos(lon)), lon };
+					Math.PI/2 - Math.pow(R,1/k)*Math.atan(Math.sqrt(2)/Math.cos(lon)), lon };
 		}
 	};
 	
 	
 	public static final PolyhedralProjection AUTHAPOWER = new PolyhedralProjection(
-			"TetraPower", "A parametrised, rearranged, open-source version of my AuthaGraph approximation.",
+			"TetraPower", "A parametrised, simplified version of my AuthaGraph approximation.",
 			0b1011, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.COMPROMISE, 4,
-			new String[] {"Power"}, new double[][] {{.25,1,.7}}) {
+			new String[] {"Power"}, new double[][] {{.5,1,.6}}) {
 		
 		private double k;
 		
