@@ -115,7 +115,7 @@ public abstract class MapApplication extends Application {
 	private static final KeyCombination CTRL_ENTER = new KeyCodeCombination(KeyCode.ENTER, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	public static final Projection[] FEATURED_PROJECTIONS = { Cylindrical.MERCATOR, // the set of featured projections for the ComboBox
+	public static final Projection[] FEATURED_PROJECTIONS = { Misc.T_SHIRT, Cylindrical.MERCATOR, // the set of featured projections for the ComboBox
 			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL_STEREOGRAPHIC,
 			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
 			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
@@ -143,7 +143,7 @@ public abstract class MapApplication extends Application {
 					ArbitraryPseudocylindrical.ROBINSON, Pseudocylindrical.SINUSOIDAL, Tobler.TOBLER },
 			{ Lenticular.AITOFF, Lenticular.HAMMER, Lenticular.STREBE_95,
 					Lenticular.VAN_DER_GRINTEN, WinkelTripel.WINKEL_TRIPEL },
-			{ Lenticular.BERTIN, Snyder.GS50, Misc.GUYOU, Misc.HAMMER_RETROAZIMUTHAL,
+			{ Snyder.GS50, Misc.GUYOU, Misc.HAMMER_RETROAZIMUTHAL,
 					Pseudocylindrical.LEMONS, Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT,
 					Misc.FLAT_EARTH },
 			{ Arbitrary.DANSEIJI_O, Arbitrary.DANSEIJI_I, Arbitrary.DANSEIJI_II,

@@ -31,6 +31,7 @@ import maps.Projection.Property;
 import maps.Projection.Type;
 import utils.Elliptic;
 import utils.Math2;
+import utils.NumericalAnalysis;
 
 /**
  * All the projections that don't fit into any of the other categories.
@@ -228,6 +229,45 @@ public class Misc {
 		@Override
 		public double[] inverse(double x, double y, double[] pole, boolean crop) {
 			return super.inverse(x, y, null, crop);
+		}
+	};
+	
+	
+	public static final Projection T_SHIRT =
+			new Projection(
+					"T-Shirt", "A conformal projection onto a torso.",
+					10, 10, 0b1001, Type.OTHER, Property.CONFORMAL, 3) {
+
+//		private final double[] X = {0, 22.3, 75.8, 119.5};
+//		private final double[] A = {.128, .084, .852, .500};
+		private final double[] X = {0, 1};
+		private final double[] A = {.5, .5};
+		private final de.jtem.mfc.field.Complex K = new de.jtem.mfc.field.Complex(1, 0);
+		
+		public double[] project(double lat, double lon) {
+			double wAbs = Math.tan(Math.PI/4-Math.abs(lat)/2);
+			de.jtem.mfc.field.Complex w = new de.jtem.mfc.field.Complex(wAbs*Math.sin(lon), -wAbs*Math.cos(lon));
+			w = (w.plus(1)).divide(w.minus(1)).neg().timesI();
+			de.jtem.mfc.field.Complex z = NumericalAnalysis.simpsonIntegrate(
+					new de.jtem.mfc.field.Complex(0,1), w, this::integrand, 1e-2);
+			double x = z.getRe(), y = z.getIm();
+			if (lat > 0)
+				return new double[] {-2+x, y}; //move the back of the shirt over
+			else
+				return new double[] {2-x, y};
+		}
+		
+		public double[] inverse(double x, double y) {
+			return null;
+		}
+		
+		private de.jtem.mfc.field.Complex integrand(de.jtem.mfc.field.Complex z) {
+			de.jtem.mfc.field.Complex w = K;
+			for (int i = X.length-1; i > 0; i --)
+				w = w.times(z.plus(X[i]).pow(-A[i]));
+			for (int i = 0; i < X.length; i ++)
+				w = w.times(z.minus(X[i]).pow(-A[i]));
+			return w;
 		}
 	};
 	

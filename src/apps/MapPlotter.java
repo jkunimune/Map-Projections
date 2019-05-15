@@ -58,7 +58,6 @@ import maps.Octohedral;
 import maps.Polyhedral;
 import maps.Projection;
 import maps.Pseudocylindrical;
-import maps.Tobler;
 import maps.WinkelTripel;
 
 /**

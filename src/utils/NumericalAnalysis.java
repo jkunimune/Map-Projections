@@ -26,6 +26,9 @@ package utils;
 import java.util.Arrays;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
+import java.util.function.Function;
+
+import de.jtem.mfc.field.Complex;
 
 /**
  * A whole class just for numeric approximation methods
@@ -57,11 +60,40 @@ public class NumericalAnalysis {
 	 */
 	public static final double simpsonIntegrate(double a, double b, ScalarFunction f, double h, double... constants) {
 		double sum = 0;
-		for (double x = a; x < b; x += h) {
-			if (x+h > b) 	h = b-x;
-			sum += h/6*(f.evaluate(x,constants)
-					+ 4*f.evaluate(x+h/2, constants)
-					+   f.evaluate(x+h, constants));
+		int N = (int)Math.ceil(Math.abs(b-a)/h)*2;
+		double dx = (b - a)/N;
+		for (int i = 0; i <= N; i ++) {
+			double x = a + i*dx;
+			if (i == 0 || i == N)
+				sum += dx/3.*f.evaluate(x, constants);
+			else if (i%2 == 1)
+				sum += dx*4/3.*f.evaluate(x, constants);
+			else
+				sum += dx*2/3.*f.evaluate(x, constants);
+		}
+		return sum;
+	}
+	
+	/**
+	 * Performs a definite integral on the Complex plane using Simpson's rule and a constant step size.
+	 * @param a The start of the integration path
+	 * @param b The end of the integration path
+	 * @param f The complex integrand function
+	 * @param h The step magnitude (must be positive)
+	 * @return \int_a*b f(x) \mathrm{d}x
+	 */
+	public static Complex simpsonIntegrate(Complex a, Complex b, Function<Complex, Complex> f, double h) {
+		Complex sum = new Complex(0);
+		int N = (int)Math.ceil(b.minus(a).abs()/h)*2;
+		Complex dz = b.minus(a).divide(N);
+		for (int i = 0; i <= N; i ++) {
+			Complex z = a.plus(dz.times(i));
+			if (i == 0 || i == N)
+				sum.assignPlus(f.apply(z).times(dz.times(1/3.)));
+			else if (i%2 == 1)
+				sum.assignPlus(f.apply(z).times(dz.times(4/3.)));
+			else
+				sum.assignPlus(f.apply(z).times(dz.times(2/3.)));
 		}
 		return sum;
 	}
