@@ -30,7 +30,15 @@ package utils;
  */
 public class Math2 {
 
+	/** The golden ration **/
 	public static final double PHI = (1+Math.sqrt(5))/2;
+	
+	
+	/**
+	 * Compute the arithmetic mean.
+	 * @param values the numbers to be averaged
+	 * @return       the average of values
+	 */
 	public static final double mean(double[][] values) {
 		double s = 0, n = 0;
 		for (double[] row: values) {
@@ -45,6 +53,11 @@ public class Math2 {
 	}
 	
 	
+	/**
+	 * Compute the standard deviation.
+	 * @param values the numbers that deviate
+	 * @return       the standard deviation of values
+	 */
 	public static final double stdDev(double[][] values) {
 		double s = 0, ss = 0, n = 0;
 		for (double[] row: values) {
@@ -60,6 +73,11 @@ public class Math2 {
 	}
 	
 	
+	/**
+	 * Compute the root-mean-square.
+	 * @param values the values to evaluate
+	 * @return       the square-root of the mean of the square of values
+	 */
 	public static final double rms(double[][] values) {
 		double ss = 0, n = 0;
 		for (double[] row: values) {
@@ -74,6 +92,11 @@ public class Math2 {
 	}
 	
 	
+	/**
+	 * elementwise-compute the exponential.
+	 * @param values the numbers whose exponentials to take
+	 * @return       an array containing Euler's number to each value
+	 */
 	public static double[][] exp(double[][] values) {
 		double[][] output = new double[values.length][values[0].length];
 		for (int i = 0; i < values.length; i ++)
@@ -83,6 +106,12 @@ public class Math2 {
 	}
 	
 	
+	/**
+	 * Compute the combination
+	 * @param n the number of elements from which to combine
+	 * @param k the number of slots into which to combine
+	 * @return  the number of ways the given elements can fill the given slots
+	 */
 	public static final double combine(double n, int k) {
 		double output = 1;
 		for (int i = k; i > 0; i --) {
@@ -92,11 +121,22 @@ public class Math2 {
 	}
 	
 	
+	/**
+	 * Compute the modulus in a more predictable way from Java's primitive one.
+	 * @param x the dividend
+	 * @param y the divisor
+	 * @return  the modulus x%y, but with proper handling of negative numbers
+	 */
 	public static final double floorMod(double x, double y) {
 		return x - Math.floor(x / y) * y;
 	}
 	
 	
+	/**
+	 * Like signum, but with sigone(0) = 1.
+	 * @param x the value whose sign to check
+	 * @return  1 if x >= 0, -1 otherwise
+	 */
 	public static double sigone(double x) {
 		if (x >= 0)
 			return 1;

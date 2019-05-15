@@ -38,9 +38,9 @@ public class NumericalAnalysis {
 	 * Performs a definite integral using Simpson's rule and a constant step size
 	 * @param a The start of the integration region
 	 * @param b The end of the integration region (must be greater than a)
-	 * @param f The integrand
+	 * @param f The integrand function
 	 * @param h The step size (must be positive)
-	 * @return \int_a^b \! f(x) \, \mathrm{d}x
+	 * @return \int_a^b f(x) \mathrm{d}x
 	 */
 	public static final double simpsonIntegrate(double a, double b, DoubleUnaryOperator f, double h) {
 		return simpsonIntegrate(a, b, (x,consts) -> f.applyAsDouble(x), h);
@@ -50,10 +50,10 @@ public class NumericalAnalysis {
 	 * Performs a definite integral using Simpson's rule and a constant step size
 	 * @param a The start of the integration region
 	 * @param b The end of the integration region (must be greater than a)
-	 * @param f The integrand
+	 * @param f The integrand function
 	 * @param h The step size (must be positive)
 	 * @param constants Constant parameters for the function
-	 * @return \int_a^b \! f(x) \, \mathrm{d}x
+	 * @return \int_a^b f(x) \mathrm{d}x
 	 */
 	public static final double simpsonIntegrate(double a, double b, ScalarFunction f, double h, double... constants) {
 		double sum = 0;
