@@ -236,12 +236,10 @@ public class Misc {
 	public static final Projection T_SHIRT =
 			new Projection(
 					"T-Shirt", "A conformal projection onto a torso.",
-					10, 10, 0b1001, Type.OTHER, Property.CONFORMAL, 3) {
+					16, 10, 0b1001, Type.OTHER, Property.CONFORMAL, 3) {
 
-//		private final double[] X = {0, 22.3, 75.8, 119.5};
-//		private final double[] A = {.128, .084, .852, .500};
-		private final double[] X = {0, 1};
-		private final double[] A = {.5, .5};
+		private final double[] X = {0, .25, .5, 1};
+		private final double[] A = {.128, .084, .852, -.500};
 		private final de.jtem.mfc.field.Complex K = new de.jtem.mfc.field.Complex(1, 0);
 		
 		public double[] project(double lat, double lon) {
@@ -250,11 +248,11 @@ public class Misc {
 			w = (w.plus(1)).divide(w.minus(1)).neg().timesI();
 			de.jtem.mfc.field.Complex z = NumericalAnalysis.simpsonIntegrate(
 					new de.jtem.mfc.field.Complex(0,1), w, this::integrand, 1e-2);
-			double x = z.getRe(), y = z.getIm();
-			if (lat > 0)
-				return new double[] {-2+x, y}; //move the back of the shirt over
+			double x = z.getIm(), y = -z.getRe();
+			if (lat >= 0)
+				return new double[] {x-4, y}; //move the back of the shirt over
 			else
-				return new double[] {2-x, y};
+				return new double[] {4-x, y};
 		}
 		
 		public double[] inverse(double x, double y) {
