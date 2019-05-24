@@ -236,9 +236,9 @@ public class Misc {
 	public static final Projection T_SHIRT =
 			new Projection(
 					"T-Shirt", "A conformal projection onto a torso.",
-					16, 10, 0b1001, Type.OTHER, Property.CONFORMAL, 3) {
+					10, 6, 0b1001, Type.OTHER, Property.CONFORMAL, 3) {
 
-		private final double[] X = {0, .25, .5, 1};
+		private final double[] X = {0, .507, .753, 1};
 		private final double[] A = {.128, .084, .852, -.500};
 		private final de.jtem.mfc.field.Complex K = new de.jtem.mfc.field.Complex(1, 0);
 		
@@ -250,9 +250,9 @@ public class Misc {
 					new de.jtem.mfc.field.Complex(0,1), w, this::integrand, 1e-2);
 			double x = z.getIm(), y = -z.getRe();
 			if (lat >= 0)
-				return new double[] {x-4, y}; //move the back of the shirt over
+				return new double[] {x-2.5, y+1}; //move the back of the shirt over
 			else
-				return new double[] {4-x, y};
+				return new double[] {2.5-x, y+1};
 		}
 		
 		public double[] inverse(double x, double y) {
