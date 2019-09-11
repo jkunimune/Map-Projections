@@ -74,7 +74,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import maps.Arbitrary;
+import maps.Meshed;
 import maps.ArbitraryPseudocylindrical;
 import maps.Azimuthal;
 import maps.Conic;
@@ -115,13 +115,13 @@ public abstract class MapApplication extends Application {
 	private static final KeyCombination CTRL_ENTER = new KeyCodeCombination(KeyCode.ENTER, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	public static final Projection[] FEATURED_PROJECTIONS = { Misc.T_SHIRT, Cylindrical.MERCATOR, // the set of featured projections for the ComboBox
+	public static final Projection[] FEATURED_PROJECTIONS = { Cylindrical.MERCATOR, // the set of featured projections for the ComboBox
 			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL_STEREOGRAPHIC,
 			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
 			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
 			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER,
 			Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN, ArbitraryPseudocylindrical.ROBINSON,
-			WinkelTripel.WINKEL_TRIPEL, EqualEarth.EQUAL_EARTH, Arbitrary.DANSEIJI_O,
+			WinkelTripel.WINKEL_TRIPEL, EqualEarth.EQUAL_EARTH,
 			Octohedral.KEYES_BASIC_M, Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Misc.PEIRCE_QUINCUNCIAL,
 			Pseudocylindrical.LEMONS };
 	
@@ -144,11 +144,11 @@ public abstract class MapApplication extends Application {
 			{ Lenticular.AITOFF, Lenticular.HAMMER, Lenticular.STREBE_95,
 					Lenticular.VAN_DER_GRINTEN, WinkelTripel.WINKEL_TRIPEL },
 			{ Snyder.GS50, Misc.GUYOU, Misc.HAMMER_RETROAZIMUTHAL,
-					Pseudocylindrical.LEMONS, Misc.PEIRCE_QUINCUNCIAL, Misc.TWO_POINT_EQUIDISTANT,
+					Pseudocylindrical.LEMONS, Misc.PEIRCE_QUINCUNCIAL, Misc.T_SHIRT, Misc.TWO_POINT_EQUIDISTANT,
 					Misc.FLAT_EARTH },
-			{ Arbitrary.DANSEIJI_O, Arbitrary.DANSEIJI_I, Arbitrary.DANSEIJI_II,
-					Arbitrary.DANSEIJI_III, Arbitrary.DANSEIJI_IV, Arbitrary.DANSEIJI_V,
-					Arbitrary.DANSEIJI_VI, Arbitrary.DANSEIJI_VII, Arbitrary.DANSEIJI_VIII,
+			{ Meshed.DANSEIJI_N, Meshed.DANSEIJI_I, Meshed.DANSEIJI_II,
+					Meshed.DANSEIJI_III, Meshed.DANSEIJI_IV, Meshed.DANSEIJI_V,
+					Meshed.DANSEIJI_VI,
 					MyProjections.EXPERIMENT, Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH,
 					MyProjections.MAGNIFIER, MyProjections.PSEUDOSTEREOGRAPHIC,
 					Polyhedral.TETRAGRAPH, MyProjections.TWO_POINT_EQUALIZED } };

@@ -36,14 +36,14 @@ import maps.Projection.Type;
  * 
  * @author Justin Kunimune
  */
-public class Arbitrary {
+public class Meshed {
 	
 	private static final int X = 0, Y = 1;
 	
 	
-	public static final ArbitraryProjection DANSEIJI_O = new ArbitraryProjection(
-			"Danseiji O", "The optimal conventional lenticular map.",
-			true, Type.OTHER, Property.COMPROMISE, false, "danseijiO.csv");
+	public static final ArbitraryProjection DANSEIJI_N = new ArbitraryProjection(
+			"Danseiji N", "The optimal conventional lenticular map.",
+			true, Type.OTHER, Property.COMPROMISE, false, "danseijiN.csv");
 	
 	
 	public static final ArbitraryProjection DANSEIJI_I = new ArbitraryProjection(
@@ -70,19 +70,10 @@ public class Arbitrary {
 			"Danseiji V", "A map optimised to display landmasses accurately and without interruption.",
 			true, Type.OTHER, Property.COMPROMISE, true, "danseijiV.csv");
 	
+	
 	public static final ArbitraryProjection DANSEIJI_VI = new ArbitraryProjection(
 			"Danseiji VI", "A compromise conventional map, where both physical area and population affect size.",
 			true, Type.OTHER, Property.COMPROMISE, true, "danseijiVI.csv");
-	
-	
-	public static final ArbitraryProjection DANSEIJI_VII = new ArbitraryProjection(
-			"Danseiji VII", "A compromise unconventional map, where both physical area and population affect size.",
-			true, Type.OTHER, Property.COMPROMISE, true, "danseijiVII.csv");
-	
-	
-	public static final ArbitraryProjection DANSEIJI_VIII = new ArbitraryProjection(
-			"Danseiji VIII", "A map optimised to show off the oceans at the expense of landmasses.",
-			true, Type.OTHER, Property.COMPROMISE, true, "danseijiVIII.csv");
 	
 	
 	

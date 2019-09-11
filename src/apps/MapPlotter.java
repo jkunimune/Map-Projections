@@ -47,7 +47,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import maps.Arbitrary;
+import maps.Meshed;
 import maps.ArbitraryPseudocylindrical;
 import maps.Azimuthal;
 import maps.Cylindrical;
@@ -79,12 +79,12 @@ public class MapPlotter extends Application {
 			ArbitraryPseudocylindrical.ROBINSON, ArbitraryPseudocylindrical.NATURAL_EARTH,
 			Pseudocylindrical.KAVRAYSKIY_VII, EqualEarth.EQUAL_EARTH };
 	private static final Projection[] LENTICULAR = { Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN,
-			WinkelTripel.WINKEL_TRIPEL, Arbitrary.DANSEIJI_O, Arbitrary.DANSEIJI_I,
-			Arbitrary.DANSEIJI_II };
+			WinkelTripel.WINKEL_TRIPEL, Meshed.DANSEIJI_N, Meshed.DANSEIJI_I,
+			Meshed.DANSEIJI_II };
 	private static final Projection[] TETRAHEDRAL = { Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
 			Polyhedral.AUTHAGRAPH, Polyhedral.VAN_LEEUWEN };
 	private static final Projection[] CHEATY = { Pseudocylindrical.LEMONS, Octohedral.CAHILL_KEYES,
-			Polyhedral.DYMAXION, Octohedral.CAHILL_CONCIALDI };
+			Polyhedral.DYMAXION, Octohedral.CAHILL_CONCIALDI, Meshed.DANSEIJI_V };
 	private static final Projection[] OTHER = { Misc.PEIRCE_QUINCUNCIAL };
 	
 	

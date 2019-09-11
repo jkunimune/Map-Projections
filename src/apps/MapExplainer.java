@@ -32,7 +32,7 @@ import image.SavableImage;
 import javafx.application.Application;
 import javafx.concurrent.Task;
 import javafx.stage.Stage;
-import maps.Arbitrary;
+import maps.Meshed;
 import maps.ArbitraryPseudocylindrical;
 import maps.Azimuthal;
 import maps.Conic;
@@ -70,7 +70,7 @@ public class MapExplainer extends Application {
 					Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Octohedral.CAHILL_KEYES,
 					Octohedral.CAHILL_CONCIALDI, Misc.PEIRCE_QUINCUNCIAL.transverse(), Snyder.GS50,
 					Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Misc.FLAT_EARTH },
-			{ Arbitrary.DANSEIJI_O, Arbitrary.DANSEIJI_IV, Arbitrary.DANSEIJI_V, Polyhedral.TETRAGRAPH,
+			{ Meshed.DANSEIJI_N, Meshed.DANSEIJI_IV, Meshed.DANSEIJI_V, Polyhedral.TETRAGRAPH,
 					Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH } };
 	
 	private PixelMap inputSkew, inputPole, inputNone, inputEast, inputWest;
