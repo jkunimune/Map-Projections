@@ -62,12 +62,12 @@ public class Meshed {
 	
 	
 	public static final ArbitraryProjection DANSEIJI_IV = new ArbitraryProjection(
-			"Danseiji IV", "A map optimised to show off the continents by compressing the oceans.",
+			"Danseiji IV", "A map optimised to display landmasses accurately and without interruption.",
 			true, Type.OTHER, Property.COMPROMISE, true, "danseijiIV.csv");
 	
 	
 	public static final ArbitraryProjection DANSEIJI_V = new ArbitraryProjection(
-			"Danseiji V", "A map optimised to display landmasses accurately and without interruption.",
+			"Danseiji V", "A map optimised to show off the continents by compressing the oceans.",
 			true, Type.OTHER, Property.COMPROMISE, true, "danseijiV.csv");
 	
 	

@@ -96,7 +96,7 @@ public class Polyhedral {
 	
 	
 	public static final PolyhedralProjection AUTHAGRAPH = new PolyhedralProjection(
-			"IMAGO (AuthaGraph)", "Authagraph is a hip new Japanese map that is almost equal-area and would be super great if "
+			"IMAGO (AuthaGraph)", "Authagraph is a hip new Japanese map that would be super great if "
 					+ "they actually published their equations. This is technically just an approximation, also known as the Infinitessimal "
 					+ "Mutated AuthaGraph Offspring.",
 			0b1011, Configuration.AUTHAGRAPH, Property.COMPROMISE, 3,
