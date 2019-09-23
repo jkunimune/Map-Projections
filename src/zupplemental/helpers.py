@@ -58,14 +58,17 @@ def plot(coords, midx=[0], close=True, fourmat='pr', clazz=None, ident=None, tab
 	print(tag.replace('.000',''))
 
 
-def trim_edges(coast):
+def trim_edges(coast, coast_parts):
 	"""remove the extra points placed along the edges of the Plate Carree map"""
 	for i in range(len(coast)-1, -1, -1):
 		x0, y0 = coast[i-1] if i > 0 else coast[i]
 		x1, y1 = coast[i]
 		x2, y2 = coast[i+1] if i < len(coast)-1 else coast[i]
-		if (abs(x0) > 179.99 or abs(y0) > 89.99) and (abs(x1) > 179.99 or abs(y1) > 89.99) and (abs(x2) > 179.99 or abs(y2) > 89.99):
+		if (i not in coast_parts) and (abs(x0) > 179.99 or abs(y0) > 89.99) and (abs(x1) > 179.99 or abs(y1) > 89.99) and (abs(x2) > 179.99 or abs(y2) > 89.99):
 			coast.pop(i)
+			for j in range(len(coast_parts)):
+				if coast_parts[j] > i:
+					coast_parts[j] -= 1
 	return coast
 
 
