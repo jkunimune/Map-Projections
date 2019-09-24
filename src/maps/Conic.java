@@ -197,9 +197,11 @@ public class Conic {
 				lat = -lat;
 				lon = -lon;
 			}
-			final double s = reversed ? -1 : 1;
 			final double r = Math.sqrt(C - 2*n*Math.sin(lat));
-			return new double[] { s*r*Math.sin(n*lon), s*(y0 - r*Math.cos(n*lon)) };
+			final double x = r*Math.sin(n*lon);
+			final double y = -r*Math.cos(n*lon);
+			if (reversed) 	return new double[] {-x,-y};
+			else 			return new double[] { x, y};
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -217,7 +219,6 @@ public class Conic {
 			else 				return new double[] {phi, lam};
 		}
 	};
-	
 	
 	
 	/**

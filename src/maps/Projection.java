@@ -560,6 +560,14 @@ public abstract class Projection {
 		return this.property;
 	}
 	
+	/**
+	 * @return the rating:
+	 * 0 if I hate it with a burning passion;
+	 * 1 if it is bad and you shouldn't use it;;
+	 * 2 if it has its use cases but isn't very good outside of them;
+	 * 3 if it is a solid, defensible choice; and
+	 * 4 if I love it with a burning passion.
+	 */
 	public final int getRating() {
 		return this.rating;
 	}
@@ -612,10 +620,10 @@ public abstract class Projection {
 	public static enum Type {
 		CYLINDRICAL("Cylindrical"), CONIC("Conic"), AZIMUTHAL("Azimuthal"),
 		PSEUDOCYLINDRICAL("Pseudocylindrical"), PSEUDOCONIC("Pseudoconic"),
-		PSEUDOAZIMUTHAL("Pseudoazimuthal"), QUASIAZIMUTHAL("Quasiazimuthal"),
+		PSEUDOAZIMUTHAL("Pseudoazimuthal"),
 		TETRAHEDRAL("Tetrahedral"), OCTOHEDRAL("Octohedral"),
 		TETRADECAHEDRAL("Truncated Octohedral"), ICOSOHEDRAL("Icosohedral"),
-		POLYNOMIAL("Polynomial"), STREBE("Strebe Blend"), PLANAR("Planar"), OTHER("Other");
+		POLYNOMIAL("Polynomial"), STREBE("Strebe blend"), PLANAR("Planar"), OTHER("Other");
 		
 		private String name;
 		

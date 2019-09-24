@@ -233,6 +233,89 @@ public class Misc {
 	};
 	
 	
+	public static final Projection BONNE =
+			new Projection(
+					"Bonne", "A traditional pseudoconic projection, also known as the Sylvanus projection.",
+					10, 10, 0b1111, Type.PSEUDOCONIC, Property.EQUAL_AREA, 1,
+					new String[] {"Std. Parallel"}, new double[][] {{-90, 90, 45}}) {
+		
+		private double r0;
+		private double yC; // the y coordinate of the centers of the parallels
+		private boolean reversed; // if the standard parallel is southern
+		
+		public void setParameters(double... params) {
+			double lat0 = Math.toRadians(params[0]);
+			this.reversed = (lat0 < 0);
+			if (reversed)
+				lat0 = -lat0;
+			this.r0 = 1/Math.tan(lat0) + lat0;
+			if (Double.isInfinite(r0)) {
+				this.width = Pseudocylindrical.SINUSOIDAL.getWidth();
+				this.height = Pseudocylindrical.SINUSOIDAL.getHeight();
+			}
+			else { // for such a simple map projection...
+				double argmaxX = NumericalAnalysis.bisectionFind(
+						(p) -> (Math.PI*(1/(r0-p)*Math.cos(p) - Math.sin(p))*Math.cos(Math.PI/(r0-p)*Math.cos(p)) - Math.sin(Math.PI/(r0-p)*Math.cos(p))),
+						-Math.PI/2, 0, 1e-3); // it sure is complicated to find its dimensions!
+				double maxX = (r0 - argmaxX)*Math.sin(Math.PI/(r0 - argmaxX)*Math.cos(argmaxX));
+				this.width = 2*maxX;
+				double argmaxY;
+				try {
+					argmaxY = NumericalAnalysis.bisectionFind(
+							(p) -> (Math.PI*(1/(r0-p)*Math.cos(p) - Math.sin(p))*Math.sin(Math.PI/(r0-p)*Math.cos(p)) + Math.cos(Math.PI/(r0-p)*Math.cos(p))),
+							0, Math.PI/4, 1e-3);
+				} catch (IllegalArgumentException e) {
+					argmaxY = Math.PI/2;
+				}
+				double maxY = Math.max(-r0 + Math.PI/2,
+						-(r0 - argmaxY)*Math.cos(Math.PI/(r0 - argmaxY)*Math.cos(argmaxY)));
+				this.height = r0 + Math.PI/2 + maxY;
+				this.yC = (r0 + Math.PI/2 - maxY)/2;
+			}
+		}
+		
+		public double[] project(double lat, double lon) {
+			if (Double.isInfinite(r0))
+				return Pseudocylindrical.SINUSOIDAL.project(lat, lon);
+			if (reversed) {
+				lat = -lat;
+				lon = -lon;
+			}
+			
+			double r = r0 - lat;
+			double th = lon*Math.cos(lat)/r;
+			double x = r*Math.sin(th);
+			double y = yC - r*Math.cos(th);
+			
+			if (reversed)
+				return new double[] {-x,-y};
+			else
+				return new double[] { x, y};
+		}
+		
+		public double[] inverse(double x, double y) {
+			if (Double.isInfinite(r0))
+				return Pseudocylindrical.SINUSOIDAL.inverse(x, y);
+			if (reversed) {
+				x = -x;
+				y = -y;
+			}
+			
+			double r = Math.hypot(x,  y-yC);
+			if (r < r0 - Math.PI/2 || r > r0 + Math.PI/2)
+				return null;
+			double th = Math.atan2(x, -(y-yC));
+			double lat = r0 - r;
+			double lon = th*r/Math.cos(lat);
+			
+			if (reversed)
+				return new double[] {-lat,-lon};
+			else
+				return new double[] { lat, lon};
+		}
+	};
+	
+	
 	public static final Projection T_SHIRT =
 			new Projection(
 					"T-Shirt", "A conformal projection onto a torso.",

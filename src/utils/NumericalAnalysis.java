@@ -139,13 +139,43 @@ public class NumericalAnalysis {
 	
 	
 	/**
+	 * Applies a bisection zero-finding scheme to find x such that f(x)=y
+	 * @param f The function whose zero must be found
+	 * @param xMin The lower bound for the zero
+	 * @param xMax The upper bound for the zero
+	 * @param tolerence The maximum error in x that this can return
+	 * @return The value of x that sets f to zero
+	 */
+	public static final double bisectionFind(DoubleUnaryOperator f,
+			double xMin, double xMax, double tolerance) {
+		double yMin = f.applyAsDouble(xMin);
+		double yMax = f.applyAsDouble(xMax);
+		if ((yMin < 0) == (yMax < 0))
+			throw new IllegalArgumentException("Bisection failed; bounds "+xMin+" and "+xMax+" do not necessarily straddle a zero.");
+		while (Math.abs(xMax - xMin) > tolerance) {
+			double x = (xMax + xMin)/2;
+			double y = f.applyAsDouble(x);
+			if ((y < 0) == (yMin < 0)) {
+				xMin = x;
+				yMin = y;
+			}
+			else {
+				xMax = x;
+				yMax = y;
+			}
+		}
+		return (xMax + xMin)/2;
+	}
+	
+	
+	/**
 	 * Applies Newton's method in one dimension to solve for x such that f(x)=y
 	 * @param y Desired value for f
 	 * @param x0 Initial guess for x
 	 * @param f The error in terms of x
 	 * @param dfdx The derivative of f with respect to x
 	 * @param tolerance The maximum error that this can return
-	 * @return The value of x that puts f near 0, or NaN if it does not converge in 5 iterations
+	 * @return The value of x that puts f near y, or NaN if it does not converge in 5 iterations
 	 */
 	public static final double newtonRaphsonApproximation(
 			double y, double x0, DoubleUnaryOperator f, DoubleUnaryOperator dfdx, double tolerance) {
