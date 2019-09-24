@@ -36,8 +36,10 @@ public class SAXUtils {
 	public static String encode(String s0) { //encode with the ampersand notation
 		String s1 = "";
 		for (int i = 0; i < s0.length(); i ++) {
-			if (s0.charAt(i) >= 128 || s0.charAt(i) == '&')
+			if (s0.charAt(i) >= 128)
 				s1 += "&#" + (int)s0.charAt(i) + ";";
+			else if (s0.charAt(i) == '&')
+				s1 += "&amp;";
 			else
 				s1 += s0.charAt(i);
 		}
