@@ -74,6 +74,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.converter.DoubleStringConverter;
 import maps.Meshed;
 import maps.ArbitraryPseudocylindrical;
 import maps.Azimuthal;
@@ -393,14 +394,14 @@ public abstract class MapApplication extends Application {
 	
 	
 	/**
-	 * Create a block of niche options - specifically International Dateline cropping and whether
+	 * Create a block of niche options - specifically antimeridian cropping and whether
 	 * there should be a graticule
-	 * @param cropAtIDL - The mutable boolean value to which to bind the "Crop at Dateline" CheckBox.
+	 * @param cropAtIDL - The mutable boolean value to which to bind the "Crop at antimeridian" CheckBox.
 	 * @param graticule - The mutable double value to which to bind the "Graticule" Spinner.
 	 * @return The full formatted Region.
 	 */
 	protected Region buildOptionPane(Flag cropAtIDL, MutableDouble graticule) {
-		final CheckBox cropBox = new CheckBox("Crop at International Dateline"); //the CheckBox for whether there should be shown imagery outside the International Dateline
+		final CheckBox cropBox = new CheckBox("Crop at antimeridian"); //the CheckBox for whether there should be shown imagery beyond += 180 degrees
 		cropBox.setSelected(cropAtIDL.isSet());
 		cropBox.setTooltip(new Tooltip("Hide points of extreme longitude."));
 		cropBox.selectedProperty().addListener((observable, old, now) -> {
@@ -412,7 +413,7 @@ public abstract class MapApplication extends Application {
 			if (90%f == 0)
 				factorsOf90.add((double)f);
 		final Spinner<Double> gratSpinner = new Spinner<Double>(factorsOf90); //spinner for the graticule value
-//		gratSpinner.getValueFactory().setConverter(new DoubleStringConverter());
+		gratSpinner.getValueFactory().setConverter(new DoubleStringConverter());
 		gratSpinner.getValueFactory().setValue(15.);
 		gratSpinner.setDisable(true);
 		gratSpinner.setEditable(true);
