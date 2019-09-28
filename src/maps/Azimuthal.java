@@ -147,4 +147,42 @@ public class Azimuthal {
 				return new double[] { Math.PI - phi, Math.atan2(x, -y) };
 		}
 	};
+	
+	
+	public static final Projection MAGNIFIER = new Projection(
+			"Magnifying glass", "A projection that dilates its center to great scales.",
+			2, 2, 0b1111, Type.AZIMUTHAL, Property.POINTLESS, 2,
+			new String[] {"Actual size", "Apparent size"},
+			new double[][] {{1, 60, 20}, {0.5, 1.0, 0.5}}) {
+		
+		private double p0, r0; // scale factor of magnified portion
+		
+		public void setParameters(double... params) {
+			this.p0 = Math.toRadians(params[0]);
+			this.r0 = params[1];
+		}
+		
+		public double[] project(double lat, double lon) {
+			double p = Math.PI/2 - lat;
+			double r;
+			if (p < p0)
+				r = r0*Math.sin(p/2)/Math.sin(p0/2);
+			else
+				r = Math.sqrt(1 - (1 - r0*r0)*Math.pow(Math.cos(p/2)/Math.cos(p0/2), 2));
+			return new double[] { r*Math.sin(lon), -r*Math.cos(lon)};
+		}
+		
+		public double[] inverse(double x, double y) {
+			double r = Math.hypot(x, y);
+			double th = Math.atan2(x, -y);
+			double p;
+			if (r <= r0)
+				p = 2*Math.asin(Math.sin(p0/2)*r/r0);
+			else if (r <= 1)
+				p = 2*Math.acos(Math.cos(p0/2)*Math.sqrt((1 - r*r)/(1 - r0*r0)));
+			else
+				return null;
+			return new double[] { Math.PI/2 - p, th};
+		}
+	};
 }

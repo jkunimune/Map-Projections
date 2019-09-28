@@ -184,4 +184,18 @@ public class Cylindrical {
 			return new double[] {Math.atan(Math.sinh(y*.8))/.8, x};
 		}
 	};
+	
+	
+	public static final Projection CENTRAL = new Projection(
+			"Central Cylindrical", 2*Math.PI, 2*Math.PI, 0b0111, Type.CYLINDRICAL,
+			Property.PERSPECTIVE, 2) {
+		
+		public double[] project(double lat, double lon) {
+			return new double[] {lon, Math.tan(lat)};
+		}
+		
+		public double[] inverse(double x, double y) {
+			return new double[] {Math.atan(y), x};
+		}
+	};
 }

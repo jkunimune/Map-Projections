@@ -114,7 +114,7 @@ public class Misc {
 	public static final Projection HAMMER_RETROAZIMUTHAL =
 			new Projection(
 					"Hammer Retroazimuthal", "The full version of a map where bearing and distance to a reference point is preserved.",
-					2*Math.PI, 2*Math.PI, 0b1110, Type.QUASIAZIMUTHAL, Property.RETROAZIMUTHAL, 2,
+					2*Math.PI, 2*Math.PI, 0b1110, Type.PSEUDOCONIC, Property.RETROAZIMUTHAL, 2,
 					new String[] {"Latitude","Longitude"},
 					new double[][] {{-89,89,21.4}, {-180,180,39.8}}, false) {
 		
@@ -168,7 +168,7 @@ public class Misc {
 	public static final Projection TWO_POINT_EQUIDISTANT =
 			new Projection(
 					"Two-point Equidistant", "A map that preserves distances, but not azimuths, to two arbitrary points.",
-					0, 0, 0b1111, Type.QUASIAZIMUTHAL, Property.EQUIDISTANT, 3,
+					0, 0, 0b1111, Type.OTHER, Property.EQUIDISTANT, 3,
 					new String[] {"Latitude 1","Longitude 1","Latitude 2","Longitude 2"},
 					new double[][] {{-90,90,41.9},{-180,180,12.5},{-90,90,34.7},{-180,180,112.4}},
 					false) {
@@ -229,6 +229,32 @@ public class Misc {
 		@Override
 		public double[] inverse(double x, double y, double[] pole, boolean crop) {
 			return super.inverse(x, y, null, crop);
+		}
+	};
+	
+	
+	public static final Projection BRAUN_CONIC =
+			new Projection(
+					"Braun conic", "A particular perspective conic that is tangent at 30\u00B0.",
+					4*Math.sqrt(3), 2*Math.sqrt(3), 0b1111,
+					Type.CONIC, Property.PERSPECTIVE, 3) {
+		
+		public double[] project(double lat, double lon) {
+			double r = 1.5*(Math.sqrt(3) - Math.tan((lat + Math.PI/6)/2));
+			double th = lon/2;
+			double x = r*Math.sin(th);
+			double y = height/2 - r*Math.cos(th);
+			return new double[] {x, y};
+		}
+		
+		public double[] inverse(double x, double y) {
+			double r = Math.hypot(x, y - height/2);
+			double th = Math.atan2(x, height/2 - y);
+			if (r > height)
+				return null;
+			double lat = 2*Math.atan(Math.sqrt(3) - 2/3.*r) - Math.PI/6;
+			double lon = th*2;
+			return new double[] {lat, lon};
 		}
 	};
 	

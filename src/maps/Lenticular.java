@@ -23,8 +23,11 @@
  */
 package maps;
 
+import de.jtem.mfc.field.Complex;
 import maps.Projection.Property;
 import maps.Projection.Type;
+import utils.Math2;
+import utils.NumericalAnalysis;
 
 /**
  * A class containing map projections with four-way symmetry and curved parallels.
@@ -55,7 +58,7 @@ public class Lenticular {
 	
 	
 	public static final Projection HAMMER = new Projection(
-			"Hammer", "An equal-area projection shaped like an ellipse.",
+			"Hammer\u2013Aitoff", "An equal-area projection shaped like an ellipse.",
 			4, 2, 0b1111, Type.PSEUDOAZIMUTHAL, Property.EQUAL_AREA, 1) {
 		
 		public double[] project(double lat, double lon) {
@@ -194,4 +197,114 @@ public class Lenticular {
 		}
 	};
 	
+	
+	public static final Projection LAGRANGE = new Projection(
+			"Lagrange", "A circular conformal map.",
+			2, 2, 0b1111, Type.OTHER, Property.CONFORMAL, 2) {
+		
+		public double[] project(double lat, double lon) {
+			double v = Math.pow((1 + Math.sin(lat))/(1 - Math.sin(lat)), .25);
+			double c = (v + 1/v)/2 + Math.cos(lon/2);
+			double x = Math.sin(lon/2)/c;
+			double y = (v - 1/v)/(2*c);
+			return new double[] {x, y};
+		}
+		
+		public double[] inverse(double x, double y) {
+			double r2 = x*x + y*y;
+			if (r2 > 1)
+				return null;
+			double th = 2*y/(1 + r2);
+			double t = Math.pow((1 + th)/(1 - th), 2);
+			double lat = Math.asin((t - 1)/(t + 1));
+			double lon = 2*Math.atan2(2*x, 1 - r2);
+			return new double[] {lat, lon};
+		}
+	};
+	
+	
+	public static final Projection EISENLOHR = new Projection(
+			"Eisenlohr", "The optimal conventional conformal map.",
+			2*(Math.log(Math.sqrt(2)-1)+Math.sqrt(2)), Math.sqrt(1+Math.sqrt(.75))+Math.sqrt(1-Math.sqrt(.75))-Math.PI/3,
+			0b1011, Type.OTHER, Property.CONFORMAL, 2) {
+		
+		public double[] project(double lat, double lon) {
+			Complex w = new Complex(lon, Math.log(Math.tan(Math.PI/4+lat/2)));
+			Complex v = w.divide(4).minus(Math.PI/8).tan().minus(1).divide(-Math.sqrt(2));
+			Complex z = v.log().plus(v.invert().minus(v).divide(Math.sqrt(2)));
+			return new double[] { z.getRe(), z.getIm() };
+		}
+		
+		public double[] inverse(double x, double y) {
+			if (x > 0) { // It converges on the right half, but not the left
+				double[] res = inverse(-x, -y); // I'm not sure why it does this,
+				return new double[] {-res[0], -res[1]}; // but the fix is easy.
+			}
+			
+			Complex z = new Complex(x, y);
+			Complex v = NumericalAnalysis.newtonRaphsonApproximation(z, z.exp(),
+					(t)->(t.log().plus(t.invert().minus(t).divide(Math.sqrt(2)))),
+					(t)->(t.invert().plus(t.pow(-2).neg().minus(1).divide(Math.sqrt(2)))),
+					1e-4);
+			Complex w = Math2.atan(v.times(Math.sqrt(2)).minus(1)).minus(Math.PI/8).times(-4);
+			return new double[] { Math.atan(Math.sinh(w.getIm())), w.getRe() };
+		}
+	};
+	
+	
+	public static final Projection WAGNER_II = new Projection(
+			"Wagner II", "A compromise projection with sinusoidal meridians.",
+			2, 2, 0b1111, Type.OTHER, Property.COMPROMISE, 0) {
+		
+		public double[] project(double lat, double lon) {
+			return null; // TODO
+		}
+		
+		public double[] inverse(double x, double y) {
+			return null; //TODO
+		}
+	};
+	
+	
+	public static final Projection WAGNER_V = new Projection(
+			"Wagner V", "A compromise projection with elliptical meridians.",
+			2, 2, 0b1111, Type.OTHER, Property.COMPROMISE, 0) {
+		
+		public double[] project(double lat, double lon) {
+			return null; // TODO
+		}
+		
+		public double[] inverse(double x, double y) {
+			return null; //TODO
+		}
+	};
+	
+	
+	public static final Projection WAGNER_VIII = new Projection(
+			"Wagner VIII", "A compromise projection with pseudoazimuthal meridians.",
+			2, 2, 0b1111, Type.OTHER, Property.CONFORMAL, 0) {
+		
+		public double[] project(double lat, double lon) {
+			return null; // TODO
+		}
+		
+		public double[] inverse(double x, double y) {
+			return null; //TODO
+		}
+	};
+	
+	
+	public static final Projection GYORFFY = new Projection(
+			"Gy\\u00F6rffy minimum distortion pointed-polar", "The optimal pointed-polar projection.",
+			2, 2, 0b1111, Type.OTHER, Property.COMPROMISE, 0) {
+		
+		public double[] project(double lat, double lon) {
+			return null; // TODO
+		}
+		
+		public double[] inverse(double x, double y) {
+			return null; //TODO
+		}
+	};
+
 }

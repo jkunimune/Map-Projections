@@ -66,7 +66,7 @@ public class ArbitraryPseudocylindrical {
 		private final double[][] table;
 		
 		public ArbitraryProjection(String title, String inventor, double aspectRatio, double[][] table) {
-			super(title, 2, 2*aspectRatio, 0b1111, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE, 2,
+			super(title, 2, 2*aspectRatio, 0b1111, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE, 3,
 					null, "designed by "+inventor);
 			this.yMax = aspectRatio;
 			this.table = table;

@@ -50,7 +50,7 @@ public class Octohedral {
 	
 	
 	public static final Projection KEYES_BUTTERFLY = new OctohedralProjection(
-			"Cahill-Keyes Butterfly", "A simple Cahill-esque octohedral map arrangement, with Antarctica left on.",
+			"Cahill\u2013Keyes Butterfly", "A simple Cahill-esque octohedral map arrangement, with Antarctica left on.",
 			CahillKeyes.lMG, CahillKeyes.lMA, 0b1010, Property.COMPROMISE, 4,
 			Configuration.BUTTERFLY) {
 		
@@ -67,7 +67,7 @@ public class Octohedral {
 	
 	
 	public static final Projection KEYES_BASIC_M = new OctohedralProjection(
-			"Cahill-Keyes Basic", "A simple M-shaped octohedral projection, with Antarctica broken into three pieces.",
+			"Cahill\u2013Keyes Basic", "A simple M-shaped octohedral projection, with Antarctica broken into three pieces.",
 			CahillKeyes.lMG, CahillKeyes.lMA, 0b1010, Property.COMPROMISE, 3,
 			Configuration.M_PROFILE) {
 		
@@ -84,7 +84,7 @@ public class Octohedral {
 	
 	
 	public static final Projection CAHILL_KEYES = new OctohedralProjection(
-			"Cahill-Keyes", "An M-shaped octohedral projection with Antarctica assembled in the center.",
+			"Cahill\u2013Keyes", "An M-shaped octohedral projection with Antarctica assembled in the center.",
 			CahillKeyes.lMG, CahillKeyes.lMA, 0b1010, Property.COMPROMISE, 4,
 			Configuration.M_W_S_POLE) {
 		
@@ -100,13 +100,30 @@ public class Octohedral {
 	};
 	
 	
+	public static final Projection CONFORMAL_CAHILL = new OctohedralProjection(
+			"Conformal Cahill", "The conformal and only reproducable variant of Cahill's original map.",
+			Math.sqrt(3)/2, 0, 0b1000, Property.CONFORMAL, 3, Configuration.BUTTERFLY) {
+
+				protected double[] faceProject(double lat, double lon) {
+					// TODO: Implement this
+					return null;
+				}
+
+				protected double[] faceInverse(double x, double y) {
+					// TODO: Implement this
+					return null;
+				}
+		
+	};
+	
+	
 	public static final Projection CAHILL_CONCIALDI = new OctohedralProjection(
-			"Cahill-Concialdi Bat", "A conformal octohedral projection with no cuts and a unique arrangement.",
+			"Cahill\u2013Concialdi Bat", "A conformal octohedral projection with no cuts and a unique arrangement.",
 			Math.sqrt(3)/2, 0, 0b1000, Property.CONFORMAL, 4, Configuration.BAT_SHAPE) {
 		
 		private final double HEXAGON_SCALE = 1.112913; //this is 2^(2/3)/6*\int_0^\pi sin^(-1/3) x dx
 		private final double TOLERANCE = 1e-3;
-		private final double[] VERTEX = {0, Math.PI/4, -3*Math.PI/4};
+		private final double[] VERTEX = {0, Math.PI/4, -3*Math.PI/4}; // TODO this needs to be tilted a bit
 		
 		protected double[] faceProject(double lat, double lon) {
 			double[] poleCoords = {lat, lon};

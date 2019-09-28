@@ -203,12 +203,37 @@ public class NumericalAnalysis {
 			x -= error/dydx;
 			error = f.evaluate(x, constants) - y;
 		}
-		if (error > tolerance)
+		if (Math.abs(error) > tolerance)
 			return Double.NaN;
 		else
 			return x;
 	}
 	
+	/**
+	 * Applies Newton's method in one dimension to solve for x such that f(x)=y
+	 * @param y Desired value for f
+	 * @param x0 Initial guess for x
+	 * @param f The error in terms of x
+	 * @param dfdx The derivative of f with respect to x
+	 * @param tolerance The maximum absolute error that this can return
+	 * @param constants Constant parameters for the function
+	 * @return The value of x that puts f near 0, or NaN if it does not converge in 5 iterations
+	 */
+	public static Complex newtonRaphsonApproximation(
+			Complex y, Complex x0,
+			Function<Complex, Complex> f, Function<Complex, Complex> dfdx, double tolerance) {
+		Complex x = x0;
+		Complex error = f.apply(x).minus(y);
+		for (int i = 0; i < 8 && error.abs() > tolerance; i ++) {
+			Complex dydx = dfdx.apply(x);
+			x.assignMinus(error.divide(dydx));
+			error = f.apply(x).minus(y);
+		}
+		if (error.abs() > tolerance)
+			return new Complex(Double.NaN);
+		else
+			return x;
+	}
 	
 	/**
 	 * Applies Newton's method in two dimensions to solve for phi and lam such

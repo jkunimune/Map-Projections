@@ -23,6 +23,8 @@
  */
 package utils;
 
+import de.jtem.mfc.field.Complex;
+
 /**
  * A class of some useful Math functions that seem like they could be in Math
  * 
@@ -265,6 +267,11 @@ public class Math2 {
 	
 	public static double cos2(double a) {
 		return Math.pow(Math.cos(a), 2);
+	}
+	
+	
+	public static Complex atan(Complex z) {
+		return new Complex(0, 1).plus(z).divide(new Complex(0, 1).minus(z)).log().times(new Complex(0, 0.5));
 	}
 
 }
