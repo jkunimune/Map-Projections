@@ -45,7 +45,7 @@ public class PixelMap {
 	
 	
 	public int getArgb(double lat, double lon) {
-		double x = 1/2.0 + lon/(2*Math.PI);
+		double x = 0.5 + lon/(2*Math.PI);
 		x = (x - Math.floor(x)) * pixels.getWidth();
 		
 		double y = pixels.getHeight()*(.5 - lat/Math.PI);

@@ -36,7 +36,7 @@ public class Gyorffy {
 	private static final double PI2M2 = Math.pow(Math.PI/2, -2);
 	
 	public static final Projection C = new PolynomialProjection(
-			"C", "The optimal pseudocylindrical projection.", Type.PSEUDOCYLINDRICAL, 3,
+			"C", "The optimal pseudocylindrical projection.", Type.PSEUDOCYLINDRICAL, 2,
 			new double[] {0.76158, 1.67084, 5.17538, 0.00272, 1, 0, 0});
 	
 	public static final Projection D = new PolynomialProjection(
@@ -75,7 +75,7 @@ public class Gyorffy {
 			double[] res = NumericalAnalysis.newtonRaphsonApproximation(
 					x, y, phi0, lam0, Gyorffy::x, Gyorffy::y,
 					Gyorffy::dxdp, Gyorffy::dxdl, Gyorffy::dydp, Gyorffy::dydl,
-					1e-3, this.coefs); // this converges surprisingly well atc
+					1e-4, this.coefs); // this converges surprisingly well atc
 			if (res == null || Double.isNaN(res[1]) ||
 					(Math.abs(res[1]) < Math.PI && Math.abs(x) > x(y, coefs)))
 				return null; // it does have a nasty habit of thinking it's converged outside the map, though

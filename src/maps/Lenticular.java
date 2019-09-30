@@ -252,44 +252,33 @@ public class Lenticular {
 	};
 	
 	
-	public static final Projection WAGNER_II = new Projection(
-			"Wagner II", "A compromise projection with sinusoidal meridians.",
-			2, 2, 0b1111, Type.OTHER, Property.COMPROMISE, 0) {
-		
-		public double[] project(double lat, double lon) {
-			return null; // TODO
-		}
-		
-		public double[] inverse(double x, double y) {
-			return null; //TODO
-		}
-	};
-	
-	
-	public static final Projection WAGNER_V = new Projection(
-			"Wagner V", "A compromise projection with elliptical meridians.",
-			2, 2, 0b1111, Type.OTHER, Property.COMPROMISE, 0) {
-		
-		public double[] project(double lat, double lon) {
-			return null; // TODO
-		}
-		
-		public double[] inverse(double x, double y) {
-			return null; //TODO
-		}
-	};
-	
-	
 	public static final Projection WAGNER_VIII = new Projection(
-			"Wagner VIII", "A compromise projection with pseudoazimuthal meridians.",
-			2, 2, 0b1111, Type.OTHER, Property.CONFORMAL, 0) {
+			"Wagner VIII", "A compromise projection with pseudoazimuthal energy.",
+			5.6229621893185126, 3.5, 0b1111, Type.OTHER, Property.CONFORMAL, 3) {
+		
+		private final double m1 = 0.92118, m2 = 0.8855, n = 3.,
+				cX = 5.6229, cY = 2.6162;
 		
 		public double[] project(double lat, double lon) {
-			return null; // TODO
+			double psi = Math.asin(m1*Math.sin(m2*lat));
+			double del = Math.acos(Math.cos(lon/n)*Math.cos(psi));
+			double alp = Math.signum(lon)*Math.acos(Math.sin(psi)/Math.sin(del));
+			if (Double.isNaN(alp))
+				alp = lat < 0 ? 0 : Math.PI;
+			return new double[] {
+					cX*Math.sin(del/2)*Math.sin(alp),
+					cY*Math.sin(del/2)*Math.cos(alp) };
 		}
 		
 		public double[] inverse(double x, double y) {
-			return null; //TODO
+			double alp = Math.atan2(x/cX, y/cY);
+			double del = 2*Math.asin(Math.hypot(x/cX, y/cY));
+			double psi = Math.asin(Math.cos(alp)*Math.sin(del));
+			if (Math.abs(Math.sin(psi)) > m1)
+				return null;
+			return new double[] {
+					Math.asin(Math.sin(psi)/m1)/m2,
+					Math.signum(x)*Math.acos(Math.cos(del)/Math.cos(psi))*n };
 		}
 	};
 	

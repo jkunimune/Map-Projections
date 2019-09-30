@@ -208,12 +208,12 @@ public class MapDesignerVector extends MapApplication {
 						Command cmdP = new Command(cmdS.type, new double[cmdS.args.length]);
 						for (int k = 0; k < cmdS.args.length; k += 2) {
 							double[] coords = proj.project(cmdS.args[k+1], cmdS.args[k], aspect);
+							if (Double.isNaN(coords[0]) || Double.isNaN(coords[1]))
+								System.err.println(proj+" returns "+coords[0]+","+coords[1]+" at "+cmdS.args[k+1]+","+cmdS.args[k]+"!");
 							cmdP.args[k] =
 									Math.max(Math.min(coords[0], proj.getWidth()), -proj.getWidth());
 							cmdP.args[k+1] =
 									Math.max(Math.min(coords[1], proj.getHeight()), -proj.getHeight());
-							if (Double.isNaN(cmdP.args[k]) || Double.isNaN(cmdP.args[k+1]))
-								System.err.println(proj+" returns "+cmdP.args[k]+","+cmdP.args[k+1]+" at "+cmdS.args[k+1]+","+cmdS.args[k]+"!");
 						}
 						pathP.add(cmdP); //TODO: if I was smart, I would divide landmasses that hit an interruption so that I didn't get those annoying lines that cross the map, and then run adaptive resampling to make sure the cuts look clean and not polygonal (e.g. so Antarctica extends all the way to the bottom), but that sounds really hard.
 						

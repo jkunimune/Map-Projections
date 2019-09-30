@@ -191,7 +191,7 @@ public class NumericalAnalysis {
 	 * @param dfdx The derivative of f with respect to x
 	 * @param tolerance The maximum error that this can return
 	 * @param constants Constant parameters for the function
-	 * @return The value of x that puts f near 0, or NaN if it does not converge in 5 iterations
+	 * @return The value of x that puts f near 0, or NaN if it does not converge in 8 iterations
 	 */
 	public static final double newtonRaphsonApproximation(
 			double y, double x0, ScalarFunction f, ScalarFunction dfdx,

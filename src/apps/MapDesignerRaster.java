@@ -227,8 +227,11 @@ public class MapDesignerRaster extends MapApplication {
 								double X = ((x+(dx+.5)/step)/width - 1/2.) *proj.getWidth();
 								double Y = (1/2. - (y+(dy+.5)/step)/height) *proj.getHeight();
 								double[] coords = proj.inverse(X, Y, aspect, crop);
-								if (coords != null) //if it is null, the default (0:transparent) is used
+								if (coords != null) { //if it is null, the default (0:transparent) is used
+									if (Double.isNaN(coords[0]) || Double.isNaN(coords[1]))
+										System.err.println(proj+" returns "+coords[0]+","+coords[1]+" at "+X+","+Y+"!");
 									colors[step*dy+dx] = input.getArgb(coords[0], coords[1]);
+								}
 							}
 						}
 						theMap.setRGB(x, y, ImageUtils.blend(colors));
