@@ -81,6 +81,7 @@ import maps.Azimuthal;
 import maps.Conic;
 import maps.Cylindrical;
 import maps.EqualEarth;
+import maps.Gyorffy;
 import maps.Lenticular;
 import maps.Misc;
 import maps.MyProjections;
@@ -140,14 +141,15 @@ public abstract class MapApplication extends Application {
 					Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR, Polyhedral.VAN_LEEUWEN },
 			{ Octohedral.CAHILL_CONCIALDI, Octohedral.CAHILL_CONCIALDI, Octohedral.CAHILL_KEYES,
 					Octohedral.KEYES_BASIC_M, Polyhedral.DYMAXION, Octohedral.WATERMAN },
-			{ Pseudocylindrical.ECKERT_IV, EqualEarth.EQUAL_EARTH, Pseudocylindrical.KAVRAYSKIY_VII,
-					Pseudocylindrical.MOLLWEIDE, ArbitraryPseudocylindrical.NATURAL_EARTH,
-					ArbitraryPseudocylindrical.ROBINSON, Pseudocylindrical.SINUSOIDAL,
-					Tobler.TOBLER },
-			{ Lenticular.AITOFF, Lenticular.EISENLOHR, Lenticular.HAMMER, Lenticular.LAGRANGE,
-					Lenticular.STREBE_95, Lenticular.VAN_DER_GRINTEN, Lenticular.WAGNER_II,
-					Lenticular.WAGNER_V, Lenticular.WAGNER_VIII, WinkelTripel.WINKEL_TRIPEL },
-			{ Misc.BONNE, Snyder.GS50, Lenticular.GYORFFY, Misc.GUYOU, Misc.HAMMER_RETROAZIMUTHAL,
+			{ Pseudocylindrical.ECKERT_IV, EqualEarth.EQUAL_EARTH, Gyorffy.C,
+					Pseudocylindrical.KAVRAYSKIY_VII, Pseudocylindrical.MOLLWEIDE,
+					ArbitraryPseudocylindrical.NATURAL_EARTH, ArbitraryPseudocylindrical.ROBINSON,
+					Pseudocylindrical.SINUSOIDAL, Tobler.TOBLER },
+			{ Lenticular.AITOFF, Lenticular.EISENLOHR, Gyorffy.D, Gyorffy.E, Gyorffy.F,
+					Lenticular.HAMMER, Lenticular.LAGRANGE, Lenticular.STREBE_95,
+					Lenticular.VAN_DER_GRINTEN, Lenticular.WAGNER_II, Lenticular.WAGNER_V,
+					Lenticular.WAGNER_VIII, WinkelTripel.WINKEL_TRIPEL },
+			{ Misc.BONNE, Snyder.GS50, Misc.GUYOU, Misc.HAMMER_RETROAZIMUTHAL,
 					Pseudocylindrical.LEMONS, Misc.PEIRCE_QUINCUNCIAL, Misc.T_SHIRT,
 					Misc.TWO_POINT_EQUIDISTANT, Misc.FLAT_EARTH },
 			{ Meshed.DANSEIJI_N, Meshed.DANSEIJI_I, Meshed.DANSEIJI_II, Meshed.DANSEIJI_III,

@@ -293,18 +293,4 @@ public class Lenticular {
 		}
 	};
 	
-	
-	public static final Projection GYORFFY = new Projection(
-			"Gy\\u00F6rffy minimum distortion pointed-polar", "The optimal pointed-polar projection.",
-			2, 2, 0b1111, Type.OTHER, Property.COMPROMISE, 0) {
-		
-		public double[] project(double lat, double lon) {
-			return null; // TODO
-		}
-		
-		public double[] inverse(double x, double y) {
-			return null; //TODO
-		}
-	};
-
 }
