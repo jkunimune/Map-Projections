@@ -25,6 +25,7 @@ package maps;
 
 import de.jtem.mfc.field.Complex;
 import maps.Projection.Property;
+import utils.Math2;
 
 /**
  * A class of maps that use octohedral octants. Very similar to Polyhedral, but much faster since
@@ -88,8 +89,19 @@ public class Octohedral {
 			CahillKeyes.lMG, CahillKeyes.lMA, 0b1010, Property.COMPROMISE, 4,
 			Configuration.M_W_S_POLE) {
 		
+		public double[] project(double lat, double lon) {
+			return super.project(lat, lon + Math.PI/9); // apply the central meridian manually
+		}
+		
 		protected double[] faceProject(double lat, double lon) {
 			return CahillKeyes.faceProjectD(Math.toDegrees(lat), Math.toDegrees(lon));
+		}
+		
+		public double[] inverse(double x, double y) {
+			double[] coords = super.inverse(x, y);
+			if (coords == null)	return null;
+			coords[1] = Math2.floorMod(coords[1] - Math.PI/9 + Math.PI, 2*Math.PI) - Math.PI; // apply the central meridian manually
+			return coords;
 		}
 		
 		protected double[] faceInverse(double x, double y) {
@@ -100,27 +112,10 @@ public class Octohedral {
 	};
 	
 	
-	public static final Projection CONFORMAL_CAHILL = new OctohedralProjection(
-			"Conformal Cahill", "The conformal and only reproducable variant of Cahill's original map.",
+	public static final OctohedralProjection CONFORMAL_CAHILL = new OctohedralProjection(
+			"Cahill Conformal", "The conformal and only reproducable variant of Cahill's original map.",
 			Math.sqrt(3)/2, 0, 0b1000, Property.CONFORMAL, 3, Configuration.BUTTERFLY) {
 
-				protected double[] faceProject(double lat, double lon) {
-					// TODO: Implement this
-					return null;
-				}
-
-				protected double[] faceInverse(double x, double y) {
-					// TODO: Implement this
-					return null;
-				}
-		
-	};
-	
-	
-	public static final Projection CAHILL_CONCIALDI = new OctohedralProjection(
-			"Cahill\u2013Concialdi Bat", "A conformal octohedral projection with no cuts and a unique arrangement.",
-			Math.sqrt(3)/2, 0, 0b1000, Property.CONFORMAL, 4, Configuration.BAT_SHAPE) {
-		
 		private final double HEXAGON_SCALE = 1.112913; //this is 2^(2/3)/6*\int_0^\pi sin^(-1/3) x dx
 		private final double TOLERANCE = 1e-3;
 		private final double[] VERTEX = {0, Math.PI/4, -3*Math.PI/4}; // TODO this needs to be tilted a bit
@@ -180,6 +175,20 @@ public class Octohedral {
 	};
 	
 	
+	public static final Projection CAHILL_CONCIALDI = new OctohedralProjection(
+			"Cahill\u2013Concialdi Bat", "A conformal octohedral projection with no cuts and a unique arrangement.",
+			Math.sqrt(3)/2, 0, 0b1000, Property.CONFORMAL, 4, Configuration.BAT_SHAPE) {
+
+		protected double[] faceProject(double lat, double lon) {
+			return CONFORMAL_CAHILL.faceProject(lat, lon);
+		}
+
+		protected double[] faceInverse(double x, double y) {
+			return CONFORMAL_CAHILL.faceInverse(x, y);
+		}
+	};
+	
+	
 	
 	private static abstract class OctohedralProjection extends Projection {
 		
@@ -192,7 +201,8 @@ public class Octohedral {
 			super(name, desc,
 					config.fullWidth*altitude-config.cutWidth*cutSize,
 					config.fullHeight*altitude-config.cutHeight*cutSize, fisc,
-					(cutSize == 0) ? Type.OCTOHEDRAL : Type.TETRADECAHEDRAL, property, rating);
+					(cutSize == 0) ? Type.OCTOHEDRAL : Type.TETRADECAHEDRAL, property, rating,
+					new String[] {}, new double[][] {}, config.hasAspect);
 			this.size = altitude;
 			this.config = config;
 			this.config.setCutRatio(cutSize/altitude);
@@ -205,41 +215,56 @@ public class Octohedral {
 		
 		
 		public double[] project(double lat, double lon) {
-			double[] octant = config.project(lat, lon); //octant properties
-			double x0 = octant[0]*size, y0 = octant[1]*size, tht0 = octant[2], lon0 = octant[3];
-			
-			double[] coords = this.faceProject(Math.abs(lat), Math.abs(lon-lon0));
-			double xMj = coords[0], yMj = coords[1]; //relative octant coordinates (Mj stands for "Mary Jo Graca")
-			
-			if (lat < 0) //reflect the southern hemisphere over the equator
-				xMj = 2*size - xMj;
-			if (lon-lon0 < 0)
-				yMj = -yMj;
-			
-			return new double[] {
-					x0 + Math.sin(tht0)*xMj + Math.cos(tht0)*yMj,
-					y0 - Math.cos(tht0)*xMj + Math.sin(tht0)*yMj + config.fullHeight*size/2 };
+			for (double[] octant: config.octants) { // try each octant
+				double lonr = Math2.floorMod(lon - octant[3] + Math.PI, 2*Math.PI) - Math.PI; // relative longitude
+				if (Math.abs(lonr) > Math.PI/4 || lat < octant[4] || lat > octant[5]) // if it doesn't fit...
+					continue; // check the next one
+				double xP = octant[0]*size, yP = octant[1]*size; // vertex coordinates
+				double th = octant[2]; // rotation angle
+				
+				double[] coords = this.faceProject(Math.abs(lat), Math.abs(lonr));
+				double xMj = coords[0], yMj = coords[1]; //relative octant coordinates (Mj stands for "Mary Jo Graca")
+				
+				if (lat < 0) //reflect the southern hemisphere over the equator
+					xMj = 2*size - xMj;
+				if (lonr < 0)
+					yMj = -yMj;
+				
+				return new double[] {
+						xP + Math.sin(th)*xMj + Math.cos(th)*yMj,
+						yP - Math.cos(th)*xMj + Math.sin(th)*yMj + config.fullHeight*size/2 };
+			}
+			return new double[] {Double.NaN, Double.NaN}; // if none of the octants fit, return null
 		}
 		
 		
 		public double[] inverse(double x, double y) {
-			y = y - config.fullHeight*size/2; //measure from extrapolated top of map, not centre
-			double[] octant = config.inverse(x/size, y/size);
-			if (octant == null) 	return null;
-			double x0 = size*octant[0], y0 = size*octant[1], tht0 = octant[2], lon0 = octant[3];
+			y -= config.fullHeight*size/2;
 			
-			double xMj = Math.sin(tht0)*(x-x0) - Math.cos(tht0)*(y-y0);
-			double yMj = Math.cos(tht0)*(x-x0) + Math.sin(tht0)*(y-y0);
-			
-			if (Math.abs(yMj) > Math.min(xMj, 2*size-xMj)/Math.sqrt(3)+1e-12) 	return null; //restrict to one rhombus (plus a little, to account for roundoff)
-			double[] coords = this.faceInverse(Math.min(xMj, 2*size-xMj), Math.abs(yMj));
-			if (coords == null) 	return null;
-			double lat = coords[0], lon = coords[1];
-			lat *= Math.signum(size-xMj);
-			lon *= Math.signum(yMj);
-			
-			if (octant.length > 5 && (lat < octant[4] || lat > octant[5])) 	return null; //optional latitude limits
-			return new double[] { lat, lon + lon0 };
+			for (double[] octant: config.octants) { // try each octant
+				double xV = octant[0]*size, yV = octant[1]*size; // vertex coordinates
+				double th = octant[2]; // rotation angle
+				
+				double xMj = Math.sin(th)*(x-xV) - Math.cos(th)*(y-yV); // do the coordinate change
+				double yMj = Math.cos(th)*(x-xV) + Math.sin(th)*(y-yV);
+				if (Math.sqrt(3)*Math.abs(yMj) > Math.min(xMj, 2*size-xMj)) // if the angle is wrong,
+					continue; // check the next one
+				
+				double[] coords = this.faceInverse(Math.min(xMj, 2*size-xMj), Math.abs(yMj));
+				if (coords == null)
+					continue; // if you got nothing, keep looking
+				double lat = coords[0], lon = coords[1]; // project
+				
+				lat *= Math.signum(size-xMj); // undo the reflections
+				if (lat < octant[4] || lat > octant[5]) // if the resulting coordinates are wrong
+					continue; // move on
+				
+				lon *= Math.signum(yMj);
+				
+				return new double[] {
+						lat, Math2.floorMod(lon + octant[3] + Math.PI, 2*Math.PI) - Math.PI };
+			}
+			return null;
 		}
 		
 	}
@@ -248,171 +273,51 @@ public class Octohedral {
 	
 	private enum Configuration {
 		
-		BUTTERFLY(4, 2, 4/Math.sqrt(3), Math.sqrt(3)) { //the classic four quadrants splayed out in a nice butterfly shape, with Antarctica divided and attached
-			
-			private final double Y_OFFSET = -1/Math.sqrt(3);
-			
-			public double[] project(double lat, double lon) {
-				if (Math.abs(lon) > Math.PI && lat < 0) {
-					double sign = Math.signum(lon);
-					return new double[] {sign, 2/Math.sqrt(3), sign*Math.PI/6, 5*sign*Math.PI/4};
-				}
-				double centralMerid = Math.floor(lon/(Math.PI/2))*Math.PI/2 + Math.PI/4;
-				if (lon == Math.PI) 	centralMerid = 3*Math.PI/4; //override positioning of the IDL
-				return new double[] { 0, Y_OFFSET, centralMerid*2/3., centralMerid };
-			}
-			
-			public double[] inverse(double x, double y) {
-				if (y > (1-Math.abs(x))/Math.sqrt(3)) {
-					double sign = Math.signum(x);
-					return new double[] { sign, 2/Math.sqrt(3), sign*Math.PI/6, sign*5*Math.PI/4 };
-				}
-				double tht = Math.atan2(x, -y+Y_OFFSET);
-				if (Math.abs(tht) > 5*Math.PI/6)
-					return null;
-				double centralAngle = Math.floor(tht/(Math.PI/3))*Math.PI/3 + Math.PI/6;
-				return new double[] { 0, Y_OFFSET, centralAngle, centralAngle*3/2. };
-			}
-		},
+		BUTTERFLY(4, 2, 4/Math.sqrt(3), Math.sqrt(3), true, new double[][] { //the classic four quadrants splayed out in a nice butterfly shape, with Antarctica divided and attached
+			{  0, -1/Math.sqrt(3), -Math.PI/2, -3*Math.PI/4, -Math.PI/2,  Math.PI/2 },
+			{  0, -1/Math.sqrt(3), -Math.PI/6,   -Math.PI/4, -Math.PI/2,  Math.PI/2 },
+			{  0, -1/Math.sqrt(3),  Math.PI/6,    Math.PI/4, -Math.PI/2,  Math.PI/2 },
+			{  0, -1/Math.sqrt(3),  Math.PI/2,  3*Math.PI/4, -Math.PI/2,  Math.PI/2 },
+		}),
 		
+		M_PROFILE(4, 0, Math.sqrt(3), Math.sqrt(3), true, new double[][] { //The more compact zigzag configuration with Antarctica divided and attached
+			{ -1,               0, -Math.PI/6, -3*Math.PI/4, -Math.PI/2,  Math.PI/2 },
+			{ -1,               0,  Math.PI/6,   -Math.PI/4, -Math.PI/2,  Math.PI/2 },
+			{  1,               0, -Math.PI/6,    Math.PI/4, -Math.PI/2,  Math.PI/2 },
+			{  1,               0,  Math.PI/6,  3*Math.PI/4, -Math.PI/2,  Math.PI/2 },
+		}),
 		
-		M_PROFILE(4, 0, Math.sqrt(3), Math.sqrt(3)) { //The more compact zigzag configuration with Antarctica divided and attached
-			
-			public double[] project(double lat, double lon) {
-				double centralMerid = Math.floor(lon/(Math.PI/2))*Math.PI/2 + Math.PI/4;
-				if (lon == Math.PI) 	centralMerid = 3*Math.PI/4; //override positioning of the IDL
-				double sign = Math.signum(centralMerid);
-				return new double[] {
-						sign, 0, sign*(Math.abs(centralMerid)*2/3.-Math.PI/3), centralMerid };
-			}
-			
-			public double[] inverse(double x, double y) {
-				double tht = Math.atan2(Math.abs(x)-1, -y);
-				if (tht < -Math.PI/3) 	return null;
-				double centralAngle = Math.floor(tht/(Math.PI/3))*Math.PI/3 + Math.PI/6;
-				double sign = Math.signum(x);
-				return new double[] {
-						sign, 0, sign*centralAngle, sign*(centralAngle*3/2.+Math.PI/2) };
-			}
+		M_W_S_POLE(4, 0, 2.008, Math.sqrt(3), false, new double[][] { //Keyes's current configuration, with Antarctica reassembled in the center
+			{ -1,               0, -Math.PI/6, -3*Math.PI/4, Math.toRadians(-64),  Math.PI/2 },
+			{ -1,               0,  Math.PI/6,   -Math.PI/4,          -Math.PI/2,  Math.PI/2 },
+			{  1,               0, -Math.PI/6,    Math.PI/4, Math.toRadians(-64),  Math.PI/2 },
+			{  1,               0,  Math.PI/6,  3*Math.PI/4, Math.toRadians(-64),  Math.PI/2 },
+			{ -1.6976,  -2.6036,  2*Math.PI/3, -3*Math.PI/4, -Math.PI/2, Math.toRadians(-64) },
+			{  1.6036,  -0.6976,   -Math.PI/3,    Math.PI/4, -Math.PI/2, Math.toRadians(-64) },
+			{  0.9060,  -3.3013, -5*Math.PI/6,  3*Math.PI/4, -Math.PI/2, Math.toRadians(-64) },
+		}),
 		
-		},
-		
-		
-		M_W_S_POLE(4, 0, 3.56/Math.sqrt(3), Math.sqrt(3)) { //Keyes's current configuration, with Antarctica reassembled in the center
-			
-			private double southPoleX, southPoleY; //location of the South Pole
-			
-			@Override
-			public void setCutRatio(double cutRatio) {
-				super.setCutRatio(cutRatio);
-				this.southPoleX = -cutRatio/2;
-				this.southPoleY = cutRatio*Math.sqrt(3)/2 - Math.sqrt(3);
-			}
-			
-			public double[] project(double lat, double lon) {
-				double centralMerid = Math.floor(lon/(Math.PI/2))*Math.PI/2 + Math.PI/4;
-				if (lon == Math.PI) 	centralMerid = 3*Math.PI/4; //override positioning of the IDL
-				if (lat < -Math.PI/3) { //antarctica is tricky
-					double centralAngle =  -Math.PI/12 - centralMerid;
-					return new double[] {
-							southPoleX - (2-cutRatio)*Math.sin(centralAngle),
-							southPoleY + (2-cutRatio)*Math.cos(centralAngle),
-							centralAngle, centralMerid };
-				}
-				else { //the rest of the map is pretty straightforward
-					double sign = Math.signum(centralMerid);
-					return new double[] {
-							sign, 0, sign*(Math.abs(centralMerid)*2/3.-Math.PI/3), centralMerid };
-				}
-			}
-			
-			public double[] inverse(double x, double y) {
-				if (Math.hypot(x-southPoleX, y-southPoleY) < 0.324) { //do the special Antarctica thing
-					double tht = Math.atan2(southPoleX-x, y-southPoleY);
-					double centralAngle =
-							Math.floor((tht+Math.PI/12)/(Math.PI/2))*Math.PI/2 + Math.PI/6;
-					if (centralAngle == 7*Math.PI/6)
-						centralAngle = -5*Math.PI/6;
-					double maxLat = (centralAngle != Math.PI/6) ? -Math.PI/3 : Math.PI/2;
-					return new double[] {
-							southPoleX - (2-cutRatio)*Math.sin(centralAngle),
-							southPoleY + (2-cutRatio)*Math.cos(centralAngle),
-							centralAngle, -Math.PI/12 - centralAngle, -Math.PI/2, maxLat};
-				}
-				else { //everything besides Antarctica is pretty straightforward
-					double tht = Math.atan2(Math.abs(x)-1, -y);
-					if (tht < -Math.PI/3) 	return null;
-					double centralAngle = Math.floor(tht/(Math.PI/3))*Math.PI/3 + Math.PI/6;
-					double sign = Math.signum(x);
-					double centralMerid = sign*(centralAngle*3/2.+Math.PI/2);
-					double minLat = (centralMerid == Math.PI/4) ? -Math.PI/3 : -Math.PI/2;
-					return new double[] { sign, 0, sign*centralAngle, centralMerid,
-							minLat, Math.PI/2 };
-				}
-			}
-		},
-		
-		
-		BAT_SHAPE(2*Math.sqrt(3), 0, 2, 0) { //Luca Concialdi's obscure "Bat" arrangement that I liked. TODO: this doesn't quite match Concialdi's design
-			
-			public double[] project(double lat, double lon) {
-				double centralMerid = Math.floor((lon+Math.PI/4)/(Math.PI/2))*Math.PI/2;
-				if (Math.abs(centralMerid) == Math.PI && lat < 0) //the outer wings
-					return new double[] { Math.signum(lon)*Math.sqrt(3), .5, 0, centralMerid };
-				else if (centralMerid == 0 && lat < -Math.PI/4) //the bottoms of the wings
-					return new double[] { 0, -2.5, Math.signum(lon)*2*Math.PI/3, centralMerid };
-				else //the bulk of the map
-					return new double[] { 0, -.5, centralMerid*2/3., centralMerid };
-			}
-			
-			public double[] inverse(double x, double y) {
-						double sign = Math.signum(x);
-				if (y+.5 > Math.sqrt(3)*Math.abs(x))
-					return null; //the empty top
-				else if (y >= Math.sqrt(3)*(Math.sqrt(3)/2-Math.abs(x))) {
-					if (y > -.5) 	return null; //more empty space
-					return new double[] { sign*Math.sqrt(3), .5, 0, sign*Math.PI }; //the outer wings
-				}
-				else if (y <= -1.5 && Math.abs(x) >= 1) {
-					if (y+2.5 >= Math.abs(x)/Math.sqrt(3))
-						return new double[] { 0, -2.5, Math.signum(x)*2*Math.PI/3, 0,
-								-Math.PI/2, -Math.PI/4 }; //the bottoms of the wings
-					else if (y+4.5 >= Math.abs(x)*Math.sqrt(3))
-						return new double[] { 0, -2.5, sign*2*Math.PI/3, sign*2*Math.PI,
-								-Math.PI/2, -Math.PI/4 }; //some more wing bottom
-					else
-						return new double[] { sign*Math.sqrt(3), -3.5, Math.PI, sign*3*Math.PI/2,
-								-Math.PI/2, -Math.PI/4 }; //the bottoms of the bottoms of the wings
-				}
-				else {
-					double tht = Math.atan2(x, -y-.5);
-					double centralAngle = Math.floor((tht+Math.PI/6)/(Math.PI/3))*Math.PI/3;
-					if (centralAngle != 0)
-						return new double[] { 0, -.5, centralAngle, centralAngle*3/2.}; //the bulk of the map
-					else
-						return new double[] { 0, -.5, centralAngle, centralAngle*3/2.,
-								-Math.PI/4, Math.PI/2 }; //the part with Antarctica cut off
-				}
-			}
-		};
-		
+		BAT_SHAPE(2*Math.sqrt(3), 0, 2, 0, false, new double[][] { //Luca Concialdi's obscure "Bat" arrangement that I liked.
+		});
 		
 		public final double fullWidth, cutWidth, fullHeight, cutHeight;
-		protected double cutRatio; //this variable should be set by the map projection so that the configuration knows how big the cuts actually are
+		public final boolean hasAspect;
+		public final double[][] octants; // array of {x, y (from top), rotation, \lambda_0, \phi_min, \phi_max}
+//		public double cutRatio; //this variable should be set by the map projection so that the configuration knows how big the cuts actually are
 		
 		private Configuration(double fullWidth, double cutWidth,
-				double fullHeight, double cutHeight) {
-			this.fullWidth = fullWidth; //the size of the configuration
-			this.cutWidth = cutWidth; //given in terms of both the triangle altitudes
+				double fullHeight, double cutHeight, boolean hasAspect,
+				double[][] octants) {
+			this.fullWidth = fullWidth; //the size of the configuration in altitudes ignoring cuts
+			this.cutWidth = cutWidth; //the change in width due to the cut in cut lengths
 			this.fullHeight = fullHeight; //and the cut sizes
 			this.cutHeight = cutHeight;
+			this.hasAspect = hasAspect;
+			this.octants = octants;
 		}
 		
-		public abstract double[] project(double lat, double lon); //calculate the x, y, rotation, and central meridian for this quadrant
-		public abstract double[] inverse(double x, double y); //calculate the x, y, rotation, central meridian, and min and max latitude for this quadrant
-		
 		public void setCutRatio(double cutRatio) {
-			this.cutRatio = cutRatio;
+//			this.cutRatio = cutRatio; //the length of the cut in altitudes
 		}
 	}
 	

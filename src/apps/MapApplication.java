@@ -139,7 +139,7 @@ public abstract class MapApplication extends Application {
 			{ Conic.ALBERS, Misc.BRAUN_CONIC, Conic.LAMBERT, Conic.EQUIDISTANT },
 			{ Polyhedral.AUTHAGRAPH, Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
 					Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR, Polyhedral.VAN_LEEUWEN },
-			{ Octohedral.CAHILL_CONCIALDI, Octohedral.CAHILL_CONCIALDI, Octohedral.CAHILL_KEYES,
+			{ Octohedral.CAHILL_CONCIALDI, Octohedral.CONFORMAL_CAHILL, Octohedral.CAHILL_KEYES,
 					Octohedral.KEYES_BASIC_M, Polyhedral.DYMAXION, Octohedral.WATERMAN },
 			{ Pseudocylindrical.ECKERT_IV, EqualEarth.EQUAL_EARTH,
 					Pseudocylindrical.KAVRAYSKIY_VII, Pseudocylindrical.MOLLWEIDE,
