@@ -181,7 +181,8 @@ public class Octohedral {
 		
 		private final double lon0 = Math.toRadians(20);
 		private final double correction = Math.toRadians(9);
-		private final double tilt = Math.toRadians(4.5);
+		private final double tilt = Math.toRadians(4.7);
+		private final double trueWidth = width*Math.cos(tilt);
 		
 		public double[] project(double lat, double lon) {
 			lon = Math2.floorMod(lon - lon0 + Math.PI, 2*Math.PI) - Math.PI; // first, change the central meridian
@@ -189,20 +190,21 @@ public class Octohedral {
 			double[] coords = super.project(lat, lon);
 			
 			if (lat >= 0 && lon > Math.PI-correction) { // next, fix the Bering strait
-				double xi = coords[0], yi = coords[1] - height/4;
+				double xi = coords[0], yi = coords[1] - size/2;
 				double xf = Math.cos(2*Math.PI/3)*xi - Math.sin(2*Math.PI/3)*yi;
 				double yf = Math.sin(2*Math.PI/3)*xi + Math.cos(2*Math.PI/3)*yi;
-				coords = new double[] { xf, yf + height/4};
+				coords = new double[] { xf, yf + size/2};
 			}
 			
-			double xi = coords[0], yi = coords[1] + height/4; // and rotate 5.5 degrees
+			double xi = coords[0], yi = coords[1] - size; // and rotate 5.5 degrees
 			double xf = Math.cos(tilt)*xi - Math.sin(tilt)*yi;
 			double yf = Math.sin(tilt)*xi + Math.cos(tilt)*yi;
-			coords = new double[] { xf, yf - height/4};
+			coords = new double[] { xf, yf + size};
 			
-			if (coords[0] > width/2) { // finally, move the cropped right stuff to the left
-				coords[0] -= width;
-				coords[1] -= width*Math.tan(tilt);
+			coords[0] -= 1.5*size*Math.sin(tilt);
+			if (coords[0] < -trueWidth/2) { // finally, move the cropped right stuff to the left
+				coords[0] += trueWidth;
+				coords[1] += trueWidth*Math.tan(tilt);
 			}
 			
 			return coords;
@@ -229,7 +231,7 @@ public class Octohedral {
 	
 	private static abstract class OctohedralProjection extends Projection {
 		
-		private final double size;
+		protected final double size;
 		private Configuration config;
 		
 		
