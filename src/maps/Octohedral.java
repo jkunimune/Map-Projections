@@ -178,11 +178,48 @@ public class Octohedral {
 	public static final Projection CAHILL_CONCIALDI = new OctohedralProjection(
 			"Cahill\u2013Concialdi Bat", "A conformal octohedral projection with no cuts and a unique arrangement.",
 			Math.sqrt(3)/2, 0, 0b1000, Property.CONFORMAL, 4, Configuration.BAT_SHAPE) {
-
+		
+		private final double lon0 = Math.toRadians(20);
+		private final double correction = Math.toRadians(9);
+		private final double tilt = Math.toRadians(4.5);
+		
+		public double[] project(double lat, double lon) {
+			lon = Math2.floorMod(lon - lon0 + Math.PI, 2*Math.PI) - Math.PI; // first, change the central meridian
+			
+			double[] coords = super.project(lat, lon);
+			
+			if (lat >= 0 && lon > Math.PI-correction) { // next, fix the Bering strait
+				double xi = coords[0], yi = coords[1] - height/4;
+				double xf = Math.cos(2*Math.PI/3)*xi - Math.sin(2*Math.PI/3)*yi;
+				double yf = Math.sin(2*Math.PI/3)*xi + Math.cos(2*Math.PI/3)*yi;
+				coords = new double[] { xf, yf + height/4};
+			}
+			
+			double xi = coords[0], yi = coords[1] + height/4; // and rotate 5.5 degrees
+			double xf = Math.cos(tilt)*xi - Math.sin(tilt)*yi;
+			double yf = Math.sin(tilt)*xi + Math.cos(tilt)*yi;
+			coords = new double[] { xf, yf - height/4};
+			
+			if (coords[0] > width/2) { // finally, move the cropped right stuff to the left
+				coords[0] -= width;
+				coords[1] -= width*Math.tan(tilt);
+			}
+			
+			return coords;
+		}
+		
 		protected double[] faceProject(double lat, double lon) {
 			return CONFORMAL_CAHILL.faceProject(lat, lon);
 		}
-
+		
+		public double[] inverse(double lat, double lon) {
+			double[] symmetric = super.inverse(lat, lon);
+			
+			if (symmetric != null)
+				symmetric[1] += lon0;
+			return symmetric;
+		}
+		
 		protected double[] faceInverse(double x, double y) {
 			return CONFORMAL_CAHILL.faceInverse(x, y);
 		}
@@ -301,15 +338,15 @@ public class Octohedral {
 		}),
 		
 		BAT_SHAPE(2*Math.sqrt(3), 0, 2, 0, false, new double[][] { //Luca Concialdi's obscure "Bat" arrangement that I liked.
-			{               0, -2.5, -2*Math.PI/3,          0, -1, -Math.PI/2, -Math.PI/4 },
-			{ -3/Math.sqrt(3),  0.5,            0, -Math.PI  ,  1, -Math.PI/2,          0 },
 			{               0, -0.5, -2*Math.PI/3, -Math.PI  ,  0,          0,  Math.PI/2 },
+			{ -3/Math.sqrt(3),  0.5,            0, -Math.PI  ,  0, -Math.PI/2,          0 },
 			{               0, -0.5,   -Math.PI/3, -Math.PI/2,  0, -Math.PI/2,  Math.PI/2 },
 			{               0, -0.5,            0,          0,  0, -Math.PI/4,  Math.PI/2 },
+			{               0, -2.5, -2*Math.PI/3,          0, -1, -Math.PI/2, -Math.PI/4 },
+			{               0, -2.5,  2*Math.PI/3,          0,  1, -Math.PI/2, -Math.PI/4 },
 			{               0, -0.5,    Math.PI/3,  Math.PI/2,  0, -Math.PI/2,  Math.PI/2 },
 			{               0, -0.5,  2*Math.PI/3,  Math.PI  ,  0,          0,  Math.PI/2 },
-			{  3/Math.sqrt(3),  0.5,            0,  Math.PI  , -1, -Math.PI/2,          0 },
-			{               0, -2.5,  2*Math.PI/3,          0,  1, -Math.PI/2, -Math.PI/4 },
+			{  3/Math.sqrt(3),  0.5,            0,  Math.PI  ,  0, -Math.PI/2,          0 },
 		});
 		
 		public final double fullWidth, cutWidth, fullHeight, cutHeight;
