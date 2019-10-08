@@ -176,50 +176,25 @@ public class Octohedral {
 	
 	
 	public static final Projection CAHILL_CONCIALDI = new OctohedralProjection(
-			"Cahill\u2013Concialdi Bat", "A conformal octohedral projection with no cuts and a unique arrangement.",
+			"Cahill\u2013Concialdi Bat", "A conformal octohedral projection with no extra cuts and a unique arrangement.",
 			Math.sqrt(3)/2, 0, 0b1000, Property.CONFORMAL, 4, Configuration.BAT_SHAPE) {
 		
 		private final double lon0 = Math.toRadians(20);
-		private final double correction = Math.toRadians(9);
-		private final double tilt = Math.toRadians(4.7);
-		private final double trueWidth = width*Math.cos(tilt);
 		
 		public double[] project(double lat, double lon) {
-			lon = Math2.floorMod(lon - lon0 + Math.PI, 2*Math.PI) - Math.PI; // first, change the central meridian
-			
-			double[] coords = super.project(lat, lon);
-			
-			if (lat >= 0 && lon > Math.PI-correction) { // next, fix the Bering strait
-				double xi = coords[0], yi = coords[1] - size/2;
-				double xf = Math.cos(2*Math.PI/3)*xi - Math.sin(2*Math.PI/3)*yi;
-				double yf = Math.sin(2*Math.PI/3)*xi + Math.cos(2*Math.PI/3)*yi;
-				coords = new double[] { xf, yf + size/2};
-			}
-			
-			double xi = coords[0], yi = coords[1] - size; // and rotate 5.5 degrees
-			double xf = Math.cos(tilt)*xi - Math.sin(tilt)*yi;
-			double yf = Math.sin(tilt)*xi + Math.cos(tilt)*yi;
-			coords = new double[] { xf, yf + size};
-			
-			coords[0] -= 1.5*size*Math.sin(tilt);
-			if (coords[0] < -trueWidth/2) { // finally, move the cropped right stuff to the left
-				coords[0] += trueWidth;
-				coords[1] += trueWidth*Math.tan(tilt);
-			}
-			
-			return coords;
+			lon = Math2.floorMod(lon - lon0 + Math.PI, 2*Math.PI) - Math.PI; // change the central meridian
+			return super.project(lat, lon);
 		}
 		
 		protected double[] faceProject(double lat, double lon) {
 			return CONFORMAL_CAHILL.faceProject(lat, lon);
 		}
 		
-		public double[] inverse(double lat, double lon) {
-			double[] symmetric = super.inverse(lat, lon);
-			
-			if (symmetric != null)
-				symmetric[1] += lon0;
-			return symmetric;
+		public double[] inverse(double x, double y) {
+			double[] coords = super.inverse(x, y);
+			if (coords != null)
+				coords[1] = Math2.floorMod(coords[1] + lon0 + Math.PI, 2*Math.PI) - Math.PI; // change the central meridian
+			return coords;
 		}
 		
 		protected double[] faceInverse(double x, double y) {
@@ -244,7 +219,6 @@ public class Octohedral {
 					new String[] {}, new double[][] {}, config.hasAspect);
 			this.size = altitude;
 			this.config = config;
-			this.config.setCutRatio(cutSize/altitude);
 		}
 		
 		
@@ -255,10 +229,10 @@ public class Octohedral {
 		
 		public double[] project(double lat, double lon) {
 			for (double[] octant: config.octants) { // try each octant
-				double lonr = lon - octant[3]; // relative longitude
-				if (Math.abs(lonr) > Math.PI/4 || lat < octant[5] || lat > octant[6]) // if it doesn't fit...
+				double lonr = Math2.floorMod(lon - octant[3] + Math.PI, 2*Math.PI) - Math.PI; // relative longitude
+				if (Math.abs(lonr) > Math.PI/4 || lat < octant[4] || lat > octant[5]) // if it doesn't fit...
 					continue; // check the next one
-				if (octant[4] != 0 && (lonr < 0) != (octant[4] < 0)) // also check the sign restriction
+				if (octant.length > 7 && (lonr < octant[6] || lonr > octant[7])) // also check the longitude restriction
 					continue;
 				double xP = octant[0]*size, yP = octant[1]*size; // vertex coordinates
 				double th = octant[2]; // rotation angle
@@ -288,10 +262,8 @@ public class Octohedral {
 				
 				double xMj = Math.sin(th)*(x-xV) - Math.cos(th)*(y-yV); // do the coordinate change
 				double yMj = Math.cos(th)*(x-xV) + Math.sin(th)*(y-yV);
-				if (Math.sqrt(3)*Math.abs(yMj) > Math.min(xMj, 2*size-xMj)) // if the angle is wrong,
+				if (Math.sqrt(3)*Math.abs(yMj) > Math.min(xMj, 2*size-xMj) + 1e-12) // if the angle is wrong,
 					continue; // check the next one
-				if (octant[4] != 0 && (yMj < 0) != (octant[4] < 0)) // also check the sign restriction
-					continue;
 				
 				double[] coords = this.faceInverse(Math.min(xMj, 2*size-xMj), Math.abs(yMj));
 				if (coords == null)
@@ -299,10 +271,13 @@ public class Octohedral {
 				double lat = coords[0], lon = coords[1]; // project
 				
 				lat *= Math.signum(size-xMj); // undo the reflections
-				if (lat < octant[5] || lat > octant[6]) // if the resulting coordinates are wrong
+				lon *= Math.signum(yMj);
+				if (lat < octant[4] - 1e-6 || lat > octant[5] + 1e-6) // if the resulting coordinates are wrong
 					continue; // move on
+				if (octant.length > 7 && (lon < octant[6] - 1e-6 || lon > octant[7] + 1e-6)) // also check the longitude restriction
+					continue;
 				
-				lon = Math.signum(yMj)*lon + octant[3];
+				lon = Math2.floorMod(lon + octant[3] + Math.PI, 2*Math.PI)- Math.PI;
 				
 				return new double[] { lat, lon };
 			}
@@ -316,44 +291,44 @@ public class Octohedral {
 	private enum Configuration {
 		
 		BUTTERFLY(4, 2, 4/Math.sqrt(3), Math.sqrt(3), true, new double[][] { //the classic four quadrants splayed out in a nice butterfly shape, with Antarctica divided and attached
-			{  0, -1/Math.sqrt(3), -Math.PI/2, -3*Math.PI/4, 0, -Math.PI/2,  Math.PI/2 },
-			{  0, -1/Math.sqrt(3), -Math.PI/6,   -Math.PI/4, 0, -Math.PI/2,  Math.PI/2 },
-			{  0, -1/Math.sqrt(3),  Math.PI/6,    Math.PI/4, 0, -Math.PI/2,  Math.PI/2 },
-			{  0, -1/Math.sqrt(3),  Math.PI/2,  3*Math.PI/4, 0, -Math.PI/2,  Math.PI/2 },
+			{  0, -1/Math.sqrt(3), -Math.PI/2, -3*Math.PI/4, -Math.PI/2,  Math.PI/2 },
+			{  0, -1/Math.sqrt(3), -Math.PI/6,   -Math.PI/4, -Math.PI/2,  Math.PI/2 },
+			{  0, -1/Math.sqrt(3),  Math.PI/6,    Math.PI/4, -Math.PI/2,  Math.PI/2 },
+			{  0, -1/Math.sqrt(3),  Math.PI/2,  3*Math.PI/4, -Math.PI/2,  Math.PI/2 },
 		}),
 		
 		M_PROFILE(4, 0, Math.sqrt(3), Math.sqrt(3), true, new double[][] { //The more compact zigzag configuration with Antarctica divided and attached
-			{ -1,               0, -Math.PI/6, -3*Math.PI/4, 0, -Math.PI/2,  Math.PI/2 },
-			{ -1,               0,  Math.PI/6,   -Math.PI/4, 0, -Math.PI/2,  Math.PI/2 },
-			{  1,               0, -Math.PI/6,    Math.PI/4, 0, -Math.PI/2,  Math.PI/2 },
-			{  1,               0,  Math.PI/6,  3*Math.PI/4, 0, -Math.PI/2,  Math.PI/2 },
+			{ -1,               0, -Math.PI/6, -3*Math.PI/4, -Math.PI/2,  Math.PI/2 },
+			{ -1,               0,  Math.PI/6,   -Math.PI/4, -Math.PI/2,  Math.PI/2 },
+			{  1,               0, -Math.PI/6,    Math.PI/4, -Math.PI/2,  Math.PI/2 },
+			{  1,               0,  Math.PI/6,  3*Math.PI/4, -Math.PI/2,  Math.PI/2 },
 		}),
 		
 		M_W_S_POLE(4, 0, 2.008, Math.sqrt(3), false, new double[][] { //Keyes's current configuration, with Antarctica reassembled in the center
-			{ -1,               0, -Math.PI/6, -3*Math.PI/4, 0, Math.toRadians(-64),  Math.PI/2 },
-			{ -1,               0,  Math.PI/6,   -Math.PI/4, 0,          -Math.PI/2,  Math.PI/2 },
-			{  1,               0, -Math.PI/6,    Math.PI/4, 0, Math.toRadians(-64),  Math.PI/2 },
-			{  1,               0,  Math.PI/6,  3*Math.PI/4, 0, Math.toRadians(-64),  Math.PI/2 },
-			{ -1.6976,  -2.6036,  2*Math.PI/3, -3*Math.PI/4, 0, -Math.PI/2, Math.toRadians(-64) },
-			{  1.6036,  -0.6976,   -Math.PI/3,    Math.PI/4, 0, -Math.PI/2, Math.toRadians(-64) },
-			{  0.9060,  -3.3013, -5*Math.PI/6,  3*Math.PI/4, 0, -Math.PI/2, Math.toRadians(-64) },
+			{ -1,               0, -Math.PI/6, -3*Math.PI/4, Math.toRadians(-64),  Math.PI/2 },
+			{ -1,               0,  Math.PI/6,   -Math.PI/4,          -Math.PI/2,  Math.PI/2 },
+			{  1,               0, -Math.PI/6,    Math.PI/4, Math.toRadians(-64),  Math.PI/2 },
+			{  1,               0,  Math.PI/6,  3*Math.PI/4, Math.toRadians(-64),  Math.PI/2 },
+			{ -1.6976,  -2.6036,  2*Math.PI/3, -3*Math.PI/4, -Math.PI/2, Math.toRadians(-64) },
+			{  1.6036,  -0.6976,   -Math.PI/3,    Math.PI/4, -Math.PI/2, Math.toRadians(-64) },
+			{  0.9060,  -3.3013, -5*Math.PI/6,  3*Math.PI/4, -Math.PI/2, Math.toRadians(-64) },
 		}),
 		
-		BAT_SHAPE(2*Math.sqrt(3), 0, 2, 0, false, new double[][] { //Luca Concialdi's obscure "Bat" arrangement that I liked.
-			{               0, -0.5, -2*Math.PI/3, -Math.PI  ,  0,          0,  Math.PI/2 },
-			{ -3/Math.sqrt(3),  0.5,            0, -Math.PI  ,  0, -Math.PI/2,          0 },
-			{               0, -0.5,   -Math.PI/3, -Math.PI/2,  0, -Math.PI/2,  Math.PI/2 },
-			{               0, -0.5,            0,          0,  0, -Math.PI/4,  Math.PI/2 },
-			{               0, -2.5, -2*Math.PI/3,          0, -1, -Math.PI/2, -Math.PI/4 },
-			{               0, -2.5,  2*Math.PI/3,          0,  1, -Math.PI/2, -Math.PI/4 },
-			{               0, -0.5,    Math.PI/3,  Math.PI/2,  0, -Math.PI/2,  Math.PI/2 },
-			{               0, -0.5,  2*Math.PI/3,  Math.PI  ,  0,          0,  Math.PI/2 },
-			{  3/Math.sqrt(3),  0.5,            0,  Math.PI  ,  0, -Math.PI/2,          0 },
-		});
+		BAT_SHAPE(3.47, 0, 2.03, 0, false, rotate(0, -1.55, Math.toRadians(5), new double[][] { //Luca Concialdi's obscure "Bat" arrangement that I liked.
+			{               0, -0.5, -2*Math.PI/3, -Math.PI  ,          0,  Math.PI/2, Math.toRadians(-9),  1 },
+			{ -3/Math.sqrt(3),  0.5,            0, -Math.PI  , -Math.PI/2,          0, Math.toRadians( 9),  1 },
+			{               0, -0.5,   -Math.PI/3, -Math.PI/2, -Math.PI/2,  Math.PI/2 },
+			{               0, -0.5,            0,          0, -Math.PI/4,  Math.PI/2 },
+			{               0, -2.5, -2*Math.PI/3,          0, -Math.PI/2, -Math.PI/4, -1, 0 },
+			{               0, -2.5,  2*Math.PI/3,          0, -Math.PI/2, -Math.PI/4, 0,  1 },
+			{               0, -0.5,    Math.PI/3,  Math.PI/2, -Math.PI/2,  Math.PI/2 },
+			{               0, -0.5,  2*Math.PI/3,  Math.PI  ,          0,  Math.PI/2, -1, Math.toRadians(-9) },
+			{  3/Math.sqrt(3),  0.5,            0,  Math.PI  , -Math.PI/2,          0, -1, Math.toRadians( 9) },
+		}));
 		
 		public final double fullWidth, cutWidth, fullHeight, cutHeight;
 		public final boolean hasAspect;
-		public final double[][] octants; // array of {x, y (from top), rotation, \lambda_0, sign, \phi_min, \phi_max}
+		public final double[][] octants; // array of {x, y (from top), rotation, \lambda_0, \phi_min, \phi_max[, \lambda_min, \lambda_max]}
 //		public double cutRatio; //this variable should be set by the map projection so that the configuration knows how big the cuts actually are
 		
 		private Configuration(double fullWidth, double cutWidth,
@@ -367,8 +342,16 @@ public class Octohedral {
 			this.octants = octants;
 		}
 		
-		public void setCutRatio(double cutRatio) {
-//			this.cutRatio = cutRatio; //the length of the cut in altitudes
+		private static final double[][] rotate(double xP, double yP, double th, double[][] in) { // apply that rotation to the bat
+			double[][] out = new double[in.length][];
+			for (int i = 0; i < in.length; i ++) {
+				out[i] = new double[in[i].length];
+				System.arraycopy(in[i], 0, out[i], 0, in[i].length);
+				out[i][0] = Math.cos(th)*(in[i][0]-xP) - Math.sin(th)*(in[i][1]-yP) + xP;
+				out[i][1] = Math.sin(th)*(in[i][0]-xP) + Math.cos(th)*(in[i][1]-yP) + yP;
+				out[i][2] = in[i][2] + th;
+			}
+			return out;
 		}
 	}
 	
