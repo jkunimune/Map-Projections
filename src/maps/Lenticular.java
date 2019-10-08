@@ -254,7 +254,7 @@ public class Lenticular {
 	
 	public static final Projection WAGNER_VIII = new Projection(
 			"Wagner VIII", "A compromise projection with pseudoazimuthal energy.",
-			5.6229621893185126, 3.5, 0b1111, Type.OTHER, Property.CONFORMAL, 3) {
+			5.6229621893185126, 3.5, 0b1111, Type.OTHER, Property.COMPROMISE, 3) {
 		
 		private final double m1 = 0.92118, m2 = 0.8855, n = 3.,
 				cX = 5.6229, cY = 2.6162;
@@ -282,4 +282,21 @@ public class Lenticular {
 		}
 	};
 	
+	
+	public static final Projection POLYCONIC = new Projection(
+			"American polyconic", "A map made for narrow strips of longitude that was really popular with the USGS for a while.",
+			2*Math.PI, 3.5, 0b1011, Type.OTHER, Property.EQUIDISTANT, 3) {
+		
+		public double[] project(double lat, double lon) {
+			if (lat == 0)
+				return new double[] {lon, 0};
+			double E = lon*Math.sin(lat);
+			return new double[] { Math.sin(E)/Math.tan(lat), lat + (1 - Math.cos(E))/Math.tan(lat) };
+		}
+		
+		public double[] inverse(double x, double y) {
+			return null;
+		}
+	};
+
 }

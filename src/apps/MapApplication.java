@@ -105,7 +105,7 @@ import utils.Procedure;
  */
 public abstract class MapApplication extends Application {
 
-	protected static final int GUI_WIDTH = 280;
+	protected static final int GUI_WIDTH = 300;
 	protected static final int IMG_SIZE = 480;
 	protected static final int V_SPACE = 7;
 	protected static final int H_SPACE = 6;
@@ -145,7 +145,7 @@ public abstract class MapApplication extends Application {
 					Pseudocylindrical.KAVRAYSKIY_VII, Pseudocylindrical.MOLLWEIDE,
 					ArbitraryPseudocylindrical.NATURAL_EARTH, ArbitraryPseudocylindrical.ROBINSON,
 					Pseudocylindrical.SINUSOIDAL, Tobler.TOBLER, Pseudocylindrical.WAGNER_II, Pseudocylindrical.WAGNER_V },
-			{ Lenticular.AITOFF, Lenticular.EISENLOHR, Gyorffy.E, Gyorffy.F,
+			{ Lenticular.EISENLOHR, Gyorffy.E,
 					Lenticular.HAMMER, Lenticular.LAGRANGE, Lenticular.STREBE_95,
 					Lenticular.VAN_DER_GRINTEN,
 					Lenticular.WAGNER_VIII, WinkelTripel.WINKEL_TRIPEL },
@@ -157,7 +157,7 @@ public abstract class MapApplication extends Application {
 					Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH,
 					Polyhedral.TETRAGRAPH, MyProjections.TWO_POINT_EQUALIZED } };
 	
-	private static final String[] ASPECT_NAMES = { "Standard", "Transverse", "Cassini", "Atlantis",
+	private static final String[] ASPECT_NAMES = { "Normal", "Transverse", "Cassini", "Atlantis",
 			"Jerusalem", "Point Nemo", "Longest Line", "Cylindrical", "Tetrahedral", "Antipode",
 			"Random" };
 	private static final double[][] ASPECT_VALS = { //the aspect presets (in degrees)
@@ -322,7 +322,7 @@ public abstract class MapApplication extends Application {
 			link(sliders[i], spinners[i], i, aspectArr, Math::toRadians,
 					aspectSetter, isChanging, suppressListeners);
 		}
-		setAspectByPreset("Standard", sliders, spinners);
+		setAspectByPreset("Normal", sliders, spinners);
 		
 		for (String preset: ASPECT_NAMES) {
 			MenuItem m = new MenuItem(preset);
