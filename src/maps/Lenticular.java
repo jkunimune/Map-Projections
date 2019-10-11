@@ -254,17 +254,17 @@ public class Lenticular {
 	
 	public static final Projection WAGNER_VIII = new Projection(
 			"Wagner VIII", "A compromise projection with pseudoazimuthal energy.",
-			5.6229621893185126, 3.5, 0b1111, Type.OTHER, Property.COMPROMISE, 3) {
+			2*2.81152, 2*1.52342, 0b1111, Type.OTHER, Property.COMPROMISE, 3) {
 		
 		private final double m1 = 0.92118, m2 = 0.8855, n = 3.,
-				cX = 5.6229, cY = 2.6162;
+				cX = 5.62290, cY = 2.61626;
 		
 		public double[] project(double lat, double lon) {
 			double psi = Math.asin(m1*Math.sin(m2*lat));
+			if (lon == 0)
+				return new double[] { 0, cY*Math.sin(psi/2) };
 			double del = Math.acos(Math.cos(lon/n)*Math.cos(psi));
 			double alp = Math.signum(lon)*Math.acos(Math.sin(psi)/Math.sin(del));
-			if (Double.isNaN(alp))
-				alp = lat < 0 ? 0 : Math.PI;
 			return new double[] {
 					cX*Math.sin(del/2)*Math.sin(alp),
 					cY*Math.sin(del/2)*Math.cos(alp) };
@@ -274,11 +274,12 @@ public class Lenticular {
 			double alp = Math.atan2(x/cX, y/cY);
 			double del = 2*Math.asin(Math.hypot(x/cX, y/cY));
 			double psi = Math.asin(Math.cos(alp)*Math.sin(del));
-			if (Math.abs(Math.sin(psi)) > m1)
+			double lat = Math.asin(Math.sin(psi)/m1)/m2;
+			double lon = Math.signum(x)*Math.acos(Math.cos(del)/Math.cos(psi))*n;
+			if (Double.isNaN(lat) || Math.abs(lat) > Math.PI/2)
 				return null;
-			return new double[] {
-					Math.asin(Math.sin(psi)/m1)/m2,
-					Math.signum(x)*Math.acos(Math.cos(del)/Math.cos(psi))*n };
+			else
+				return new double[] {lat, lon};
 		}
 	};
 	

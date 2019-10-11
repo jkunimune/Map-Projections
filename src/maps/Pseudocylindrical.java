@@ -95,46 +95,34 @@ public class Pseudocylindrical {
 	
 	public static final Projection WAGNER_II = new Projection(
 			"Wagner II", "A compromise projection with sinusoidal meridians.",
-			2*0.92483*Math.PI, 2*1.38725*0.88022*Math.sin(0.8855*Math.PI/2), 0b1111,
-			Type.OTHER, Property.COMPROMISE, 2) {
+			2*2.9054, 2*1.4527,
+			0b1111, Type.OTHER, Property.COMPROMISE, 2) {
 		
 		private final double c0 = 0.92483, c1 = 1.38725,
 				c2 = 0.88022, c3 = 0.8855;
 		
 		public double[] project(double lat, double lon) {
-			double psi = c2*Math.sin(c3*lat);
+			double psi = Math.asin(c2*Math.sin(c3*lat));
 			return new double[] {c0*lon*Math.cos(psi), c1*psi};
 		}
 		
 		public double[] inverse(double x, double y) {
 			double psi = y/c1;
-			return new double[] {Math.asin(psi/c2)/c3, x/c0/Math.cos(psi)};
+			return new double[] {Math.asin(Math.sin(psi)/c2)/c3, x/c0/Math.cos(psi)};
 		}
 	};
 	
 	
 	public static final Projection WAGNER_V = new Projection(
 			"Wagner V", "A compromise projection with elliptical meridians.",
-			0, 0, 0b1111, Type.OTHER, Property.COMPROMISE, 3) {
+			2*2.8581, 2*1.4291, 0b1111, Type.OTHER, Property.COMPROMISE, 3) {
 		
 		private final double c0 = 0.909771, c1 = 1.650142,
-				c2 = 3.008957, c3 = 0.885502;
-		private double psiMax;
-		
-		public void setParameters(double... params) {
-			if (width == 0) { // set all these constants that are hard to compute
-				this.psiMax = NumericalAnalysis.newtonRaphsonApproximation(
-						c2*Math.sin(c3*Math.PI/2), 1,
-						(ps)->(2*ps + Math.sin(2*ps)),
-						(ps)->(2 + 2*Math.cos(2*ps)), 1e-5);
-				this.width = 2*c0*Math.PI;
-				this.height = 2*c1*Math.sin(psiMax);
-			}
-		}
+				c2 = 3.008957, c3 = 0.8855;
 		
 		public double[] project(double lat, double lon) {
 			double psi = NumericalAnalysis.newtonRaphsonApproximation(
-					c2*Math.sin(c3*lat), Math.sin(lat)*psiMax, (ps)->(2*ps + Math.sin(2*ps)),
+					c2*Math.sin(c3*lat), Math.sin(lat)*Math.PI/3, (ps)->(2*ps + Math.sin(2*ps)),
 					(ps)->(2 + 2*Math.cos(2*ps)), 1e-5);
 			return new double[] {c0*lon*Math.cos(psi), c1*Math.sin(psi)};
 		}
