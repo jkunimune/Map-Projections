@@ -95,8 +95,7 @@ public class Pseudocylindrical {
 	
 	public static final Projection WAGNER_II = new Projection(
 			"Wagner II", "A compromise projection with sinusoidal meridians.",
-			2*2.9054, 2*1.4527,
-			0b1111, Type.OTHER, Property.COMPROMISE, 2) {
+			2*2.9054, 2*1.4527, 0b1111, Type.OTHER, Property.COMPROMISE, 2) {
 		
 		private final double c0 = 0.92483, c1 = 1.38725,
 				c2 = 0.88022, c3 = 0.8855;

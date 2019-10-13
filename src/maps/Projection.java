@@ -289,11 +289,18 @@ public abstract class Projection {
 			double[] sm = new double[] {(s0[0]+s1[0])/2, (s0[1]+s1[1])/2}; //spherical (loxodromic) midpoint
 			double[] p0 = planar.get(i).args; //first planar endpoint
 			double[] p1 = planar.get(i+1).args; //second planar endpoint
+			if (!Math2.inBounds(p0, imgRange) && !Math2.inBounds(p1, imgRange)) // if we're talking about things entirely off the map
+				continue; // just forget about it
 			double[] pm = Math2.linInterp(this.project(sm, pole), baseRange, imgRange); //planar (loxodromic) midpoint
 			
-			double error = Math2.lineSegmentDistance(pm[0], pm[1], p0[0], p0[1], p1[0], p1[1]);
-			if (error > precision) { //if the calculated midpoint is too far off the line
-				spherical.add(i+1, sm); //add the midpoint to the curve
+			double error = Math.hypot(pm[0] - (p0[0] + p1[0])/2, pm[1] - (p0[1] + p1[1])/2); // midpoint error
+			if (error > precision) { //if the calculated midpoint is too far from what we expect
+				if ((i-1 < 0 || Math2.hypot(planar.get(i-1).args, p0) <= precision/2) &&
+						(i+2 >= planar.size() || Math2.hypot(planar.get(i+2).args, p1) <= precision/2)) { // check if it's getting real close on each side
+					planar.set(i+1, new Command('M', p1)); // if so, it's probably an interruption. Change the second one to 'M'.
+					continue;
+				}
+				spherical.add(i+1, sm); //otherwise, add the midpoint to the curve
 				planar.add(i+1, new Command('L', pm));
 				queue.add(s0); //and see if you need to recurse this at all
 				queue.add(sm);
@@ -428,7 +435,7 @@ public abstract class Projection {
 				if ((Math.cos(lon0-lonF) >= 0 && latF < lat0) || (Math.cos(lon0-lonF) < 0 && latF < -lat0))
 					lon1 = 0;
 				else
-					lon1 = -Math.PI;
+					lon1 = Math.PI;
 			}
 			else if (Math.sin(lonF - lon0) > 0) // it's a plus-or-minus arccos.
 				lon1 = -lon1;

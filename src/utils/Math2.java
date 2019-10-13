@@ -168,6 +168,18 @@ public class Math2 {
 		return out;
 	}
 	
+	public static boolean inBounds(double[] xs, double[][] range) {
+		for (int i = 0; i < xs.length; i ++)
+			if (xs[i] <= range[0][i] || xs[i] >= range[1][i])
+				return false;
+		return true;
+	}
+	
+	
+	public static double hypot(double[] a, double[] b) {
+		return Math.hypot(a[0] - b[0], a[1] - b[1]);
+	}
+	
 	
 	public static double
 			lineSegmentDistance(double X, double Y, double x0, double y0, double x1, double y1) {

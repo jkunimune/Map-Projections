@@ -122,7 +122,7 @@ public abstract class MapApplication extends Application {
 			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
 			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
 			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER,
-			Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN, ArbitraryPseudocylindrical.ROBINSON,
+			Lenticular.VAN_DER_GRINTEN, ArbitraryPseudocylindrical.ROBINSON,
 			WinkelTripel.WINKEL_TRIPEL, EqualEarth.EQUAL_EARTH,
 			Octohedral.KEYES_BASIC_M, Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Misc.PEIRCE_QUINCUNCIAL,
 			Pseudocylindrical.LEMONS };

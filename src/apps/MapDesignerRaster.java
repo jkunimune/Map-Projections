@@ -74,7 +74,7 @@ public class MapDesignerRaster extends MapApplication {
 			new FileChooser.ExtensionFilter("GIF", "*.gif") };
 	
 	private static final Color GRATICULE_COLOR = Color.WHITE;
-	private static final float GRATICULE_WIDTH = 0.5f;
+	private static final float GRATICULE_WIDTH = 1.0f;
 	
 	private Region aspectSelector;
 	private double[] aspect;
@@ -243,7 +243,7 @@ public class MapDesignerRaster extends MapApplication {
 					updateProgress(-1, 1);
 					updateMessage("Drawing graticule\u2026");
 					ImageUtils.drawSVGPath(
-							proj.drawGraticule(Math.toRadians(gratSpacing), .02,
+							proj.drawGraticule(Math.toRadians(gratSpacing), .5,
 									width, height, Math.PI/2, Math.PI, aspect),
 							GRATICULE_COLOR, GRATICULE_WIDTH, true,
 							(Graphics2D)theMap.getGraphics());
