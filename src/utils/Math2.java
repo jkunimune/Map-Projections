@@ -168,11 +168,36 @@ public class Math2 {
 		return out;
 	}
 	
-	public static boolean inBounds(double[] xs, double[][] range) {
+	public static boolean outOfBoundsInSameDirection(double[][] range, double[]... xs) {
+		boolean allOutOnLeft = true;
 		for (int i = 0; i < xs.length; i ++)
-			if (xs[i] <= range[0][i] || xs[i] >= range[1][i])
-				return false;
-		return true;
+			if (xs[i][0] >= range[0][0])
+				allOutOnLeft = false;
+		if (allOutOnLeft)
+			return true;
+		
+		boolean allOutOnRight = true;
+		for (int i = 0; i < xs.length; i ++)
+			if (xs[i][0] <= range[1][0])
+				allOutOnRight = false;
+		if (allOutOnRight)
+			return true;
+		
+		boolean allOutOnBottom = true;
+		for (int i = 0; i < xs.length; i ++)
+			if (xs[i][1] >= range[0][1])
+				allOutOnBottom = false;
+		if (allOutOnBottom)
+			return true;
+		
+		boolean allOutOnTop = true;
+		for (int i = 0; i < xs.length; i ++)
+			if (xs[i][1] <= range[1][1])
+				allOutOnTop = false;
+		if (allOutOnTop)
+			return true;
+		
+		return false;
 	}
 	
 	

@@ -74,7 +74,7 @@ public class MapDesignerRaster extends MapApplication {
 			new FileChooser.ExtensionFilter("GIF", "*.gif") };
 	
 	private static final Color GRATICULE_COLOR = Color.WHITE;
-	private static final float GRATICULE_WIDTH = 1.0f;
+	private static final float GRATICULE_WIDTH = 1.5f;
 	
 	private Region aspectSelector;
 	private double[] aspect;

@@ -289,7 +289,7 @@ public abstract class Projection {
 			double[] sm = new double[] {(s0[0]+s1[0])/2, (s0[1]+s1[1])/2}; //spherical (loxodromic) midpoint
 			double[] p0 = planar.get(i).args; //first planar endpoint
 			double[] p1 = planar.get(i+1).args; //second planar endpoint
-			if (!Math2.inBounds(p0, imgRange) && !Math2.inBounds(p1, imgRange)) // if we're talking about things entirely off the map
+			if (Math2.outOfBoundsInSameDirection(imgRange, p0, p1)) // if we're talking about things entirely off the map
 				continue; // just forget about it
 			double[] pm = Math2.linInterp(this.project(sm, pole), baseRange, imgRange); //planar (loxodromic) midpoint
 			
