@@ -199,7 +199,7 @@ public class Conic {
 			}
 			final double r = Math.sqrt(C - 2*n*Math.sin(lat));
 			final double x = r*Math.sin(n*lon);
-			final double y = -r*Math.cos(n*lon);
+			final double y = -r*Math.cos(n*lon) + y0;
 			if (reversed) 	return new double[] {-x,-y};
 			else 			return new double[] { x, y};
 		}
