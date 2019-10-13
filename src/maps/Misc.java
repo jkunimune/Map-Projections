@@ -447,7 +447,7 @@ public class Misc {
 		@Override
 		public Path drawGraticule(double spacing, double precision, double outW, double outH,
 			double maxLat, double maxLon, double[] pole) {
-			return Azimuthal.POLAR.drawGraticule(spacing, precision, outW, outH, maxLat, maxLon, pole);
+			return Azimuthal.POLAR.drawGraticule(spacing, precision, outW, outH, maxLat, maxLon, null);
 		}
 	};
 	

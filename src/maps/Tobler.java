@@ -39,19 +39,18 @@ public class Tobler {
 	
 	public static final Projection TOBLER =
 			new Projection(
-					"Tobler Hyperelliptical", "An equal-area projection shaped like a hyperellipse.",
-					2*Math.PI, 0, 0b1001, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 4,
-					new String[]{"Std. Parallel","alpha","K"},
-					new double[][] {{0,89,37.5}, {0,1,0.0}, {1,5,3.0}}) { //optimal parameters are 30.6,.50,3.63, but these defaults are more recognizably Tobler
+					"Tobler hyperelliptical", "An equal-area projection shaped like a hyperellipse.",
+					2*Math.PI, Math.PI, 0b1001, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 4,
+					new String[]{"alpha","K"},
+					new double[][] {{0,1,0.0}, {1,5,2.5}}) {
 		
 		private static final int N = 20000;
 		private double alpha, kappa, epsilon; //epsilon is related to gamma, but defined somewhat differently
 		private double[] Z; //Z[i] = sin(phi) when y = i/(Z.length-1)
 		
 		public void setParameters(double... params) {
-			this.height = 2/Math.pow(Math.cos(Math.toRadians(params[0])),2);
-			this.alpha = params[1];
-			this.kappa = params[2];
+			this.alpha = params[0];
+			this.kappa = params[1];
 			this.epsilon = NumericalAnalysis.simpsonIntegrate(
 					0, 1, this::hyperEllipse, 1./N);
 			this.Z = NumericalAnalysis.simpsonODESolve(
