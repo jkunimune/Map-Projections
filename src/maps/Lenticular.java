@@ -286,7 +286,7 @@ public class Lenticular {
 	
 	public static final Projection POLYCONIC = new Projection(
 			"American polyconic", "A map made for narrow strips of longitude that was really popular with the USGS for a while.",
-			2*Math.PI, 3.5, 0b1011, Type.OTHER, Property.EQUIDISTANT, 3) {
+			2*Math.PI, 4.81527, 0b1011, Type.OTHER, Property.EQUIDISTANT, 3) {
 		
 		public double[] project(double lat, double lon) {
 			if (lat == 0)
@@ -296,7 +296,21 @@ public class Lenticular {
 		}
 		
 		public double[] inverse(double x, double y) {
-			return null;
+			if (y < 0) { // the math gets inconvenient in the Southern Hemisphere
+				double[] refl = inverse(x, -y);
+				return new double[] {-refl[0], refl[1]};
+			}
+			else if (y == 0)
+				return new double[] {0, x};
+			
+			double logitLatGuess = Math.log(Math.hypot(x, y+Math.PI/2)/Math.hypot(x, y-Math.PI/2));
+			double lat = NumericalAnalysis.bisectionFind(
+					(ph)->(Math.pow(x, 2) + Math.pow(y - ph, 2) - 2*(y - ph)/Math.tan(ph)),
+					0, Math.PI/2*(Math.exp(logitLatGuess) - 1)/(Math.exp(logitLatGuess) + 1), // this guess is pretty complicated, but I'm proud of it
+					1e-4);
+			if (Double.isNaN(lat))
+				return null;
+			return new double[] { lat, Math.atan2(x, -(y - lat - 1/Math.tan(lat)))/Math.sin(lat) };
 		}
 	};
 
