@@ -271,7 +271,7 @@ public abstract class Projection {
 		double[] endPt0 = new double[] {lat0, lon0};
 		double[] endPt1 = new double[] {lat1, lon1};
 		List<double[]> spherical = new ArrayList<double[]>(); //the spherical coordinates of the vertices
-		for (double a = 0; a <= 1; a += .125) //populated with vertices along the loxodrome
+		for (double a = 0; a <= 1; a += 1/32.) //populated with vertices along the loxodrome
 			spherical.add(new double[] {endPt0[0]*a+endPt1[0]*(1-a), endPt0[1]*a+endPt1[1]*(1-a)});
 		Path planar = new Path(); //the planar coordinates of the vertices
 		for (int i = 0; i < spherical.size(); i ++) {
@@ -295,12 +295,16 @@ public abstract class Projection {
 			
 			double error = Math.hypot(pm[0] - (p0[0] + p1[0])/2, pm[1] - (p0[1] + p1[1])/2); // midpoint error
 			if (error > precision) { //if the calculated midpoint is too far from what we expect
-				if ((i-1 < 0 || Math2.hypot(planar.get(i-1).args, p0) <= precision/2) &&
-						(i+2 >= planar.size() || Math2.hypot(planar.get(i+2).args, p1) <= precision/2)) { // check if it's getting real close on each side
+				if ((i-1 < 0 || Math2.hypot(planar.get(i-1).args, p0) <= precision) &&
+						(i+2 >= planar.size() || Math2.hypot(planar.get(i+2).args, p1) <= precision)) { // check if it's getting real close on each side
 					planar.set(i+1, new Command('M', p1)); // if so, it's probably an interruption. Change the second one to 'M'.
 					continue;
 				}
-				spherical.add(i+1, sm); //otherwise, add the midpoint to the curve
+				else if (Math.hypot(s1[0] - s0[0], s1[1] - s0[1]) < 1e-4) { // alternatively, if we're getting to arcsecond scale,
+					planar.set(i+1, new Command('M', p1)); // it's just not worth it
+					continue;
+				}
+				spherical.add(i+1, sm); //if there's still work to do, add the midpoint to the curve
 				planar.add(i+1, new Command('L', pm));
 				queue.add(s0); //and see if you need to recurse this at all
 				queue.add(sm);
@@ -435,7 +439,7 @@ public abstract class Projection {
 				if ((Math.cos(lon0-lonF) >= 0 && latF < lat0) || (Math.cos(lon0-lonF) < 0 && latF < -lat0))
 					lon1 = 0;
 				else
-					lon1 = Math.PI;
+					lon1 = -Math.PI;
 			}
 			else if (Math.sin(lonF - lon0) > 0) // it's a plus-or-minus arccos.
 				lon1 = -lon1;
@@ -443,6 +447,8 @@ public abstract class Projection {
 		lon1 = lon1-tht0;
 		if (Math.abs(lon1) > Math.PI) //put all longitudes in [-pi,pi], for convenience
 			lon1 = Math2.coerceAngle(lon1);
+		if (lon1 >= Math.PI - 1e-7) // finally, kill any roundoff error on the edge
+			lon1 = -Math.PI;
 		
 		return new double[] {lat1, lon1};
 	}

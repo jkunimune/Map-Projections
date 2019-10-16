@@ -66,7 +66,7 @@ public class ImageUtils {
 	
 	
 	public static final void drawSVGPath(Path path, Color stroke, float strokeWidth, boolean antialias, Graphics2D g) {
-		g.setStroke(new BasicStroke(strokeWidth));
+		g.setStroke(new BasicStroke(strokeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
 		g.setColor(stroke);
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 				antialias ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
