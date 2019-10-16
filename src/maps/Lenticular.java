@@ -303,11 +303,9 @@ public class Lenticular {
 			else if (y == 0)
 				return new double[] {0, x};
 			
-			double logitLatGuess = Math.log(Math.hypot(x, y+Math.PI/2)/Math.hypot(x, y-Math.PI/2));
 			double lat = NumericalAnalysis.bisectionFind(
 					(ph)->(Math.pow(x, 2) + Math.pow(y - ph, 2) - 2*(y - ph)/Math.tan(ph)),
-					0, Math.PI/2*(Math.exp(logitLatGuess) - 1)/(Math.exp(logitLatGuess) + 1), // this guess is pretty complicated, but I'm proud of it
-					1e-4);
+					0, Math.PI/2, 1e-4);
 			if (Double.isNaN(lat))
 				return null;
 			return new double[] { lat, Math.atan2(x, -(y - lat - 1/Math.tan(lat)))/Math.sin(lat) };
