@@ -70,7 +70,7 @@ public class MapAnalyzer extends MapApplication {
 	
 	private static final double LN_10 = Math.log(10);
 	
-	private static final int CHART_WIDTH = 480;
+	private static final int CHART_WIDTH = 400;
 	private static final int FINE_SAMP_NUM = 2048;
 	private static final double GLOBE_RES = .01;
 	
@@ -168,6 +168,7 @@ public class MapAnalyzer extends MapApplication {
 		this.sizeChart.setCategoryGap(0);
 		this.sizeChart.setAnimated(false);
 		this.sizeChart.setLegendVisible(false);
+		this.sizeChart.setVerticalGridLinesVisible(false);
 		
 		this.shapeChart = new BarChart<String, Number>(new CategoryAxis(), new NumberAxis());
 		this.shapeChart.setPrefWidth(CHART_WIDTH);
@@ -177,6 +178,7 @@ public class MapAnalyzer extends MapApplication {
 		this.shapeChart.setCategoryGap(0);
 		this.shapeChart.setAnimated(false);
 		this.shapeChart.setLegendVisible(false);
+		this.shapeChart.setVerticalGridLinesVisible(false);
 		
 		return new VBox(5, sizeChart, shapeChart);
 	}
@@ -311,10 +313,10 @@ public class MapAnalyzer extends MapApplication {
 			}
 			
 			protected void succeeded() {
-				if (mapDisplay != null)
+				if (mapDisplay != null) // set the image to the new graphic
 					mapDisplay.setImage(SwingFXUtils.toFXImage(graphic, null));
 				
-				if (sizeChart != null) {
+				if (sizeChart != null) { // and fill the plots with histograms of the new measurements
 					sizeChart.getData().clear();
 					sizeChart.getData().add(histogram(distortionG[0],
 							-LN_10, LN_10, 20, Math::exp));
@@ -322,7 +324,7 @@ public class MapAnalyzer extends MapApplication {
 					shapeChart.getData().add(histogram(distortionG[1],
 							   0.0, LN_10, 20, Math::exp));
 					
-					avgSizeDistort.setText(format(sizeDistort/LN_10*10)+"dB");
+					avgSizeDistort.setText(format(sizeDistort/LN_10*10)+"dB"); // also put the average numbers in the textboxen
 					avgShapeDistort.setText(format(shapeDistort/LN_10*10)+"dB");
 				}
 			}
