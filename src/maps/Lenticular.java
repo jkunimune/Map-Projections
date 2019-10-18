@@ -58,7 +58,7 @@ public class Lenticular {
 	
 	
 	public static final Projection HAMMER = new Projection(
-			"Hammer\u2013Aitoff", "An equal-area projection shaped like an ellipse.",
+			"Hammer", "An equal-area projection shaped like an ellipse.",
 			4, 2, 0b1111, Type.PSEUDOAZIMUTHAL, Property.EQUAL_AREA, 1) {
 		
 		public double[] project(double lat, double lon) {
