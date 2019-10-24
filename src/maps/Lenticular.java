@@ -203,6 +203,8 @@ public class Lenticular {
 			2, 2, 0b1111, Type.OTHER, Property.CONFORMAL, 2) {
 		
 		public double[] project(double lat, double lon) {
+			if (Math.abs(lat) == Math.PI/2)
+				return new double[] { 0, Math.signum(lat) };
 			double v = Math.pow((1 + Math.sin(lat))/(1 - Math.sin(lat)), .25);
 			double c = (v + 1/v)/2 + Math.cos(lon/2);
 			double x = Math.sin(lon/2)/c;
@@ -229,6 +231,8 @@ public class Lenticular {
 			0b1011, Type.OTHER, Property.CONFORMAL, 2) {
 		
 		public double[] project(double lat, double lon) {
+			if (Math.abs(lat) == Math.PI/2)
+				return new double[] { 0, Math.signum(lat)*(1 - Math.PI/4) };
 			Complex w = new Complex(lon, Math.log(Math.tan(Math.PI/4+lat/2)));
 			Complex v = w.divide(4).minus(Math.PI/8).tan().minus(1).divide(-Math.sqrt(2));
 			Complex z = v.log().plus(v.invert().minus(v).divide(Math.sqrt(2)));

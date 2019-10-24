@@ -48,7 +48,7 @@ public final class WinkelTripel {
 	public static final Projection WINKEL_TRIPEL =
 			new Projection("Winkel Tripel", "National Geographic's compromise projection of choice.",
 					0, 2*Math.PI, 0b1011, Type.OTHER, Property.COMPROMISE, 3,
-					new String[] {"Std. Parallel"}, new double[][] {{0,90,40}}) {
+					new String[] {"Std. Parallel"}, new double[][] {{0, 90, Math.toDegrees(Math.acos(2/Math.PI))}}) {
 		
 		private double stdParallel;
 		
