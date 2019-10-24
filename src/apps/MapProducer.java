@@ -34,6 +34,7 @@ import maps.Azimuthal;
 import maps.Conic;
 import maps.Cylindrical;
 import maps.EqualEarth;
+import maps.Gyorffy;
 import maps.Lenticular;
 import maps.Misc;
 import maps.Octohedral;
@@ -54,9 +55,10 @@ public class MapProducer extends Application {
 	public static final Projection[][] ALL_PROJECTIONS = {
 			{ 
 					Cylindrical.PLATE_CARREE,
-					Cylindrical.PLATE_CARREE.withAspect("Cassini", 0, Math.PI/2, -Math.PI/2),
+					Cylindrical.PLATE_CARREE.withAspect("Cassini", 0, Math.PI / 2, -Math.PI / 2),
 					Cylindrical.MERCATOR,
-					Cylindrical.MERCATOR.withAspect("Transverse Mercator", 0, Math.PI/2, -Math.PI/2),
+					Cylindrical.MERCATOR.withAspect("Transverse Mercator", 0, Math.PI / 2,
+							-Math.PI / 2),
 					Cylindrical.GALL_STEREOGRAPHIC, Cylindrical.MILLER, Cylindrical.LAMBERT,
 					Cylindrical.BEHRMANN, Cylindrical.HOBO_DYER, Cylindrical.GALL_ORTHOGRAPHIC,
 					Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE,
@@ -70,10 +72,14 @@ public class MapProducer extends Application {
 					Misc.PEIRCE_QUINCUNCIAL.transverse("Adams Doubly-Periodic"),
 					Polyhedral.DYMAXION, Misc.HAMMER_RETROAZIMUTHAL, Snyder.GS50,
 					Azimuthal.STEREOGRAPHIC.withAspect("Oblique Stereographic", .5, 2.5, -2.5),
-					Cylindrical.MERCATOR.withAspect("Oblique Mercator", .5, 2.5, 2.5) },
+					Cylindrical.MERCATOR.withAspect("Oblique Mercator", .5, 2.5, 2.5), Misc.BONNE,
+					Misc.BRAUN_CONIC, Octohedral.CAHILL_CONCIALDI, Octohedral.CAHILL_KEYES,
+					Lenticular.EISENLOHR, Gyorffy.E, Lenticular.LAGRANGE, Lenticular.POLYCONIC,
+					Polyhedral.VAN_LEEUWEN, Pseudocylindrical.WAGNER_II, Pseudocylindrical.WAGNER_V,
+					Lenticular.WAGNER_VIII },
 			{
 					Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
-					Octohedral.CAHILL_KEYES, Octohedral.WATERMAN } };
+					Octohedral.CONFORMAL_CAHILL, Octohedral.WATERMAN } };
 	public static final double[] ctrMerids = {0, Math.toRadians(-20)};
 	
 	
@@ -92,12 +98,7 @@ public class MapProducer extends Application {
 			for (Projection proj: ALL_PROJECTIONS[i]) {
 				System.out.println(proj);
 				
-				if (proj == Tobler.TOBLER)
-					proj.setParameters(37.07, 0., 3.);
-				else if (proj == WinkelTripel.WINKEL_TRIPEL)
-					proj.setParameters(50.46);
-				else
-					proj.setParameters(proj.getDefaultParameters());
+				proj.setParameters(proj.getDefaultParameters());
 				
 				Task<SavableImage> task =
 						MapDesignerVector.calculateTask(1, inputs[i], proj, pole, null);
@@ -112,6 +113,6 @@ public class MapProducer extends Application {
 			}
 		}
 		
-		stop();
+		stop(); // NOTE: I haven't actually set it to terminate when all the tasks finish, so you might have to do that yourself.
 	}
 }
