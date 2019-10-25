@@ -142,10 +142,10 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			public void characters(char[] ch, int start, int length) {
 				for (int i = 0; i < length; i ++) {
 					char c = ch[start+i];
-					if (c >= 128 || c == '\'' || c == '"' || c == '<' || c == '>' || c == '&') // some characters must be escaped here
-						currentFormatString += "&#" + (int)c + ";";
-					else
-						currentFormatString += ch[start+i];
+//					if (c >= 128 || c == '\'' || c == '"' || c == '<' || c == '>' || c == '&') // some characters must be escaped here
+//						currentFormatString += "&#" + (int)c + ";";
+//					else
+						currentFormatString += c;
 				}
 			}
 			
