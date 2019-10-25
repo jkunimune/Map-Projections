@@ -63,6 +63,9 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 	
 	public static final double[] NULL_TRANSFORM = {1, 1, 0, 0};
 	
+	private static final double MAX_EDGE_FACTOR = 20; // cut lines that are more than this much longer than their neighbors
+	private static final double MAX_EDGE_LENGTH = 1/20.; // cut lines that are more than this far across the map
+	
 	private List<Path> paths; //the set of closed curves in this image
 	private List<String> format; //the stuff that goes between the curve descriptions, probably important for something.
 	private double vbMinX, vbMinY, vbWidth, vbHeight; //the SVG viewBox
@@ -314,7 +317,9 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		
 		out.write(SAXUtils.encode(replacePlaceholders(formatIterator.next(), inWidth/inHeight)));
 		while (curveIterator.hasNext()) {
-			out.write(closePaths(breakWraps(curveIterator.next())).toString(
+			out.write(closePaths(
+					breakWraps(curveIterator.next(), Math.max(inWidth, inHeight))
+				).toString(
 					inMinX, inMaxY, vbMinX, vbMinY,
 					Math.max(vbWidth, vbHeight)/Math.max(inWidth, inHeight)));
 			out.write(SAXUtils.encode(formatIterator.next()));
@@ -346,9 +351,10 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 	}
 	
 	
-	private Path breakWraps(Path continuous) { //break excessively long commands, as they are likely wrapping over a discontinuity
+	private Path breakWraps(Path continuous, double inSize) { //break excessively long commands, as they are likely wrapping over a discontinuity
 		if (continuous.size() <= 2) 	return continuous;
 		Path broken = new Path();
+		final double lengthThreshold = inSize*MAX_EDGE_LENGTH;
 		double[] lens = {Double.NaN, Double.NaN, Double.NaN}; //the revolving array of command lengths
 		for (int i = 0; i < continuous.size(); i ++) {
 			if (i < continuous.size()-1 && continuous.get(i+1).type != 'M')
@@ -359,8 +365,9 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 				lens[2] = Double.NaN;
 			
 			char type = continuous.get(i).type;
-			if ((Double.isNaN(lens[0]) || lens[1] > 20*lens[0]) //and compare it to the last two lengths
-					&& (Double.isNaN(lens[2]) || lens[1] > 20*lens[2])) //if both sides are far longer or nonexistent
+			if (lens[1] >= lengthThreshold && // check it against an absolute threshold
+					(Double.isNaN(lens[0]) || lens[1] > 20*lens[0]) && //and compare it to the last two lengths
+					(Double.isNaN(lens[2]) || lens[1] > 20*lens[2])) //if both sides are far longer or nonexistent
 				type = 'M'; //break this line
 			
 			broken.add(new Command(type, continuous.get(i).args.clone()));
