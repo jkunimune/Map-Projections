@@ -24,6 +24,7 @@
 package maps;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -415,7 +416,7 @@ public abstract class Projection {
 	 * @return { latr, lonr }, or coords if pole is null
 	 */
 	protected static final double[] obliquifySphc(double latF, double lonF, double[] pole) {
-		if (pole == null) // null pole indicates that this procedure should be bypassed
+		if (pole == null || Arrays.equals(pole, NORTH_POLE)) // null pole indicates that this procedure should be bypassed
 			return new double[] {latF, lonF};
 		
 		final double lat0 = pole[0];
