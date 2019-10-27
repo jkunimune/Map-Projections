@@ -100,7 +100,7 @@ public class Meshed {
 			
 			BufferedReader in = null;
 			try {
-				in = new BufferedReader(new FileReader(String.format("src/data/%s", filename))); // parsing the input mesh is pretty simple
+				in = new BufferedReader(new FileReader(String.format("data/%s", filename))); // parsing the input mesh is pretty simple
 				String[] row = in.readLine().split(","); // get the header
 				double[][] vertices = new double[Integer.parseInt(row[0])][2];
 				cells = new double[Integer.parseInt(row[1])][Integer.parseInt(row[2])][][];

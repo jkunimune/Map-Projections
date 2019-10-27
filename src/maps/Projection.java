@@ -253,11 +253,11 @@ public abstract class Projection {
 		}
 		maxLat -= .0001; //don't draw on the poles; it makes things easier
 		for (int x = 0; x <= (int)(maxLon/spacing); x ++) {
-			output.addAll(drawLoxodrome( //eastern meridian
-					-maxLat, x*spacing, maxLat, x*spacing, precision, outW, outH, pole));
-			if (x == 0 || x == (int)(maxLon/spacing)) 	continue;
 			output.addAll(drawLoxodrome( //western meridian
 					-maxLat,-x*spacing, maxLat,-x*spacing, precision, outW, outH, pole));
+			if (x == 0 || x == (int)(maxLon/spacing)) 	continue;
+			output.addAll(drawLoxodrome( //eastern meridian
+					-maxLat, x*spacing, maxLat, x*spacing, precision, outW, outH, pole));
 		}
 		
 		return output;

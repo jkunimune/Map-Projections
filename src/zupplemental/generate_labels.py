@@ -8,7 +8,7 @@ from helpers import line_break, get_centroid
 
 def plot_texts(filename, label_class, max_rank, text_size, regulate_case=False, secondary_attr=None, force_points=False):
 	"""data from http://www.naturalearthdata.com/"""
-	sf = shapefile.Reader("../data/{}".format(filename))
+	sf = shapefile.Reader("shapefiles/{}".format(filename))
 	rank_idx, type_idx, secd_idx, lat_idx, lon_idx = None, None, None, None, None
 	for i, field in enumerate(sf.fields):
 		if field[0] in ['scalerank', 'LABELRANK']:

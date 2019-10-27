@@ -7,7 +7,7 @@ from helpers import plot, trim_edges, lengthen_edges
 
 def plot_shapes(filename, max_rank=float('inf'), clazz=None, trim_antarctica=False, flesh_out_antarctica=False, filter_field=None, filter_vals=['']):
 	"""data from http://www.naturalearthdata.com/"""
-	sf = shapefile.Reader("../data/{}".format(filename))
+	sf = shapefile.Reader("shapefiles/{}".format(filename))
 	rank_idx, filter_idx = None, None
 	for i, field in enumerate(sf.fields):
 		if 'rank' in field[0]:

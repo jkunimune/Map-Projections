@@ -8,7 +8,7 @@ SIZE_CLASSES = ['lg', 'md', 'sm', None, None, None]
 
 def generate_borders(source, borders_only=False, trim_antarctica=False):
 	"""data from http://www.naturalearthdata.com/"""
-	sf = shapefile.Reader("../data/{}_admin_0_countries".format(source))
+	sf = shapefile.Reader("shapefiles/{}_admin_0_countries".format(source))
 	sovereigns = {} #key is 3-char code, value is list of (record,shape)
 	for record, shape in zip(sf.records(), sf.shapes()):
 		if trim_antarctica:
