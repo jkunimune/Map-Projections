@@ -3,7 +3,7 @@
 	
 	<property name="dir.workspace" value="C:/Users/jkunimune.522MT32/eclipse-workspace"/>
 	<property name="dir.jarfile" value="."/>
-	<property name="version" value="3.4.2"/>
+	<property name="version" value="3.4.3"/>
 	
 	<target name="setup">
 		<mkdir dir="build"/>
