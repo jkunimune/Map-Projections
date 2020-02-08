@@ -243,7 +243,7 @@ public class MapAnalyzer extends MapApplication {
 	public static Task<SavableImage> calculateGraphicTask(int imgSize,
 			Projection proj, boolean crop, double gratSpacing, ImageView mapDisplay,
 			BarChart<String, Number> sizeChart, BarChart<String, Number> shapeChart,
-			Text avgSizeDistort, Text avgShapeDistort) { //TODO graticule still does nothing; just paste it in!
+			Text avgSizeDistort, Text avgShapeDistort) {
 		return new Task<SavableImage>() {
 			double[][][] distortionG; //some variables that might get used later
 			double sizeDistort, shapeDistort;
