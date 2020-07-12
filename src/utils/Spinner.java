@@ -1,7 +1,7 @@
 /**
  * MIT License
  * 
- * Copyright (c) 2017 Justin Kunimune
+ * Copyright (c) 2020 Justin Kunimune
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,23 +25,20 @@ package utils;
 
 
 /**
- * It's a JavaFX spinner, but with intuitive behaviour (i.e. it commits its value when it loses
+ * It's a JavaFX spinner, but with intuitive behavior (i.e. it commits its value when it loses
  * focus, not just when the user presses enter)
  * 
- * @author jkunimune
+ * @author Justin Kunimune
  */
 public class Spinner<T> extends javafx.scene.control.Spinner<T> {
 	
-	public Spinner() {
-		super();
+	public Spinner(double min, double max, double init, double step) {
+		super(min, max, init, step);
 		this.focusedProperty().addListener((observable, prev, now) -> {
 			if (!now)
 				this.commitValue(); //was that so hard?
 		});
-	}
-	
-	public void commitValue() {
-		this.increment(0); //stupid workarounds
+		this.setPrefWidth(100);
 	}
 	
 }
