@@ -52,6 +52,7 @@ import maps.ArbitraryPseudocylindrical;
 import maps.Azimuthal;
 import maps.Cylindrical;
 import maps.EqualEarth;
+import maps.Gyorffy;
 import maps.Lenticular;
 import maps.Misc;
 import maps.Octohedral;
@@ -80,11 +81,11 @@ public class MapPlotter extends Application {
 			Pseudocylindrical.KAVRAYSKIY_VII, EqualEarth.EQUAL_EARTH };
 	private static final Projection[] LENTICULAR = { Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN,
 			WinkelTripel.WINKEL_TRIPEL, Meshed.DANSEIJI_N, Meshed.DANSEIJI_I,
-			Meshed.DANSEIJI_II };
+			Meshed.DANSEIJI_II, Gyorffy.E, Gyorffy.F };
 	private static final Projection[] TETRAHEDRAL = { Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
 			Polyhedral.AUTHAGRAPH, Polyhedral.VAN_LEEUWEN };
 	private static final Projection[] CHEATY = { Pseudocylindrical.LEMONS, Octohedral.CAHILL_KEYES,
-			Polyhedral.DYMAXION, Octohedral.CAHILL_CONCIALDI, Meshed.DANSEIJI_V };
+			Polyhedral.DYMAXION, Octohedral.CAHILL_CONCIALDI, Meshed.DANSEIJI_IV };
 	private static final Projection[] OTHER = { Misc.PEIRCE_QUINCUNCIAL };
 	
 	
