@@ -63,7 +63,6 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 	
 	public static final double[] NULL_TRANSFORM = {1, 1, 0, 0};
 	
-	private static final double MAX_EDGE_FACTOR = 20; // cut lines that are more than this much longer than their neighbors
 	private static final double MAX_EDGE_LENGTH = 1/20.; // cut lines that are more than this far across the map
 	
 	private List<Path> paths; //the set of closed curves in this image
