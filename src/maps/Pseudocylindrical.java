@@ -71,6 +71,77 @@ public class Pseudocylindrical {
 	};
 	
 	
+	public static final Projection HOMOLOSINE = new Projection(
+			"Homolosine (uninterrupted)", "A combination of the sinusoidal and Mollweide projections.",
+			2*Math.PI, 2.72282, 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
+		
+		private final double phiH = 0.71098;
+		private final double scale = Math.sqrt(2);
+		private final double yH = MOLLWEIDE.project(phiH, 0)[1]*scale;
+		
+		public double[] project(double lat, double lon) {
+			if (Math.abs(lat) <= phiH) {
+				return SINUSOIDAL.project(lat, lon);
+			}
+			else {
+				double[] xy = MOLLWEIDE.project(lat, lon);
+				if (lat > 0)
+					return new double[] {xy[0]*scale, xy[1]*scale + phiH - yH};
+				else
+					return new double[] {xy[0]*scale, xy[1]*scale - phiH + yH};
+			}
+		}
+		
+		public double[] inverse(double x, double y) {
+			if (Math.abs(y) <= phiH)
+				return SINUSOIDAL.inverse(x, y);
+			else if (y > 0)
+				return MOLLWEIDE.inverse(x/scale, (y - phiH + yH)/scale);
+			else
+				return MOLLWEIDE.inverse(x/scale, (y + phiH - yH)/scale);
+		}
+	};
+	
+	
+	public static final Projection HOMOLOSINE_INTERRUPTED = new Projection(
+			"Good Homolosine", "An interrupted combination of the sinusoidal and Mollweide projections.",
+			2*Math.PI, 2.72282, 0b1100, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
+		
+		private final double[][] edges = {
+				{Math.toRadians(-40), Math.toRadians(180)},
+				{Math.toRadians(-100), Math.toRadians(-20), Math.toRadians(80), Math.toRadians(180)}};
+		private final double[][] centers = {
+				{Math.toRadians(-100), Math.toRadians(30)},
+				{Math.toRadians(-160), Math.toRadians(-60), Math.toRadians(20), Math.toRadians(140)}};
+		
+		public double[] project(double lat, double lon) {
+			int i = (lat > 0) ? 0 : 1;
+			for (int j = 0; j < edges[i].length; j ++) {
+				if (lon <= edges[i][j]) {
+					double[] xy = HOMOLOSINE.project(lat, lon - centers[i][j]);
+					return new double[] {xy[0] + centers[i][j], xy[1]};
+				}
+			}
+			return null;
+		}
+		
+		public double[] inverse(double x, double y) {
+			int i = (y > 0) ? 0 : 1;
+			for (int j = 0; j < edges[i].length; j ++) {
+				if (x <= edges[i][j]) {
+					double[] phiLam = HOMOLOSINE.inverse(x - centers[i][j], y);
+					if ((j < edges[i].length-1 && phiLam[1] + centers[i][j] > edges[i][j]) ||
+							(j > 0 && phiLam[1] + centers[i][j] < edges[i][j-1]))
+						return null;
+					else
+						return new double[] {phiLam[0], phiLam[1] + centers[i][j]};
+				}
+			}
+			return null;
+		}
+	};
+	
+	
 	public static final Projection ECKERT_IV = new Projection(
 			"Eckert IV", "An equal-area projection released in a set of six (I'm only giving you the one because the others are not good).",
 			4, 2, 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {

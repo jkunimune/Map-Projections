@@ -76,7 +76,7 @@ public class MapProducer extends Application {
 					Misc.BRAUN_CONIC, Octohedral.CAHILL_CONCIALDI, Octohedral.CAHILL_KEYES,
 					Lenticular.EISENLOHR, Gyorffy.E, Lenticular.LAGRANGE, Lenticular.POLYCONIC,
 					Polyhedral.VAN_LEEUWEN, Pseudocylindrical.WAGNER_II, Pseudocylindrical.WAGNER_V,
-					Lenticular.WAGNER_VIII },
+					Lenticular.WAGNER_VIII, Pseudocylindrical.HOMOLOSINE_INTERRUPTED },
 			{
 					Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
 					Octohedral.CONFORMAL_CAHILL, Octohedral.WATERMAN } };

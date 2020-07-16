@@ -53,7 +53,7 @@ public class MapEvaluator {
 	public static final Projection[] PROJECTIONS = {
 			Cylindrical.BEHRMANN, Pseudocylindrical.MOLLWEIDE, Pseudocylindrical.ECKERT_IV, Meshed.DANSEIJI_I,
 			WinkelTripel.WINKEL_TRIPEL, Gyorffy.E, Meshed.DANSEIJI_II,
-			Polyhedral.DYMAXION, Meshed.DANSEIJI_III,
+			Pseudocylindrical.HOMOLOSINE_INTERRUPTED, Polyhedral.DYMAXION, Meshed.DANSEIJI_III,
 	};
 	
 	/**

@@ -85,7 +85,8 @@ public class MapPlotter extends Application {
 	private static final Projection[] TETRAHEDRAL = { Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
 			Polyhedral.AUTHAGRAPH, Polyhedral.VAN_LEEUWEN };
 	private static final Projection[] CHEATY = { Pseudocylindrical.LEMONS, Octohedral.CAHILL_KEYES,
-			Polyhedral.DYMAXION, Octohedral.CAHILL_CONCIALDI, Meshed.DANSEIJI_IV };
+			Polyhedral.DYMAXION, Octohedral.CAHILL_CONCIALDI, Meshed.DANSEIJI_IV,
+			Pseudocylindrical.HOMOLOSINE_INTERRUPTED };
 	private static final Projection[] OTHER = { Misc.PEIRCE_QUINCUNCIAL };
 	
 	
