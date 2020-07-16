@@ -23,8 +23,13 @@
  */
 package apps;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.imageio.ImageIO;
 
 import maps.Cylindrical;
 import maps.Gyorffy;
@@ -43,17 +48,25 @@ public class MapEvaluator {
 	
 	public static final double STEP = 1e-2;
 	
+	public static final boolean ONLY_LAND = true;
 	public static final double THRESHOLD = 3;
 	public static final Projection[] PROJECTIONS = {
 			Cylindrical.BEHRMANN, Pseudocylindrical.MOLLWEIDE, Pseudocylindrical.ECKERT_IV, Meshed.DANSEIJI_I,
 			WinkelTripel.WINKEL_TRIPEL, Gyorffy.E, Meshed.DANSEIJI_II,
 			Polyhedral.DYMAXION, Meshed.DANSEIJI_III,
 	};
-
+	
 	/**
 	 * @param args
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
+		BufferedImage img = ImageIO.read(new File("input/Sillouette.png")); // start by loading the mask
+		boolean[][] land = new boolean[img.getHeight()][img.getWidth()];
+		for (int i = 0; i < land.length; i ++)
+			for (int j = 0; j < land[i].length; j ++)
+				land[i][j] = (img.getRGB(j, i) & 0xFF) < 128;
+		
 		for (Projection projection : PROJECTIONS) {
 			System.out.println(projection.getName());
 			
@@ -66,10 +79,15 @@ public class MapEvaluator {
 			double ɸStep = STEP;
 			for (double ɸMin = -Math.PI/2; ɸMin < Math.PI/2; ɸMin += ɸStep) {
 				double ɸMax = Math.min(ɸMin + ɸStep, Math.PI/2);
+				int i = (int) ((-(ɸMin+ɸMax)/2 / Math.PI + .5) * land.length);
 				
 				double λStep = STEP/Math.cos((ɸMax + ɸMin)/2);
 				for (double λMin = -Math.PI; λMin < Math.PI; λMin += λStep) {
 					double λMax = Math.min(λMin + λStep, Math.PI);
+					int j = (int) (((λMin+λMax)/2 / (2*Math.PI) + .5) * land[i].length);
+					
+					if (ONLY_LAND && !land[i][j]) // if we only care about land and this isn't land
+						continue;
 					
 					double[] n = projection.project((ɸMin + 3*ɸMax)/4, (λMin + λMax)/2);
 					double[] s = projection.project((3*ɸMin + ɸMax)/4, (λMin + λMax)/2);
