@@ -105,7 +105,7 @@ public class MapDesignerRaster extends MapApplication {
 	@Override
 	protected Region makeWidgets() {
 		this.aspect = new double[3];
-		this.cropAtIDL = new Flag(false);
+		this.cropAtIDL = new Flag(true);
 		this.graticuleSpacing = new MutableDouble();
 		final Region inputSelector = buildInputSelector(READABLE_TYPES,
 				RASTER_TYPES[0], this::setInputTask);
