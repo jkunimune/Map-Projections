@@ -33,10 +33,12 @@ import javax.imageio.ImageIO;
 
 import maps.Cylindrical;
 import maps.Gyorffy;
+import maps.Lenticular;
 import maps.Meshed;
 import maps.Polyhedral;
 import maps.Projection;
 import maps.Pseudocylindrical;
+import maps.Tobler;
 import maps.WinkelTripel;
 
 /**
@@ -48,12 +50,13 @@ public class MapEvaluator {
 	
 	public static final double STEP = 1e-2;
 	
-	public static final boolean ONLY_LAND = true;
+	public static final boolean ONLY_LAND = false;
 	public static final double THRESHOLD = 3;
 	public static final Projection[] PROJECTIONS = {
-			Cylindrical.BEHRMANN, Pseudocylindrical.MOLLWEIDE, Pseudocylindrical.ECKERT_IV, Meshed.DANSEIJI_I,
-			WinkelTripel.WINKEL_TRIPEL, Gyorffy.E, Meshed.DANSEIJI_II,
-			Pseudocylindrical.HOMOLOSINE_INTERRUPTED, Polyhedral.DYMAXION, Meshed.DANSEIJI_III,
+			Tobler.TOBLER, Pseudocylindrical.ECKERT_IV, Lenticular.WAGNER_VIII, Meshed.DANSEIJI_I,
+//			WinkelTripel.WINKEL_TRIPEL, Gyorffy.E, Meshed.DANSEIJI_II,
+//			Pseudocylindrical.HOMOLOSINE_INTERRUPTED, Meshed.DANSEIJI_III,
+//			Polyhedral.DYMAXION, Meshed.DANSEIJI_IV,
 	};
 	
 	/**
