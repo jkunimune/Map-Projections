@@ -38,6 +38,7 @@ import javafx.scene.layout.VBox;
 
 public class MapConfigurationDialog extends Dialog<Boolean> {
 
+	public final int MIN_SIZE = 5, MAX_SIZE = 100000;
 	public final double DEF_SIZE = 1500;
 	
 	
@@ -56,12 +57,12 @@ public class MapConfigurationDialog extends Dialog<Boolean> {
 		this.maintainRatio = new CheckBox("Maintain aspect ratio");	// instantiate the components
 		this.maintainRatio.setSelected(true);
 		
-		this.widthBox = new Spinner<Integer>(5,10000,
+		this.widthBox = new Spinner<Integer>(MIN_SIZE, MAX_SIZE,
 				10*(int)Math.round(DEF_SIZE*Math.sqrt(defaultRatio)/10));
 		this.widthBox.setEditable(true);
 		this.widthBox.setMaxWidth(Double.MAX_VALUE);
 		
-		this.heightBox = new Spinner<Integer>(5,10000,
+		this.heightBox = new Spinner<Integer>(MIN_SIZE, MAX_SIZE,
 				10*(int)Math.round(this.widthBox.getValue()/defaultRatio/10));
 		this.heightBox.setEditable(true);
 		this.widthBox.setMaxWidth(Double.MAX_VALUE);
