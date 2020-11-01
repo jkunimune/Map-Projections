@@ -255,6 +255,8 @@ public class MapDesignerRaster extends MapApplication {
 			
 			protected void failed() {
 				getException().printStackTrace();
+				if (this.getException() instanceof OutOfMemoryError)
+					showError("Failure!", "Java memory constraints forbid that image size. I'm sorry; I never should have let you input a number that big. Please try something smaller.");
 			}
 			
 			protected void succeeded() {

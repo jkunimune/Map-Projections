@@ -31,7 +31,6 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
-import maps.Cylindrical;
 import maps.Gyorffy;
 import maps.Lenticular;
 import maps.Meshed;
@@ -50,13 +49,13 @@ public class MapEvaluator {
 	
 	public static final double STEP = 1e-2;
 	
-	public static final boolean ONLY_LAND = false;
+	public static final boolean ONLY_LAND = true;
 	public static final double THRESHOLD = 3;
 	public static final Projection[] PROJECTIONS = {
 			Tobler.TOBLER, Pseudocylindrical.ECKERT_IV, Lenticular.WAGNER_VIII, Meshed.DANSEIJI_I,
-//			WinkelTripel.WINKEL_TRIPEL, Gyorffy.E, Meshed.DANSEIJI_II,
-//			Pseudocylindrical.HOMOLOSINE_INTERRUPTED, Meshed.DANSEIJI_III,
-//			Polyhedral.DYMAXION, Meshed.DANSEIJI_IV,
+			WinkelTripel.WINKEL_TRIPEL, Gyorffy.E, Meshed.DANSEIJI_II,
+			Pseudocylindrical.HOMOLOSINE_INTERRUPTED, Meshed.DANSEIJI_III,
+			Polyhedral.DYMAXION, Meshed.DANSEIJI_IV,
 	};
 	
 	/**
