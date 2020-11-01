@@ -36,7 +36,7 @@ public class Spinner<T> extends javafx.scene.control.Spinner<T> {
 		super(min, max, init, step);
 		this.focusedProperty().addListener((observable, prev, now) -> {
 			if (!now)
-				this.commitValue(); //was that so hard?
+				this.increment(0); //was that so hard?
 		});
 		this.setPrefWidth(100);
 	}
