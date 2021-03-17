@@ -40,7 +40,8 @@
 	<style type="text/css">
 		.country {
 			fill-opacity:1;
-			stroke:none;
+			stroke:#000000;
+			stroke-width:.02;
 		}
 		.lakes {
 			fill:#ffffff;
@@ -59,34 +60,44 @@
 		.label-md, .label-lg {
 			font-size:1.6px;
 		}
-		#ALB, #AUT, #BHS, #BLR, #BLZ, #BRA, #CAF, #CAN, #CHL, #COM, #CYN, #CYP,
+		#KOR, #LBY, #AUT, #MCO, #CHL, #MNG, #NGA, #NLD, #NZL, #PAN, #BHS, #PSE,
+		#ROU, #RWA, #SAU, #SLB, #SLV, #SMR, #SWE, #TGO, #THA, #TJK, #TON, #WSM,
+		#ZAF, #ZMB {
+			fill:#EBA9D7; /* pink */
+		}
+		#ALB, #LUX, #PHL, #BLR, #BLZ, #BRA, #CAF, #CAN, #MLI, #COM, #CYN, #CYP,
 		#DMA, #ECU, #ERI, #ESP, #EST, #GAB, #GEO, #GRD, #HRV, #IND, #IRN, #ISL,
-		#JAM, #KEN, #KOR, #LBY, #LUX, #MCO, #MLI, #MNG, #NGA, #NLD, #NZL, #PAN,
-		#PHL, #PSE, #ROU, #RWA, #SAU, #SLB, #SLV, #SMR, #SWE, #TGO, #THA, #TJK,
-		#TON, #WSM, #ZAF, #ZMB {
-			fill:#D730D6; //magenta
+		#JAM, #KEN {
+			fill:#C87A85; /* red */
 		}
-		#AGO, #AZE, #BEN, #BGD, #BOL, #BRB, #BRN, #CHN, #CIV, #CMR, #CRI, #CUB,
-		#CZE, #DJI, #DNK, #DZA, #EGY, #FIN, #FRA, #GRC, #GTM, #KHM, #KOS, #KWT,
+		#AGO, #AZE, #BEN, #TZA, #BOL, #BRB, #TLS, #CHN, #CIV, #CMR, #CRI, #CUB,
+		#CZE, #DJI, #DNK, #DZA, #EGY, #FIN, #FRA, #GRC, #GTM, #KHM, #KOS, #KWT {
+			fill:#D89D7F; /* orange */
+		}
 		#LIE, #LSO, #LTU, #MDV, #MHL, #MLT, #OMN, #PLW, #PNG, #SDS, #SEN, #SGP,
-		#SLE, #SRB, #SVN, #SYR, #TLS, #TWN, #TZA, #UKR, #URY, #UZB, #VEN, #ZWE {
-			fill:#CE7C2A; //orange
+		#SLE, #SRB, #SVN, #SYR, #BRN, #TWN, #BGD, #UKR, #URY, #UZB, #VEN, #ZWE {
+			fill:#D5C58F; /* yellow */
 		}
-		#AFG, #AND, #ARM, #BEL, #BFA, #BGR, #BWA, #CHE, #COD, #COL, #CPV, #ETH,
-		#FJI, #GIN, #GMB, #GNQ, #HND, #HTI, #HUN, #IDN, #IRL, #IRQ, #ISR, #JPN,
-		#KAZ, #KIR, #KNA, #LCA, #LVA, #MAR, #MDA, #MMR, #MNE, #MOZ, #MUS, #NOR,
-		#NPL, #NRU, #POL, #PRK, #PRY, #QAT, #SAH, #SUR, #SYC, #TCD, #TTO, #TUN,
-		#USA, #VAT, #VNM, #YEM {
-			fill:#28CF29; //green
+		#AFG, #AND, #VNM, #BEL, #BFA, #BGR, #BWA, #CHE, #COD, #COL, #CPV, #ETH,
+		#FJI, #GIN, #GMB, #GNQ, #HND, #HTI, #HUN, #IDN, #IRL, #IRQ, #SAH, #JPN,
+		#KAZ, #KIR {
+			fill:#67885E; /* green */
+		}
+		#KNA, #LCA, #LVA, #MAR, #MDA, #MMR, #MNE, #MOZ, #MUS, #NOR, #NPL, #NRU,
+		#POL, #PRK, #PRY, #QAT, #SOM, #SUR, #SYC, #TCD, #TTO, #TUN, #USA, #VAT,
+		#ARM, #YEM {
+			fill:#60A69A; /* teal */
 		}
 		#ARE, #ARG, #ATG, #AUS, #BDI, #BHR, #BIH, #BTN, #COG, #DEU, #DOM, #FSM,
-		#GBR, #GHA, #GNB, #GUY, #ITA, #JOR, #KAS, #KGZ, #LAO, #LBN, #LBR, #LKA,
+		#GBR, #GHA, #GNB, #GUY, #TUR, #JOR, #KAS, #KGZ, #SDN, #LBN, #LBR, #LKA {
+			fill:#628DB8; /* blue */
+		}
 		#MDG, #MEX, #MKD, #MRT, #MWI, #MYS, #NAM, #NER, #NIC, #PAK, #PER, #PRT,
-		#RUS, #SDN, #SOL, #SOM, #STP, #SVK, #SWZ, #TKM, #TUR, #UGA, #VCT, #VUT {
-			fill:#3082D6; //blue
+		#RUS, #LAO, #SOL, #ISR, #STP, #SVK, #SWZ, #TKM, #ITA, #UGA, #VCT, #VUT {
+			fill:#AA9AD4; /* purple */
 		}
 		#ATA {
-			fill:#d0d0d0; //grey
+			fill:#A5B7C0; /* grey */
 		}
 	</style>
 	<g transform="matrix(1,0,0,-1,180,90)">
