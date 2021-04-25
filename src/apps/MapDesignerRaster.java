@@ -26,7 +26,9 @@ package apps;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 
 import dialogs.MapConfigurationDialog;
@@ -73,8 +75,6 @@ public class MapDesignerRaster extends MapApplication {
 			new FileChooser.ExtensionFilter("JPG", "*.jpg"),
 			new FileChooser.ExtensionFilter("GIF", "*.gif") };
 	
-	private static final Color GRATICULE_COLOR = Color.WHITE;
-	private static final float GRATICULE_WIDTH = 2.0f;
 	private static final double GRATICULE_PRECISION = 0.02;
 	
 	private Region aspectSelector;
@@ -243,10 +243,30 @@ public class MapDesignerRaster extends MapApplication {
 					if (isCancelled()) 	return null;
 					updateProgress(-1, 1);
 					updateMessage("Drawing graticule\u2026");
+					
+					int r = 255, g = 255, b = 255, a = 255;
+					float lineWidth = Math.min(width, height)/300;
+					BufferedReader fileReader = null;
+					try {
+						fileReader = new BufferedReader(new FileReader(new File("graticule.txt")));
+						r = Integer.parseInt(fileReader.readLine().split(":")[1].trim());
+						g = Integer.parseInt(fileReader.readLine().split(":")[1].trim());
+						b = Integer.parseInt(fileReader.readLine().split(":")[1].trim());
+						a = Integer.parseInt(fileReader.readLine().split(":")[1].trim());
+						lineWidth = Float.parseFloat(fileReader.readLine().split(":")[1]);
+					} catch (NumberFormatException | IOException e) {
+						e.printStackTrace();
+					} finally {
+						if (fileReader != null)
+							try {
+								fileReader.close();
+							} catch (IOException e) { }
+					}
+					
 					ImageUtils.drawSVGPath(
 							proj.drawGraticule(Math.toRadians(gratSpacing), GRATICULE_PRECISION,
 									width, height, Math.PI/2, Math.PI, aspect),
-							GRATICULE_COLOR, (Math.min(width, height) < 600) ? 1 : GRATICULE_WIDTH,
+							new Color(r, g, b, a), lineWidth,
 							true, (Graphics2D)theMap.getGraphics());
 				}
 				
