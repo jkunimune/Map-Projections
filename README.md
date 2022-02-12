@@ -18,7 +18,7 @@ pip3 install numpy pyshp
 `generate_coastlines.py` also takes input data from [naturalearthdata.com](http://www.naturalearthdata.com/downloads/), which should be placed in `src\\zupplemental\\data\\`.
 
 ## Usage
-There are three executable Java files, three runnable Java scripts, and four runnable Python scripts. These are, in order:
+There are three executable Java files, four runnable Java scripts, and four runnable Python scripts. These are, in order:
 
 * `MapDesignerRaster.jar` &ndash; The original program. Create custom oblique raster images of the Earth's surface using a variety of algorithms called _projections_.  
 * `MapDesignerVector.jar` &ndash; The same idea, but working in vector images instead in case you want to cut a vinyl sticker or something.  
@@ -26,12 +26,13 @@ There are three executable Java files, three runnable Java scripts, and four run
 * `MapPlotter.java` &ndash; Plot a large group of map projections by the amount of distortion they produce.  
 * `MapOptimizer.java` &ndash; Run gradient descent on parametric projections to minimize their distortion.  
 * `MapExplainer.java` &ndash; Generate an HTML blurb outlining and displaying every map projection.
+* `MapConverter.java` &ndash; Generate a bunch of maps in one projection from a bunch of input images.
 * `generate_coastlines.py` &ndash; Generate an SVG string outlining the continents, islands, and major lakes of the world, to be used as vector input.
 * `generate_graticule.py` &ndash; Generate an SVG string displaying a map graticule, to be used as vector input.
 * `generate_indicatrices.py` &ndash; Generate an SVG string outlining an array of Tissot's indiatrices of distortion, to be used as vector input.
 * `generate_orthodromes.py` &ndash; Generate a mesh of orthodromes in an Equirectangular projection, to be used as vector input.
 
-The executable applications all have similar layouts that let you select an input equirectangular map, a projection, an aspect (where the North Pole is situated with respect to the projection), and parameters if applicable. Go crazy! There are a practically unlimited number of combinations.
+The executable applications all have similar layouts that let you select an input equirectangular map, a projection, an aspect (where the North Pole is situated with respect to the map), and parameters if applicable. Go crazy! There are a practically unlimited number of combinations.
 
 The runnable scripts just kind of work on their own. Those ones aren't really meant for mass consumption.
 
