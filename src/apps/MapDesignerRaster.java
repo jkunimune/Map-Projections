@@ -30,6 +30,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import dialogs.MapConfigurationDialog;
 import image.ImageUtils;
@@ -205,72 +208,20 @@ public class MapDesignerRaster extends MapApplication {
 	 * @param gratSpacing - The number of degrees between graticule lines, or 0 for no graticule.
 	 * @param display - The ImageViewer in which to put the new image, or null if you don't want us
 	 * 		to do that.
-	 * @return
+	 * @return the task that will call MapDesignerRaster.calculate()
 	 */
 	public static Task<SavableImage> calculateTask(int width, int height, int step,
 			PixelMap input, Projection proj, double[] aspect, boolean crop, double gratSpacing,
 			ImageView display) {
 		return new Task<SavableImage>() {
-			private BufferedImage theMap;
-			
+			private BufferedImage map;
+
 			protected SavableImage call() {
-				updateProgress(-1, 1);
-				updateMessage("Generating map\u2026");
-				
-				theMap = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB); //why is this a BufferedImage when the rest of this program uses JavaFX? Because the only JavaFX alternatives are WritableImage, which doesn't do anything but single-pixel-editing, and Canvas, which doesn't properly support transparency.
-				for (int y = 0; y < theMap.getHeight(); y ++) { //iterate through the map, filling in pixels
-					if (isCancelled()) 	return null;
-					updateProgress(y, theMap.getHeight());
-					for (int x = 0; x < theMap.getWidth(); x ++) {
-						int[] colors = new int[step*step];
-						for (int dy = 0; dy < step; dy ++) {
-							for (int dx = 0; dx < step; dx ++) {
-								double X = ((x+(dx+.5)/step)/width - 1/2.) *proj.getWidth();
-								double Y = (1/2. - (y+(dy+.5)/step)/height) *proj.getHeight();
-								double[] coords = proj.inverse(X, Y, aspect, crop);
-								if (coords != null) { //if it is null, the default (0:transparent) is used
-									if (Double.isNaN(coords[0]) || Double.isNaN(coords[1]))
-										System.err.println(proj+" returns "+coords[0]+","+coords[1]+" at "+X+","+Y+"!");
-									colors[step*dy+dx] = input.getArgb(coords[0], coords[1]);
-								}
-							}
-						}
-						theMap.setRGB(x, y, ImageUtils.blend(colors));
-					}
-				}
-				
-				if (gratSpacing != 0) { //draw the graticule, if desired
-					if (isCancelled()) 	return null;
-					updateProgress(-1, 1);
-					updateMessage("Drawing graticule\u2026");
-					
-					int r = 255, g = 255, b = 255, a = 255;
-					float lineWidth = Math.min(width, height)/300;
-					BufferedReader fileReader = null;
-					try {
-						fileReader = new BufferedReader(new FileReader(new File("input/graticule.txt")));
-						r = Integer.parseInt(fileReader.readLine().split(":")[1].trim());
-						g = Integer.parseInt(fileReader.readLine().split(":")[1].trim());
-						b = Integer.parseInt(fileReader.readLine().split(":")[1].trim());
-						a = Integer.parseInt(fileReader.readLine().split(":")[1].trim());
-						lineWidth = Float.parseFloat(fileReader.readLine().split(":")[1]);
-					} catch (NumberFormatException | IOException e) {
-						e.printStackTrace();
-					} finally {
-						if (fileReader != null)
-							try {
-								fileReader.close();
-							} catch (IOException e) { }
-					}
-					
-					ImageUtils.drawSVGPath(
-							proj.drawGraticule(Math.toRadians(gratSpacing), GRATICULE_PRECISION,
-									width, height, Math.PI/2, Math.PI, aspect),
-							new Color(r, g, b, a), lineWidth,
-							true, (Graphics2D)theMap.getGraphics());
-				}
-				
-				return SavableImage.savable(theMap);
+				map = MapDesignerRaster.calculate(
+					  width, height, step, input, proj,
+					  aspect, crop, gratSpacing,
+					  this::updateProgress, this::updateMessage, this::isCancelled);
+				return SavableImage.savable(map);
 			}
 			
 			protected void failed() {
@@ -281,8 +232,93 @@ public class MapDesignerRaster extends MapApplication {
 			
 			protected void succeeded() {
 				if (display != null)
-					display.setImage(SwingFXUtils.toFXImage(theMap, null));
+					display.setImage(SwingFXUtils.toFXImage(map, null));
 			}
 		};
+	}
+
+	/**
+	 * Create a new savable raster map.
+	 * @param width - The desired map width.
+	 * @param height - The desired map height.
+	 * @param step - The desired amount of smoothing to apply.
+	 * @param input - The input equirectangular image.
+	 * @param proj - The Projection to do the mapping.
+	 * @param aspect - The oblique axis of the map.
+	 * @param crop - Should points with extreme longitudes be hidden?
+	 * @param gratSpacing - The number of degrees between graticule lines, or 0 for no graticule.
+	 * @return the projected image
+	 */
+	public static BufferedImage calculate(int width, int height, int step,
+										 PixelMap input, Projection proj,
+										 double[] aspect, boolean crop,
+										 double gratSpacing,
+										 BiConsumer<Integer, Integer> updateProgress,
+										 Consumer<String> updateMessage,
+										 Supplier<Boolean> isCancelled) {
+		if (updateProgress == null)
+			updateProgress = (i, j) -> {};
+		if (updateMessage == null)
+			updateMessage = (s) -> {};
+		if (isCancelled == null)
+			isCancelled = () -> false;
+
+		updateProgress.accept(-1, 1);
+		updateMessage.accept("Generating map\u2026");
+
+		BufferedImage theMap = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB); //why is this a BufferedImage when the rest of this program uses JavaFX? Because the only JavaFX alternatives are WritableImage, which doesn't do anything but single-pixel-editing, and Canvas, which doesn't properly support transparency.
+		for (int y = 0; y < theMap.getHeight(); y ++) { //iterate through the map, filling in pixels
+			if (isCancelled.get()) 	return null;
+			updateProgress.accept(y, theMap.getHeight());
+			for (int x = 0; x < theMap.getWidth(); x ++) {
+				int[] colors = new int[step*step];
+				for (int dy = 0; dy < step; dy ++) {
+					for (int dx = 0; dx < step; dx ++) {
+						double X = ((x+(dx+.5)/step)/width - 1/2.) *proj.getWidth();
+						double Y = (1/2. - (y+(dy+.5)/step)/height) *proj.getHeight();
+						double[] coords = proj.inverse(X, Y, aspect, crop);
+						if (coords != null) { //if it is null, the default (0:transparent) is used
+							if (Double.isNaN(coords[0]) || Double.isNaN(coords[1]))
+								System.err.println(proj+" returns "+coords[0]+","+coords[1]+" at "+X+","+Y+"!");
+							colors[step*dy+dx] = input.getArgb(coords[0], coords[1]);
+						}
+					}
+				}
+				theMap.setRGB(x, y, ImageUtils.blend(colors));
+			}
+		}
+
+		if (gratSpacing != 0) { //draw the graticule, if desired
+			if (isCancelled.get()) 	return null;
+			updateProgress.accept(-1, 1);
+			updateMessage.accept("Drawing graticule\u2026");
+
+			int r = 255, g = 255, b = 255, a = 255;
+			float lineWidth = (float)(Math.min(width, height)/300);
+			BufferedReader fileReader = null;
+			try {
+				fileReader = new BufferedReader(new FileReader(new File("input/graticule.txt")));
+				r = Integer.parseInt(fileReader.readLine().split(":")[1].trim());
+				g = Integer.parseInt(fileReader.readLine().split(":")[1].trim());
+				b = Integer.parseInt(fileReader.readLine().split(":")[1].trim());
+				a = Integer.parseInt(fileReader.readLine().split(":")[1].trim());
+				lineWidth = Float.parseFloat(fileReader.readLine().split(":")[1]);
+			} catch (NumberFormatException | IOException e) {
+				e.printStackTrace();
+			} finally {
+				if (fileReader != null)
+					try {
+						fileReader.close();
+					} catch (IOException ignored) { }
+			}
+
+			ImageUtils.drawSVGPath(
+				  proj.drawGraticule(Math.toRadians(gratSpacing), GRATICULE_PRECISION,
+									 width, height, Math.PI/2, Math.PI, aspect),
+				  new Color(r, g, b, a), lineWidth,
+				  true, (Graphics2D)theMap.getGraphics());
+		}
+
+		return theMap;
 	}
 }

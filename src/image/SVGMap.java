@@ -307,7 +307,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 	}
 	
 	
-	public void save(List<Path> paths, File file, double inMinX, double inMaxY, double inWidth,
+	public void save(Iterable<Path> paths, File file, double inMinX, double inMaxY, double inWidth,
 			double inHeight) throws IOException {
 		BufferedWriter out = new BufferedWriter(new FileWriter(file));
 		

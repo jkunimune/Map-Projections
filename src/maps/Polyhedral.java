@@ -285,7 +285,7 @@ public class Polyhedral {
 		}
 		
 		public double[] faceInverse(double r, double th) {
-			if (Math.abs(th) > Math.PI/6) 	throw new IllegalArgumentException("Wait, what?");
+			if (Math.abs(th) > Math.PI/6+1e-15) 	throw new IllegalArgumentException("Wait, what?"+th);
 			double x = r*Math.cos(th)*Math.atan(2); //cartesian coordinates in radians
 			double y = r*Math.sin(th)*Math.atan(2);
 			double a = Math.sqrt(3)*x + y; //angular distance up each side of the triangle

@@ -46,7 +46,8 @@ import maps.Tobler;
 import maps.WinkelTripel;
 
 /**
- * A script that automatically manufactures a slew of projections in standard aspect.
+ * A script that automatically converts one input into a bunch of different
+ * projections, with multi-threading.
  * 
  * @author Justin Kunimune
  */

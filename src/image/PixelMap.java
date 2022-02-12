@@ -42,6 +42,16 @@ public class PixelMap {
 	public PixelMap(File f) throws IOException {
 		pixels = ImageIO.read(f);
 	}
+
+
+	public int getWidth() {
+		return this.pixels.getWidth();
+	}
+
+
+	public int getHeight() {
+		return this.pixels.getHeight();
+	}
 	
 	
 	public int getArgb(double lat, double lon) {
