@@ -5,7 +5,7 @@
 	<property name="dir.javafx" value="C:\Program Files\Java\javafx-sdk-13.0.2"/>
 	<property name="dir.jre" value="C:\Program Files\Java\jre1.8.0_171"/>
 	<property name="dir.jarfile" value="."/>
-	<property name="version" value="3.4.5"/>
+	<property name="version" value="3.4.6"/>
 	<property name="year" value="2020"/>
 	
 	<target name="setup">
