@@ -51,7 +51,7 @@ public class Octohedral {
 	
 	
 	public static final Projection KEYES_BUTTERFLY = new OctohedralProjection(
-			"Cahill\u2013Keyes Butterfly", "A simple Cahill-esque octohedral map arrangement, with Antarctica left on.",
+			"Cahill\u2013Keyes (butterfly)", "A simple Cahill-esque octohedral map arrangement, with Antarctica left on.",
 			CahillKeyes.lMG, CahillKeyes.lMA, 0b1010, Property.COMPROMISE, 4,
 			Configuration.BUTTERFLY) {
 		
@@ -68,7 +68,7 @@ public class Octohedral {
 	
 	
 	public static final Projection KEYES_BASIC_M = new OctohedralProjection(
-			"Cahill\u2013Keyes Basic", "A simple M-shaped octohedral projection, with Antarctica broken into three pieces.",
+			"Cahill\u2013Keyes (simplified)", "A simple M-shaped octohedral projection, with Antarctica broken into three pieces.",
 			CahillKeyes.lMG, CahillKeyes.lMA, 0b1010, Property.COMPROMISE, 3,
 			Configuration.M_PROFILE) {
 		
@@ -82,36 +82,53 @@ public class Octohedral {
 				new double[] {Math.toRadians(coords[0]), Math.toRadians(coords[1])};
 		}
 	};
-	
-	
-	public static final Projection CAHILL_KEYES = new OctohedralProjection(
+
+
+	public static final Projection KEYES_STANDARD = new OctohedralProjection(
 			"Cahill\u2013Keyes", "An M-shaped octohedral projection with Antarctica assembled in the center.",
 			CahillKeyes.lMG, CahillKeyes.lMA, 0b1010, Property.COMPROMISE, 4,
 			Configuration.M_W_S_POLE) {
-		
+
 		public double[] project(double lat, double lon) {
 			return super.project(lat, lon + Math.PI/9); // apply the central meridian manually
 		}
-		
+
 		protected double[] faceProject(double lat, double lon) {
 			return CahillKeyes.faceProjectD(Math.toDegrees(lat), Math.toDegrees(lon));
 		}
-		
+
 		public double[] inverse(double x, double y) {
 			double[] coords = super.inverse(x, y);
 			if (coords == null)	return null;
 			coords[1] = Math2.floorMod(coords[1] - Math.PI/9 + Math.PI, 2*Math.PI) - Math.PI; // apply the central meridian manually
 			return coords;
 		}
-		
+
 		protected double[] faceInverse(double x, double y) {
 			double[] coords = CahillKeyes.faceInverseD(x, y);
 			return (coords == null) ? null :
-				new double[] {Math.toRadians(coords[0]), Math.toRadians(coords[1])};
+					new double[] {Math.toRadians(coords[0]), Math.toRadians(coords[1])};
 		}
 	};
-	
-	
+
+
+	public static final Projection KEYES_OCTANT = new OctohedralProjection(
+			"Cahill\u2013Keyes (single octant)", "A single octant of the Cahill\u2013Keyes projection (for memory economization in the case of very large maps).",
+			CahillKeyes.lMG, CahillKeyes.lMA, 0b1010, Property.COMPROMISE, 3,
+			Configuration.SINGLE_OCTANT) {
+
+		protected double[] faceProject(double lat, double lon) {
+			return CahillKeyes.faceProjectD(Math.toDegrees(lat), Math.toDegrees(lon));
+		}
+
+		protected double[] faceInverse(double x, double y) {
+			double[] coords = CahillKeyes.faceInverseD(x, y);
+			return (coords == null) ? null :
+					new double[] {Math.toRadians(coords[0]), Math.toRadians(coords[1])};
+		}
+	};
+
+
 	public static final OctohedralProjection CONFORMAL_CAHILL = new OctohedralProjection(
 			"Cahill Conformal", "The conformal and only reproducable variant of Cahill's original map.",
 			Math.sqrt(3)/2, 0, 0b1000, Property.CONFORMAL, 3, Configuration.BUTTERFLY) {
@@ -176,7 +193,7 @@ public class Octohedral {
 	
 	
 	public static final Projection CAHILL_CONCIALDI = new OctohedralProjection(
-			"Cahill\u2013Concialdi Bat", "A conformal octohedral projection with no extra cuts and a unique arrangement.",
+			"Cahill\u2013Concialdi", "A conformal octohedral projection with no extra cuts and a unique arrangement.",
 			Math.sqrt(3)/2, 0, 0b1000, Property.CONFORMAL, 4, Configuration.BAT_SHAPE) {
 		
 		private final double lon0 = Math.toRadians(20);
@@ -324,19 +341,37 @@ public class Octohedral {
 			{               0, -0.5,    Math.PI/3,  Math.PI/2, -Math.PI/2,  Math.PI/2 },
 			{               0, -0.5,  2*Math.PI/3,  Math.PI  ,          0,  Math.PI/2, -1, Math.toRadians(-9) },
 			{  3/Math.sqrt(3),  0.5,            0,  Math.PI  , -Math.PI/2,          0, -1, Math.toRadians( 9) },
-		}));
+		})),
+
+        SINGLE_OCTANT(1, 0, 2/Math.sqrt(3), Math.sqrt(3), true, new double[][] {
+			{ -0.5, 0, Math.PI/6, Math.PI/4, -Math.PI/2, Math.PI/2 },
+		});
 		
 		public final double fullWidth, cutWidth, fullHeight, cutHeight;
 		public final boolean hasAspect;
-		public final double[][] octants; // array of {x, y (from top), rotation, \lambda_0, \phi_min, \phi_max[, \lambda_min, \lambda_max]}
-//		public double cutRatio; //this variable should be set by the map projection so that the configuration knows how big the cuts actually are
-		
+		/**
+		 * array of {
+		 *  x, y, rotation, λ_0, ф_min, ф_max[, λ_min, λ_max]
+		 * } for each face of the octohedron
+		 */
+		public final double[][] octants;
+
+		/**
+		 * @param fullWidth the size of the configuration in altitudes ignoring cuts
+		 * @param cutWidth the change in width due to the cut-in lengths
+		 * @param fullHeight the heit of the configuration in altitudes ignoring cuts
+		 * @param cutHeight the change in heit due to the cut-in lengths
+		 * @param hasAspect whether it would make any sense to change the aspect
+		 * @param octants the array of octant specifications.  each octant must
+		 *                specify the x and y of the pole, the central meridian,
+		 *                and bounding latitudes and longitudes of the face.
+		 */
 		private Configuration(double fullWidth, double cutWidth,
 				double fullHeight, double cutHeight, boolean hasAspect,
 				double[][] octants) {
-			this.fullWidth = fullWidth; //the size of the configuration in altitudes ignoring cuts
-			this.cutWidth = cutWidth; //the change in width due to the cut in cut lengths
-			this.fullHeight = fullHeight; //and the cut sizes
+			this.fullWidth = fullWidth;
+			this.cutWidth = cutWidth;
+			this.fullHeight = fullHeight;
 			this.cutHeight = cutHeight;
 			this.hasAspect = hasAspect;
 			this.octants = octants;

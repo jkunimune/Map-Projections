@@ -56,9 +56,12 @@ public class CahillKeyes {
 	private static final double yC = 1609.0110; //the y coordinate of the centre of arc CDV
 	
 	private static final double TOLERANCE = 5; //this is a reasonable tolerance when you recall that we're operating on the order of 10,000 units
-	
-	
-	public static final double[] faceProjectD(double latD, double lonD) { //convert adjusted lat and lon in degrees to Mary Jo's coordinates
+
+
+	/**
+	 * convert adjusted lat and lon in degrees to Mary Jo's coordinates
+	 */
+	public static final double[] faceProjectD(double latD, double lonD) {
 		final double[][] mer = meridian(lonD);
 		if (latD >= 75) { //zone c (frigid zone)
 			return new double[] { lMA + 104*(90-latD)*Math2.cosd(lonD),

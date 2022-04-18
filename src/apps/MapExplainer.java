@@ -67,15 +67,13 @@ public class MapExplainer extends Application {
 					Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Lenticular.AITOFF,
 					Lenticular.VAN_DER_GRINTEN, ArbitraryPseudocylindrical.ROBINSON,
 					WinkelTripel.WINKEL_TRIPEL, Polyhedral.AUTHAGRAPH,
-					Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Octohedral.CAHILL_KEYES,
+					Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Octohedral.KEYES_STANDARD,
 					Octohedral.CAHILL_CONCIALDI, Misc.PEIRCE_QUINCUNCIAL.transverse(), Snyder.GS50,
 					Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Misc.FLAT_EARTH },
 			{ Meshed.DANSEIJI_N, Meshed.DANSEIJI_IV, Meshed.DANSEIJI_V, Polyhedral.TETRAGRAPH,
 					Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH } };
-	
-	private PixelMap inputSkew, inputPole, inputNone, inputEast, inputWest;
-	
-	
+
+
 	public static void main(String[] args) {
 		launch(args);
 	}
@@ -83,6 +81,11 @@ public class MapExplainer extends Application {
 	
 	public void start(Stage stage) throws Exception {
 		new File("images").mkdirs();
+		PixelMap inputSkew;
+		PixelMap inputNone;
+		PixelMap inputEast;
+		PixelMap inputPole;
+		PixelMap inputWest;
 		try {
 			inputSkew = new PixelMap(new File("input/Advanced/Tissot Oblique.jpg"));
 			inputPole = new PixelMap(new File("input/Advanced/Tissot Standard.jpg"));
@@ -106,7 +109,7 @@ public class MapExplainer extends Application {
 				PixelMap input = inputSkew;
 				if (!proj.hasAspect() || proj == Polyhedral.AUTHAGRAPH)
 					input = inputPole;
-				if (proj == Octohedral.CAHILL_KEYES) //some projections only look good in standard aspect
+				if (proj == Octohedral.KEYES_STANDARD) //some projections only look good in standard aspect
 					input = inputWest;
 				if (proj == Octohedral.CAHILL_CONCIALDI)
 					input = inputEast;

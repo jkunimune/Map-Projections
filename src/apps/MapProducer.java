@@ -74,7 +74,7 @@ public class MapProducer extends Application {
 					Polyhedral.DYMAXION, Misc.HAMMER_RETROAZIMUTHAL, Snyder.GS50,
 					Azimuthal.STEREOGRAPHIC.withAspect("Oblique Stereographic", .5, 2.5, -2.5),
 					Cylindrical.MERCATOR.withAspect("Oblique Mercator", .5, 2.5, 2.5), Misc.BONNE,
-					Misc.BRAUN_CONIC, Octohedral.CAHILL_CONCIALDI, Octohedral.CAHILL_KEYES,
+					Misc.BRAUN_CONIC, Octohedral.CAHILL_CONCIALDI, Octohedral.KEYES_STANDARD,
 					Lenticular.EISENLOHR, Gyorffy.E, Lenticular.LAGRANGE, Lenticular.POLYCONIC,
 					Polyhedral.VAN_LEEUWEN, Pseudocylindrical.WAGNER_II, Pseudocylindrical.WAGNER_V,
 					Lenticular.WAGNER_VIII, Pseudocylindrical.HOMOLOSINE_INTERRUPTED },
