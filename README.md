@@ -17,7 +17,7 @@ pip3 install numpy pyshp
 ~~~~
 `generate_coastlines.py` also takes input data from [naturalearthdata.com](http://www.naturalearthdata.com/downloads/), which should be placed in `src\\zupplemental\\data\\`.
 
-## Usage
+## How to use
 There are three executable Java files, four runnable Java scripts, and four runnable Python scripts. These are, in order:
 
 * `MapDesignerRaster.jar` &ndash; The original program. Create custom oblique raster images of the Earth's surface using a variety of algorithms called _projections_.  
@@ -32,7 +32,17 @@ There are three executable Java files, four runnable Java scripts, and four runn
 * `generate_indicatrices.py` &ndash; Generate an SVG string outlining an array of Tissot's indiatrices of distortion, to be used as vector input.
 * `generate_orthodromes.py` &ndash; Generate a mesh of orthodromes in an Equirectangular projection, to be used as vector input.
 
-The executable applications all have similar layouts that let you select an input equirectangular map, a projection, an aspect (where the North Pole is situated with respect to the map), and parameters if applicable. Go crazy! There are a practically unlimited number of combinations.
+The executable applications all have similar layouts that let you select an input equirectangular map, a projection, an aspect (where the North Pole is situated with respect to the map), and parameters if applicable.
+Go crazy! There are a practically unlimited number of combinations.
+
+I will note that while I think the interface is mostly intuitive, there are a couple of things where I never got around to making the proper GUI elements, so you won't be able to figure out on your own.
+The first is the fact that the graticule checkbox, available on Map Designer Raster, draws its formatting information from a file called `graticule.txt` in the input folder.
+If you're fine with the default styling, or if you don't use that checkbox, don't worry about it.  But if you do use that checkbox, know that you can alter the color and width of the lines by editing that file.
+
+The twoth is the existence of truncated inputs.
+If you load an input map with the word "octant" in the filename (all lowercase), then the program will load it into the octant bounded by 0°N, 90°N, 0°E, and 90°E.
+This is useful if you have very large inputs and/or memory constraints.
+The output will still be sized as though the entire map were there, unless it's a projection that doesn't show the entire globe ("Cahill–Keyes (single octant)" does not show the entire globe and is in fact specifically designed to work with this feature.)
 
 The runnable scripts just kind of work on their own. Those ones aren't really meant for mass consumption.
 

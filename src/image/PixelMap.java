@@ -36,7 +36,7 @@ import javax.imageio.ImageIO;
  */
 public class PixelMap {
 	
-	private BufferedImage pixels;
+	private final BufferedImage pixels;
 	
 	
 	public PixelMap(File f) throws IOException {

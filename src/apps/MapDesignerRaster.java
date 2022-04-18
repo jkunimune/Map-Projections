@@ -38,6 +38,7 @@ import dialogs.MapConfigurationDialog;
 import image.ImageUtils;
 import image.PixelMap;
 import image.SavableImage;
+import image.TruncatedPixelMap;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
@@ -148,7 +149,10 @@ public class MapDesignerRaster extends MapApplication {
 	private Task<Void> setInputTask(File file) {
 		return new Task<Void>() {
 			protected Void call() throws IOException {
-				input = new PixelMap(file);
+				if (file.getName().contains("octant"))
+					input = new TruncatedPixelMap(file);
+				else
+					input = new PixelMap(file);
 				return null;
 			}
 			
