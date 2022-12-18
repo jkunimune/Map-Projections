@@ -24,8 +24,9 @@ def generate_graticule(spacing, granularity, include_tropics=False, adjust_poles
 	if adjust_poles: #if this is True, reduce the number of meridians as you approach the pole
 		old_num = 1
 		for p in range(0, 90, spacing):
-			new_num = old_num*int(1/math.cos(math.radians(p+spacing/2))/old_num)
-			while NUM_BASE%new_num != 0: 	new_num -= 1
+			new_num = 2*old_num*int(1/math.cos(math.radians(p+spacing/2))/old_num)
+			while NUM_BASE%new_num != 0:
+				new_num -= 1
 			if new_num >= 2*old_num:
 				for i in range(len(cuts)):
 					if i%old_num == 0 and i%new_num != 0:
