@@ -23,7 +23,9 @@
  */
 package image;
 
+import java.awt.Transparency;
 import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
 
@@ -37,10 +39,12 @@ import javax.imageio.ImageIO;
 public class PixelMap {
 	
 	private final BufferedImage pixels;
+	private final WritableRaster alphaPixels;
 	
 	
 	public PixelMap(File f) throws IOException {
 		pixels = ImageIO.read(f);
+		alphaPixels = pixels.getAlphaRaster();
 	}
 
 
@@ -63,7 +67,14 @@ public class PixelMap {
 			y = 0;
 		else if (y >= pixels.getHeight())
 			y = pixels.getHeight() - 1;
+
+		int alpha;
+		if (pixels.getTransparency() != Transparency.OPAQUE)
+			alpha = alphaPixels.getPixel((int) x, (int) y, new int[1])[0];
+		else
+			alpha = 0xFF;
+		int rgb = pixels.getRGB((int) x, (int) y);
 		
-		return (0xFF000000) | pixels.getRGB((int) x, (int) y);
+		return (alpha << 24) | rgb;
 	}
 }

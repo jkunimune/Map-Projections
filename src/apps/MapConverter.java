@@ -43,7 +43,7 @@ public class MapConverter {
 	public static void main(String[] args) throws IOException {
 
 		// the directory with the equirectangular maps to convert
-		String directory = "C:/Users/Justin Kunimune/Downloads/AR Dymaxion Selections-20220212T141615Z-001/AR Dymaxion Selections";
+		String directory = "C:\\Users\\justi\\Downloads\\new_dymaxion_maps";
 		// the desired map projection
 		Projection projection = Polyhedral.DYMAXION;
 
@@ -53,8 +53,10 @@ public class MapConverter {
 		// iterate thru the directory
 		for (Path inputPath: pathIterable) {
 			// look for images that are not dymaxion projections
-			if (inputPath.toString().endsWith(".png") &&
-				  !inputPath.toString().endsWith(".dymaxion.png")) {
+			if (inputPath.toString().endsWith(".jpg") ||
+			    inputPath.toString().endsWith(".tif") ||
+			    inputPath.toString().endsWith(".png") &&
+			    !inputPath.toString().endsWith(".dymaxion.png")) {
 				System.out.println(inputPath);
 				PixelMap inputImage = new PixelMap(inputPath.toFile());
 
@@ -71,8 +73,10 @@ public class MapConverter {
 					  null, null, null);
 
 				// update the filename and save to disk
-				String outputPath = inputPath.toString().replace(
-					  ".png", ".dymaxion.png");
+				String outputPath = inputPath.toString();
+				outputPath = outputPath.replace(".jpg", ".png");
+				outputPath = outputPath.replace(".tif", ".png");
+				outputPath = outputPath.replace(".png", ".dymaxion.png");
 				SavableImage.savable(outputImage).save(new File(outputPath));
 			}
 		}

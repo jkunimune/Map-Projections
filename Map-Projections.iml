@@ -17,27 +17,9 @@
     <orderEntry type="jdk" jdkName="1.8" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">
-      <library name="mfc.jar">
+      <library>
         <CLASSES>
-          <root url="jar://$USER_HOME$/eclipse-workspace/JTEM/mfc.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="ellipticFunctions.jar">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/eclipse-workspace/JTEM/ellipticFunctions.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="commons-math3-3.6.1.jar">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/eclipse-workspace/commons-math3-3.6.1/commons-math3-3.6.1.jar!/" />
+          <root url="jar://C:/Program Files/Java/javafx-sdk-19.0.2.1/lib/javafx-swt.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -46,7 +28,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/Program Files/Java/javafx-sdk-11.0.2/lib/javafx-swt.jar!/" />
+          <root url="jar://C:/Program Files/Java/javafx-sdk-19.0.2.1/lib/javafx.base.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -55,7 +37,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/Program Files/Java/javafx-sdk-11.0.2/lib/javafx.base.jar!/" />
+          <root url="jar://C:/Program Files/Java/javafx-sdk-19.0.2.1/lib/javafx.controls.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -64,7 +46,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/Program Files/Java/javafx-sdk-11.0.2/lib/javafx.controls.jar!/" />
+          <root url="jar://C:/Program Files/Java/javafx-sdk-19.0.2.1/lib/javafx.fxml.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -73,7 +55,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/Program Files/Java/javafx-sdk-11.0.2/lib/javafx.fxml.jar!/" />
+          <root url="jar://C:/Program Files/Java/javafx-sdk-19.0.2.1/lib/javafx.graphics.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -82,7 +64,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/Program Files/Java/javafx-sdk-11.0.2/lib/javafx.graphics.jar!/" />
+          <root url="jar://C:/Program Files/Java/javafx-sdk-19.0.2.1/lib/javafx.media.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -91,7 +73,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/Program Files/Java/javafx-sdk-11.0.2/lib/javafx.media.jar!/" />
+          <root url="jar://C:/Program Files/Java/javafx-sdk-19.0.2.1/lib/javafx.swing.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -100,7 +82,38 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/Program Files/Java/javafx-sdk-11.0.2/lib/javafx.swing.jar!/" />
+          <root url="jar://C:/Program Files/Java/javafx-sdk-19.0.2.1/lib/javafx.web.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://C:/Program Files/Java/ellipticFunctions.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://C:/Program Files/Java/ellipticFunctions.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://C:/Program Files/Java/mfc.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://C:/Program Files/Java/mfc.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://C:/Program Files/Java/commons-math3-3.6.1/commons-math3-3.6.1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
