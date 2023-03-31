@@ -1,38 +1,14 @@
 # Map-Projections
 A class to create custom maps of the Earth's surface. There are thousands of combinations of color-schemes, projections, and aspects. Includes Mercator, Gall-Peters, Orthographic, Peirce Quincuncial, and More!
 
-## Installation
-If you are a fancy Windows user, I recommend the convenient [fancy Windows binaries](https://github.com/jkunimune15/Map-Projections/releases). Double-click to install them and then keep pressing buttons until something good happens. If you see a map, you're in the right place.
+## Executable files
 
-If you are not on Windows or are otherwise not fancy enough to deserve such executables, simply double-click on the .jar files in the main directory and, if you have [Java](https://java.com/en/download/) installed (10/10 would recommend), it should just run without any set-up. Sometimes Windows is weird and you have to use the command line; idk. Ask the internet how to run .jar files if you need help.
+There are three main programs here:
+* `MapDesignerRaster.jar` &ndash; The original program. Create custom oblique raster images of the Earth's surface using a variety of algorithms called _projections_.
+* `MapDesignerVector.jar` &ndash; The same idea, but working in vector images instead in case you want to cut a vinyl sticker or something.
+* `MapAnalyzer.jar` &ndash; See graphs and figures quantifying the amount of scale and angular distortion present in each map projection.
 
-You could also compile and run the source code, but if you do, there are a few dependencies. The Java dependencies can be obtained as .jar files:
-
-* [Apache Commons Mathematics Library](http://commons.apache.org/proper/commons-math/download_math.cgi) (you can just download and unzip the whole thing)
-* [Java Tools for Experimental Mathematics "ellipticFunctions" package](http://www3.math.tu-berlin.de/jtem/downloads.html) (you only need "ellipticFunctions.jar" and "mfc.jar")
-
-If you want to use the Python, you'll need a couple of packages from [PyPI](https://pypi.python.org/pypi). Just install Python 3 and pip, and then call the following from a command line (or use Anaconda or something, I don't know. Up to you).
-~~~~
-pip3 install numpy pyshp
-~~~~
-`generate_coastlines.py` also takes input data from [naturalearthdata.com](http://www.naturalearthdata.com/downloads/), which should be placed in `src\\zupplemental\\data\\`.
-
-## How to use
-There are three executable Java files, four runnable Java scripts, and four runnable Python scripts. These are, in order:
-
-* `MapDesignerRaster.jar` &ndash; The original program. Create custom oblique raster images of the Earth's surface using a variety of algorithms called _projections_.  
-* `MapDesignerVector.jar` &ndash; The same idea, but working in vector images instead in case you want to cut a vinyl sticker or something.  
-* `MapAnalyzer.jar` &ndash; See graphs and figures quantifying the amount of scale and angular distortion present in each map projection.  
-* `MapPlotter.java` &ndash; Plot a large group of map projections by the amount of distortion they produce.  
-* `MapOptimizer.java` &ndash; Run gradient descent on parametric projections to minimize their distortion.  
-* `MapExplainer.java` &ndash; Generate an HTML blurb outlining and displaying every map projection.
-* `MapConverter.java` &ndash; Generate a bunch of maps in one projection from a bunch of input images.
-* `generate_coastlines.py` &ndash; Generate an SVG string outlining the continents, islands, and major lakes of the world, to be used as vector input.
-* `generate_graticule.py` &ndash; Generate an SVG string displaying a map graticule, to be used as vector input.
-* `generate_indicatrices.py` &ndash; Generate an SVG string outlining an array of Tissot's indiatrices of distortion, to be used as vector input.
-* `generate_orthodromes.py` &ndash; Generate a mesh of orthodromes in an Equirectangular projection, to be used as vector input.
-
-The executable applications all have similar layouts that let you select an input equirectangular map, a projection, an aspect (where the North Pole is situated with respect to the map), and parameters if applicable.
+They all have similar layouts that let you select an input equirectangular map, a projection, an aspect (where the North Pole is situated with respect to the map), and parameters if applicable.
 Go crazy! There are a practically unlimited number of combinations.
 
 I will note that while I think the interface is mostly intuitive, there are a couple of things where I never got around to making the proper GUI elements, so you won't be able to figure out on your own.
@@ -44,7 +20,57 @@ If you load an input map with the word "octant" in the filename (all lowercase),
 This is useful if you have very large inputs and/or memory constraints.
 The output will still be sized as though the entire map were there, unless it's a projection that doesn't show the entire globe ("Cahill–Keyes (single octant)" does not show the entire globe and is in fact specifically designed to work with this feature.)
 
-The runnable scripts just kind of work on their own. Those ones aren't really meant for mass consumption.
+### Running by double-clicking
+
+If you are a fancy Windows user, I recommend the convenient [fancy Windows binaries](https://github.com/jkunimune15/Map-Projections/releases). Double-click to install them and then keep pressing buttons until something good happens. If you see a map, you're in the right place.
+
+If you are not on Windows or are otherwise not fancy enough to deserve such executables, there are also equivalent `.jar` files in the main directory.
+Simply double-click them and, if you have [Java](https://java.com/en/download/) installed (10/10 would recommend), it *should* just run without further set-up.
+Sometimes Windows is weird and you have to use the command line.
+
+### Running from the command line
+
+To run the `.jar` files from the command line, you need to download JavaFX, which you can get from [here](https://gluonhq.com/products/javafx/).  Once you’ve unzipped it into some directory &endash; let’s say, for example, `/home/jkunimune/javafx` &endash; then you can run the programs like so:
+
+~~~bash
+java --module-path '/home/jkunimune/javafx/lib' --add-modules javafx.controls,javafx.swing -jar MapDesignerRaster.jar
+~~~
+
+I think this syntax might be somewhat platform dependent, but I can’t really remember.
+If you’re having problems, try forward slashes instead of backslashes or double quotes instead of single quotes.
+
+## Building from source
+
+If you want to edit the code, or use some of the deeper functionality not meant for mass consumption, you can also compile and run the Java source code.
+In addition to three `.java` files corresponding to the three executables, there are also these runnable scripts:
+
+* `MapPlotter.java` &ndash; Plot a large group of map projections by the amount of distortion they produce.  
+* `src/app/MapOptimizer.java` &ndash; Run gradient descent on parametric projections to minimize their distortion.  
+* `src/app/MapExplainer.java` &ndash; Generate an HTML blurb outlining and displaying every map projection.
+* `src/app/MapConverter.java` &ndash; Generate a bunch of maps in one projection from a bunch of input images.
+
+To run these, you’ll need to install some additional dependencies; you can get them as `.jar` files:
+
+* [Apache Commons Mathematics Library](http://commons.apache.org/proper/commons-math/download_math.cgi) (you can just download and unzip the whole thing)
+* [Java Tools for Experimental Mathematics "ellipticFunctions" package](http://www3.math.tu-berlin.de/jtem/downloads.html) (you only need "ellipticFunctions.jar" and "mfc.jar")
+
+Once you have those and put them in, for example, `/home/jkunimune/apache` and `/home/jkunimune/jtem`, you can compile and run with
+~~~bash
+javac --module-path '/home/jkunimune/javafx/lib:/home/jkunimune/apache/commons-math3-3.6.1.jar:/home/jkunimune/jtem' --add-modules javafx.controls,javafx.swing,ellipticFunctions --source-path=src src/apps/MapPlotter.java
+java --class-path '/home/jkunimune/javafx/lib/javafx.controls.jar:/home/jkunimune/lib/javafx.swing.jar:/home/jkunimune/apache/commons-math3-3.6.1.jar:/home/jkunimune/jtem/ellipticFunctions.jar:src' apps.MapPlotter
+~~~
+
+Rather, I think that’s supposed to work.  When I try it it has trouble reaching JavaFX, tho.  I’m still troubleshooting this; sorry.
+Note that I think the colons need to be semicolons if you’re on Windows.
+
+There are also some Python files used to generate SVG inputs for MapDesignerVector in the src/zupplemental directory.
+To run those, you'll need a couple of packages from [PyPI](https://pypi.python.org/pypi).
+Just install Python 3 and pip, and then call the following from a command line (or use Anaconda or something, I don't know. Up to you).
+~~~~
+pip3 install numpy pyshp
+~~~~
+
+Note that `compose_maps.py` requires input data from [naturalearthdata.com](http://www.naturalearthdata.com/downloads/), which should be downloaded and placed in `src/zupplemental/shapefiles/`.
 
 ## Wherefore?
 I'll write a little blurb here later.

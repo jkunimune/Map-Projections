@@ -31,7 +31,7 @@ import maps.Projection.Type;
  * A map optimised specifically for the 50 united states of America.
  * Source: 
  * Snyder, John Parr (1985). "Computer-assisted map projection research". Bulletin. United States
- *     Geological Survey. 1629: 79–92; 147–51.
+ *     Geological Survey. 1629: 79&endash;92; 147&endash;51.
  * 
  * @author jkunimune
  */

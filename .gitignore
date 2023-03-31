@@ -6,6 +6,9 @@
 # Large data files from the internet
 /src/zupplemental/shapefiles/*
 
+# Compiled Java
+*.class
+
 # Freakin PyC files
 *.pyc
 
