@@ -86,6 +86,6 @@ While I wrote all of the code in this repository myself, and I created several o
 * **Technische Universit&auml;t Berlin** for their [complex mathematics code](http://www3.math.tu-berlin.de/jtem/ellipticFunctions/),
 * **Gene Keyes** for his [impressively in-depth documentation of his map projection](http://www.genekeyes.com/CKOG-OOo/7-CKOG-illus-&-coastline.html),
 * **Robert Gray** for his [research on Buckminster Fuller's map projection](http://www.rwgrayprojects.com/rbfnotes/toc.html),
-* **AuthaGraph Co., Ltd.** for their [vague information about their map projection](http://www.authagraph.com/projects/description/%E3%80%90%E4%BD%9C%E5%93%81%E8%A7%A3%E8%AA%AC%E3%80%91%E8%A8%98%E4%BA%8B01/?lang=en), and
-* **Wikipedia** for its [substantial collection of map projection information and equations](https://en.wikipedia.org/wiki/List_of_map_projections).
-* **John P. Snyder** for his even more substantial collection of map projection information and equations.
+* **AuthaGraph Co., Ltd.** for their [vague information about their map projection](http://www.authagraph.com/projects/description/%E3%80%90%E4%BD%9C%E5%93%81%E8%A7%A3%E8%AA%AC%E3%80%91%E8%A8%98%E4%BA%8B01/?lang=en),
+* **Wikipedia** for its [substantial collection of map projection information and equations](https://en.wikipedia.org/wiki/List_of_map_projections), and
+* **John P. Snyder** for his [even more substantial collection of map projection information and equations](https://press.uchicago.edu/ucp/books/book/chicago/F/bo3632853.html).
