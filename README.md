@@ -30,7 +30,7 @@ Sometimes Windows is weird and you have to use the command line.
 
 ### Running from the command line
 
-To run the `.jar` files from the command line, you need to download JavaFX, which you can get from [here](https://gluonhq.com/products/javafx/).  It must be JavaFX 17 or older (JavaFX 20 is not back-compatible), and make sure you get the SDK version, not the Jmods version.  Once you’ve unzipped it into some directory &endash; let’s say, for example, `/home/jkunimune/javafx-17-sdk` &endash; then you can run the programs like so:
+To run the `.jar` files from the command line, you need to download JavaFX, which you can get from [here](https://gluonhq.com/products/javafx/).  It must be JavaFX 17 or older (JavaFX 20 is not back-compatible), and make sure you get the SDK version, not the Jmods version.  Once you’ve unzipped it into some directory – let’s say, for example, `/home/jkunimune/javafx-17-sdk` – then you can run the programs like so:
 
 ~~~bash
 java --module-path '/home/jkunimune/javafx-17-sdk/lib' --add-modules javafx.controls,javafx.swing -jar MapDesignerRaster.jar
