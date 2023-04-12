@@ -30,10 +30,10 @@ Sometimes Windows is weird and you have to use the command line.
 
 ### Running from the command line
 
-To run the `.jar` files from the command line, you need to download JavaFX, which you can get from [here](https://gluonhq.com/products/javafx/).  Once you’ve unzipped it into some directory &endash; let’s say, for example, `/home/jkunimune/javafx` &endash; then you can run the programs like so:
+To run the `.jar` files from the command line, you need to download JavaFX, which you can get from [here](https://gluonhq.com/products/javafx/).  It must be JavaFX 17 or older (JavaFX 20 is not back-compatible), and make sure you get the SDK version, not the Jmods version.  Once you’ve unzipped it into some directory &endash; let’s say, for example, `/home/jkunimune/javafx-17-sdk` &endash; then you can run the programs like so:
 
 ~~~bash
-java --module-path '/home/jkunimune/javafx/lib' --add-modules javafx.controls,javafx.swing -jar MapDesignerRaster.jar
+java --module-path '/home/jkunimune/javafx-17-sdk/lib' --add-modules javafx.controls,javafx.swing -jar MapDesignerRaster.jar
 ~~~
 
 I think this syntax might be somewhat platform dependent, but I can’t really remember.
@@ -56,12 +56,9 @@ To run these, you’ll need to install some additional dependencies; you can get
 
 Once you have those and put them in, for example, `/home/jkunimune/apache` and `/home/jkunimune/jtem`, you can compile and run with
 ~~~bash
-javac --module-path '/home/jkunimune/javafx/lib:/home/jkunimune/apache/commons-math3-3.6.1.jar:/home/jkunimune/jtem' --add-modules javafx.controls,javafx.swing,ellipticFunctions --source-path=src src/apps/MapPlotter.java
-java --class-path '/home/jkunimune/javafx/lib/javafx.controls.jar:/home/jkunimune/lib/javafx.swing.jar:/home/jkunimune/apache/commons-math3-3.6.1.jar:/home/jkunimune/jtem/ellipticFunctions.jar:src' apps.MapPlotter
+javac --module-path '/home/jkunimune/javafx-17-sdk/lib:/home/jkunimune/apache/commons-math3-3.6.1.jar:/home/jkunimune/jtem' --add-modules javafx.controls,javafx.swing,ellipticFunctions --source-path=src src/apps/MapPlotter.java
+java --class-path '/home/jkunimune/javafx-17-sdk/lib/javafx.controls.jar:/home/jkunimune/javafx-17-sdk/lib/javafx.swing.jar:/home/jkunimune/apache/commons-math3-3.6.1.jar:/home/jkunimune/jtem/ellipticFunctions.jar:src' apps.MapPlotter
 ~~~
-
-Rather, I think that’s supposed to work.  When I try it it has trouble reaching JavaFX, tho.  I’m still troubleshooting this; sorry.
-Note that I think the colons need to be semicolons if you’re on Windows.
 
 There are also some Python files used to generate SVG inputs for MapDesignerVector in the src/zupplemental directory.
 To run those, you'll need a couple of packages from [PyPI](https://pypi.python.org/pypi).
