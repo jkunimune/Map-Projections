@@ -22,7 +22,7 @@ The output will still be sized as though the entire map were there, unless it's 
 
 ### Running by double-clicking
 
-If you are a fancy Windows user, I recommend the convenient [fancy Windows binaries](https://github.com/jkunimune15/Map-Projections/releases). Double-click to install them and then keep pressing buttons until something good happens. If you see a map, you're in the right place.
+If you are a fancy Windows user, I recommend the convenient [fancy Windows binaries](https://github.com/jkunimune/Map-Projections/releases). Double-click to install them and then keep pressing buttons until something good happens. If you see a map, you're in the right place.
 
 If you are not on Windows or are otherwise not fancy enough to deserve such executables, there are also equivalent `.jar` files in the main directory.
 Simply double-click them and, if you have [Java](https://java.com/en/download/) installed (10/10 would recommend), it *should* just run without further set-up.
@@ -49,7 +49,7 @@ In addition to three `.java` files corresponding to the three executables, there
 * `src/app/MapExplainer.java` &ndash; Generate an HTML blurb outlining and displaying every map projection.
 * `src/app/MapConverter.java` &ndash; Generate a bunch of maps in one projection from a bunch of input images.
 
-To run these, you’ll need to install some additional dependencies; you can get them as `.jar` files:
+To run these, you’ll need to install some dependencies in addition to JavaFX as mentioned above; you can get them as `.jar` files:
 
 * [Apache Commons Mathematics Library](http://commons.apache.org/proper/commons-math/download_math.cgi) (you can just download and unzip the whole thing)
 * [Java Tools for Experimental Mathematics "ellipticFunctions" package](http://www3.math.tu-berlin.de/jtem/downloads.html) (you only need "ellipticFunctions.jar" and "mfc.jar")
@@ -59,6 +59,7 @@ Once you have those and put them in, for example, `/home/jkunimune/apache` and `
 javac --module-path '/home/jkunimune/javafx-17-sdk/lib:/home/jkunimune/apache/commons-math3-3.6.1.jar:/home/jkunimune/jtem' --add-modules javafx.controls,javafx.swing,ellipticFunctions --source-path=src src/apps/MapPlotter.java
 java --class-path '/home/jkunimune/javafx-17-sdk/lib/javafx.controls.jar:/home/jkunimune/javafx-17-sdk/lib/javafx.swing.jar:/home/jkunimune/apache/commons-math3-3.6.1.jar:/home/jkunimune/jtem/ellipticFunctions.jar:src' apps.MapPlotter
 ~~~
+As with running the .jar file, the syntax is somewhat platform-dependent; the colons might need to be semicolons, for example.
 
 There are also some Python files used to generate SVG inputs for MapDesignerVector in the src/zupplemental directory.
 To run those, you'll need a couple of packages from [PyPI](https://pypi.python.org/pypi).
