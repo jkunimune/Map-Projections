@@ -113,6 +113,20 @@ def compose_political():
 	print('\t</g>')
 	label_shapes('ne_50m_admin_0_countries', "pol")
 
+def compose_fine_political():
+	print('\t<g transform="matrix(1,0,0,-1,180,90)">')
+	print('\t\t<g class="country">')
+	plot_shapes('ne_50m_admin_0_countries', trim_antarctica=True)
+	print('\t\t</g>')
+	print('\t\t<g class="province">')
+	plot_shapes('ne_50m_admin_1_states_provinces', trim_antarctica=True)
+	print('\t\t</g>')
+	print('\t\t<g class="lakes">')
+	plot_shapes('ne_50m_lakes', max_rank=4)
+	print('\t\t</g>')
+	print('\t</g>')
+
+
 def compose_orthodromes():
 	print('\t<g transform="matrix(1,0,0,-1,180,90)">')
 	print('\t\t<g class="lines">')
@@ -163,9 +177,10 @@ if __name__ == '__main__':
 	# compose_landmasses()
 	# compose_graticule()
 	# compose_compound()
-	compose_poster()
+	# compose_poster()
 	# compose_indicatrices()
 	# compose_indicatrices2(-0)
 	# compose_political()
+	compose_fine_political()
 	# compose_orthodromes()
 	# compose_everything()

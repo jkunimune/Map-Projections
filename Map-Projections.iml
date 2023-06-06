@@ -14,7 +14,7 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
-    <orderEntry type="jdk" jdkName="1.8" jdkType="JavaSDK" />
+    <orderEntry type="jdk" jdkName="jdk-13.0.1" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">
       <library>
@@ -55,7 +55,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/Program Files/Java/javafx-sdk-19.0.2.1/lib/javafx.graphics.jar!/" />
+          <root url="jar://C:/Program Files/Java/javafx-sdk-19.0.2.1/lib/javafx.media.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -64,7 +64,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/Program Files/Java/javafx-sdk-19.0.2.1/lib/javafx.media.jar!/" />
+          <root url="jar://C:/Program Files/Java/javafx-sdk-19.0.2.1/lib/javafx.graphics.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -119,5 +119,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="lib" level="project" />
   </component>
 </module>
