@@ -120,7 +120,7 @@ public class Misc {
 		
 		private double phi0, lam0;
 		
-		public void setParameters(double... params) {
+		public void initialize(double... params) {
 			this.phi0 = Math.toRadians(params[0]);
 			this.lam0 = Math.toRadians(params[1]);
 		}
@@ -175,7 +175,7 @@ public class Misc {
 		
 		private double lat1, lon1, lat2, lon2, D, a, b, c;
 		
-		public void setParameters(double... params) {
+		public void initialize(double... params) {
 			this.lat1 = Math.toRadians(params[0]); //coordinates of first reference
 			this.lon1 = Math.toRadians(params[1]);
 			this.lat2 = Math.toRadians(params[2]); //coordinates of second reference
@@ -269,7 +269,7 @@ public class Misc {
 		private double yC; // the y coordinate of the centers of the parallels
 		private boolean reversed; // if the standard parallel is southern
 		
-		public void setParameters(double... params) {
+		public void initialize(double... params) {
 			double lat0 = Math.toRadians(params[0]);
 			this.reversed = (lat0 < 0);
 			if (reversed)

@@ -36,48 +36,48 @@ import maps.Projection.Type;
  * 
  * @author Justin Kunimune
  */
-public class Meshed {
+public class Danseiji {
 	
 	private static final int X = 0, Y = 1;
 	
 	
-	public static final ArbitraryProjection DANSEIJI_N = new ArbitraryProjection(
+	public static final DanseijiProjection DANSEIJI_N = new DanseijiProjection(
 			"Danseiji N", "The optimal conventional lenticular map.",
 			true, Type.OTHER, Property.COMPROMISE, false, "danseijiN.csv");
 	
 	
-	public static final ArbitraryProjection DANSEIJI_I = new ArbitraryProjection(
+	public static final DanseijiProjection DANSEIJI_I = new DanseijiProjection(
 			"Danseiji I", "The optimal conventional equal-area map.",
 			true, Type.OTHER, Property.COMPROMISE, false, "danseijiI.csv");
 	
 	
-	public static final ArbitraryProjection DANSEIJI_II = new ArbitraryProjection(
+	public static final DanseijiProjection DANSEIJI_II = new DanseijiProjection(
 			"Danseiji II", "An optimised map that gives more weight to shapes rather than sizes.",
 			true, Type.OTHER, Property.COMPROMISE, false, "danseijiII.csv");
 	
 	
-	public static final ArbitraryProjection DANSEIJI_III = new ArbitraryProjection(
-			"Danseiji III", "A map optimised to move distortion from the continents into the oceans.",
+	public static final DanseijiProjection DANSEIJI_III = new DanseijiProjection(
+			"Danseiji III", "A map optimised to move distortion from the continents into the oceans. I recommend using the newer Elastic Earth III instead.",
 			true, Type.OTHER, Property.COMPROMISE, true, "danseijiIII.csv");
 	
 	
-	public static final ArbitraryProjection DANSEIJI_IV = new ArbitraryProjection(
-			"Danseiji IV", "A map optimised to display landmasses accurately and without interruption.",
+	public static final DanseijiProjection DANSEIJI_IV = new DanseijiProjection(
+			"Danseiji IV", "A map optimised to display landmasses accurately and without interruption. I recommend using the newer Elastic Earth I instead.",
 			true, Type.OTHER, Property.COMPROMISE, true, "danseijiIV.csv");
 	
 	
-	public static final ArbitraryProjection DANSEIJI_V = new ArbitraryProjection(
-			"Danseiji V", "A map optimised to show off the continents by compressing the oceans.",
+	public static final DanseijiProjection DANSEIJI_V = new DanseijiProjection(
+			"Danseiji V", "A map optimised to show off the continents by compressing the oceans. I recommend using the newer Elastic Earth III instead.",
 			true, Type.OTHER, Property.COMPROMISE, true, "danseijiV.csv");
 	
 	
-	public static final ArbitraryProjection DANSEIJI_VI = new ArbitraryProjection(
+	public static final DanseijiProjection DANSEIJI_VI = new DanseijiProjection(
 			"Danseiji VI", "A compromise conventional map, where both physical area and population affect size.",
 			true, Type.OTHER, Property.COMPROMISE, true, "danseijiVI.csv");
 	
 	
 	
-	private static class ArbitraryProjection extends Projection {
+	private static class DanseijiProjection extends Projection {
 		
 		private String filename; // the data filename
 		private double[][][][] cells; // the values of the corner of each cell
@@ -85,16 +85,16 @@ public class Meshed {
 		private double[][][] pixels; // the pixel values, for inverse mapping
 		private double[][] edge; // the indices of the edge vertices
 		
-		public ArbitraryProjection(
+		public DanseijiProjection(
 				String title, String description, boolean interrupted, Type type, Property property,
 				boolean basedOnLand, String filename) {
-			super(title, description, 0, 0, interrupted ? 0b1010 : 0b1011, type, property, 4,
+			super(title, description, 0, 0, interrupted ? 0b1010 : 0b1011, type, property, 3,
 					new String[0], new double[0][], !basedOnLand);
 			this.filename = filename;
 		}
 		
 		
-		public void setParameters(double... params) throws IllegalArgumentException { // these maps don't actually have parameters, but this is the best place to load files
+		public void initialize(double... params) throws IllegalArgumentException { // these maps don't actually have parameters, but this is the best place to load files
 			if (cells != null)
 				return; // but don't do it if you've already done it
 			

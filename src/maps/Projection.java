@@ -109,7 +109,7 @@ public abstract class Projection {
 	
 	protected Projection (
 			String name, String description, double width, double height,
-			boolean f, boolean i, boolean s, boolean c, Type type, Property property, int rating,
+			boolean finite, boolean invertable, boolean solveable, boolean continuous, Type type, Property property, int rating,
 			String[] paramNames, double[][] paramValues, boolean hasAspect) {
 		this.name = name;
 		this.description = description;
@@ -118,10 +118,10 @@ public abstract class Projection {
 		this.hasAspect = hasAspect;
 		this.width = width;
 		this.height = height;
-		this.finite = f;
-		this.invertable = i;
-		this.solveable = s;
-		this.continuous = c;
+		this.finite = finite;
+		this.invertable = invertable;
+		this.solveable = solveable;
+		this.continuous = continuous;
 		this.type = type;
 		this.property = property;
 		this.rating = rating;
@@ -144,54 +144,115 @@ public abstract class Projection {
 		else
 			return "A "+description+".";
 	}
-	
-	
-	
-	public abstract double[] project(double lat, double lon); //convert spherical coordinates to Cartesian
-	
-	public abstract double[] inverse(double x, double y); //convert Cartesian coordinates to spherical
-	
-	
-	public void setParameters(double... params) throws IllegalArgumentException {
+
+
+	/**
+	 * convert a location on the globe to a location on the map plane
+	 * @param lat the latitude in radians
+	 * @param lon the longitude in radians
+	 * @return the x value and y value in the same units as this.width and this.height
+	 */
+	public abstract double[] project(double lat, double lon);
+
+	/**
+	 * convert a location on the map plane to a location on the globe
+	 * @param x the x value in the same units as this.width
+	 * @param y the y value in the same units as this.height
+	 * @return the latitude and longitude in radians
+	 */
+	public abstract double[] inverse(double x, double y);
+
+
+	/**
+	 * load in any user-specified parameters and perform any tasks that must be done before calling project() and
+	 * inverse(). this method only gets called if and when the user selects this Projection, so it’s a good place to put
+	 * computationally expensive setup stuff.
+	 * @param params a list of numbers that may relate to the map projection. each parameterized Projection will have
+	 *               its own interpretation for these. most Projections will take an empty array for this.
+	 * @throws IllegalArgumentException if the number of parameters is not what the Projection was expecting
+	 */
+	public void initialize(double... params) throws IllegalArgumentException {
 	}
-	
-	
+
+
+	/**
+	 * convert a location on the globe to a location on the map plane
+	 * @param coords the latitude and longitude in radians
+	 * @return the x value and y value in the same units as this.width and this.height
+	 */
 	public double[] project(double[] coords) {
 		return project(coords[0], coords[1]);
 	}
-	
+
+	/**
+	 * convert a location on the rotated globe to a location on the map plane
+	 * @param coords the absolute latitude and longitude in radians
+	 * @param pole the desired aspect: the latitude and longitude of the location that should appear as the North Pole
+	 *             and the angle to rotate the globe about its new axis
+	 * @return the x value and y value in the same units as this.width and this.height
+	 */
 	public double[] project(double[] coords, double[] pole) {
 		return project(coords[0], coords[1], pole);
 	}
-	
+
+	/**
+	 * convert a location on the rotated globe to a location on the map plane
+	 * @param lat the absolute latitude in radians
+	 * @param lon the absolute longitude in radians
+	 * @param pole the desired aspect: the latitude and longitude of the location that should appear as the North Pole
+	 *             and the angle to rotate the globe about its new axis
+	 * @return the x value and y value in the same units as this.width and this.height
+	 */
 	public double[] project(double lat, double lon, double[] pole) {
 		return project(obliquifySphc(lat, lon, hasAspect ? pole : null));
 	}
-	
-	public double[] project(double lat, double lon, double[] pole, double... params) {
-		setParameters(params);
-		return project(lat, lon, pole);
-	}
-	
-	
+
+	/**
+	 * convert a location on the map plane to a location on the globe
+	 * @param coords the x and y value, in the same units as this.width and this.height
+	 * @return the latitude and longitude in radians
+	 */
 	public double[] inverse(double[] coords) {
 		return inverse(coords[0], coords[1]);
 	}
-	
+
+	/**
+	 * convert a location on the map plane to a location on the rotated globe
+	 * @param coords the x and y value, in the same units as this.width and this.height
+	 * @param pole the desired aspect: the latitude and longitude of the location that should appear as the North Pole
+	 *             and the angle to rotate the globe about its new axis
+	 * @return the latitude and longitude in radians
+	 */
 	public double[] inverse(double[] coords, double[] pole) {
 		return inverse(coords[0], coords[1], pole);
 	}
-	
+
+	/**
+	 * convert a location on the map plane to a location on the rotated globe
+	 * @param x the x value in the same units as this.width
+	 * @param y the y value in the same units as this.height
+	 * @param pole the desired aspect: the latitude and longitude of the location that should appear as the North Pole
+	 *             and the angle to rotate the globe about its new axis
+	 * @return the latitude and longitude in radians
+	 */
 	public double[] inverse(double x, double y, double[] pole) {
 		return inverse(x, y, pole, false);
 	}
-	
-	public double[] inverse(double x, double y, double[] pole, double... params) {
-		if (!hasAspect)	pole = NORTH_POLE;
-		setParameters(params);
-		return inverse(x, y, pole);
-	}
-	
+
+	/**
+	 * convert a location on the map plane to a location on the rotated globe
+	 * @param x the x value in the same units as this.width
+	 * @param y the y value in the same units as this.height
+	 * @param pole the desired aspect: the latitude and longitude of the location that should appear as the North Pole
+	 *             and the angle to rotate the globe about its new axis
+	 * @param cropAtPi whether to forbid longitudes outside of [-π, π], returning NaN for any points that can only be
+	 *                 reached by extrapolating the projection to such extreme longitudes. if false, these points will
+	 *                 be considered valid and those extreme longitudes will be returned like normal. for funnily-shaped
+	 *                 interrupted projections, this option will typically restrict the result so that only one x and y
+	 *                 returns each latitude and longitude, whereas setting it false may cause some globe locations to
+	 *                 be duplicated.
+	 * @return the latitude and longitude in radians
+	 */
 	public double[] inverse(double x, double y, double[] pole, boolean cropAtPi) {
 		final double[] relCoords = inverse(x, y);
 		if (relCoords == null || (cropAtPi && Math.abs(relCoords[1]) > Math.PI))
@@ -236,7 +297,8 @@ public abstract class Projection {
 	 * @param precision The maximum allowable distance from the true path
 	 * @param maxLat The maximum absolute value of latitude for any graticule curve
 	 * @param maxLon The maximum absolute value of longitude for any graticule curve
-	 * @param size The maximum dimension of the graticule
+	 * @param outW The maximum width of this graticule
+	 * @param outH The maximum height of this graticule
 	 * @param pole The aspect of this graticule
 	 * @return list of curves where each curve is a list of {x,y} arrays
 	 */
@@ -339,7 +401,7 @@ public abstract class Projection {
 	
 	
 	public double[] avgDistortion(double[][][] points, double[] params) {
-		this.setParameters(params);
+		this.initialize(params);
 		return avgDistortion(points);
 	}
 	
@@ -411,11 +473,12 @@ public abstract class Projection {
 	
 	/**
 	 * Calculate relative latitude and longitude for an oblique pole
-	 * @param coords the absolute coordinates
+	 * @param latF the absolute latitude in radians
+	 * @param lonF the absolute longitude in radians
 	 * @param pole the pole location
 	 * @return { latr, lonr }, or coords if pole is null
 	 */
-	protected static final double[] obliquifySphc(double latF, double lonF, double[] pole) {
+	protected static double[] obliquifySphc(double latF, double lonF, double[] pole) {
 		if (pole == null || Arrays.equals(pole, NORTH_POLE)) // null pole indicates that this procedure should be bypassed
 			return new double[] {latF, lonF};
 		
@@ -461,7 +524,7 @@ public abstract class Projection {
 	 * @param pole the pole location
 	 * @return { LAT, LON }, or coords if pole is null
 	 */
-	protected static final double[] obliquifyPlnr(double[] coords, double[] pole) {
+	protected static double[] obliquifyPlnr(double[] coords, double[] pole) {
 		if (pole == null) //this indicates that you just shouldn't do this calculation
 			return coords;
 		

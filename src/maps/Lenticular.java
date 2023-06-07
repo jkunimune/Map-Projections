@@ -128,7 +128,7 @@ public class Lenticular {
 					-18272.5905481794, 11938.4486562530, -4362.2950601929, 682.5870175013};
 		private double factor;
 		
-		public void setParameters(double... params) {
+		public void initialize(double... params) {
 			factor = params[0];
 			double maxLon = factor*Math.PI*Math.sqrt(2*Math.PI/(4+Math.PI));
 			width = 4*Math.sin(maxLon/2)/Math.sqrt(1+Math.cos(maxLon/2))/factor;

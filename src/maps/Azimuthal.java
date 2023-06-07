@@ -123,7 +123,7 @@ public class Azimuthal {
 		
 		private double d; //viewing distance in sphere radii
 		
-		public void setParameters(double... params) {
+		public void initialize(double... params) {
 			this.d = 1/(1 - 2*params[0]/100);
 			this.width = this.height = (Double.isFinite(d)) ? 2/Math.sqrt(d*d-1) : ORTHOGRAPHIC.getWidth();
 		}
@@ -157,7 +157,7 @@ public class Azimuthal {
 		
 		private double p0, r0; // scale factor of magnified portion
 		
-		public void setParameters(double... params) {
+		public void initialize(double... params) {
 			this.p0 = Math.toRadians(params[0]);
 			this.r0 = params[1];
 		}

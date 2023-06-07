@@ -33,7 +33,7 @@ import javax.imageio.ImageIO;
 
 import maps.Gyorffy;
 import maps.Lenticular;
-import maps.Meshed;
+import maps.Danseiji;
 import maps.Polyhedral;
 import maps.Projection;
 import maps.Pseudocylindrical;
@@ -52,11 +52,11 @@ public class MapEvaluator {
 	public static final boolean ONLY_LAND = true;
 	public static final double THRESHOLD = 3;
 	public static final Projection[] PROJECTIONS = {
-			Tobler.TOBLER, Pseudocylindrical.ECKERT_IV, Lenticular.WAGNER_VIII, Meshed.DANSEIJI_I,
-			WinkelTripel.WINKEL_TRIPEL, Gyorffy.E, Meshed.DANSEIJI_II,
-			Pseudocylindrical.HOMOLOSINE_INTERRUPTED, Meshed.DANSEIJI_III,
-			Polyhedral.DYMAXION, Meshed.DANSEIJI_IV,
-	};
+			Tobler.TOBLER, Pseudocylindrical.ECKERT_IV, Lenticular.WAGNER_VIII, Danseiji.DANSEIJI_I,
+			WinkelTripel.WINKEL_TRIPEL, Gyorffy.E, Danseiji.DANSEIJI_II,
+			Pseudocylindrical.HOMOLOSINE_INTERRUPTED, Danseiji.DANSEIJI_III,
+			Polyhedral.DYMAXION, Danseiji.DANSEIJI_IV,
+			};
 	
 	/**
 	 * @param args
@@ -72,7 +72,7 @@ public class MapEvaluator {
 		for (Projection projection : PROJECTIONS) {
 			System.out.println(projection.getName());
 			
-			projection.setParameters(projection.getDefaultParameters());
+			projection.initialize(projection.getDefaultParameters());
 			
 			List<Double> arealDistortion = new ArrayList<Double>();
 			List<Double> angularDistortion = new ArrayList<Double>();

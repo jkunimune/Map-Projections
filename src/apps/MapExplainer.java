@@ -32,7 +32,7 @@ import image.SavableImage;
 import javafx.application.Application;
 import javafx.concurrent.Task;
 import javafx.stage.Stage;
-import maps.Meshed;
+import maps.Danseiji;
 import maps.ArbitraryPseudocylindrical;
 import maps.Azimuthal;
 import maps.Conic;
@@ -70,8 +70,8 @@ public class MapExplainer extends Application {
 					Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Octohedral.KEYES_STANDARD,
 					Octohedral.CAHILL_CONCIALDI, Misc.PEIRCE_QUINCUNCIAL.transverse(), Snyder.GS50,
 					Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Misc.FLAT_EARTH },
-			{ Meshed.DANSEIJI_N, Meshed.DANSEIJI_IV, Meshed.DANSEIJI_V, Polyhedral.TETRAGRAPH,
-					Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH } };
+			{Danseiji.DANSEIJI_N, Danseiji.DANSEIJI_IV, Danseiji.DANSEIJI_V, Polyhedral.TETRAGRAPH,
+			 Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH } };
 
 
 	public static void main(String[] args) {
@@ -103,7 +103,7 @@ public class MapExplainer extends Application {
 			out.println("<h1>Map Projections</h1>");
 			
 			for (Projection proj: projs) {
-				proj.setParameters(proj.getDefaultParameters());
+				proj.initialize(proj.getDefaultParameters());
 				out.println("<h2>"+proj.getName()+"</h2>");
 				
 				PixelMap input = inputSkew;

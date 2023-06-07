@@ -47,7 +47,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import maps.Meshed;
+import maps.Danseiji;
 import maps.ArbitraryPseudocylindrical;
 import maps.Azimuthal;
 import maps.Cylindrical;
@@ -79,14 +79,14 @@ public class MapPlotter extends Application {
 	private static final Projection[] PSEUDOCYL = { Pseudocylindrical.MOLLWEIDE,
 			ArbitraryPseudocylindrical.ROBINSON, ArbitraryPseudocylindrical.NATURAL_EARTH,
 			Pseudocylindrical.KAVRAYSKIY_VII, EqualEarth.EQUAL_EARTH };
-	private static final Projection[] LENTICULAR = { Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN,
-			WinkelTripel.WINKEL_TRIPEL, Meshed.DANSEIJI_N, Meshed.DANSEIJI_I,
-			Meshed.DANSEIJI_II, Gyorffy.E, Gyorffy.F };
+	private static final Projection[] LENTICULAR = {Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN,
+	                                                WinkelTripel.WINKEL_TRIPEL, Danseiji.DANSEIJI_N, Danseiji.DANSEIJI_I,
+	                                                Danseiji.DANSEIJI_II, Gyorffy.E, Gyorffy.F };
 	private static final Projection[] TETRAHEDRAL = { Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
 			Polyhedral.AUTHAGRAPH, Polyhedral.VAN_LEEUWEN };
-	private static final Projection[] CHEATY = { Pseudocylindrical.LEMONS, Octohedral.KEYES_STANDARD,
-			Polyhedral.DYMAXION, Octohedral.CAHILL_CONCIALDI, Meshed.DANSEIJI_IV,
-			Pseudocylindrical.HOMOLOSINE_INTERRUPTED };
+	private static final Projection[] CHEATY = {Pseudocylindrical.LEMONS, Octohedral.KEYES_STANDARD,
+	                                            Polyhedral.DYMAXION, Octohedral.CAHILL_CONCIALDI, Danseiji.DANSEIJI_IV,
+	                                            Pseudocylindrical.HOMOLOSINE_INTERRUPTED };
 	private static final Projection[] OTHER = { Misc.PEIRCE_QUINCUNCIAL };
 	
 	

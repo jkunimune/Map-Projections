@@ -75,11 +75,12 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.converter.DoubleStringConverter;
-import maps.Meshed;
+import maps.Danseiji;
 import maps.ArbitraryPseudocylindrical;
 import maps.Azimuthal;
 import maps.Conic;
 import maps.Cylindrical;
+import maps.Elastik;
 import maps.EqualEarth;
 import maps.Gyorffy;
 import maps.Lenticular;
@@ -131,33 +132,33 @@ public abstract class MapApplication extends Application {
 			"Tetrahedral", "Polyhedral", "Pseudocylindrical", "Lenticular", "Other", "Invented by Justin" }; //the overarching categories by which I organise my projections
 	public static final Projection[][] ALL_PROJECTIONS = { // every projection I have programmed
 			{ Cylindrical.EQUAL_AREA, Cylindrical.EQUIRECTANGULAR, Cylindrical.GALL_ORTHOGRAPHIC,
-					Cylindrical.GALL_STEREOGRAPHIC, Cylindrical.HOBO_DYER, Cylindrical.LAMBERT,
-					Cylindrical.MERCATOR, Cylindrical.MILLER, Cylindrical.CENTRAL,
-					Cylindrical.PLATE_CARREE },
+			  Cylindrical.GALL_STEREOGRAPHIC, Cylindrical.HOBO_DYER, Cylindrical.LAMBERT,
+			  Cylindrical.MERCATOR, Cylindrical.MILLER, Cylindrical.CENTRAL,
+			  Cylindrical.PLATE_CARREE },
 			{ Azimuthal.EQUAL_AREA, Azimuthal.POLAR, Azimuthal.GNOMONIC, Azimuthal.MAGNIFIER,
-					Azimuthal.ORTHOGRAPHIC, Azimuthal.PERSPECTIVE, Azimuthal.STEREOGRAPHIC },
+			  Azimuthal.ORTHOGRAPHIC, Azimuthal.PERSPECTIVE, Azimuthal.STEREOGRAPHIC },
 			{ Conic.ALBERS, Misc.BRAUN_CONIC, Conic.LAMBERT, Conic.EQUIDISTANT },
 			{ Polyhedral.AUTHAGRAPH, Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
-					Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR, Polyhedral.VAN_LEEUWEN },
+			  Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR, Polyhedral.VAN_LEEUWEN },
 			{ Octohedral.CONFORMAL_CAHILL, Octohedral.CAHILL_CONCIALDI, Octohedral.KEYES_STANDARD,
-					Octohedral.KEYES_BASIC_M, Octohedral.KEYES_OCTANT, Polyhedral.DYMAXION,
-					Octohedral.WATERMAN },
+			  Octohedral.KEYES_BASIC_M, Octohedral.KEYES_OCTANT, Polyhedral.DYMAXION,
+			  Octohedral.WATERMAN },
 			{ Pseudocylindrical.ECKERT_IV, EqualEarth.EQUAL_EARTH,
-					Pseudocylindrical.HOMOLOSINE_INTERRUPTED, Pseudocylindrical.HOMOLOSINE,
-					Pseudocylindrical.KAVRAYSKIY_VII, Pseudocylindrical.MOLLWEIDE,
-					ArbitraryPseudocylindrical.ROBINSON, Pseudocylindrical.SINUSOIDAL,
-					Tobler.TOBLER, Pseudocylindrical.WAGNER_II, Pseudocylindrical.WAGNER_V },
+			  Pseudocylindrical.HOMOLOSINE_INTERRUPTED, Pseudocylindrical.HOMOLOSINE,
+			  Pseudocylindrical.KAVRAYSKIY_VII, Pseudocylindrical.MOLLWEIDE,
+			  ArbitraryPseudocylindrical.ROBINSON, Pseudocylindrical.SINUSOIDAL,
+			  Tobler.TOBLER, Pseudocylindrical.WAGNER_II, Pseudocylindrical.WAGNER_V },
 			{ Lenticular.AITOFF, Lenticular.POLYCONIC, Lenticular.EISENLOHR, Gyorffy.E,
-					Lenticular.HAMMER, Lenticular.LAGRANGE, Lenticular.STREBE_95,
-					Lenticular.VAN_DER_GRINTEN, Lenticular.WAGNER_VIII,
-					WinkelTripel.WINKEL_TRIPEL },
+			  Lenticular.HAMMER, Lenticular.LAGRANGE, Lenticular.STREBE_95,
+			  Lenticular.VAN_DER_GRINTEN, Lenticular.WAGNER_VIII, WinkelTripel.WINKEL_TRIPEL },
 			{ Misc.BONNE, Snyder.GS50, Misc.GUYOU, Misc.HAMMER_RETROAZIMUTHAL,
-					Pseudocylindrical.LEMONS, Misc.PEIRCE_QUINCUNCIAL, Misc.T_SHIRT,
-					Misc.TWO_POINT_EQUIDISTANT, Misc.FLAT_EARTH },
-			{ Meshed.DANSEIJI_N, Meshed.DANSEIJI_I, Meshed.DANSEIJI_II, Meshed.DANSEIJI_III,
-					Meshed.DANSEIJI_IV, Meshed.DANSEIJI_V, Meshed.DANSEIJI_VI,
-					Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH, Polyhedral.TETRAGRAPH,
-					MyProjections.TWO_POINT_EQUALIZED } };
+			  Pseudocylindrical.LEMONS, Misc.PEIRCE_QUINCUNCIAL, Misc.T_SHIRT,
+			  Misc.TWO_POINT_EQUIDISTANT, Misc.FLAT_EARTH },
+			{ Elastik.ELASTIK_I, Elastik.ELASTIK_II, Elastik.ELASTIK_III,
+			  Danseiji.DANSEIJI_N, Danseiji.DANSEIJI_I, Danseiji.DANSEIJI_II, Danseiji.DANSEIJI_III,
+			  Danseiji.DANSEIJI_IV, Danseiji.DANSEIJI_V, Danseiji.DANSEIJI_VI,
+			  Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH, Polyhedral.TETRAGRAPH,
+			  MyProjections.TWO_POINT_EQUALIZED } };
 	
 	private static final String[] ASPECT_NAMES = { "Normal", "Transverse", "Cassini", "Atlantis",
 			"Jerusalem", "Point Nemo", "Longest Line", "Cylindrical", "Tetrahedral", "Antipode",
@@ -170,7 +171,7 @@ public abstract class MapApplication extends Application {
 	
 	private final Map<ButtonType, Button> buttons = new HashMap<ButtonType, Button>();
 	
-	private String name;
+	private final String name;
 	private Stage root;
 	private ComboBox<Projection> projectionChooser;
 	private GridPane paramGrid;
@@ -179,8 +180,8 @@ public abstract class MapApplication extends Application {
 	private Spinner<Double>[] paramSpinners;
 	private double[] currentParams;
 	
-	private Flag isChanging = new Flag();
-	private Flag suppressListeners = new Flag(); //a flag to prevent events from triggering projection setting
+	private final Flag isChanging = new Flag();
+	private final Flag suppressListeners = new Flag(); //a flag to prevent events from triggering projection setting
 	
 	
 	
@@ -209,7 +210,7 @@ public abstract class MapApplication extends Application {
 	/**
 	 * Create a set of widgets to select an input image.
 	 * @param allowedExtensions - The List of possible file types for the input
-	 * @param setInput - The method to be called when an input file is loaded.
+	 * @param inputSetter - The method to be called when an input file is loaded.
 	 * 		This method will be called from a nongui thread.
 	 * @return The full formatted Region.
 	 */
@@ -264,7 +265,7 @@ public abstract class MapApplication extends Application {
 	
 	/**
 	 * Create a set of widgets to choose a Projection.
-	 * @param defProj - The default projection, before the user chooses anything.
+	 * @param projectionSetter - The default projection, before the user chooses anything.
 	 * @return The full formatted Region.
 	 */
 	protected Region buildProjectionSelector(Procedure projectionSetter) {
@@ -563,7 +564,7 @@ public abstract class MapApplication extends Application {
 	
 	protected void loadParameters() {
 		try {
-			getProjection().setParameters(currentParams);
+			getProjection().initialize(currentParams);
 		} catch (IllegalArgumentException e) {
 			showError("Failed to load projection", e.getLocalizedMessage());
 		}

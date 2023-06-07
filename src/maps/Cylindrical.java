@@ -68,7 +68,7 @@ public class Cylindrical {
 		
 		private double stdParallel;
 		
-		public void setParameters(double... params) {
+		public void initialize(double... params) {
 			this.stdParallel = Math.toRadians(params[0]);
 			this.height = Math.PI/Math.cos(stdParallel);
 		}
@@ -144,7 +144,7 @@ public class Cylindrical {
 			2*Math.PI, 0, 0b1111, Type.CYLINDRICAL, Property.EQUAL_AREA, 2,
 			new String[]{"Std. parallel"}, new double[][]{{0, 89, 30}}) {
 		
-		public void setParameters(double... params) {
+		public void initialize(double... params) {
 			this.height = 2/Math.pow(Math.cos(Math.toRadians(params[0])), 2);
 		}
 		

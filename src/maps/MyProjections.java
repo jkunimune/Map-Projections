@@ -117,7 +117,7 @@ public class MyProjections {
 		
 		private double theta;
 		
-		public void setParameters(double... params) {
+		public void initialize(double... params) {
 			theta = Math.toRadians(params[0])/2;
 			this.height = 2*Math.PI - 2*theta; //major axis
 			this.width = 2*Math.sqrt(Math.pow(Math.PI-theta, 2) - Math.pow(theta, 2)) *

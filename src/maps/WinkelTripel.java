@@ -52,7 +52,7 @@ public final class WinkelTripel {
 		
 		private double stdParallel;
 		
-		public void setParameters(double... params) {
+		public void initialize(double... params) {
 			this.stdParallel = Math.toRadians(params[0]);
 			this.width = 2*Math.PI*(1 + Math.cos(stdParallel));
 		}

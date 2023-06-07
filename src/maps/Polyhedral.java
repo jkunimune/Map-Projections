@@ -105,7 +105,7 @@ public class Polyhedral {
 		private final double[] POLE = {Math.toRadians(77), Math.toRadians(143), Math.toRadians(17)};
 		private double k;
 		
-		public void setParameters(double... params) {
+		public void initialize(double... params) {
 				this.k = params[0];
 		}
 		
@@ -146,7 +146,7 @@ public class Polyhedral {
 		
 		private double k;
 		
-		public void setParameters(double... params) {
+		public void initialize(double... params) {
 				this.k = params[0];
 		}
 		
@@ -175,7 +175,7 @@ public class Polyhedral {
 		
 		private double sig, a0, scale;
 		
-		public void setParameters(double... params) {
+		public void initialize(double... params) {
 			this.sig = params[0]/60;
 			this.a0 = 3 - 1.5*sig*sig;
 			this.scale = Math.sqrt(3)*a0/Math.PI;
@@ -238,12 +238,12 @@ public class Polyhedral {
 			0b1011, Configuration.TETRAHEDRON_WIDE_VERTEX, Property.EQUAL_AREA, 3) {
 		
 		public double[] faceProject(double lat, double lon) {
-			ACTUAUTHAGRAPH.setParameters(0);
+			ACTUAUTHAGRAPH.initialize(0);
 			return ACTUAUTHAGRAPH.faceProject(lat, lon);
 		}
 		
 		public double[] faceInverse(double r, double th) {
-			ACTUAUTHAGRAPH.setParameters(0);
+			ACTUAUTHAGRAPH.initialize(0);
 			return ACTUAUTHAGRAPH.faceInverse(r, th);
 		}
 	};

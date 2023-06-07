@@ -48,7 +48,7 @@ public class Tobler {
 		private double alpha, kappa, epsilon; //epsilon is related to gamma, but defined somewhat differently
 		private double[] Z; //Z[i] = sin(phi) when y = i/(Z.length-1)
 		
-		public void setParameters(double... params) {
+		public void initialize(double... params) {
 			this.alpha = params[0];
 			this.kappa = params[1];
 			this.epsilon = NumericalAnalysis.simpsonIntegrate(

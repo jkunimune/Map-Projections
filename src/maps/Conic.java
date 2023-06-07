@@ -123,7 +123,7 @@ public class Conic {
 				this.y0 = (1 + (1-m)*Math.cos(Math.PI*n))/2;
 			}
 			else {
-				Cylindrical.EQUIRECTANGULAR.setParameters(Math.toDegrees(lat1));
+				Cylindrical.EQUIRECTANGULAR.initialize(Math.toDegrees(lat1));
 				this.width = Cylindrical.EQUIRECTANGULAR.getWidth();
 				this.height = Cylindrical.EQUIRECTANGULAR.getHeight();
 			}
@@ -185,7 +185,7 @@ public class Conic {
 				this.y0 = (R + r*Math.cos(Math.PI*n))/2;
 			}
 			else {
-				Cylindrical.EQUAL_AREA.setParameters(Math.toDegrees(lat1));
+				Cylindrical.EQUAL_AREA.initialize(Math.toDegrees(lat1));
 				this.width = Cylindrical.EQUAL_AREA.getWidth();
 				this.height = Cylindrical.EQUAL_AREA.getHeight();
 			}
@@ -236,7 +236,7 @@ public class Conic {
 					new double[][] {{-89,89,15},{-89,89,45}});
 		}
 		
-		public final void setParameters(double... params) {
+		public final void initialize(double... params) {
 			this.lat1 = Math.toRadians(params[0]);
 			this.lat2 = Math.toRadians(params[1]);
 			this.reversed = lat1 + lat2 < 0;

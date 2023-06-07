@@ -99,7 +99,7 @@ public class MapProducer extends Application {
 			for (Projection proj: ALL_PROJECTIONS[i]) {
 				System.out.println(proj);
 				
-				proj.setParameters(proj.getDefaultParameters());
+				proj.initialize(proj.getDefaultParameters());
 				
 				Task<SavableImage> task =
 						MapDesignerVector.calculateTask(1, inputs[i], proj, pole, null);
