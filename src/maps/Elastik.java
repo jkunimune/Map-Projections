@@ -308,32 +308,34 @@ public class Elastik {
 			for (int i = 0; i < m; i ++) {
 				for (int j = 0; j < n; j ++) {
 					if (isFinite(values[i][j])) {
+
 						if (i - 1 >= 0 && isFinite(values[i - 1][j])) {
 							if (i + 1 < m && isFinite(values[i + 1][j]))
-								gradients_dλ[i][j] = (values[i + 1][j] - values[i - 1][j])/2.;
+								gradients_dф[i][j] = (values[i + 1][j] - values[i - 1][j])/2.;
 							else {
 								if (i - 2 >= 0 && isFinite(values[i - 2][j]))
-									gradients_dλ[i][j] = (3*values[i][j] - 2*values[i - 1][j] + values[i - 2][j])/2.;
+									gradients_dф[i][j] = (3*values[i][j] - 4*values[i - 1][j] + values[i - 2][j])/2.;
 								else
-									gradients_dλ[i][j] = values[i][j] - values[i - 1][j];
+									gradients_dф[i][j] = values[i][j] - values[i - 1][j];
 							}
 						}
 						else {
 							if (i + 1 < m && isFinite(values[i + 1][j])) {
 								if (i + 2 < m && isFinite(values[i + 2][j]))
-									gradients_dλ[i][j] = (-3*values[i][j] + 2*values[i + 1][j] - values[i + 2][j])/2.;
+									gradients_dф[i][j] = (-3*values[i][j] + 4*values[i + 1][j] - values[i + 2][j])/2.;
 								else
-									gradients_dλ[i][j] = values[i + 1][j] - values[i][j];
+									gradients_dф[i][j] = values[i + 1][j] - values[i][j];
 							}
 							else
-								gradients_dλ[i][j] = NaN;
+								gradients_dф[i][j] = NaN;
 						}
+
 						if (j - 1 >= 0 && isFinite(values[i][j - 1])) {
 							if (j + 1 < n && isFinite(values[i][j + 1]))
 								gradients_dλ[i][j] = (values[i][j + 1] - values[i][j - 1])/2.;
 							else {
 								if (j - 2 >= 0 && isFinite(values[i][j - 2]))
-									gradients_dλ[i][j] = (3*values[i][j] - 2*values[i][j - 1] + values[i][j - 2])/2.;
+									gradients_dλ[i][j] = (3*values[i][j] - 4*values[i][j - 1] + values[i][j - 2])/2.;
 								else
 									gradients_dλ[i][j] = values[i][j] - values[i][j - 1];
 							}
@@ -341,13 +343,14 @@ public class Elastik {
 						else {
 							if (j + 1 < n && isFinite(values[i][j + 1])) {
 								if (j + 2 < n && isFinite(values[i][j + 2]))
-									gradients_dλ[i][j] = (-3*values[i][j] + 2*values[i][j + 1] - values[i][j + 2])/2.;
+									gradients_dλ[i][j] = (-3*values[i][j] + 4*values[i][j + 1] - values[i][j + 2])/2.;
 								else
 									gradients_dλ[i][j] = values[i][j + 1] - values[i][j];
 							}
 							else
 								gradients_dλ[i][j] = NaN;
 						}
+
 					}
 					else {
 						gradients_dф[i][j] = NaN;
@@ -378,11 +381,11 @@ public class Elastik {
 			                       j_partial - j);
 		}
 
-		public double hermiteSpline1D(double y_left, double dydx_left, double y_right, double dydx_right, double x) {
-			return y_left +
-			       x*(dydx_left +
-			          x*((3*(y_right - y_left) - 2*dydx_left - dydx_right) +
-			             x*(dydx_left + dydx_right - 2*(y_right - y_left))));
+		private static double hermiteSpline1D(double y_0, double dydx_0, double y_1, double dydx_1, double x) {
+			return y_0 +
+			       x*(dydx_0 +
+			          x*((3*(y_1 - y_0) - 2*dydx_0 - dydx_1) +
+			             x*(dydx_0 + dydx_1 - 2*(y_1 - y_0))));
 		}
 	}
 }
