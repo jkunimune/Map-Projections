@@ -33,6 +33,7 @@ import java.io.IOException;
 import static java.lang.Double.NaN;
 import static java.lang.Double.POSITIVE_INFINITY;
 import static java.lang.Double.isFinite;
+import static java.lang.Double.isNaN;
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 import static java.lang.Math.PI;
@@ -154,8 +155,8 @@ public class Elastik {
 							points[1][j][k] = parseDouble(row[2*k + 1]);
 						}
 					}
-					for (int k = 0; k < 2; k ++)
-						sections[i][k] = new SplineSurface(points[k]);
+					for (int l = 0; l < 2; l ++)
+						sections[i][l] = new SplineSurface(points[l]);
 				}
 
 				// load the projected border
@@ -210,9 +211,34 @@ public class Elastik {
 			width = right_bound - left_bound;
 			height = upper_bound - lower_bound;
 
-			// adjust the splines so that they match over the shared nodes TODO
-
-			System.out.println(section_borders[1].contains(Math.PI/2, Math.PI/2));
+			// adjust the splines so that they're fully continuus over the shared nodes
+			for (int i_A = 0; i_A < sections.length; i_A ++) {
+				// look at each adjacent pair of sections
+				int i_B = (i_A + 1)%sections.length;
+				// look at each node
+				for (int j = 0; j < sections[i_A][0].values.length; j ++) {
+					for (int k = 0; k < sections[i_A][0].values[j].length; k ++) {
+						// if the nodes are real and in the same location
+						if (!isNaN(sections[i_A][0].values[j][k]) &&
+							sections[i_A][0].values[j][k] == sections[i_B][0].values[j][k] &&
+					        sections[i_A][1].values[j][k] == sections[i_B][1].values[j][k]) {
+							// set them to have the same gradients as well
+							for (int l = 0; l < 2; l ++) {
+								double mean_gradient_dф = (
+										sections[i_A][l].gradients_dф[j][k] +
+										sections[i_B][l].gradients_dф[j][k])/2;
+								sections[i_A][l].gradients_dф[j][k] = mean_gradient_dф;
+								sections[i_B][l].gradients_dф[j][k] = mean_gradient_dф;
+								double mean_gradient_dλ = (
+										sections[i_A][l].gradients_dλ[j][k] +
+										sections[i_B][l].gradients_dλ[j][k])/2;
+								sections[i_A][l].gradients_dλ[j][k] = mean_gradient_dλ;
+								sections[i_B][l].gradients_dλ[j][k] = mean_gradient_dλ;
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -250,7 +276,7 @@ public class Elastik {
 			// for each edge of the polygon
 			for (int i = 1; i < ф_vertices.length; i ++) {
 				if (abs(λ_vertices[i] - λ_vertices[i - 1]) > PI)
-					continue;  // (skip edges that are wrapping around the backside
+					continue;  // skip edges that are wrapping around the backside
 				// if our north-south line crosses it
 				if (λ_vertices[i - 1] != λ_vertices[i]) {
 					if ((λ_vertices[i - 1] < λ) != (λ_vertices[i] < λ) ||
@@ -274,7 +300,7 @@ public class Elastik {
 							if (Δф != 0)
 								contained = (ф_intersect < ф) == (λ_vertices[i - 1] < λ_vertices[i]);
 							else
-								contained = true;  // (if it's on the line, count it as in)
+								contained = true;  // if it's on the line, count it as in
 						}
 					}
 				}
@@ -365,6 +391,10 @@ public class Elastik {
 			int i = (int)Math.floor(Math.min(i_partial, values.length - 2));
 			double j_partial = (λ + PI)/(2*PI)*(values[i].length - 1);
 			int j = (int)Math.floor(Math.min(j_partial, values[i].length - 2));
+			if (isNaN(values[i][j]) || isNaN(values[i][j + 1]) ||
+			    isNaN(values[i + 1][j]) || isNaN(values[i + 1][j + 1]))
+				return NaN;
+
 			double z_west = hermiteSpline1D(values[i][j], gradients_dф[i][j],
 			                                values[i + 1][j], gradients_dф[i + 1][j],
 			                                i_partial - i);
