@@ -8,6 +8,11 @@
       <src_folder value="file://$MODULE_DIR$/src" expected_position="0" />
     </src_description>
   </component>
+  <component name="FacetManager">
+    <facet type="Python" name="Python">
+      <configuration sdkName="Python 3.10" />
+    </facet>
+  </component>
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
     <output url="file://$MODULE_DIR$/bin" />
     <exclude-output />
@@ -19,7 +24,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/Program Files/Java/javafx-sdk-19.0.2.1/lib/javafx-swt.jar!/" />
+          <root url="jar://$PATH_TO_FX$/javafx-swt.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -28,7 +33,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/Program Files/Java/javafx-sdk-19.0.2.1/lib/javafx.base.jar!/" />
+          <root url="jar://$PATH_TO_FX$/javafx.base.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -37,7 +42,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/Program Files/Java/javafx-sdk-19.0.2.1/lib/javafx.controls.jar!/" />
+          <root url="jar://$PATH_TO_FX$/javafx.controls.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -46,7 +51,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/Program Files/Java/javafx-sdk-19.0.2.1/lib/javafx.fxml.jar!/" />
+          <root url="jar://$PATH_TO_FX$/javafx.fxml.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -55,7 +60,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/Program Files/Java/javafx-sdk-19.0.2.1/lib/javafx.media.jar!/" />
+          <root url="jar://$PATH_TO_FX$/javafx.media.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -64,7 +69,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/Program Files/Java/javafx-sdk-19.0.2.1/lib/javafx.graphics.jar!/" />
+          <root url="jar://$PATH_TO_FX$/javafx.graphics.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -73,7 +78,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/Program Files/Java/javafx-sdk-19.0.2.1/lib/javafx.swing.jar!/" />
+          <root url="jar://$PATH_TO_FX$/javafx.swing.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -82,7 +87,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/Program Files/Java/javafx-sdk-19.0.2.1/lib/javafx.web.jar!/" />
+          <root url="jar://$PATH_TO_FX$/javafx.web.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -120,5 +125,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="lib" level="project" />
+    <orderEntry type="library" name="Python 3.10 interpreter library" level="application" />
   </component>
 </module>
