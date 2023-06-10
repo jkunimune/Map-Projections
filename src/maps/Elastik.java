@@ -38,6 +38,13 @@ import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
+import static java.lang.Math.atan;
+import static java.lang.Math.atan2;
+import static java.lang.Math.cos;
+import static java.lang.Math.floor;
+import static java.lang.Math.hypot;
+import static java.lang.Math.min;
+import static java.lang.Math.sin;
 import static java.lang.Math.toRadians;
 
 /**
@@ -73,10 +80,8 @@ public class Elastik {
 		private SplineSurface[][] sections; // the x and y projection information for each section
 		private double[][] projected_border; // the x and y values of the full projected map outline
 		private double[][][] inverse_raster; // the pixel values, for inverse mapping
-		private double left_bound;
-		private double right_bound;
-		private double upper_bound;
-		private double lower_bound;
+		private double raster_left, raster_lower; // the extreme coordinates of the inverse raster
+		private double raster_width, raster_height; // the spacial extent of the inverse raster
 
 
 		public ElastikProjection(
@@ -90,6 +95,12 @@ public class Elastik {
 		}
 
 
+		/**
+		 * convert a location on the globe to a location on the map plane
+		 * @param ф the latitude in radians
+		 * @param λ the longitude in radians
+		 * @return the x value and y value in the same units as this.width and this.height
+		 */
 		public double[] project(double ф, double λ) {
 			for (int i = 0; i < sections.length; i ++) {
 				if (section_borders[i].contains(ф, λ)) {
@@ -103,8 +114,38 @@ public class Elastik {
 		}
 
 
+		/**
+		 * convert a location on the map plane to a location on the globe
+		 * @param x the x value in the same units as this.width
+		 * @param y the y value in the same units as this.height
+		 * @return the latitude and longitude in radians
+		 */
 		public double[] inverse(double x, double y) {
-			return new double[] {NaN, NaN};
+			// find the correct bin
+			double i_partial = (y - raster_lower)/raster_height*(inverse_raster.length - 1);
+			int i = (int)floor(min(i_partial, inverse_raster.length - 2));
+			double j_partial = (x - raster_left)/raster_width*(inverse_raster[i].length - 1);
+			int j = (int)floor(min(j_partial, inverse_raster[i].length - 2));
+
+			// calculate the linear weights
+			double right_weight = j_partial - j;
+			double left_weight = 1 - right_weight;
+			double upper_weight = i_partial - i;
+			double lower_weight = 1 - upper_weight;
+
+			// perform the interpolation on our 3D cartesian inverse raster
+			double[] result = new double[3];
+			for (int l = 0; l < 3; l ++) {
+				result[l] = left_weight*(lower_weight*inverse_raster[i][j][l] +
+				                         upper_weight*inverse_raster[i + 1][j][l]) +
+				            right_weight*(lower_weight*inverse_raster[i][j + 1][l] +
+				                          upper_weight*inverse_raster[i + 1][j + 1][l]);
+			}
+
+			// convert to spherical coordinates and return
+			return new double[] {
+					atan(result[2]/hypot(result[0], result[1])),
+			        atan2(result[1], result[0]) };
 		}
 
 
@@ -176,40 +217,57 @@ public class Elastik {
 				int num_xs = parseInt(row[0]);
 				int num_ys = parseInt(row[1]);
 				row = in.readLine().split(",\\s*");  // read the bounding box
-				left_bound = parseDouble(row[0]);
-				right_bound = parseDouble(row[1]);
-				lower_bound = parseDouble(row[2]);
-				upper_bound = parseDouble(row[3]);
-				inverse_raster = new double[num_ys][num_xs][2];
+				raster_left = parseDouble(row[0]);
+				raster_width = parseDouble(row[1]) - raster_left;
+				raster_lower = parseDouble(row[2]);
+				raster_height = parseDouble(row[3]) - raster_lower;
+				inverse_raster = new double[num_ys][num_xs][3];
 				for (int j = 0; j < num_ys; j ++) {
-					line = in.readLine();  // read this row of coordinates
+					line = in.readLine();  // read each row of coordinates
 					row = line.split(",\\s*");
 					for (int k = 0; k < num_xs; k ++) {
-						inverse_raster[j][k][0] = toRadians(parseDouble(row[2*k]));
-						inverse_raster[j][k][1] = toRadians(parseDouble(row[2*k + 1]));
+						double ф = toRadians(parseDouble(row[2*k]));
+						double λ = toRadians(parseDouble(row[2*k + 1]));
+						inverse_raster[j][k][0] = cos(ф)*cos(λ);  // save the inverse raster in cartesian
+						inverse_raster[j][k][1] = cos(ф)*sin(λ);
+						inverse_raster[j][k][2] = sin(ф);
 					}
 				}
-			} catch (IOException | NullPointerException | ArrayIndexOutOfBoundsException | StringIndexOutOfBoundsException | NumberFormatException e) {
+
+				// calculate width and height
+				double left = 0, right = 0;
+				double lower = 0, upper = 0;
+				for (double[] point : projected_border) {
+					if (point[0] < left)
+						left = point[0];
+					if (point[0] > right)
+						right = point[0];
+					if (point[1] < lower)
+						lower = point[1];
+					if (point[1] > upper)
+						upper = point[1];
+				}
+				width = right - left;
+				height = upper - lower;
+			}
+			catch (IOException | NullPointerException | ArrayIndexOutOfBoundsException | StringIndexOutOfBoundsException | NumberFormatException e) {
 				sections = null;
 				projected_border = null;
 				inverse_raster = null;
-				left_bound = 0.;
-				right_bound = 0.;
-				upper_bound = 0.;
-				lower_bound = 0.;
+				raster_left = 0.;
+				raster_lower = 0.;
+				raster_width = 0.;
+				raster_height = 0.;
 				e.printStackTrace();
 				throw new IllegalArgumentException("Missing or corrupt data file for " + this.getName());
-			} finally {
+			}
+			finally {
 				try {
 					if (in != null) in.close();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
-
-			// calculate width and height
-			width = right_bound - left_bound;
-			height = upper_bound - lower_bound;
 
 			// adjust the splines so that they're fully continuus over the shared nodes
 			for (int i_A = 0; i_A < sections.length; i_A ++) {
@@ -388,9 +446,9 @@ public class Elastik {
 
 		public double evaluate(double ф, double λ) {
 			double i_partial = (ф + PI/2)/PI*(values.length - 1);
-			int i = (int)Math.floor(Math.min(i_partial, values.length - 2));
+			int i = (int)floor(min(i_partial, values.length - 2));
 			double j_partial = (λ + PI)/(2*PI)*(values[i].length - 1);
-			int j = (int)Math.floor(Math.min(j_partial, values[i].length - 2));
+			int j = (int)floor(min(j_partial, values[i].length - 2));
 			if (isNaN(values[i][j]) || isNaN(values[i][j + 1]) ||
 			    isNaN(values[i + 1][j]) || isNaN(values[i + 1][j + 1]))
 				return NaN;

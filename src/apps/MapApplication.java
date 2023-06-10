@@ -118,7 +118,7 @@ public abstract class MapApplication extends Application {
 	private static final KeyCombination CTRL_ENTER = new KeyCodeCombination(KeyCode.ENTER, KeyCodeCombination.CONTROL_DOWN);
 	
 	
-	public static final Projection[] FEATURED_PROJECTIONS = { Cylindrical.MERCATOR, // the set of featured projections for the ComboBox
+	public static final Projection[] FEATURED_PROJECTIONS = { Elastik.ELASTIK_I, Cylindrical.MERCATOR, // the set of featured projections for the ComboBox
 			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.GALL_STEREOGRAPHIC,
 			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
 			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
@@ -127,7 +127,7 @@ public abstract class MapApplication extends Application {
 			WinkelTripel.WINKEL_TRIPEL, EqualEarth.EQUAL_EARTH,
 			Octohedral.KEYES_BASIC_M, Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Misc.PEIRCE_QUINCUNCIAL,
 			Pseudocylindrical.LEMONS };
-	
+
 	public static final String[] PROJECTION_CATEGORIES = { "Cylindrical", "Azimuthal", "Conic",
 			"Tetrahedral", "Polyhedral", "Pseudocylindrical", "Lenticular", "Other", "Invented by Justin" }; //the overarching categories by which I organise my projections
 	public static final Projection[][] ALL_PROJECTIONS = { // every projection I have programmed
