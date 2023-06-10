@@ -281,22 +281,45 @@ public class Elastik {
 							sections[i_A][0].values[j][k] == sections[i_B][0].values[j][k] &&
 					        sections[i_A][1].values[j][k] == sections[i_B][1].values[j][k]) {
 							// set them to have the same gradients as well
-							for (int l = 0; l < 2; l ++) {
-								double mean_gradient_dф = (
-										sections[i_A][l].gradients_dф[j][k] +
-										sections[i_B][l].gradients_dф[j][k])/2;
-								sections[i_A][l].gradients_dф[j][k] = mean_gradient_dф;
-								sections[i_B][l].gradients_dф[j][k] = mean_gradient_dф;
-								double mean_gradient_dλ = (
-										sections[i_A][l].gradients_dλ[j][k] +
-										sections[i_B][l].gradients_dλ[j][k])/2;
-								sections[i_A][l].gradients_dλ[j][k] = mean_gradient_dλ;
-								sections[i_B][l].gradients_dλ[j][k] = mean_gradient_dλ;
-							}
+							set_gradients_equal(sections, i_A, j, k, i_B, j, k);
 						}
 					}
 				}
 			}
+
+			// adjust the splines so they're fully continuus over the antimeridian
+			for (int i = 0; i < sections.length; i ++) {
+				// look at each latitude
+				for (int j = 0; j < sections[i][0].values.length; j ++) {
+					// if the nodes are real, they must be in the same location
+					int n = sections[i][0].values[j].length;
+					if (!isNaN(sections[i][0].values[j][0]) && !isNaN(sections[i][0].values[j][n - 1])) {
+						// so set the gradients on the far left and far right to be equal
+						set_gradients_equal(sections, i, j, 0, i, j, n - 1);
+					}
+				}
+			}
+		}
+	}
+
+
+	/**
+	 * average two gradients at two locations in a stack of spline surfaces so that the splines are
+	 * C^1 continuous at that point.
+	 */
+	private static void set_gradients_equal(
+			SplineSurface[][] surfaces, int i_A, int j_A, int k_A, int i_B, int j_B, int k_B) {
+		for (int l = 0; l < 2; l ++) {
+			double mean_gradient_dф = (
+					surfaces[i_A][l].gradients_dф[j_A][k_A] +
+					surfaces[i_B][l].gradients_dф[j_B][k_B])/2;
+			surfaces[i_A][l].gradients_dф[j_A][k_A] = mean_gradient_dф;
+			surfaces[i_B][l].gradients_dф[j_B][k_B] = mean_gradient_dф;
+			double mean_gradient_dλ = (
+					surfaces[i_A][l].gradients_dλ[j_A][k_A] +
+					surfaces[i_B][l].gradients_dλ[j_B][k_B])/2;
+			surfaces[i_A][l].gradients_dλ[j_A][k_A] = mean_gradient_dλ;
+			surfaces[i_B][l].gradients_dλ[j_B][k_B] = mean_gradient_dλ;
 		}
 	}
 
