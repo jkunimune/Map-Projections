@@ -45,7 +45,7 @@ public class Oblique extends Projection {
 	
 	@Override
 	public double[] project(double lat, double lon) {
-		return base.project(obliquifySphc(lat, lon, axis));
+		return base.project(transformFromOblique(lat, lon, axis));
 	}
 	
 	
@@ -53,7 +53,7 @@ public class Oblique extends Projection {
 	public double[] inverse(double x, double y) {
 		double[] coords = base.inverse(x, y);
 		if (coords == null) 	return null;
-		return obliquifyPlnr(coords, axis);
+		return transformToOblique(coords, axis);
 	}
 	
 	

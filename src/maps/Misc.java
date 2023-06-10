@@ -84,7 +84,7 @@ public class Misc {
 		private final double[] POLE = {0, -Math.PI/2, Math.PI/4};
 		
 		public double[] project(double lat, double lon) {
-			final double[] coords = obliquifySphc(lat,lon, POLE);
+			final double[] coords = transformFromOblique(lat, lon, POLE);
 			double quadNum = Math.floor((coords[1]-Math.PI/4)/(Math.PI/2));
 			double wArg = coords[1] - quadNum*Math.PI/2;
 			double wAbs = Math.tan(Math.PI/4-Math.abs(coords[0])/2);
@@ -106,7 +106,7 @@ public class Misc {
 			double p = 2 * Math.atan(ans.abs());
 			double theta = ans.arg();
 			double lambda = Math.PI/2 - p;
-			return obliquifyPlnr(new double[] {lambda,theta}, POLE);
+			return transformToOblique(new double[] {lambda, theta}, POLE);
 		}
 	};
 	

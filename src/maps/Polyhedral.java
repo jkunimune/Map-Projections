@@ -111,13 +111,13 @@ public class Polyhedral {
 		
 		@Override
 		public double[] project(double lat, double lon) { //apply a pole shift to AuthaGraph
-			double[] relCoords = obliquifySphc(lat, lon, POLE);
+			double[] relCoords = transformFromOblique(lat, lon, POLE);
 			return super.project(relCoords[0], relCoords[1]);
 		}
 		
 		@Override
 		public double[] inverse(double x, double y) { //because AuthaGraph needs its obliquity, and I didn't want to program that into the Configuration
-			return obliquifyPlnr(super.inverse(x, y), POLE);
+			return transformToOblique(super.inverse(x, y), POLE);
 		}
 		
 		
@@ -262,7 +262,7 @@ public class Polyhedral {
 		
 		@Override
 		public double[] project(double lat, double lon) { //apply a pole shift and Cartesian shift to Dymaxion
-			double[] coords = obliquifySphc(lat, lon, POLE);
+			double[] coords = transformFromOblique(lat, lon, POLE);
 			coords = super.project(coords[0], coords[1]);
 			return new double[] {coords[0] + X_0, coords[1] + Y_0};
 		}
@@ -271,7 +271,7 @@ public class Polyhedral {
 		public double[] inverse(double x, double y) { //because Dymaxion needs its obliquity, and I didn't want to program that into the Configuration
 			double[] coords = super.inverse(x - X_0, y - Y_0);
 			if (coords == null) 	return null;
-			return obliquifyPlnr(coords, POLE);
+			return transformToOblique(coords, POLE);
 		}
 		
 		public double[] faceProject(double lat, double lon) {
@@ -345,7 +345,7 @@ public class Polyhedral {
 			double lonR = Double.NEGATIVE_INFINITY;
 			double[] centrum = null;
 			for (double[] testCentrum: configuration.centrumSet) { //iterate through the centrums to see which goes here
-				final double[] relCoords = obliquifySphc(lat, lon, testCentrum);
+				final double[] relCoords = transformFromOblique(lat, lon, testCentrum);
 				if (testCentrum.length > 6) { //if the centrum is long, then it contains longitude bounds
 					double minL = testCentrum[6]*Math.PI/numSym;
 					double maxL = testCentrum[7]*Math.PI/numSym;
@@ -413,7 +413,7 @@ public class Polyhedral {
 				return null;
 			
 			relCoords[1] = thBase*numSym/configuration.sphereSym + relCoords[1];
-			double[] absCoords = obliquifyPlnr(relCoords, centrum);
+			double[] absCoords = transformToOblique(relCoords, centrum);
 			if (Math.abs(absCoords[1]) > Math.PI)
 				absCoords[1] = Math2.coerceAngle(absCoords[1]);
 			return absCoords;

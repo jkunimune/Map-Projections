@@ -204,7 +204,7 @@ public abstract class Projection {
 	 * @return the x value and y value in the same units as this.width and this.height
 	 */
 	public double[] project(double lat, double lon, double[] pole) {
-		return project(obliquifySphc(lat, lon, hasAspect ? pole : null));
+		return project(transformFromOblique(lat, lon, hasAspect ? pole : null));
 	}
 
 	/**
@@ -258,7 +258,7 @@ public abstract class Projection {
 		if (relCoords == null || (cropAtPi && Math.abs(relCoords[1]) > Math.PI))
 			return null; //cropAtPi removes all points with longitudes outside +- PI
 		else
-			return obliquifyPlnr(relCoords, hasAspect ? pole : null);
+			return transformToOblique(relCoords, hasAspect ? pole : null);
 	}
 	
 	
@@ -478,7 +478,7 @@ public abstract class Projection {
 	 * @param pole the pole location
 	 * @return { latr, lonr }, or coords if pole is null
 	 */
-	protected static double[] obliquifySphc(double latF, double lonF, double[] pole) {
+	protected static double[] transformFromOblique(double latF, double lonF, double[] pole) {
 		if (pole == null || Arrays.equals(pole, NORTH_POLE)) // null pole indicates that this procedure should be bypassed
 			return new double[] {latF, lonF};
 		
@@ -524,7 +524,7 @@ public abstract class Projection {
 	 * @param pole the pole location
 	 * @return { LAT, LON }, or coords if pole is null
 	 */
-	protected static double[] obliquifyPlnr(double[] coords, double[] pole) {
+	protected static double[] transformToOblique(double[] coords, double[] pole) {
 		if (pole == null) //this indicates that you just shouldn't do this calculation
 			return coords;
 		

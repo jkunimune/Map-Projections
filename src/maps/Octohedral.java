@@ -139,7 +139,7 @@ public class Octohedral {
 		
 		protected double[] faceProject(double lat, double lon) {
 			double[] poleCoords = {lat, lon};
-			double[] vertCoords = obliquifySphc(lat, lon, VERTEX); //look at an oblique aspect from the nearest vertex
+			double[] vertCoords = transformFromOblique(lat, lon, VERTEX); //look at an oblique aspect from the nearest vertex
 			if (poleCoords[0] > vertCoords[0]) { //if this point is closer to the pole
 				Complex w = Complex.fromPolar(Math.pow(Math.tan(Math.PI/4-lat/2), 2/3.), lon*2/3.);
 				Complex z = polynomial(w); //project it as normal
@@ -173,7 +173,7 @@ public class Octohedral {
 			if (x < (1-y)/Math.sqrt(3)) //if it was closest to that vertex, the result is easy
 				return latLon;
 			else //if it was closer to the other vertex, do some obliquifying
-				return obliquifyPlnr(latLon, VERTEX);
+				return transformToOblique(latLon, VERTEX);
 		}
 		
 		private Complex polynomial(Complex w) { //an approximation of the true conformal mapping function

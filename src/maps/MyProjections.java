@@ -102,7 +102,7 @@ public class MyProjections {
 		}
 		
 		public double[] inverse(double x, double y) {
-			double[] transverse = obliquifyPlnr(
+			double[] transverse = transformToOblique(
 					Azimuthal.STEREOGRAPHIC.inverse(x, 2*y), new double[] {0,0,0});
 			if (transverse == null) 	return null;
 			else 	return new double[] {transverse[0], 2*transverse[1]};

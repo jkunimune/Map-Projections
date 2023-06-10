@@ -60,7 +60,7 @@ import utils.Math2;
  */
 public class MapDesignerVector extends MapApplication {
 
-	public static final void main(String[] args) {
+	public static void main(String[] args) {
 		launch(args);
 	}
 	

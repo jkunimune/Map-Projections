@@ -50,7 +50,7 @@ public class Lenticular {
 		
 		public double[] inverse(double x, double y) {
 			final double[] intermediate = Azimuthal.POLAR.inverse(x/2, y);
-			double[] transverse = obliquifyPlnr(intermediate, new double[] {0,0,0});
+			double[] transverse = transformToOblique(intermediate, new double[] {0, 0, 0});
 			if (transverse != null) 	transverse[1] *= 2;
 			return transverse;
 		}
@@ -170,7 +170,7 @@ public class Lenticular {
 		private final double[] POLE = {Math.toRadians(42), Math.toRadians(-163.5), Math.toRadians(180)};
 		
 		public double[] project(double lat, double lon) {
-			double[] oblique = obliquifySphc(lat, lon, POLE); // start with a slightly oblique globe
+			double[] oblique = transformFromOblique(lat, lon, POLE); // start with a slightly oblique globe
 			lat = oblique[0];
 			lon = oblique[1];
 			if (lat + lon < -1.4) { // apply controlled smooshing to the resulting coordinates
