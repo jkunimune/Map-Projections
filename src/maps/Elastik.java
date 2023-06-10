@@ -328,9 +328,9 @@ public class Elastik {
 		 * @param λ the longitude of the point
 		 * @return true if the point is contained by the polygon and false otherwise
 		 */
-		public boolean contains(double ф, double λ) {
+		public boolean contains(double ф, double λ) {  // TODO: this fails for a few select longitudes for the mountains one
 			double nearestSegment = POSITIVE_INFINITY;
-			boolean contained = false;
+			int crossings = 0;
 			// for each edge of the polygon
 			for (int i = 1; i < ф_vertices.length; i ++) {
 				if (abs(λ_vertices[i] - λ_vertices[i - 1]) > PI)
@@ -354,16 +354,18 @@ public class Elastik {
 						if (Δф < nearestSegment) {
 							// record it
 							nearestSegment = Δф;
-							// and save the polarity
-							if (Δф != 0)
-								contained = (ф_intersect < ф) == (λ_vertices[i - 1] < λ_vertices[i]);
+							if (Δф == 0)
+								return true;  // if it's on the line, count it as in
+							// otherwise, count this crossing
+							if ((ф_intersect < ф) == (λ_vertices[i - 1] < λ_vertices[i]))
+								crossings += 1;
 							else
-								contained = true;  // if it's on the line, count it as in
+								crossings -= 1;
 						}
 					}
 				}
 			}
-			return contained;
+			return crossings > 0;
 		}
 	}
 
