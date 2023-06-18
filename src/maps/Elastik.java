@@ -43,6 +43,7 @@ import static java.lang.Math.atan2;
 import static java.lang.Math.cos;
 import static java.lang.Math.floor;
 import static java.lang.Math.hypot;
+import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.signum;
 import static java.lang.Math.sin;
@@ -79,7 +80,6 @@ public class Elastik {
 		private final String filename; // the data filename
 		private Polygon[] section_borders; // the unprojected bounds of each section
 		private SplineSurface[][] sections; // the x and y projection information for each section
-		private double[][] projected_border; // the x and y values of the full projected map outline
 		private double[][][] inverse_raster; // the pixel values, for inverse mapping
 		private double raster_left, raster_lower; // the extreme coordinates of the inverse raster
 		private double raster_width, raster_height; // the spacial extent of the inverse raster
@@ -135,8 +135,8 @@ public class Elastik {
 			}
 			// otherwise, arbitrarily choose one of the non-null solutions
 			for (int i = 0; i < sections.length; i ++)
-				if (exact_solutions[i] != null)
-					return exact_solutions[i];
+				if (exact_solutions[i] != null)  // add 2π to the longitude to mark it as out-of-bounds
+					return new double[] {exact_solutions[i][0], exact_solutions[i][1] + 2*PI};
 			// if no solutions are non-null, shikatanai.
 			return null;
 		}
@@ -182,14 +182,15 @@ public class Elastik {
 		 * @param x the x value, in the same units as this.width
 		 * @param y the y value, in the same units as this.height
 		 * @param i the index of the section to search
-		 * @param guess an initial input that projects to the correct vicinity
+		 * @param initial_guess an initial input that projects to the correct vicinity
 		 * @return the latitude and longitude, in radians, or null if no solution can be found
 		 */
-		private double[] inverse_by_iteration(double x, double y, int i, double[] guess) {
+		private double[] inverse_by_iteration(double x, double y, int i, double[] initial_guess) {
 			final double step_size = 1e-4;
 			final double tolerance = 1e-2;
 			final double max_iterations = 100;
 			// until we find the solution...
+			double[] guess = initial_guess.clone();
 			double previous_distance = POSITIVE_INFINITY;
 			int num_iterations = 0;
 			while (true) {
@@ -286,12 +287,17 @@ public class Elastik {
 				// load the projected border
 				line = in.readLine();  // read the projected border header
 				int num_vertices = parseInt(line.substring(18, line.length() - 11));  // get the length of the border
-				projected_border = new double[num_vertices][2];
-				for (int j = 0; j < projected_border.length; j ++) {
+				double left = 0, right = 0;
+				double lower = 0, upper = 0;
+				for (int j = 0; j < num_vertices; j ++) {
 					line = in.readLine();  // read the border vertex coordinates
 					String[] row = line.split(",\\s*");
-					projected_border[j][0] = parseDouble(row[0]);
-					projected_border[j][1] = parseDouble(row[1]);
+					double x = parseDouble(row[0]);
+					double y = parseDouble(row[1]);
+					left = min(left, x); // use this to update the bounding box
+					right = max(right, x);
+					lower = min(lower, y);
+					upper = max(upper, y);
 				}
 
 				// load the inverse raster
@@ -317,25 +323,11 @@ public class Elastik {
 					}
 				}
 
-				// calculate width and height
-				double left = 0, right = 0;
-				double lower = 0, upper = 0;
-				for (double[] point : projected_border) {
-					if (point[0] < left)
-						left = point[0];
-					if (point[0] > right)
-						right = point[0];
-					if (point[1] < lower)
-						lower = point[1];
-					if (point[1] > upper)
-						upper = point[1];
-				}
 				width = right - left;
 				height = upper - lower;
 			}
 			catch (IOException | NullPointerException | ArrayIndexOutOfBoundsException | StringIndexOutOfBoundsException | NumberFormatException e) {
 				sections = null;
-				projected_border = null;
 				inverse_raster = null;
 				raster_left = 0.;
 				raster_lower = 0.;
