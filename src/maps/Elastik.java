@@ -389,7 +389,7 @@ public class Elastik {
 
 		/**
 		 * @param ф_vertices the list of vertex latitudes. the last value should be the same as the first one.
-		 * @param λ_vertices the list of vertex longitudes. it should be the same length as xVertices, and the
+		 * @param λ_vertices the list of vertex longitudes. it should be the same length as ф_vertices, and the
 		 *                   last value should be the same as the first one.
 		 */
 		public Polygon(double[] ф_vertices, double[] λ_vertices) {
@@ -405,8 +405,7 @@ public class Elastik {
 		 * @param λ the longitude of the point
 		 * @return true if the point is contained by the polygon and false otherwise
 		 */
-		public boolean contains(double ф, double λ) {  // TODO: this fails for a few select longitudes for the mountains one
-			double nearestSegment = POSITIVE_INFINITY;
+		public boolean contains(double ф, double λ) {
 			int crossings = 0;
 			// for each edge of the polygon
 			for (int i = 1; i < ф_vertices.length; i ++) {
@@ -426,19 +425,14 @@ public class Elastik {
 						else {
 							ф_intersect = ф_vertices[i];  // be mindful of efficiency and avoiding roundoff
 						}
-						// if this is closer than any intersections we've found before
 						double Δф = abs(ф_intersect - ф);
-						if (Δф < nearestSegment) {
-							// record it
-							nearestSegment = Δф;
-							if (Δф == 0)
-								return true;  // if it's on the line, count it as in
-							// otherwise, count this crossing
-							if ((ф_intersect < ф) == (λ_vertices[i - 1] < λ_vertices[i]))
-								crossings += 1;
-							else
-								crossings -= 1;
-						}
+						if (Δф == 0)
+							return true;  // if it's on the line, count it as in
+						// otherwise, count this crossing
+						if ((ф_intersect < ф) == (λ_vertices[i - 1] < λ_vertices[i]))
+							crossings += 1;
+						else
+							crossings -= 1;
 					}
 				}
 			}
