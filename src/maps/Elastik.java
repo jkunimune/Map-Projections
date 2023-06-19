@@ -31,7 +31,6 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import static java.lang.Double.NaN;
-import static java.lang.Double.POSITIVE_INFINITY;
 import static java.lang.Double.isFinite;
 import static java.lang.Double.isNaN;
 import static java.lang.Double.parseDouble;
@@ -186,49 +185,82 @@ public class Elastik {
 		 * @return the latitude and longitude, in radians, or null if no solution can be found
 		 */
 		private double[] inverse_by_iteration(double x, double y, int i, double[] initial_guess) {
-			final double step_size = 1e-4;
+			final double finite_difference = 1e-4;
 			final double tolerance = 1e-2;
-			final double max_iterations = 100;
-			// until we find the solution...
+			final double max_step_length = 0.1;
+			final double backstep_factor = 0.5;
+			final double backstep_strictness = backstep_factor*(1 - backstep_factor)/
+			                                   (1 - backstep_factor*backstep_factor);
+			final int max_num_steps = 10;
+			final int max_num_step_sizes = 20;
+
+			// instantiate the state variables
 			double[] guess = initial_guess.clone();
-			double previous_distance = POSITIVE_INFINITY;
-			int num_iterations = 0;
+			double[] value = new double[2];
+			for (int l = 0; l < 2; l ++)
+				value[l] = sections[i][l].evaluate(guess[0], guess[1]);
+			double distance = hypot(value[0] - x, value[1] - y);
+			int num_steps = 0;
+			// until we find the solution...
 			while (true) {
-				// evaluate the projection at the current guess
-				double[] center_value = new double[2];
-				for (int l = 0; l < 2; l ++)
-					center_value[l] = sections[i][l].evaluate(guess[0], guess[1]);
 
 				// check the stopping conditions
-				double distance = hypot(center_value[0] - x, center_value[1] - y);
 				if (distance < tolerance)
 					return guess;  // solution is found
-				if (isNaN(distance) || distance > previous_distance)
-					return null;  // solution is not converging
-				if (num_iterations > max_iterations)
+				if (num_steps > max_num_steps)
 					return null;  // too many iterations have elapsed
-				previous_distance = distance;
-				num_iterations ++;
 
 				// evaluate the jacobian using finite differences
 				double[][] jacobian = new double[2][2];
 				for (int l = 0; l < 2; l ++) {
-					double north_value = sections[i][l].evaluate(guess[0] + step_size, guess[1]);
-					double east_value = sections[i][l].evaluate(guess[0], guess[1] + step_size);
-					jacobian[l][0] = (north_value - center_value[l])/step_size;
-					jacobian[l][1] = (east_value - center_value[l])/step_size;
+					double north_value = sections[i][l].evaluate(
+							guess[0] + finite_difference, guess[1]);
+					double east_value = sections[i][l].evaluate(
+							guess[0], guess[1] + finite_difference);
+					jacobian[l][0] = (north_value - value[l])/finite_difference;
+					jacobian[l][1] = (east_value - value[l])/finite_difference;
 				}
 
 				// calculate the step
-				double[] residual = {center_value[0] - x, center_value[1] - y};
+				double[] residual = {value[0] - x, value[1] - y};
 				double[] step = solve_linear_equation(jacobian, residual);
-				// take the step
-				guess[0] -= step[0];
-				guess[1] -= step[1];
-				guess[0] = guess[0] - floor((guess[0] + PI)/(2*PI))*(2*PI);  // coerce it back into the valid domain
-				if (abs(guess[0]) > PI/2)
-					guess[0] = signum(guess[0])*(PI/2 - abs(guess[0]));
-				guess[1] = guess[1] - floor((guess[1] + PI)/(2*PI))*(2*PI);
+				double[] gradient = matmul(jacobian, step);
+				double slope = hypot(gradient[0], gradient[1]);
+				double step_size = -min(1., max_step_length/hypot(step[0], step[1]));
+				int num_step_sizes = 0;
+				// perform a backtracking line-search
+				while (true) {
+
+					// take the step
+					double[] new_guess = new double[2];
+					for (int l = 0; l < 2; l ++)
+						new_guess[l] = guess[l] + step_size*step[l];
+					new_guess[0] = new_guess[0] - floor((new_guess[0] + PI)/(2*PI))*(2*PI);  // coerce it back into the valid domain
+					if (abs(new_guess[0]) > PI/2)
+						new_guess[0] = signum(new_guess[0])*(PI/2 - abs(new_guess[0]));
+					new_guess[1] = new_guess[1] - floor((new_guess[1] + PI)/(2*PI))*(2*PI);
+
+					// re-evaluate the function
+					double[] new_value = new double[2];
+					for (int l = 0; l < 2; l ++)
+						new_value[l] = sections[i][l].evaluate(new_guess[0], new_guess[1]);
+					double new_distance = hypot(new_value[0] - x, new_value[1] - y);
+
+					// check the line-search stopping conditions
+					if (new_distance < distance - backstep_strictness*slope*step_size) {
+						guess = new_guess;
+						value = new_value;
+						distance = new_distance;
+						break;  // valid step is found
+					}
+					if (num_step_sizes > max_num_step_sizes)
+						return null;  // too many iterations have elapsed
+
+					step_size /= 3;
+					num_step_sizes ++;
+				}
+
+				num_steps ++;
 			}
 		}
 
@@ -586,6 +618,21 @@ public class Elastik {
 			surfaces[i_A][l].gradients_dλ[j_A][k_A] = mean_gradient_dλ;
 			surfaces[i_B][l].gradients_dλ[j_B][k_B] = mean_gradient_dλ;
 		}
+	}
+
+
+	/**
+	 * evaluate the linear equation Ab where A is a matrix and b is a column vector
+	 * @param A a 2×2 matrix to be inverted and multiplied
+	 * @param b a 2-vector to be multiplied by A
+	 * @return the 2-vector resulting from the dot-product of A and b
+	 */
+	private static double[] matmul(double[][] A, double[] b) {
+		if (A.length != 2 || b.length != 2)
+			throw new IllegalArgumentException("this function has only been implemented for 2D equations.");
+		return new double[] {
+				A[0][0]*b[0] + A[0][1]*b[1],
+				A[1][0]*b[0] + A[1][1]*b[1] };
 	}
 
 
