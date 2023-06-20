@@ -443,29 +443,29 @@ public class Elastik {
 			for (int i = 1; i < ф_vertices.length; i ++) {
 				if (abs(λ_vertices[i] - λ_vertices[i - 1]) > PI)
 					continue;  // skip edges that are wrapping around the backside
-				// if our north-south line crosses it
-				if (λ_vertices[i - 1] != λ_vertices[i]) {
-					if ((λ_vertices[i - 1] < λ) != (λ_vertices[i] < λ) ||
-					    λ_vertices[i - 1] == λ || λ_vertices[i] == λ) {
-						// calculate *where* it crosses
-						double ф_intersect;
-						if (ф_vertices[i - 1] != ф_vertices[i]) {
-							double Δλ0 = λ - λ_vertices[i - 1];
-							double Δλ1 = λ_vertices[i] - λ;
-							ф_intersect = (ф_vertices[i - 1]*Δλ1 + ф_vertices[i]*Δλ0)/(Δλ0 + Δλ1);
-						}
-						else {
-							ф_intersect = ф_vertices[i];  // be mindful of efficiency and avoiding roundoff
-						}
-						double Δф = abs(ф_intersect - ф);
-						if (Δф == 0)
-							return true;  // if it's on the line, count it as in
-						// otherwise, count this crossing
-						if ((ф_intersect < ф) == (λ_vertices[i - 1] < λ_vertices[i]))
-							crossings += 1;
-						else
-							crossings -= 1;
+
+				// see if our north-south line crosses it
+				boolean crosses = (λ_vertices[i - 1] < λ) != (λ_vertices[i] < λ) ||
+				                  (λ == -PI && min(λ_vertices[i - 1], λ_vertices[i]) == -PI);
+				if (crosses) {
+					// calculate *where* it crosses
+					double ф_intersect;
+					if (ф_vertices[i - 1] != ф_vertices[i]) {
+						double Δλ0 = λ - λ_vertices[i - 1];
+						double Δλ1 = λ_vertices[i] - λ;
+						ф_intersect = (ф_vertices[i - 1]*Δλ1 + ф_vertices[i]*Δλ0)/(Δλ0 + Δλ1);
 					}
+					else {
+						ф_intersect = ф_vertices[i];  // be mindful of efficiency and avoiding roundoff
+					}
+					double Δф = abs(ф_intersect - ф);
+					if (Δф == 0)
+						return true;  // if it's on the line, count it as in
+					// otherwise, count this crossing
+					if ((ф_intersect < ф) == (λ_vertices[i - 1] < λ_vertices[i]))
+						crossings += 1;
+					else
+						crossings -= 1;
 				}
 			}
 			return crossings > 0;
@@ -488,7 +488,7 @@ public class Elastik {
 		public SplineSurface(double[][] values) {
 			this.values = values;
 
-			// set the gradients at the nodes
+			// set the gradients at the nodes to finite-difference estimates
 			final int m = values.length;
 			final int n = values[0].length;
 			this.gradients_dф = new double[m][n];
@@ -608,13 +608,13 @@ public class Elastik {
 			SplineSurface[][] surfaces, int i_A, int j_A, int k_A, int i_B, int j_B, int k_B) {
 		for (int l = 0; l < 2; l ++) {
 			double mean_gradient_dф = (
-					                          surfaces[i_A][l].gradients_dф[j_A][k_A] +
-					                          surfaces[i_B][l].gradients_dф[j_B][k_B])/2;
+					surfaces[i_A][l].gradients_dф[j_A][k_A] +
+					surfaces[i_B][l].gradients_dф[j_B][k_B])/2;
 			surfaces[i_A][l].gradients_dф[j_A][k_A] = mean_gradient_dф;
 			surfaces[i_B][l].gradients_dф[j_B][k_B] = mean_gradient_dф;
 			double mean_gradient_dλ = (
-					                          surfaces[i_A][l].gradients_dλ[j_A][k_A] +
-					                          surfaces[i_B][l].gradients_dλ[j_B][k_B])/2;
+					surfaces[i_A][l].gradients_dλ[j_A][k_A] +
+					surfaces[i_B][l].gradients_dλ[j_B][k_B])/2;
 			surfaces[i_A][l].gradients_dλ[j_A][k_A] = mean_gradient_dλ;
 			surfaces[i_B][l].gradients_dλ[j_B][k_B] = mean_gradient_dλ;
 		}
