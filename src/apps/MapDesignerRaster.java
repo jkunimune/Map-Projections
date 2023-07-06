@@ -63,7 +63,7 @@ import utils.Procedure;
  */
 public class MapDesignerRaster extends MapApplication {
 	
-	public static final void main(String[] args) {
+	public static void main(String[] args) {
 		launch(args);
 	}
 	
@@ -118,8 +118,9 @@ public class MapDesignerRaster extends MapApplication {
 		final Region parameterSelector = buildParameterSelector(Procedure.NONE);
 		final Region optionPane = buildOptionPane(cropAtIDL, graticuleSpacing);
 		final Region updateBtn = buildUpdateButton("Update Map", this::calculateTaskForUpdate);
-		final Region saveMapBtn = buildSaveButton(true, "map", RASTER_TYPES,
-				RASTER_TYPES[0], this::collectFinalSettings, this::calculateTaskForSaving);
+		final Region saveMapBtn = buildSaveButton(
+				"map", RASTER_TYPES, RASTER_TYPES[0],
+				this::collectFinalSettings, this::calculateTaskForSaving);
 		final HBox buttons = new HBox(H_SPACE, updateBtn, saveMapBtn);
 		buttons.setAlignment(Pos.CENTER);
 		

@@ -28,7 +28,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -100,8 +99,8 @@ public class MapDesignerVector extends MapApplication {
 		final Region projectionSelector = buildProjectionSelector(this::updateAspect);
 		this.aspectSelector = buildAspectSelector(this.aspect, this::updateMap);
 		final Region parameterSelector = buildParameterSelector(this::updateMap);
-		final Region saveBtn = buildSaveButton(true, "map", VECTOR_TYPES,
-				VECTOR_TYPES[0], ()->true, this::calculateTaskForSaving);
+		final Region saveBtn = buildSaveButton("map", VECTOR_TYPES,
+		                                       VECTOR_TYPES[0], ()->true, this::calculateTaskForSaving);
 		
 		final VBox layout = new VBox(V_SPACE,
 				inputSelector, new Separator(), projectionSelector,

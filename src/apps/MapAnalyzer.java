@@ -114,10 +114,10 @@ public class MapAnalyzer extends MapApplication {
 		final Region textDisplay = buildTextDisplay();
 		final Region updateBtn = buildUpdateButton("Calculate",
 				this::calculateGraphicTaskForUpdate);
-		final Region saveMapBtn = buildSaveButton(true, "map", RASTER_TYPES,
-				RASTER_TYPES[0], ()->true, this::calculateGraphicTaskForSaving);
-		final Region savePltBtn = buildSaveButton(true, "plots", RASTER_TYPES,
-				RASTER_TYPES[0], ()->true, this::calculatePlotTask);
+		final Region saveMapBtn = buildSaveButton("map", RASTER_TYPES,
+		                                          RASTER_TYPES[0], ()->true, this::calculateGraphicTaskForSaving);
+		final Region savePltBtn = buildSaveButton("plots", RASTER_TYPES,
+		                                          RASTER_TYPES[0], ()->true, this::calculatePlotTask);
 		final HBox buttons = new HBox(H_SPACE, updateBtn, saveMapBtn, savePltBtn);
 		buttons.setAlignment(Pos.CENTER);
 		

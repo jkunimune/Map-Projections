@@ -325,13 +325,13 @@ public abstract class MapApplication extends Application {
 			link(sliders[i], spinners[i], i, aspectArr, Math::toRadians,
 					aspectSetter, isChanging, suppressListeners);
 		}
-		setAspectByPreset("Normal", sliders, spinners);
+		setAspectByPreset("Normal", sliders);
 		
 		for (String preset: ASPECT_NAMES) {
 			MenuItem m = new MenuItem(preset);
 			m.setOnAction((event) -> {
 					setAspectByPreset(((MenuItem) event.getSource()).getText(),
-							sliders, spinners);
+							sliders);
 					for (int i = 0; i < 3; i ++)
 						aspectArr[i] = Math.toRadians(sliders[i].getValue());
 					if (!suppressListeners.isSet())
@@ -476,7 +476,6 @@ public abstract class MapApplication extends Application {
 	
 	/**
 	 * Build a button that will save something
-	 * @param bindCtrlS - Should ctrl+S trigger this button?
 	 * @param savee - The name of the thing being saved.
 	 * @param allowedExtensions - The allowed file formats that can be saved.
 	 * @param defaultExtension - The default file format to be saved.
@@ -484,10 +483,10 @@ public abstract class MapApplication extends Application {
 	 * @param mapCalculator - The callback that saves the thing.
 	 * @return The button, ready to be pressed.
 	 */
-	protected Region buildSaveButton(boolean bindCtrlS, String savee,
-			FileChooser.ExtensionFilter[] allowedExtensions,
-			FileChooser.ExtensionFilter defaultExtension,
-			BooleanSupplier mapVerifier, Supplier<Task<SavableImage>> mapCalculator) {
+	protected Region buildSaveButton(String savee,
+	                                 FileChooser.ExtensionFilter[] allowedExtensions,
+	                                 FileChooser.ExtensionFilter defaultExtension,
+	                                 BooleanSupplier mapVerifier, Supplier<Task<SavableImage>> mapCalculator) {
 		FileChooser saver = new FileChooser();
 		saver.setInitialDirectory(new File("output"));
 		saver.setInitialFileName("my"+savee+defaultExtension.getExtensions().get(0).substring(1));
@@ -497,7 +496,7 @@ public abstract class MapApplication extends Application {
 		try {
 			if (!saver.getInitialDirectory().exists())
 				saver.getInitialDirectory().mkdirs();
-		} catch (SecurityException e) {}
+		} catch (SecurityException ignored) {}
 		
 		final Button saveButton = new Button("Save "+savee+"\u2026");
 		final ButtonType buttonType =
@@ -540,13 +539,13 @@ public abstract class MapApplication extends Application {
 		});
 		saveButton.setTooltip(new Tooltip("Save the "+savee+" with current settings"));
 		
-		if (bindCtrlS) // ctrl+S saves
-			root.addEventHandler(KeyEvent.KEY_PRESSED, (event) -> {
-				if (CTRL_S.match(event)) {
-					saveButton.requestFocus();
-					saveButton.fire();
-				}
-			});
+		// bind ctrl+S to save
+		root.addEventHandler(KeyEvent.KEY_PRESSED, (event) -> {
+			if (CTRL_S.match(event)) {
+				saveButton.requestFocus();
+				saveButton.fire();
+			}
+		});
 		
 		return saveButton;
 	}
@@ -602,7 +601,7 @@ public abstract class MapApplication extends Application {
 	
 	
 	private void setAspectByPreset(String presetName,
-			Slider[] sliders, Spinner<Double>[] spinners) {
+			Slider[] sliders) {
 		this.suppressListeners.set();
 		if (presetName.equals("Antipode")) {
 			sliders[0].setValue(-sliders[0].getValue());
@@ -624,9 +623,6 @@ public abstract class MapApplication extends Application {
 			}
 		}
 		
-//		for (int i = 0; i < 3; i ++)
-//			spinners[i].getEditor().textProperty().set(
-//					spinners[i].getValueFactory().getConverter().toString(sliders[i].getValue()));
 		this.suppressListeners.clear();
 	}
 	
