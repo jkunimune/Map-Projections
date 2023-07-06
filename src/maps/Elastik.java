@@ -44,8 +44,9 @@ import static java.lang.Math.floor;
 import static java.lang.Math.hypot;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static java.lang.Math.signum;
+import static java.lang.Math.pow;
 import static java.lang.Math.sin;
+import static java.lang.Math.sqrt;
 import static java.lang.Math.toRadians;
 
 /**
@@ -177,7 +178,8 @@ public class Elastik {
 
 		/**
 		 * convert a location on the map plane to a location on the globe by iteratively searching
-		 * for the coordinates that project to x and y on a given section
+		 * for the coordinates that project to x and y on a given section.  the algorithm is
+		 * Levenberg-Marquardt; see <i>J. Res. NIST</i> 103, p. 633 (1998).
 		 * @param x the x value, in the same units as this.width
 		 * @param y the y value, in the same units as this.height
 		 * @param i the index of the section to search
@@ -185,23 +187,27 @@ public class Elastik {
 		 * @return the latitude and longitude, in radians, or null if no solution can be found
 		 */
 		private double[] inverse_by_iteration(double x, double y, int i, double[] initial_guess) {
-			final double finite_difference = 1e-4;
-			final double tolerance = 1e-2;
-			final double max_step_length = 0.1;
-			final double backstep_factor = 0.5;
-			final double backstep_strictness = backstep_factor*(1 - backstep_factor)/
-			                                   (1 - backstep_factor*backstep_factor);
-			final int max_num_steps = 10;
-			final int max_num_step_sizes = 20;
+			final double finite_difference = 1e-5; // radians
+			final double tolerance = pow(1e-2, 2); // km^2
+			final double backstep_factor = 2.0;
+			final double backstep_strictness = 0.33;
+			final double backstep_relaxation_factor = 6.0;
+			final int max_num_steps = 40;
+			final int max_num_step_sizes = 40;
+			double[] target = {x, y};
 
 			// instantiate the state variables
 			double[] guess = initial_guess.clone();
-			double[] value = new double[2];
+			double[] residual = new double[2];
 			for (int l = 0; l < 2; l ++)
-				value[l] = sections[i][l].evaluate(guess[0], guess[1]);
-			double distance = hypot(value[0] - x, value[1] - y);
-			int num_steps = 0;
+				residual[l] = sections[i][l].evaluate(guess[0], guess[1]) - target[l];
+			double distance = 1/2.*LinearAlgebra.dot_product(residual, residual);
+			if (isNaN(distance))  // if this section doesn't cover the initial guess, it's probably pointless
+				return null;
+
 			// until we find the solution...
+			int num_steps = 0;
+			double step_limiter = 0;
 			while (true) {
 
 				// check the stopping conditions
@@ -214,49 +220,60 @@ public class Elastik {
 				double[][] jacobian = new double[2][2];
 				for (int l = 0; l < 2; l ++) {
 					double north_value = sections[i][l].evaluate(
-							guess[0] + finite_difference, guess[1]);
+							guess[0] + finite_difference, guess[1]) - target[l];
+					jacobian[l][0] = (north_value - residual[l])/finite_difference;
 					double east_value = sections[i][l].evaluate(
-							guess[0], guess[1] + finite_difference);
-					jacobian[l][0] = (north_value - value[l])/finite_difference;
-					jacobian[l][1] = (east_value - value[l])/finite_difference;
+							guess[0], guess[1] + finite_difference) - target[l];
+					jacobian[l][1] = (east_value - residual[l])/finite_difference;
+					if (isNaN(jacobian[l][0]) || isNaN(jacobian[l][1]))
+						return null;  // if we're butting up against the edge, that means there's probably no solution
 				}
 
-				// calculate the step
-				double[] residual = {value[0] - x, value[1] - y};
-				double[] step = solve_linear_equation(jacobian, residual);
-				double[] gradient = matmul(jacobian, step);
-				double slope = hypot(gradient[0], gradient[1]);
-				double step_size = -min(1., max_step_length/hypot(step[0], step[1]));
-				int num_step_sizes = 0;
 				// perform a backtracking line-search
+				double[][] jacobian_transpose = LinearAlgebra.transpose(jacobian);
+				double[][] hessian = LinearAlgebra.dot_product(jacobian_transpose, jacobian);
+				double[] gradient = LinearAlgebra.dot_product(jacobian_transpose, residual);
+				int num_step_sizes = 0;
 				while (true) {
+
+					// calculate the step
+					double[][] amplified_hessian = new double[][] {
+							{ hessian[0][0] + step_limiter, hessian[0][1] },
+							{ hessian[1][0], hessian[1][1] + step_limiter } };
+					double[] step = LinearAlgebra.solve_linear_equation(amplified_hessian, gradient);
+					double expected_improvement = backstep_strictness*LinearAlgebra.dot_product(gradient, step);
 
 					// take the step
 					double[] new_guess = new double[2];
 					for (int l = 0; l < 2; l ++)
-						new_guess[l] = guess[l] + step_size*step[l];
-					new_guess[0] = new_guess[0] - floor((new_guess[0] + PI)/(2*PI))*(2*PI);  // coerce it back into the valid domain
-					if (abs(new_guess[0]) > PI/2)
-						new_guess[0] = signum(new_guess[0])*(PI/2 - abs(new_guess[0]));
+						new_guess[l] = guess[l] - step[l];
+					// coerce it back into the valid domain
+					new_guess[0] = new_guess[0] - floor((new_guess[0] + PI/2)/(2*PI))*(2*PI);
+					if (new_guess[0] > PI/2)
+						new_guess[0] = PI - new_guess[0];
 					new_guess[1] = new_guess[1] - floor((new_guess[1] + PI)/(2*PI))*(2*PI);
 
 					// re-evaluate the function
-					double[] new_value = new double[2];
+					double[] new_residual = new double[2];
 					for (int l = 0; l < 2; l ++)
-						new_value[l] = sections[i][l].evaluate(new_guess[0], new_guess[1]);
-					double new_distance = hypot(new_value[0] - x, new_value[1] - y);
+						new_residual[l] = sections[i][l].evaluate(new_guess[0], new_guess[1]) - target[l];
+					double new_distance = 1/2.*LinearAlgebra.dot_product(new_residual, new_residual);
 
 					// check the line-search stopping conditions
-					if (new_distance < distance - backstep_strictness*slope*step_size) {
+					if (!isNaN(new_distance) && new_distance < distance - expected_improvement) {
 						guess = new_guess;
-						value = new_value;
+						residual = new_residual;
 						distance = new_distance;
+						step_limiter /= backstep_relaxation_factor;
 						break;  // valid step is found
 					}
 					if (num_step_sizes > max_num_step_sizes)
 						return null;  // too many iterations have elapsed
 
-					step_size /= 3;
+					if (step_limiter == 0)
+						step_limiter += (sqrt(1.3*(1 - pow(hessian[0][1], 2)/(hessian[0][0]*hessian[1][1])) + 1) - 1)*min(hessian[0][0], hessian[1][1]);
+					else
+						step_limiter *= backstep_factor;
 					num_step_sizes ++;
 				}
 
@@ -388,7 +405,7 @@ public class Elastik {
 							sections[i_A][0].values[j][k] == sections[i_B][0].values[j][k] &&
 					        sections[i_A][1].values[j][k] == sections[i_B][1].values[j][k]) {
 							// set them to have the same gradients as well
-							set_gradients_equal(sections, i_A, j, k, i_B, j, k);
+							SplineSurface.set_gradients_equal(sections, i_A, j, k, i_B, j, k);
 						}
 					}
 				}
@@ -402,7 +419,7 @@ public class Elastik {
 					int n = sections[i][0].values[j].length;
 					if (!isNaN(sections[i][0].values[j][0]) && !isNaN(sections[i][0].values[j][n - 1])) {
 						// so set the gradients on the far left and far right to be equal
-						set_gradients_equal(sections, i, j, 0, i, j, n - 1);
+						SplineSurface.set_gradients_equal(sections, i, j, 0, i, j, n - 1);
 					}
 				}
 			}
@@ -580,74 +597,115 @@ public class Elastik {
 			                       j_partial - j);
 		}
 
-	}
+		/**
+		 * a polynomial with specified values and derivatives at two endpoints
+		 * @param y_0 the value of the function at x=0
+		 * @param dydx_0 the slope of the function at x=0
+		 * @param y_1 the value of the function at x=1
+		 * @param dydx_1 the slope of the function at x=1
+		 * @param x the dimensionless function input in the range [0, 1]
+		 * @return a smoothly varying value somewhere in the vicinity of y_0 and y_1
+		 */
+		private static double hermite_spline_1D(double y_0, double dydx_0, double y_1, double dydx_1, double x) {
+			return y_0 +
+			       x*(dydx_0 +
+			          x*((3*(y_1 - y_0) - 2*dydx_0 - dydx_1) +
+			             x*(dydx_0 + dydx_1 - 2*(y_1 - y_0))));
+		}
 
-
-	/**
-	 * a polynomial with specified values and derivatives at two endpoints
-	 * @param y_0 the value of the function at x=0
-	 * @param dydx_0 the slope of the function at x=0
-	 * @param y_1 the value of the function at x=1
-	 * @param dydx_1 the slope of the function at x=1
-	 * @param x the dimensionless function input in the range [0, 1]
-	 * @return a smoothly varying value somewhere in the vicinity of y_0 and y_1
-	 */
-	private static double hermite_spline_1D(double y_0, double dydx_0, double y_1, double dydx_1, double x) {
-		return y_0 +
-		       x*(dydx_0 +
-		          x*((3*(y_1 - y_0) - 2*dydx_0 - dydx_1) +
-		             x*(dydx_0 + dydx_1 - 2*(y_1 - y_0))));
-	}
-
-
-	/**
-	 * average two gradients at two locations in a stack of spline surfaces so that the splines are
-	 * C^1 continuous at that point.
-	 */
-	private static void set_gradients_equal(
-			SplineSurface[][] surfaces, int i_A, int j_A, int k_A, int i_B, int j_B, int k_B) {
-		for (int l = 0; l < 2; l ++) {
-			double mean_gradient_dф = (
-					surfaces[i_A][l].gradients_dф[j_A][k_A] +
-					surfaces[i_B][l].gradients_dф[j_B][k_B])/2;
-			surfaces[i_A][l].gradients_dф[j_A][k_A] = mean_gradient_dф;
-			surfaces[i_B][l].gradients_dф[j_B][k_B] = mean_gradient_dф;
-			double mean_gradient_dλ = (
-					surfaces[i_A][l].gradients_dλ[j_A][k_A] +
-					surfaces[i_B][l].gradients_dλ[j_B][k_B])/2;
-			surfaces[i_A][l].gradients_dλ[j_A][k_A] = mean_gradient_dλ;
-			surfaces[i_B][l].gradients_dλ[j_B][k_B] = mean_gradient_dλ;
+		/**
+		 * average two gradients at two locations in a stack of spline surfaces so that the splines are
+		 * C^1 continuous at that point.
+		 */
+		private static void set_gradients_equal(
+				SplineSurface[][] surfaces, int i_A, int j_A, int k_A, int i_B, int j_B, int k_B) {
+			for (int l = 0; l < 2; l ++) {
+				double mean_gradient_dф = (
+						                          surfaces[i_A][l].gradients_dф[j_A][k_A] +
+						                          surfaces[i_B][l].gradients_dф[j_B][k_B])/2;
+				surfaces[i_A][l].gradients_dф[j_A][k_A] = mean_gradient_dф;
+				surfaces[i_B][l].gradients_dф[j_B][k_B] = mean_gradient_dф;
+				double mean_gradient_dλ = (
+						                          surfaces[i_A][l].gradients_dλ[j_A][k_A] +
+						                          surfaces[i_B][l].gradients_dλ[j_B][k_B])/2;
+				surfaces[i_A][l].gradients_dλ[j_A][k_A] = mean_gradient_dλ;
+				surfaces[i_B][l].gradients_dλ[j_B][k_B] = mean_gradient_dλ;
+			}
 		}
 	}
 
 
 	/**
-	 * evaluate the linear equation Ab where A is a matrix and b is a column vector
-	 * @param A a 2×2 matrix to be inverted and multiplied
-	 * @param b a 2-vector to be multiplied by A
-	 * @return the 2-vector resulting from the dot-product of A and b
+	 * some static matrix operations for the Levenberg-Marquardt implementation
 	 */
-	private static double[] matmul(double[][] A, double[] b) {
-		if (A.length != 2 || b.length != 2)
-			throw new IllegalArgumentException("this function has only been implemented for 2D equations.");
-		return new double[] {
-				A[0][0]*b[0] + A[0][1]*b[1],
-				A[1][0]*b[0] + A[1][1]*b[1] };
-	}
+	private static class LinearAlgebra {
+		/**
+		 * evaluate the inner product of two vectors
+		 * @return the 2-vector resulting from the dot-product of A and b
+		 */
+		private static double dot_product(double[] a, double[] b) {
+			if (a.length != b.length)
+				throw new IllegalArgumentException("the vectors must have the same length.");
+			double product = 0;
+			for (int i = 0; i < a.length; i++)
+				product += a[i]*b[i];
+			return product;
+		}
 
+		/**
+		 * evaluate the linear equation Ab where A is a matrix and b is a column vector
+		 * @return the 2-vector resulting from the dot-product of A and b
+		 */
+		private static double[] dot_product(double[][] A, double[] b) {
+			if (A.length > 0 && A[0].length != b.length)
+				throw new IllegalArgumentException("the number of columns in A must be the same as the length of b.");
+			double[] product = new double[A.length];
+			for (int i = 0; i < A.length; i++)
+				for (int j = 0; j < A[i].length; j++)
+					product[i] += A[i][j]*b[j];
+			return product;
+		}
 
-	/**
-	 * find the vector x such that Ax = b.  this function only works on 2d systems.
-	 * @param A a 2×2 matrix to be inverted and multiplied
-	 * @param b a 2-vector to be multiplied by the inverse of A
-	 * @return the 2-vector x that solves the linear equation Ax = b
-	 */
-	private static double[] solve_linear_equation(double[][] A, double[] b) {
-		if (A.length != 2 || b.length != 2)
-			throw new IllegalArgumentException("this function has only been implemented for 2D equations.");
-		double det = A[0][0]*A[1][1] - A[0][1]*A[1][0];
-		return new double[] {
-				(A[1][1]*b[0] - A[0][1]*b[1])/det,
-				(A[0][0]*b[1] - A[1][0]*b[0])/det };
+		/**
+		 * evaluate the matrix product of two matrices
+		 * @return the 2-vector resulting from the dot-product of A and b
+		 */
+		private static double[][] dot_product(double[][] A, double[][] B) {
+			if (A.length > 0 && A[0].length != B.length)
+				throw new IllegalArgumentException("this function has only been implemented for 2D equations.");
+			double[][] product = new double[A.length][B[0].length];
+			for (int i = 0; i < A.length; i++)
+				for (int j = 0; j < A[i].length; j++)
+					for (int k = 0; k < B[j].length; k++)
+						product[i][k] += A[i][j]*B[j][k];
+			return product;
+		}
+
+		/**
+		 * flip the rows of A with its columns
+		 * @return the transpose of A
+		 */
+		private static double[][] transpose(double[][] A) {
+			double[][] AT = new double[A[0].length][A.length];
+			for (int i = 0; i < A.length; i ++)
+				for (int j = 0; j < A[i].length; j ++)
+					AT[j][i] = A[i][j];
+			return AT;
+		}
+
+		/**
+		 * find the vector x such that Ax = b.  this function only works on 2d systems.
+		 * @param A a 2×2 matrix to be inverted and multiplied
+		 * @param b a 2-vector to be multiplied by the inverse of A
+		 * @return the 2-vector x that solves the linear equation Ax = b
+		 */
+		private static double[] solve_linear_equation(double[][] A, double[] b) {
+			if (A.length != 2 || b.length != 2)
+				throw new IllegalArgumentException("this function has only been implemented for 2D equations.");
+			double det = A[0][0]*A[1][1] - A[0][1]*A[1][0];
+			return new double[]{
+					(A[1][1]*b[0] - A[0][1]*b[1])/det,
+					(A[0][0]*b[1] - A[1][0]*b[0])/det};
+		}
 	}
 }
