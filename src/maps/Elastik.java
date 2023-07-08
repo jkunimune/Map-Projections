@@ -188,9 +188,9 @@ public class Elastik {
 		 */
 		private double[] inverse_by_iteration(double x, double y, int i, double[] initial_guess) {
 			final double finite_difference = 1e-5; // radians
+			final double second_finite_difference = 0.1; // dimensionless
 			final double tolerance = pow(1e-2, 2); // km^2
 			final double backstep_factor = 2.0;
-			final double backstep_strictness = 0.33;
 			final double backstep_relaxation_factor = 6.0;
 			final int max_num_steps = 40;
 			final int max_num_step_sizes = 40;
@@ -201,7 +201,7 @@ public class Elastik {
 			double[] residual = new double[2];
 			for (int l = 0; l < 2; l ++)
 				residual[l] = sections[i][l].evaluate(guess[0], guess[1]) - target[l];
-			double distance = 1/2.*LinearAlgebra.dot_product(residual, residual);
+			double distance = 1/2.*LinearAlgebra.dot(residual, residual);
 			if (isNaN(distance))  // if this section doesn't cover the initial guess, it's probably pointless
 				return null;
 
@@ -219,20 +219,20 @@ public class Elastik {
 				// evaluate the jacobian using finite differences
 				double[][] jacobian = new double[2][2];
 				for (int l = 0; l < 2; l ++) {
-					double north_value = sections[i][l].evaluate(
+					double north_residual = sections[i][l].evaluate(
 							guess[0] + finite_difference, guess[1]) - target[l];
-					jacobian[l][0] = (north_value - residual[l])/finite_difference;
-					double east_value = sections[i][l].evaluate(
+					jacobian[l][0] = (north_residual - residual[l])/finite_difference;
+					double east_residual = sections[i][l].evaluate(
 							guess[0], guess[1] + finite_difference) - target[l];
-					jacobian[l][1] = (east_value - residual[l])/finite_difference;
+					jacobian[l][1] = (east_residual - residual[l])/finite_difference;
 					if (isNaN(jacobian[l][0]) || isNaN(jacobian[l][1]))
 						return null;  // if we're butting up against the edge, that means there's probably no solution
 				}
 
 				// perform a backtracking line-search
 				double[][] jacobian_transpose = LinearAlgebra.transpose(jacobian);
-				double[][] hessian = LinearAlgebra.dot_product(jacobian_transpose, jacobian);
-				double[] gradient = LinearAlgebra.dot_product(jacobian_transpose, residual);
+				double[][] hessian = LinearAlgebra.dot(jacobian_transpose, jacobian);
+				double[] gradient = LinearAlgebra.dot(jacobian_transpose, residual);
 				int num_step_sizes = 0;
 				while (true) {
 
@@ -241,34 +241,53 @@ public class Elastik {
 							{ hessian[0][0] + step_limiter, hessian[0][1] },
 							{ hessian[1][0], hessian[1][1] + step_limiter } };
 					double[] step = LinearAlgebra.solve_linear_equation(amplified_hessian, gradient);
-					double expected_improvement = backstep_strictness*LinearAlgebra.dot_product(gradient, step);
 
-					// take the step
-					double[] new_guess = new double[2];
-					for (int l = 0; l < 2; l ++)
-						new_guess[l] = guess[l] - step[l];
-					// coerce it back into the valid domain
-					new_guess[0] = new_guess[0] - floor((new_guess[0] + PI/2)/(2*PI))*(2*PI);
-					if (new_guess[0] > PI/2)
-						new_guess[0] = PI - new_guess[0];
-					new_guess[1] = new_guess[1] - floor((new_guess[1] + PI)/(2*PI))*(2*PI);
-
-					// re-evaluate the function
-					double[] new_residual = new double[2];
-					for (int l = 0; l < 2; l ++)
-						new_residual[l] = sections[i][l].evaluate(new_guess[0], new_guess[1]) - target[l];
-					double new_distance = 1/2.*LinearAlgebra.dot_product(new_residual, new_residual);
-
-					// check the line-search stopping conditions
-					if (!isNaN(new_distance) && new_distance < distance - expected_improvement) {
-						guess = new_guess;
-						residual = new_residual;
-						distance = new_distance;
-						step_limiter /= backstep_relaxation_factor;
-						break;  // valid step is found
+					// calculate the second-order correction to the step
+					double[] expected_change = LinearAlgebra.dot(jacobian, step);
+					double[] curvature = new double[2];
+					for (int l = 0; l < 2; l ++) {
+						double fore_residual = sections[i][l].evaluate(
+								guess[0] + step[0]*second_finite_difference,
+								guess[1] + step[1]*second_finite_difference) - target[l];
+						curvature[l] = 2./second_finite_difference*(
+								(fore_residual - residual[l])/second_finite_difference
+								- expected_change[l]);
 					}
-					if (num_step_sizes > max_num_step_sizes)
-						return null;  // too many iterations have elapsed
+					double[] step_correction = LinearAlgebra.solve_linear_equation(
+							amplified_hessian,
+							LinearAlgebra.dot(jacobian_transpose, curvature));
+
+					// check the correction magnitude condition before applying the correction
+					if (LinearAlgebra.dot(step_correction, step_correction)/LinearAlgebra.dot(step, step) < .25) {
+						// take the step
+						double[] new_guess = new double[2];
+						for (int l = 0; l < 2; l++)
+							new_guess[l] = guess[l] - step[l] - 1/2.*step_correction[l];
+
+						// put the new location back in bounds
+						new_guess[0] = SplineSurface.fix_latitude(new_guess[0]);
+						new_guess[1] = SplineSurface.fix_longitude(new_guess[1]);
+
+						// re-evaluate the function
+						double[] new_residual = new double[2];
+						for (int l = 0; l < 2; l++)
+							new_residual[l] = sections[i][l].evaluate(new_guess[0], new_guess[1]) - target[l];
+						double new_distance = 1/2.*LinearAlgebra.dot(new_residual, new_residual);
+
+						// check the line-search stopping conditions
+						if (!isNaN(new_distance) && new_distance < distance) {
+							// valid step is found
+							guess = new_guess;
+							residual = new_residual;
+							distance = new_distance;
+							step_limiter /= backstep_relaxation_factor;
+							break;
+						}
+						if (num_step_sizes > max_num_step_sizes) {
+							// too many iterations have elapsed
+							return null;
+						}
+					}
 
 					if (step_limiter == 0)
 						step_limiter += (sqrt(1.3*(1 - pow(hessian[0][1], 2)/(hessian[0][0]*hessian[1][1])) + 1) - 1)*min(hessian[0][0], hessian[1][1]);
@@ -573,6 +592,8 @@ public class Elastik {
 		 * @return the value of the spline
 		 */
 		public double evaluate(double ф, double λ) {
+			ф = fix_latitude(ф);
+			λ = fix_longitude(λ);
 			double i_partial = (ф + PI/2)/PI*(values.length - 1);
 			int i = (int)floor(min(i_partial, values.length - 2));
 			double j_partial = (λ + PI)/(2*PI)*(values[i].length - 1);
@@ -632,6 +653,33 @@ public class Elastik {
 				surfaces[i_B][l].gradients_dλ[j_B][k_B] = mean_gradient_dλ;
 			}
 		}
+
+		/**
+		 * recenter a latitude so that it is in the range [-PI/2, PI/2].  if it's outside of that,
+		 * it will get reflected about the poles until it isn't.
+		 * @param ф the latitude (radians)
+		 * @return the equivalent in-bounds latitude
+		 */
+		private static double fix_latitude(double ф) {
+			if (ф < -PI/2 || ф > PI/2) {
+				ф = ф - floor((ф + PI/2)/(2*PI))*(2*PI);
+				if (ф > PI/2)
+					ф = PI - ф;
+			}
+			return ф;
+		}
+
+		/**
+		 * recenter a longitude so that it is in the range [-PI, PI].  if it's outside of that, it
+		 * will get modulused such that it isn't.
+		 * @param λ the longitude (radians)
+		 * @return the equivalent in-bounds longitude
+		 */
+		private static double fix_longitude(double λ) {
+			if (λ < -PI || λ > PI)
+				λ = λ - floor((λ + PI)/(2*PI))*(2*PI);
+			return λ;
+		}
 	}
 
 
@@ -643,7 +691,7 @@ public class Elastik {
 		 * evaluate the inner product of two vectors
 		 * @return the 2-vector resulting from the dot-product of A and b
 		 */
-		private static double dot_product(double[] a, double[] b) {
+		private static double dot(double[] a, double[] b) {
 			if (a.length != b.length)
 				throw new IllegalArgumentException("the vectors must have the same length.");
 			double product = 0;
@@ -656,7 +704,7 @@ public class Elastik {
 		 * evaluate the linear equation Ab where A is a matrix and b is a column vector
 		 * @return the 2-vector resulting from the dot-product of A and b
 		 */
-		private static double[] dot_product(double[][] A, double[] b) {
+		private static double[] dot(double[][] A, double[] b) {
 			if (A.length > 0 && A[0].length != b.length)
 				throw new IllegalArgumentException("the number of columns in A must be the same as the length of b.");
 			double[] product = new double[A.length];
@@ -670,7 +718,7 @@ public class Elastik {
 		 * evaluate the matrix product of two matrices
 		 * @return the 2-vector resulting from the dot-product of A and b
 		 */
-		private static double[][] dot_product(double[][] A, double[][] B) {
+		private static double[][] dot(double[][] A, double[][] B) {
 			if (A.length > 0 && A[0].length != B.length)
 				throw new IllegalArgumentException("this function has only been implemented for 2D equations.");
 			double[][] product = new double[A.length][B[0].length];
