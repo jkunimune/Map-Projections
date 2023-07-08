@@ -233,13 +233,14 @@ public class Elastik {
 				double[][] jacobian_transpose = LinearAlgebra.transpose(jacobian);
 				double[][] hessian = LinearAlgebra.dot(jacobian_transpose, jacobian);
 				double[] gradient = LinearAlgebra.dot(jacobian_transpose, residual);
+				double λ_factor = max(.01, pow(cos(guess[0]), 2));
 				int num_step_sizes = 0;
 				while (true) {
 
 					// calculate the step
 					double[][] amplified_hessian = new double[][] {
 							{ hessian[0][0] + step_limiter, hessian[0][1] },
-							{ hessian[1][0], hessian[1][1] + step_limiter } };
+							{ hessian[1][0], hessian[1][1] + step_limiter*λ_factor } };
 					double[] step = LinearAlgebra.solve_linear_equation(amplified_hessian, gradient);
 
 					// calculate the second-order correction to the step
@@ -290,7 +291,8 @@ public class Elastik {
 					}
 
 					if (step_limiter == 0)
-						step_limiter += (sqrt(1.3*(1 - pow(hessian[0][1], 2)/(hessian[0][0]*hessian[1][1])) + 1) - 1)*min(hessian[0][0], hessian[1][1]);
+						step_limiter += (sqrt(1.3*(1 - pow(hessian[0][1], 2)/(hessian[0][0]*hessian[1][1])) + 1) - 1)
+						                *min(hessian[0][0], hessian[1][1]/λ_factor);
 					else
 						step_limiter *= backstep_factor;
 					num_step_sizes ++;
@@ -421,8 +423,8 @@ public class Elastik {
 					for (int k = 0; k < sections[i_A][0].values[j].length; k ++) {
 						// if the nodes are real and in the same location
 						if (!isNaN(sections[i_A][0].values[j][k]) &&
-							sections[i_A][0].values[j][k] == sections[i_B][0].values[j][k] &&
-					        sections[i_A][1].values[j][k] == sections[i_B][1].values[j][k]) {
+						    sections[i_A][0].values[j][k] == sections[i_B][0].values[j][k] &&
+						    sections[i_A][1].values[j][k] == sections[i_B][1].values[j][k]) {
 							// set them to have the same gradients as well
 							SplineSurface.set_gradients_equal(sections, i_A, j, k, i_B, j, k);
 						}
@@ -604,18 +606,18 @@ public class Elastik {
 
 			double z_west = hermite_spline_1D(values[i][j], gradients_dф[i][j],
 			                                  values[i + 1][j], gradients_dф[i + 1][j],
-			                                i_partial - i);
+			                                  i_partial - i);
 			double dzdλ_west = hermite_spline_1D(gradients_dλ[i][j], 0.,
 			                                     gradients_dλ[i + 1][j], 0.,
-			                                   i_partial - i);
+			                                     i_partial - i);
 			double z_east = hermite_spline_1D(values[i][j + 1], gradients_dф[i][j + 1],
 			                                  values[i + 1][j + 1], gradients_dф[i + 1][j + 1],
-			                                i_partial - i);
+			                                  i_partial - i);
 			double dzdλ_east = hermite_spline_1D(gradients_dλ[i][j + 1], 0.,
 			                                     gradients_dλ[i + 1][j + 1], 0.,
-			                                   i_partial - i);
+			                                     i_partial - i);
 			return hermite_spline_1D(z_west, dzdλ_west, z_east, dzdλ_east,
-			                       j_partial - j);
+			                         j_partial - j);
 		}
 
 		/**
