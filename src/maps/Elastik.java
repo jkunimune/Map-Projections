@@ -237,7 +237,7 @@ public class Elastik {
 				// check the other stopping condition
 				double sum_cosines_squared = 0;
 				for (int l = 0; l < 2; l ++)
-					sum_cosines_squared += pow(gradient[l], 2)/LinAlg.square(jacobian_transpose[l])*distance;
+					sum_cosines_squared += pow(gradient[l], 2)/(LinAlg.square(jacobian_transpose[l])*distance);
 				if (sum_cosines_squared < cosine_tolerance)
 					return guess;  // local minimum is found
 
