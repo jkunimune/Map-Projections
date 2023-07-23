@@ -189,9 +189,10 @@ public class Elastik {
 		private double[] inverse_by_iteration(double x, double y, int i, double[] initial_guess) {
 			final double finite_difference = 1e-5; // radians
 			final double second_finite_difference = 0.1; // dimensionless
-			final double tolerance = pow(1e-2, 2); // km^2
+			final double distance_tolerance = pow(1e-2, 2); // km^2
+			final double cosine_tolerance = 1e-3; // dimensionless
 			final double backstep_factor = 2.0;
-			final double backstep_relaxation_factor = 6.0;
+			final double backstep_relaxation_factor = 12.0;
 			final int max_num_steps = 40;
 			final int max_num_step_sizes = 40;
 			double[] target = {x, y};
@@ -201,7 +202,7 @@ public class Elastik {
 			double[] residual = new double[2];
 			for (int l = 0; l < 2; l ++)
 				residual[l] = sections[i][l].evaluate(guess[0], guess[1]) - target[l];
-			double distance = 1/2.*LinearAlgebra.dot(residual, residual);
+			double distance = 1/2.*LinAlg.square(residual);
 			if (isNaN(distance))  // if this section doesn't cover the initial guess, it's probably pointless
 				return null;
 
@@ -211,7 +212,7 @@ public class Elastik {
 			while (true) {
 
 				// check the stopping conditions
-				if (distance < tolerance)
+				if (distance < distance_tolerance)
 					return guess;  // solution is found
 				if (num_steps > max_num_steps)
 					return null;  // too many iterations have elapsed
@@ -229,10 +230,18 @@ public class Elastik {
 						return null;  // if we're butting up against the edge, that means there's probably no solution
 				}
 
+				double[][] jacobian_transpose = LinAlg.transpose(jacobian);
+				double[][] hessian = LinAlg.dot(jacobian_transpose, jacobian);
+				double[] gradient = LinAlg.dot(jacobian_transpose, residual);
+
+				// check the other stopping condition
+				double sum_cosines_squared = 0;
+				for (int l = 0; l < 2; l ++)
+					sum_cosines_squared += pow(gradient[l], 2)/LinAlg.square(jacobian_transpose[l])*distance;
+				if (sum_cosines_squared < cosine_tolerance)
+					return guess;  // local minimum is found
+
 				// perform a backtracking line-search
-				double[][] jacobian_transpose = LinearAlgebra.transpose(jacobian);
-				double[][] hessian = LinearAlgebra.dot(jacobian_transpose, jacobian);
-				double[] gradient = LinearAlgebra.dot(jacobian_transpose, residual);
 				double λ_factor = max(.01, pow(cos(guess[0]), 2));
 				int num_step_sizes = 0;
 				while (true) {
@@ -241,10 +250,10 @@ public class Elastik {
 					double[][] amplified_hessian = new double[][] {
 							{ hessian[0][0] + step_limiter, hessian[0][1] },
 							{ hessian[1][0], hessian[1][1] + step_limiter*λ_factor } };
-					double[] step = LinearAlgebra.solve_linear_equation(amplified_hessian, gradient);
+					double[] step = LinAlg.solve_linear_equation(amplified_hessian, gradient);
 
 					// calculate the second-order correction to the step
-					double[] expected_change = LinearAlgebra.dot(jacobian, step);
+					double[] expected_change = LinAlg.dot(jacobian, step);
 					double[] curvature = new double[2];
 					for (int l = 0; l < 2; l ++) {
 						double fore_residual = sections[i][l].evaluate(
@@ -254,12 +263,12 @@ public class Elastik {
 								(fore_residual - residual[l])/second_finite_difference
 								- expected_change[l]);
 					}
-					double[] step_correction = LinearAlgebra.solve_linear_equation(
+					double[] step_correction = LinAlg.solve_linear_equation(
 							amplified_hessian,
-							LinearAlgebra.dot(jacobian_transpose, curvature));
+							LinAlg.dot(jacobian_transpose, curvature));
 
 					// check the correction magnitude condition before applying the correction
-					if (LinearAlgebra.dot(step_correction, step_correction)/LinearAlgebra.dot(step, step) < .25) {
+					if (LinAlg.square(step_correction)/LinAlg.square(step) < .25) {
 						// take the step
 						double[] new_guess = new double[2];
 						for (int l = 0; l < 2; l++)
@@ -273,7 +282,7 @@ public class Elastik {
 						double[] new_residual = new double[2];
 						for (int l = 0; l < 2; l++)
 							new_residual[l] = sections[i][l].evaluate(new_guess[0], new_guess[1]) - target[l];
-						double new_distance = 1/2.*LinearAlgebra.dot(new_residual, new_residual);
+						double new_distance = 1/2.*LinAlg.square(new_residual);
 
 						// check the line-search stopping conditions
 						if (!isNaN(new_distance) && new_distance < distance) {
@@ -291,7 +300,7 @@ public class Elastik {
 					}
 
 					if (step_limiter == 0)
-						step_limiter += (sqrt(1.3*(1 - pow(hessian[0][1], 2)/(hessian[0][0]*hessian[1][1])) + 1) - 1)
+						step_limiter += (sqrt(1.4*(1 - pow(hessian[0][1], 2)/(hessian[0][0]*hessian[1][1])) + 1) - 1)
 						                *min(hessian[0][0], hessian[1][1]/λ_factor);
 					else
 						step_limiter *= backstep_factor;
@@ -688,7 +697,7 @@ public class Elastik {
 	/**
 	 * some static matrix operations for the Levenberg-Marquardt implementation
 	 */
-	private static class LinearAlgebra {
+	private static class LinAlg {
 		/**
 		 * evaluate the inner product of two vectors
 		 * @return the 2-vector resulting from the dot-product of A and b
@@ -729,6 +738,14 @@ public class Elastik {
 					for (int k = 0; k < B[j].length; k++)
 						product[i][k] += A[i][j]*B[j][k];
 			return product;
+		}
+
+		/**
+		 * evaluate the square of the L-2 norm of a vector
+		 * @return the dot-product of a with itself
+		 */
+		private static double square(double[] a) {
+			return dot(a, a);
 		}
 
 		/**
