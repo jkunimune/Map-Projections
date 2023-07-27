@@ -80,7 +80,7 @@ public class Elastik {
 		private final String filename; // the data filename
 		private Polygon[] section_borders; // the unprojected bounds of each section
 		private SplineSurface[][] sections; // the x and y projection information for each section
-		private double[][][] inverse_raster; // the pixel values, for inverse mapping
+		private double[][][][] inverse_raster; // the pixel values, for inverse mapping
 		private double raster_left, raster_lower; // the extreme coordinates of the inverse raster
 		private double raster_width, raster_height; // the spacial extent of the inverse raster
 
@@ -103,15 +103,28 @@ public class Elastik {
 		 * @return the x value and y value, in the same units as this.width and this.height
 		 */
 		public double[] project(double ф, double λ) {
-			for (int i = 0; i < sections.length; i ++) {
-				if (section_borders[i].contains(ф, λ)) {
-					double[] result = new double[2];
-					for (int l = 0; l < 2; l ++)
-						result[l] = sections[i][l].evaluate(ф, λ);
-					return result;
-				}
-			}
+			for (int i = 0; i < sections.length; i ++)
+				// find the section that contains this point
+				if (section_borders[i].contains(ф, λ))
+					// and project using that section
+					return project(ф, λ, i);
+			// return NaNs if no section contains the point
 			return new double[] {NaN, NaN};
+		}
+
+
+		/**
+		 * convert a location on the globe to a location on the map plane using the given section
+		 * @param ф the latitude, in radians
+		 * @param λ the longitude, in radians
+		 * @param i the index of the section to use
+		 * @return the x value and y value, in the same units as this.width and this.height
+		 */
+		public double[] project(double ф, double λ, int i) {
+			double[] result = new double[2];
+			for (int l = 0; l < 2; l ++)
+				result[l] = sections[i][l].evaluate(ф, λ);
+			return result;
 		}
 
 
@@ -122,52 +135,56 @@ public class Elastik {
 		 * @return the latitude and longitude, in radians, or null if the point is not on the mesh
 		 */
 		public double[] inverse(double x, double y) {
-			// start by interpolating on the raster
-			double[] guess = inverse_by_interpolation(x, y);
-			// then use Newton-Raphson iteration to arrive at an exact solution for each section
-			double[][] exact_solutions = new double[sections.length][];
+			double[][] solutions = new double[sections.length][];
 			for (int i = 0; i < sections.length; i ++) {
-				exact_solutions[i] = inverse_by_iteration(x, y, i, guess);
+				// start by interpolating on the raster
+				double[] guess = inverse_by_interpolation(x, y, i);
+				// then, if that was close to correct...
+				double[] result = project(guess[0], guess[1], i);
+				if (hypot(result[0] - x, result[1] - y) < 1000)
+					// use Newton-Raphson iteration to arrive at an exact solution for each section
+					solutions[i] = inverse_by_iteration(x, y, i, guess);
 				// if any solution is non-null and also in-bounds, use it immediately
-				if (exact_solutions[i] != null &&
-				    section_borders[i].contains(exact_solutions[i][0], exact_solutions[i][1]))
-					return exact_solutions[i];
+				if (solutions[i] != null &&
+				    section_borders[i].contains(solutions[i][0], solutions[i][1]))
+					return solutions[i];
 			}
 			// otherwise, arbitrarily choose one of the non-null solutions
 			for (int i = 0; i < sections.length; i ++)
-				if (exact_solutions[i] != null)  // add 2π to the longitude to mark it as out-of-bounds
-					return new double[] {exact_solutions[i][0], exact_solutions[i][1] + 2*PI};
+				if (solutions[i] != null)  // add 2π to the longitude to mark it as out-of-bounds
+					return new double[] {solutions[i][0], solutions[i][1] + 2*PI};
 			// if no solutions are non-null, shikatanai.
 			return null;
 		}
 
 		/**
 		 * convert a location on the map plane to an approximate location on the globe by
-		 * bilinearly interpolating on the inverse raster
+		 * bilinearly interpolating on the inverse raster of a given section
 		 * @param x the x value, in the same units as this.width
 		 * @param y the y value, in the same units as this.height
+		 * @param i the index of the section to search
 		 * @return the latitude and longitude, in radians
 		 */
-		private double[] inverse_by_interpolation(double x, double y) {
+		private double[] inverse_by_interpolation(double x, double y, int i) {
 			// find the correct bin
-			double i_partial = (y - raster_lower)/raster_height*(inverse_raster.length - 1);
-			int i = (int) floor(min(i_partial, inverse_raster.length - 2));
-			double j_partial = (x - raster_left)/raster_width*(inverse_raster[i].length - 1);
+			double j_partial = (y - raster_lower)/raster_height*(inverse_raster[i].length - 1);
 			int j = (int) floor(min(j_partial, inverse_raster[i].length - 2));
+			double k_partial = (x - raster_left)/raster_width*(inverse_raster[i][j].length - 1);
+			int k = (int) floor(min(k_partial, inverse_raster[i][j].length - 2));
 
 			// calculate the linear weights
-			double right_weight = j_partial - j;
+			double right_weight = k_partial - k;
 			double left_weight = 1 - right_weight;
-			double upper_weight = i_partial - i;
+			double upper_weight = j_partial - j;
 			double lower_weight = 1 - upper_weight;
 
 			// perform the interpolation on our 3D cartesian inverse raster
 			double[] result = new double[3];
-			for (int l = 0; l < 3; l++) {
-				result[l] = left_weight*(lower_weight*inverse_raster[i][j][l] +
-				                         upper_weight*inverse_raster[i + 1][j][l]) +
-				            right_weight*(lower_weight*inverse_raster[i][j + 1][l] +
-				                          upper_weight*inverse_raster[i + 1][j + 1][l]);
+			for (int l = 0; l < 3; l ++) {
+				result[l] = left_weight*(lower_weight*inverse_raster[i][j][k][l] +
+				                         upper_weight*inverse_raster[i][j + 1][k][l]) +
+				            right_weight*(lower_weight*inverse_raster[i][j][k + 1][l] +
+				                          upper_weight*inverse_raster[i][j + 1][k + 1][l]);
 			}
 
 			// convert to spherical coordinates
@@ -333,6 +350,7 @@ public class Elastik {
 				int num_sections = parseInt(line.substring(line.length() - 12, line.length() - 11));  // get the number of sections
 				section_borders = new Polygon[num_sections];
 				sections = new SplineSurface[num_sections][2];
+				inverse_raster = new double[num_sections][][][];
 
 				// load each section
 				for (int i = 0; i < num_sections; i ++) {
@@ -346,6 +364,7 @@ public class Elastik {
 						border[1][j] = toRadians(parseDouble(row[1]));
 					}
 					section_borders[i] = new Polygon(border[0], border[1]);
+
 					line = in.readLine();  // read this section points header
 					String[] row = line.substring(18, line.length() - 9).split("x");  // get the size of the point grid
 					int num_фs = parseInt(row[0]);
@@ -361,6 +380,28 @@ public class Elastik {
 					}
 					for (int l = 0; l < 2; l ++)
 						sections[i][l] = new SplineSurface(points[l]);
+
+					line = in.readLine();  // read this section inverse points header
+					row = line.substring(26, line.length() - 9).split("x");  // get the size of the point grid
+					int num_xs = parseInt(row[0]);
+					int num_ys = parseInt(row[1]);
+					row = in.readLine().split(",\\s*");  // read the bounding box
+					raster_left = parseDouble(row[0]);
+					raster_width = parseDouble(row[1]) - raster_left;
+					raster_lower = parseDouble(row[2]);
+					raster_height = parseDouble(row[3]) - raster_lower;
+					inverse_raster[i] = new double[num_ys][num_xs][3];
+					for (int j = 0; j < num_ys; j ++) {
+						line = in.readLine();  // read each row of coordinates
+						row = line.split(",\\s*");
+						for (int k = 0; k < num_xs; k ++) {
+							double ф = toRadians(parseDouble(row[2*k]));
+							double λ = toRadians(parseDouble(row[2*k + 1]));
+							inverse_raster[i][j][k][0] = cos(ф)*cos(λ);  // save the inverse raster in cartesian
+							inverse_raster[i][j][k][1] = cos(ф)*sin(λ);
+							inverse_raster[i][j][k][2] = sin(ф);
+						}
+					}
 				}
 
 				// load the projected border
@@ -377,29 +418,6 @@ public class Elastik {
 					right = max(right, x);
 					lower = min(lower, y);
 					upper = max(upper, y);
-				}
-
-				// load the inverse raster
-				line = in.readLine();  // read the inverse raster header
-				String[] row = line.substring(26, line.length() - 9).split("x");  // get the size of the raster
-				int num_xs = parseInt(row[0]);
-				int num_ys = parseInt(row[1]);
-				row = in.readLine().split(",\\s*");  // read the bounding box
-				raster_left = parseDouble(row[0]);
-				raster_width = parseDouble(row[1]) - raster_left;
-				raster_lower = parseDouble(row[2]);
-				raster_height = parseDouble(row[3]) - raster_lower;
-				inverse_raster = new double[num_ys][num_xs][3];
-				for (int j = 0; j < num_ys; j ++) {
-					line = in.readLine();  // read each row of coordinates
-					row = line.split(",\\s*");
-					for (int k = 0; k < num_xs; k ++) {
-						double ф = toRadians(parseDouble(row[2*k]));
-						double λ = toRadians(parseDouble(row[2*k + 1]));
-						inverse_raster[j][k][0] = cos(ф)*cos(λ);  // save the inverse raster in cartesian
-						inverse_raster[j][k][1] = cos(ф)*sin(λ);
-						inverse_raster[j][k][2] = sin(ф);
-					}
 				}
 
 				width = right - left;
