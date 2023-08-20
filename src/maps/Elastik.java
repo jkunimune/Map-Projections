@@ -31,6 +31,7 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import static java.lang.Double.NaN;
+import static java.lang.Double.POSITIVE_INFINITY;
 import static java.lang.Double.isFinite;
 import static java.lang.Double.isNaN;
 import static java.lang.Double.parseDouble;
@@ -45,6 +46,7 @@ import static java.lang.Math.hypot;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
+import static java.lang.Math.signum;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
 import static java.lang.Math.toRadians;
@@ -356,7 +358,7 @@ public class Elastik {
 				for (int i = 0; i < num_sections; i ++) {
 					in.readLine();  // read the section header (we don’t need any information from it)
 					line = in.readLine();  // read the section border header
-					int num_vertices = parseInt(line.substring(8, line.length() - 11));  // get the length of the section border
+					int num_vertices = parseInt(line.substring(10, line.length() - 11));  // get the length of the section border
 					double[][] border = new double[2][num_vertices];
 					for (int j = 0; j < num_vertices; j ++) {
 						String[] row = in.readLine().split(",\\s*");
@@ -387,8 +389,8 @@ public class Elastik {
 					int num_ys = parseInt(row[1]);
 					row = in.readLine().split(",\\s*");  // read the bounding box
 					raster_left = parseDouble(row[0]);
-					raster_width = parseDouble(row[1]) - raster_left;
-					raster_lower = parseDouble(row[2]);
+					raster_lower = parseDouble(row[1]);
+					raster_width = parseDouble(row[2]) - raster_left;
 					raster_height = parseDouble(row[3]) - raster_lower;
 					inverse_raster[i] = new double[num_ys][num_xs][3];
 					for (int j = 0; j < num_ys; j ++) {
@@ -406,7 +408,7 @@ public class Elastik {
 
 				// load the projected border
 				line = in.readLine();  // read the projected border header
-				int num_vertices = parseInt(line.substring(18, line.length() - 11));  // get the length of the border
+				int num_vertices = parseInt(line.substring(20, line.length() - 11));  // get the length of the border
 				double left = 0, right = 0;
 				double lower = 0, upper = 0;
 				for (int j = 0; j < num_vertices; j ++) {
@@ -463,12 +465,9 @@ public class Elastik {
 			for (int i = 0; i < sections.length; i ++) {
 				// look at each latitude
 				for (int j = 0; j < sections[i][0].values.length; j ++) {
-					// if the nodes are real, they must be in the same location
 					int n = sections[i][0].values[j].length;
-					if (!isNaN(sections[i][0].values[j][0]) && !isNaN(sections[i][0].values[j][n - 1])) {
-						// so set the gradients on the far left and far right to be equal
-						SplineSurface.set_gradients_equal(sections, i, j, 0, i, j, n - 1);
-					}
+					// set the gradients on the far left and far right to be equal
+					SplineSurface.set_gradients_equal(sections, i, j, 0, i, j, n - 1);
 				}
 			}
 		}
@@ -503,37 +502,39 @@ public class Elastik {
 		 * @return true if the point is contained by the polygon and false otherwise
 		 */
 		public boolean contains(double ф, double λ) {
-			int crossings = 0;
+			double nearest_Δф = POSITIVE_INFINITY;
+			double nearest_crossing_sign = 0;
 			// for each edge of the polygon
 			for (int i = 1; i < ф_vertices.length; i ++) {
-				if (abs(λ_vertices[i] - λ_vertices[i - 1]) > PI)
-					continue;  // skip edges that are wrapping around the backside
-
-				// see if our north-south line crosses it
-				boolean crosses = (λ_vertices[i - 1] < λ) != (λ_vertices[i] < λ) ||
-				                  (λ == -PI && min(λ_vertices[i - 1], λ_vertices[i]) == -PI);
-				if (crosses) {
-					// calculate *where* it crosses
-					double ф_intersect;
-					if (ф_vertices[i - 1] != ф_vertices[i]) {
-						double Δλ0 = λ - λ_vertices[i - 1];
-						double Δλ1 = λ_vertices[i] - λ;
-						ф_intersect = (ф_vertices[i - 1]*Δλ1 + ф_vertices[i]*Δλ0)/(Δλ0 + Δλ1);
+				// that is not due north-south
+				boolean vertical = λ_vertices[i - 1] == λ_vertices[i];
+				if (!vertical) {
+					// see if our north-south line crosses it
+					boolean crosses = (λ_vertices[i - 1] < λ) != (λ_vertices[i] < λ) ||
+					                  (λ == -PI && min(λ_vertices[i - 1], λ_vertices[i]) == -PI);
+					if (crosses) {
+						// calculate *where* it crosses
+						double ф_intersect;
+						if (ф_vertices[i - 1] == ф_vertices[i]) {
+							ф_intersect = ф_vertices[i];  // be mindful of efficiency and avoiding roundoff errors
+						}
+						else {
+							double Δλ0 = λ - λ_vertices[i - 1];
+							double Δλ1 = λ_vertices[i] - λ;
+							ф_intersect = (ф_vertices[i - 1]*Δλ1 + ф_vertices[i]*Δλ0)/(Δλ0 + Δλ1);
+						}
+						double Δф = abs(ф_intersect - ф);
+						if (Δф == 0)  // if it's on the line, count this point as in
+							return true;
+						else if (Δф < nearest_Δф) { // otherwise, check the direction
+							nearest_Δф = Δф;
+							nearest_crossing_sign = signum(
+									(ф_intersect - ф)*(λ_vertices[i - 1] - λ_vertices[i]));
+						}
 					}
-					else {
-						ф_intersect = ф_vertices[i];  // be mindful of efficiency and avoiding roundoff
-					}
-					double Δф = abs(ф_intersect - ф);
-					if (Δф == 0)
-						return true;  // if it's on the line, count it as in
-					// otherwise, count this crossing
-					if ((ф_intersect < ф) == (λ_vertices[i - 1] < λ_vertices[i]))
-						crossings += 1;
-					else
-						crossings -= 1;
 				}
 			}
-			return crossings > 0;
+			return nearest_crossing_sign > 0;
 		}
 	}
 
@@ -547,18 +548,31 @@ public class Elastik {
 		private final double[][] gradients_dλ; // the derivative of the spline along index 1 at each node
 
 		/**
-		 * @param values the value of the function at each node, where the nodes are assumed to span -π/2 <= ф <= π/2
-		 *               along the zeroth axis and -π <= λ <= π on the first axis
+		 * @param values the value of the function at each node, where the nodes are assumed to span
+		 *               -π/2 <= ф <= π/2 along the zeroth axis and -π <= λ <= π on the first axis
 		 */
 		public SplineSurface(double[][] values) {
+			// set the values at the nodes to the specification
 			this.values = values;
-
 			// set the gradients at the nodes to finite-difference estimates
+			double[][][] gradients = estimate_gradients(values);
+			this.gradients_dф = gradients[0];
+			this.gradients_dλ = gradients[1];
+		}
+
+		/**
+		 * use finite-differences to estimate what the gradient at each node should
+		 * be to ensure the smoothest map projection
+		 * @param values the value of the function at each node
+		 * @return the approximate latitude-derivative of the function at each node, and
+		 *         the approximate longitude-derivate of the function at each node
+		 */
+		private static double[][][] estimate_gradients(double[][] values) {
 			final int m = values.length;
 			final int n = values[0].length;
-			this.gradients_dф = new double[m][n];
-			this.gradients_dλ = new double[m][n];
-
+			// instantiate both gradient arrays
+			double[][] gradients_dф = new double[m][n];
+			double[][] gradients_dλ = new double[m][n];
 			for (int i = 0; i < m; i ++) {
 				for (int j = 0; j < n; j ++) {
 					if (isFinite(values[i][j])) {
@@ -580,8 +594,6 @@ public class Elastik {
 								else
 									gradients_dф[i][j] = values[i + 1][j] - values[i][j];
 							}
-							else
-								gradients_dф[i][j] = NaN;
 						}
 
 						if (j - 1 >= 0 && isFinite(values[i][j - 1])) {
@@ -601,17 +613,14 @@ public class Elastik {
 								else
 									gradients_dλ[i][j] = values[i][j + 1] - values[i][j];
 							}
-							else
-								gradients_dλ[i][j] = NaN;
 						}
 
 					}
-					else {
-						gradients_dф[i][j] = NaN;
-						gradients_dλ[i][j] = NaN;
-					}
 				}
 			}
+
+			// wrap the two arrays together as a 3D array so they can both be returnd
+			return new double[][][] {gradients_dф, gradients_dλ};
 		}
 
 		/**
@@ -671,13 +680,13 @@ public class Elastik {
 				SplineSurface[][] surfaces, int i_A, int j_A, int k_A, int i_B, int j_B, int k_B) {
 			for (int l = 0; l < 2; l ++) {
 				double mean_gradient_dф = (
-						                          surfaces[i_A][l].gradients_dф[j_A][k_A] +
-						                          surfaces[i_B][l].gradients_dф[j_B][k_B])/2;
+						surfaces[i_A][l].gradients_dф[j_A][k_A] +
+						surfaces[i_B][l].gradients_dф[j_B][k_B])/2;
 				surfaces[i_A][l].gradients_dф[j_A][k_A] = mean_gradient_dф;
 				surfaces[i_B][l].gradients_dф[j_B][k_B] = mean_gradient_dф;
 				double mean_gradient_dλ = (
-						                          surfaces[i_A][l].gradients_dλ[j_A][k_A] +
-						                          surfaces[i_B][l].gradients_dλ[j_B][k_B])/2;
+						surfaces[i_A][l].gradients_dλ[j_A][k_A] +
+						surfaces[i_B][l].gradients_dλ[j_B][k_B])/2;
 				surfaces[i_A][l].gradients_dλ[j_A][k_A] = mean_gradient_dλ;
 				surfaces[i_B][l].gradients_dλ[j_B][k_B] = mean_gradient_dλ;
 			}
