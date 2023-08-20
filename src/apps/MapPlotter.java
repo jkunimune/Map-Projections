@@ -94,7 +94,7 @@ public class MapPlotter extends Application {
 	
 	
 	
-	public static final void main(String[] args) {
+	public static void main(String[] args) {
 		launch(args);
 	}
 	

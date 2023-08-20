@@ -39,8 +39,8 @@ public class ArbitraryPseudocylindrical {
 	
 	public static final Projection ROBINSON = new ArbitraryProjection(
 			"Robinson", "Arthur Robinson", 0.5072, new double[][] {
-				{ -90,-85,-80,-75,-70,-65,-60,-55,-50,-45,-40,-35,-30,-25,-20,-15,-10,-05, 00,
-					05, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90 }, //Latitude
+				{ -90,-85,-80,-75,-70,-65,-60,-55,-50,-45,-40,-35,-30,-25,-20,-15,-10, -5,  0,
+					 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90 }, //Latitude
 				{  0.5322, 0.5722, 0.6213, 0.6732, 0.7186, 0.7597, 0.7986, 0.8350, 0.8679, 0.8962, 0.9216, 0.9427, 0.9600, 0.9730, 0.9822, 0.9900, 0.9954, 0.9986, 1.0000,
 					0.9986, 0.9954, 0.9900, 0.9822, 0.9730, 0.9600, 0.9427, 0.9216, 0.8962, 0.8679, 0.8350, 0.7986, 0.7597, 0.7186, 0.6732, 0.6213, 0.5722, 0.5322 }, //PLEN
 				{ -1.0000,-0.9761,-0.9394,-0.8936,-0.8435,-0.7903,-0.7346,-0.6769,-0.6176,-0.5571,-0.4958,-0.4340,-0.3720,-0.3100,-0.2480,-0.1860,-0.1240,-0.0620, 0.0000,
@@ -50,8 +50,8 @@ public class ArbitraryPseudocylindrical {
 	
 	public static final Projection NATURAL_EARTH = new ArbitraryProjection(
 			"Natural Earth", "Tom Patterson", 0.520, new double[][] {
-				{ -90,-85,-80,-75,-70,-65,-60,-55,-50,-45,-40,-35,-30,-25,-20,-15,-10,-05, 00,
-					05, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90 }, //Latitude
+				{ -90,-85,-80,-75,-70,-65,-60,-55,-50,-45,-40,-35,-30,-25,-20,-15,-10, -5,  0,
+					 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90 }, //Latitude
 				{  0.5630, 0.6270, 0.6754, 0.7160, 0.7525, 0.7874, 0.8196, 0.8492, 0.8763, 0.9006, 0.9222, 0.9409, 0.9570, 0.9703, 0.9811, 0.9894, 0.9953, 0.9988, 1.0000,
 					0.9988, 0.9953, 0.9894, 0.9811, 0.9703, 0.9570, 0.9409, 0.9222, 0.9006, 0.8763, 0.8492, 0.8196, 0.7874, 0.7525, 0.7160, 0.6754, 0.6270, 0.5630 }, //PLEN
 				{ -1.0000,-0.9761,-0.9394,-0.8936,-0.8435,-0.7903,-0.7346,-0.6769,-0.6176,-0.5571,-0.4958,-0.4340,-0.3720,-0.3100,-0.2480,-0.1860,-0.1240,-0.06200, 0.0000,
@@ -74,21 +74,21 @@ public class ArbitraryPseudocylindrical {
 		
 		public double[] project(double lat, double lon) {
 			return new double[] {
-					lon/Math.PI*smartInterpolate(Math.toDegrees(lat), table[0], table[1], ORDER),
-					yMax*smartInterpolate(Math.toDegrees(lat), table[0], table[2], ORDER) };
+					lon/Math.PI*smartInterpolate(Math.toDegrees(lat), table[0], table[1]),
+					yMax*smartInterpolate(Math.toDegrees(lat), table[0], table[2]) };
 		}
 		
 		public double[] inverse(double x, double y) {
 			return new double[] {
-					Math.toRadians(smartInterpolate(y/yMax, table[2], table[0], ORDER)),
-					Math.PI*x/smartInterpolate(y/yMax, table[2], table[1], ORDER) };
+					Math.toRadians(smartInterpolate(y/yMax, table[2], table[0])),
+					Math.PI*x/smartInterpolate(y/yMax, table[2], table[1]) };
 		}
 		
-		private static double smartInterpolate(double x, double[] X, double[] f, int k) {
+		private static double smartInterpolate(double x, double[] X, double[] f) {
 			int i = Arrays.binarySearch(X, x);
 			if (i < 0)	i = -i - 1; //if you couldn't find it, don't worry about it
-			return NumericalAnalysis.aitkenInterpolate(x, X, f,
-					Math.max(i-k,0), Math.min(i+k,X.length)); //call aitken with the correct bounds
+			return NumericalAnalysis.aitkenInterpolate(
+					x, X, f, Math.max(i - ORDER, 0), Math.min(i + ORDER, X.length)); //call aitken with the correct bounds
 		}
 		
 	}

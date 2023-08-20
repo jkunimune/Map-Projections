@@ -302,7 +302,7 @@ public class MapDesignerRaster extends MapApplication {
 			float lineWidth = (float)(Math.min(width, height)/300);
 			BufferedReader fileReader = null;
 			try {
-				fileReader = new BufferedReader(new FileReader(new File("input/graticule.txt")));
+				fileReader = new BufferedReader(new FileReader("input/graticule.txt"));
 				r = Integer.parseInt(fileReader.readLine().split(":")[1].trim());
 				g = Integer.parseInt(fileReader.readLine().split(":")[1].trim());
 				b = Integer.parseInt(fileReader.readLine().split(":")[1].trim());

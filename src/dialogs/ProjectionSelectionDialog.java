@@ -60,10 +60,10 @@ public class ProjectionSelectionDialog extends Dialog<Projection> {
 	private static final double TEXT_WIDTH = 300;
 	
 	
-	private Map<TreeItem<String>, Projection> projMap;
-	private TreeView<String> menu;
-	private TextFlow flow;
-	private GridPane text;
+	private final Map<TreeItem<String>, Projection> projMap;
+	private final TreeView<String> menu;
+	private final TextFlow flow;
+	private final GridPane text;
 	
 	
 	
@@ -112,7 +112,7 @@ public class ProjectionSelectionDialog extends Dialog<Projection> {
 		this.setTitle("Projection selection"); //set general properties for the dialog
 		final DialogPane pane = this.getDialogPane();
 		pane.setHeaderText("Choose a projection from the list below.");
-		pane.getButtonTypes().addAll(new ButtonType[] { ButtonType.OK, ButtonType.CANCEL }); //add buttons
+		pane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL); //add buttons
 		pane.setContent(new HBox(10, menu, new VBox(10, flow, text)));
 		
 		this.setResultConverter((btn) -> { //how to return a result:

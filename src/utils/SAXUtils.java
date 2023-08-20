@@ -34,16 +34,16 @@ import org.xml.sax.helpers.AttributesImpl;
 public class SAXUtils {
 	
 	public static String encode(String s0) { //encode with the ampersand notation
-		String s1 = "";
+		StringBuilder s1 = new StringBuilder();
 		for (int i = 0; i < s0.length(); i ++) {
 			if (s0.charAt(i) >= 128)
-				s1 += "&#" + (int)s0.charAt(i) + ";";
+				s1.append("&#").append((int) s0.charAt(i)).append(";");
 			else if (s0.charAt(i) == '&')
-				s1 += "&amp;";
+				s1.append("&amp;");
 			else
-				s1 += s0.charAt(i);
+				s1.append(s0.charAt(i));
 		}
-		return s1;
+		return s1.toString();
 	}
 	
 	

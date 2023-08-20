@@ -32,7 +32,7 @@ import org.apache.commons.math3.complex.Complex;
  */
 public class Elliptic {
 
-	public static final Complex F(Complex phi, final Complex k) { //series solution to incomplete elliptic integral of the first kind
+	public static Complex F(Complex phi, final Complex k) { //series solution to incomplete elliptic integral of the first kind
 		final double TOLERANCE = 1e-3;
 		
 		Complex sum = Complex.ZERO;

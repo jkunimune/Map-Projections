@@ -62,11 +62,7 @@ public class Vector extends Matrix {
 	public int getLength() {
 		return this.getHeight();
 	}
-	
-	public double getElement(int i) {
-		return this.getElement(i, 0);
-	}
-	
+
 	public void setElement(int i, double val) {
 		this.setElement(i, 0, val);
 	}
@@ -93,16 +89,5 @@ public class Vector extends Matrix {
 	public double dot(Vector that) {
 		return this.transpose().times(that).getElement(0, 0);
 	}
-	
-	public double norm() {
-		double s = 0;
-		for (int i = 0; i < this.getLength(); i ++)
-			s += Math.pow(this.getElement(i), 2);
-		return Math.sqrt(s);
-	}
-	
-	public Vector hat() {
-		return this.times(1/this.norm());
-	}
-	
+
 }

@@ -73,7 +73,7 @@ public class MapOptimizer extends Application {
 	private static final double[][][] GLOBE = Projection.hemisphere(0.01);
 	
 	
-	public static final void main(String[] args) {
+	public static void main(String[] args) {
 		launch(args);
 	}
 	
@@ -125,7 +125,7 @@ public class MapOptimizer extends Application {
 	}
 	
 	
-	private static final double weighDistortion(double[] distortions, double weight) {
+	private static double weighDistortion(double[] distortions, double weight) {
 		return distortions[0]*weight + distortions[1]*(1-weight);
 	}
 	

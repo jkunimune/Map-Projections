@@ -214,12 +214,10 @@ public class MapDesignerVector extends MapApplication {
 					rendered = drawImage(map, proj.getWidth(), proj.getHeight(), width, height);
 				}
 
-				return new SavableImage() {
-					public void save(File file) throws IOException {
-						SVGMap altered = input.replace("Equirectangular", proj.getName());
-						altered.save(map, file, -proj.getWidth()/2, proj.getHeight()/2,
-									 proj.getWidth(), proj.getHeight()); //save
-					}
+				return file -> {
+					SVGMap altered = input.replace("Equirectangular", proj.getName());
+					altered.save(map, file, -proj.getWidth()/2, proj.getHeight()/2,
+								 proj.getWidth(), proj.getHeight()); //save
 				};
 			}
 

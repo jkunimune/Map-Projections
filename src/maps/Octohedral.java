@@ -48,25 +48,8 @@ public class Octohedral {
 			return Waterman.faceInverse(x, y);
 		}
 	};
-	
-	
-	public static final Projection KEYES_BUTTERFLY = new OctohedralProjection(
-			"Cahill\u2013Keyes (butterfly)", "A simple Cahill-esque octohedral map arrangement, with Antarctica left on.",
-			CahillKeyes.lMG, CahillKeyes.lMA, 0b1010, Property.COMPROMISE, 4,
-			Configuration.BUTTERFLY) {
-		
-		protected double[] faceProject(double lat, double lon) {
-			return CahillKeyes.faceProjectD(Math.toDegrees(lat), Math.toDegrees(lon));
-		}
-		
-		protected double[] faceInverse(double x, double y) {
-			double[] coords = CahillKeyes.faceInverseD(x, y);
-			return (coords == null) ? null :
-				new double[] {Math.toRadians(coords[0]), Math.toRadians(coords[1])};
-		}
-	};
-	
-	
+
+
 	public static final Projection KEYES_BASIC_M = new OctohedralProjection(
 			"Cahill\u2013Keyes (simplified)", "A simple M-shaped octohedral projection, with Antarctica broken into three pieces.",
 			CahillKeyes.lMG, CahillKeyes.lMA, 0b1010, Property.COMPROMISE, 3,
@@ -224,7 +207,7 @@ public class Octohedral {
 	private static abstract class OctohedralProjection extends Projection {
 		
 		protected final double size;
-		private Configuration config;
+		private final Configuration config;
 		
 		
 		public OctohedralProjection(String name, String desc, double altitude, double cutSize,
@@ -377,7 +360,7 @@ public class Octohedral {
 			this.octants = octants;
 		}
 		
-		private static final double[][] rotate(double xP, double yP, double th, double[][] in) { // apply that rotation to the bat
+		private static double[][] rotate(double xP, double yP, double th, double[][] in) { // apply that rotation to the bat
 			double[][] out = new double[in.length][];
 			for (int i = 0; i < in.length; i ++) {
 				out[i] = new double[in[i].length];

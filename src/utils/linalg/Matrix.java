@@ -175,17 +175,17 @@ public class Matrix {
 	}
 	
 	public String toString() {
-		String str = "[ ";
+		StringBuilder str = new StringBuilder("[ ");
 		for (int i = 0; i < this.getHeight(); i ++) {
 			for (int j = 0; j < this.getWidth(); j ++)
-				str += this.getElement(i, j) + ", ";
-			str = str.substring(0, str.length()-2) + ";\n  ";
+				str.append(this.getElement(i, j)).append(", ");
+			str = new StringBuilder(str.substring(0, str.length() - 2) + ";\n  ");
 		}
 		return str.substring(0, str.length()-4) + " ]";
 	}
 	
 	
-	public static final void main(String[] args) {
+	public static void main(String[] args) {
 		Matrix a = new Matrix(new double[][] {{1,4,7},{3,0,5},{-1,9,11}});
 		System.out.println(a); //TODO: delete this later
 		System.out.println(a.determinant());

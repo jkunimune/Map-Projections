@@ -30,7 +30,7 @@ import utils.NumericalAnalysis;
  * A truncated octohedral map. The projection is Cahill-Keyes, because it was invented after Cahill,
  * so it is presumably better (not that Tobler World in a Square wasn't invented after Lambert EAC).
  * http://www.genekeyes.com/CKOG-OOo/7-CKOG-illus-&-coastline.html
- * 
+ *
  * @author jkunimune
  */
 public class CahillKeyes {
@@ -61,7 +61,7 @@ public class CahillKeyes {
 	/**
 	 * convert adjusted lat and lon in degrees to Mary Jo's coordinates
 	 */
-	public static final double[] faceProjectD(double latD, double lonD) {
+	public static double[] faceProjectD(double latD, double lonD) {
 		final double[][] mer = meridian(lonD);
 		if (latD >= 75) { //zone c (frigid zone)
 			return new double[] { lMA + 104*(90-latD)*Math2.cosd(lonD),
@@ -90,14 +90,14 @@ public class CahillKeyes {
 	}
 	
 	
-	public static final double[] faceInverseD(double x, double y) { //convert Mary Jo's coordinates to relative lat and lon in degrees
+	public static double[] faceInverseD(double x, double y) { //convert Mary Jo's coordinates to relative lat and lon in degrees
 		if (y > x-lMA || y > x/Math.sqrt(3) || y > x*(2-Math.sqrt(3))+bDE ||
 				y > (lMG-x)*(2+Math.sqrt(3))+lGF || x > lMG) //this describes the footprint of the octant
 			return null;
 		
 		double lonD = longitudeD(x, y);
 		double[][] mer = meridian(lonD);
-		double len = meridianDistance(mer, x, y);
+		double len = meridianDistance(mer, x);
 		
 		if (len <= rC) { //zone c (frigid zone)
 			return new double[] {90 - len/104, lonD};
@@ -193,7 +193,7 @@ public class CahillKeyes {
 	}
 	
 	
-	private static double meridianDistance(double[][] meridian, double x, double y) { //how far up the meridian is this?
+	private static double meridianDistance(double[][] meridian, double x) { //how far up the meridian is this?
 		double lenCum = 0; //the cumulative length of all previous meridians
 		for (int i = 1; i < meridian.length; i ++) {
 			double l = Math.hypot(meridian[i][0]-meridian[i-1][0], meridian[i][1]-meridian[i-1][1]);
@@ -206,7 +206,7 @@ public class CahillKeyes {
 	}
 	
 	
-	private static final double meridianTUIntersect(double lonD, double[][] meridian) { //how far from the pole does the meridian intersect line TU
+	private static double meridianTUIntersect(double lonD, double[][] meridian) { //how far from the pole does the meridian intersect line TU
 		if (meridian[1][1] > 2*rE - Math.sqrt(3)*(meridian[1][0]-lMA)) { //frigid joint is above TU; intersection is on the frigid segment
 			return rE/Math2.cosd(30-lonD);
 		}
@@ -219,7 +219,7 @@ public class CahillKeyes {
 	}
 	
 	
-	private static final double meridianCDVIntersect(double[][] meridian) { //how far from the equator does the meridian intersect arc CDV
+	private static double meridianCDVIntersect(double[][] meridian) { //how far from the equator does the meridian intersect arc CDV
 		final int i;
 		if (Math.hypot(meridian[2][0]-xC, meridian[2][1]-yC) >= lCV) //torrid joint is outside CDV; intersection is on the temperate segment
 			i = 2;

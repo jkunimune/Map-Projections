@@ -133,8 +133,8 @@ public class Lenticular {
 			double maxLon = factor*Math.PI*Math.sqrt(2*Math.PI/(4+Math.PI));
 			width = 4*Math.sin(maxLon/2)/Math.sqrt(1+Math.cos(maxLon/2))/factor;
 			height = 0; //add a little extra to air on the side of caution
-			for (int i = 0; i < HEIGHT_COEF.length; i ++) //the equation for height actually ends up being crazy complicated,
-				height = height*factor + HEIGHT_COEF[i]; //so use this polynomial approximation MatLab gave me instead.
+			for (double v : HEIGHT_COEF) //the equation for height actually ends up being crazy complicated,
+				height = height*factor + v; //so use this polynomial approximation MatLab gave me instead.
 		}
 		
 		public double[] project(double lat, double lon) {

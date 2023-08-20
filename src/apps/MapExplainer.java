@@ -55,8 +55,8 @@ import maps.WinkelTripel;
 public class MapExplainer extends Application {
 	
 	public static final int IMG_WIDTH = 800;
-	public static final int SMOOTHING = 3;
-	
+	public static final int SMOOTHING = 2;
+
 	public static final Projection[][] ALL_PROJECTIONS = {
 			{ Cylindrical.MERCATOR, Cylindrical.PLATE_CARREE, Cylindrical.GALL_ORTHOGRAPHIC,
 					Cylindrical.HOBO_DYER, Cylindrical.BEHRMANN, Cylindrical.LAMBERT,
@@ -117,7 +117,7 @@ public class MapExplainer extends Application {
 					input = inputNone;
 				
 				Task<SavableImage> task = MapDesignerRaster.calculateTask(
-						IMG_WIDTH, (int)(IMG_WIDTH/proj.getAspectRatio()), 2, input, proj, null,
+						IMG_WIDTH, (int)(IMG_WIDTH/proj.getAspectRatio()), SMOOTHING, input, proj, null,
 						false, 0, null);
 				task.setOnSucceeded((event) -> {
 					try {

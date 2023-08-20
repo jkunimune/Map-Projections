@@ -39,9 +39,9 @@ import javafx.scene.image.Image;
  */
 public interface SavableImage {
 	
-	public abstract void save(File file) throws IOException;
+	void save(File file) throws IOException;
 	
-	public static SavableImage savable(RenderedImage img) {
+	static SavableImage savable(RenderedImage img) {
 		return new SavableImage() {
 			public void save(File file) throws IOException {
 				String filename = file.getName();
@@ -52,7 +52,7 @@ public interface SavableImage {
 		};
 	}
 	
-	public static SavableImage savable(Image img) {
+	static SavableImage savable(Image img) {
 		return new SavableImage() {
 			public void save(File file) throws IOException {
 				String filename = file.getName();

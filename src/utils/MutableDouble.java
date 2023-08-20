@@ -44,47 +44,15 @@ public class MutableDouble {
 	public double get() {
 		return this.value;
 	}
-	
-	public boolean isFinite() {
-		return Double.isFinite(this.value);
-	}
-	
-	public boolean isInfinite() {
-		return Double.isInfinite(this.value);
-	}
-	
+
 	public boolean isNaN() {
 		return Double.isNaN(this.value);
 	}
-	
-	public boolean isZero() {
-		return this.equals(0);
-	}
-	
-	public boolean equals(double value) {
-		return this.value == value;
-	}
-	
+
 	public void set(double value) {
 		this.value = value;
 	}
-	
-	public void increment() {
-		this.increment(1);
-	}
-	
-	public void increment(double value) {
-		this.value += value;
-	}
-	
-	public void decrement() {
-		this.decrement(1);
-	}
-	
-	public void decrement(double value) {
-		this.value -= value;
-	}
-	
+
 	public String toString() {
 		return "MutableDouble("+value+")";
 	}

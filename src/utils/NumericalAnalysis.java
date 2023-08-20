@@ -45,7 +45,7 @@ public class NumericalAnalysis {
 	 * @param h The step size (must be positive)
 	 * @return \int_a^b f(x) \mathrm{d}x
 	 */
-	public static final double simpsonIntegrate(double a, double b, DoubleUnaryOperator f, double h) {
+	public static double simpsonIntegrate(double a, double b, DoubleUnaryOperator f, double h) {
 		return simpsonIntegrate(a, b, (x,consts) -> f.applyAsDouble(x), h);
 	}
 	
@@ -58,7 +58,7 @@ public class NumericalAnalysis {
 	 * @param constants Constant parameters for the function
 	 * @return \int_a^b f(x) \mathrm{d}x
 	 */
-	public static final double simpsonIntegrate(double a, double b, ScalarFunction f, double h, double... constants) {
+	public static double simpsonIntegrate(double a, double b, ScalarFunction f, double h, double... constants) {
 		double sum = 0;
 		int N = (int)Math.ceil(Math.abs(b-a)/h)*2;
 		double dx = (b - a)/N;
@@ -107,7 +107,7 @@ public class NumericalAnalysis {
 	 * @param h The internal step size (must be positive)
 	 * @return the double[] y, where y[i] is the value of y at t=i*T/n
 	 */
-	public static final double[] simpsonODESolve(double T, int n, DoubleUnaryOperator f, double h) {
+	public static double[] simpsonODESolve(double T, int n, DoubleUnaryOperator f, double h) {
 		return simpsonODESolve(T, n, (x,consts) -> f.applyAsDouble(x), h);
 	}
 	
@@ -120,7 +120,7 @@ public class NumericalAnalysis {
 	 * @param constants Constant parameters for the function
 	 * @return the double[] y, where y[i] is the value of y at t=i*T/n
 	 */
-	public static final double[] simpsonODESolve(double T, int n, ScalarFunction f, double h, double... constants) {
+	public static double[] simpsonODESolve(double T, int n, ScalarFunction f, double h, double... constants) {
 		final double[] y = new double[n+1]; //the output
 		double t = 0;
 		double sum = 0;
@@ -143,11 +143,11 @@ public class NumericalAnalysis {
 	 * @param f The function whose zero must be found
 	 * @param xMin The lower bound for the zero
 	 * @param xMax The upper bound for the zero
-	 * @param tolerence The maximum error in x that this can return
+	 * @param tolerance The maximum error in x that this can return
 	 * @return The value of x that sets f to zero
 	 */
-	public static final double bisectionFind(DoubleUnaryOperator f,
-			double xMin, double xMax, double tolerance) {
+	public static double bisectionFind(DoubleUnaryOperator f,
+	                                   double xMin, double xMax, double tolerance) {
 		double yMin = f.applyAsDouble(xMin);
 		double yMax = f.applyAsDouble(xMax);
 		if ((yMin < 0) == (yMax < 0))
@@ -161,7 +161,6 @@ public class NumericalAnalysis {
 			}
 			else {
 				xMax = x;
-				yMax = y;
 			}
 		}
 		return (xMax + xMin)/2;
@@ -177,7 +176,7 @@ public class NumericalAnalysis {
 	 * @param tolerance The maximum error that this can return
 	 * @return The value of x that puts f near y, or NaN if it does not converge in 5 iterations
 	 */
-	public static final double newtonRaphsonApproximation(
+	public static double newtonRaphsonApproximation(
 			double y, double x0, DoubleUnaryOperator f, DoubleUnaryOperator dfdx, double tolerance) {
 		return newtonRaphsonApproximation(y, x0, (x,consts) -> f.applyAsDouble(x),
 				(x,consts) -> dfdx.applyAsDouble(x), tolerance);
@@ -193,7 +192,7 @@ public class NumericalAnalysis {
 	 * @param constants Constant parameters for the function
 	 * @return The value of x that puts f near 0, or NaN if it does not converge in 8 iterations
 	 */
-	public static final double newtonRaphsonApproximation(
+	public static double newtonRaphsonApproximation(
 			double y, double x0, ScalarFunction f, ScalarFunction dfdx,
 			double tolerance, double... constants) {
 		double x = x0;
@@ -216,13 +215,12 @@ public class NumericalAnalysis {
 	 * @param f The error in terms of x
 	 * @param dfdx The derivative of f with respect to x
 	 * @param tolerance The maximum absolute error that this can return
-	 * @param constants Constant parameters for the function
 	 * @return The value of x that puts f near 0, or NaN if it does not converge in 5 iterations
 	 */
 	public static Complex newtonRaphsonApproximation(
 			Complex y, Complex x0,
 			Function<Complex, Complex> f, Function<Complex, Complex> dfdx, double tolerance) {
-		Complex x = x0;
+		Complex x = x0.copy();
 		Complex error = f.apply(x).minus(y);
 		for (int i = 0; i < 8 && error.abs() > tolerance; i ++) {
 			Complex dydx = dfdx.apply(x);
@@ -252,10 +250,10 @@ public class NumericalAnalysis {
 	 * @return the values of phi and lam that put f1 and f2 near 0, or
 	 * 			<code>null</code> if it does not converge in 5 iterations.
 	 */
-	public static final double[] newtonRaphsonApproximation(double x, double y,
-			double phi0, double lam0, DoubleBinaryOperator f1, DoubleBinaryOperator f2,
-			DoubleBinaryOperator df1dp, DoubleBinaryOperator df1dl, DoubleBinaryOperator df2dp,
-			DoubleBinaryOperator df2dl, double tolerance) {
+	public static double[] newtonRaphsonApproximation(double x, double y,
+	                                                  double phi0, double lam0, DoubleBinaryOperator f1, DoubleBinaryOperator f2,
+	                                                  DoubleBinaryOperator df1dp, DoubleBinaryOperator df1dl, DoubleBinaryOperator df2dp,
+	                                                  DoubleBinaryOperator df2dl, double tolerance) {
 		return newtonRaphsonApproximation(x, y, phi0, lam0,
 				(p,l,consts) -> f1.applyAsDouble(p,l), (p,l,consts) -> f2.applyAsDouble(p,l),
 				(p,l,consts) -> df1dp.applyAsDouble(p,l), (p,l,consts) -> df1dl.applyAsDouble(p,l),
@@ -281,10 +279,10 @@ public class NumericalAnalysis {
 	 * @return the values of phi and lam that put f1 and f2 near x and y, or
 	 * 			<code>null</code> if it does not converge in 5 iterations.
 	 */
-	public static final double[] newtonRaphsonApproximation(double x, double y,
-			double phi0, double lam0, VectorFunction f1, VectorFunction f2,
-			VectorFunction df1dp, VectorFunction df1dl, VectorFunction df2dp,
-			VectorFunction df2dl, double tolerance, double... constants) {
+	public static double[] newtonRaphsonApproximation(double x, double y,
+	                                                  double phi0, double lam0, VectorFunction f1, VectorFunction f2,
+	                                                  VectorFunction df1dp, VectorFunction df1dl, VectorFunction df2dp,
+	                                                  VectorFunction df2dl, double tolerance, double... constants) {
 		double phi = phi0;
 		double lam = lam0;
 		double f1mx = f1.evaluate(phi, lam, constants) -x;
@@ -310,19 +308,8 @@ public class NumericalAnalysis {
 		else // if it aborted due to convergence
 			return new double[] {phi, lam};
 	}
-	
-	
-	/**
-	 * Applies aitken interpolation to an array of tabulated values
-	 * @param x The input value
-	 * @param X The sorted array of inputs on which to interpolate
-	 * @param f The sorted array of outputs on which to interpolate
-	 * @return f(x), approximately
-	 */
-	public static final double aitkenInterpolate(double x, double[] X, double[] f) {
-		return aitkenInterpolate(x, X, f, 0, X.length);
-	}
-	
+
+
 	/**
 	 * Applies aitken interpolation to a subset of an array of tabulated values
 	 * @param x The input value
@@ -332,8 +319,7 @@ public class NumericalAnalysis {
 	 * @param to The index of the arrays at which to stop (exclusive)
 	 * @return f(x), approximately
 	 */
-	public static final double aitkenInterpolate(double x,
-			double[] X, double[] f, int from, int to) { //map from X to f using elements start to end
+	public static double aitkenInterpolate(double x, double[] X, double[] f, int from, int to) { //map from X to f using elements start to end
 		final int N = to - from;
 		final double[][] fx = new double[N][]; // the table of successive approximations
 		
@@ -355,12 +341,12 @@ public class NumericalAnalysis {
 	
 	@FunctionalInterface
 	public interface ScalarFunction {
-		public double evaluate(double x, double[] constants);
+		double evaluate(double x, double[] constants);
 	}
 	
 	@FunctionalInterface
 	public interface VectorFunction {
-		public double evaluate(double x, double y, double[] constants);
+		double evaluate(double x, double y, double[] constants);
 	}
 
 }

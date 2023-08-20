@@ -57,11 +57,7 @@ public class MapEvaluator {
 			Pseudocylindrical.HOMOLOSINE_INTERRUPTED, Danseiji.DANSEIJI_III,
 			Polyhedral.DYMAXION, Danseiji.DANSEIJI_IV,
 			};
-	
-	/**
-	 * @param args
-	 * @throws IOException 
-	 */
+
 	public static void main(String[] args) throws IOException {
 		BufferedImage img = ImageIO.read(new File("input/Sillouette.png")); // start by loading the mask
 		boolean[][] land = new boolean[img.getHeight()][img.getWidth()];
@@ -116,10 +112,6 @@ public class MapEvaluator {
 						arealDistortion.add((dxdλ*dydɸ - dxdɸ*dydλ)/dsdɸ/dsdλ);
 						weights.add(dA);
 					}
-					else {
-//						System.out.printf("[%f,%f],[%f,%f],[%f,%f],[%f,%f]\n", n[0], n[1], e[0], e[1], s[0], s[1], w[0], w[1]);
-//						System.out.println("Nonlinearity detected at "+ɸMin+"N, "+λMin+"E: "+nonlinearity);
-					}
 				}
 			}
 			
@@ -147,7 +139,7 @@ public class MapEvaluator {
 		}
 	}
 	
-	private static final double absoluteQuality(double x) {
+	private static double absoluteQuality(double x) {
 		if (Math.abs(x) < 1)
 			return 1/x;
 		else

@@ -668,13 +668,8 @@ public abstract class Projection {
 	public final boolean isLandscape() {
 		return this.width > this.height;
 	}
-	
-	public final double[] getDimensions() {
-		return new double[] {this.width, this.height};
-	}
-	
-	
-	
+
+
 	public static final Projection NULL_PROJECTION = //this exists solely for the purpose of a "More..." option at the end of menus
 			new Projection("More...", null, 0, 0, 0, null, null, 0) {
 		
@@ -694,7 +689,7 @@ public abstract class Projection {
 	 * The most common geometric configurations of projections
 	 * @author jkunimune
 	 */
-	public static enum Type {
+	public enum Type {
 		CYLINDRICAL("Cylindrical"), CONIC("Conic"), AZIMUTHAL("Azimuthal"),
 		PSEUDOCYLINDRICAL("Pseudocylindrical"), PSEUDOCONIC("Pseudoconic"),
 		PSEUDOAZIMUTHAL("Pseudoazimuthal"),
@@ -702,9 +697,9 @@ public abstract class Projection {
 		TETRADECAHEDRAL("Truncated Octohedral"), ICOSOHEDRAL("Icosohedral"),
 		POLYNOMIAL("Polynomial"), STREBE("Strebe blend"), PLANAR("Planar"), OTHER("Other");
 		
-		private String name;
+		private final String name;
 		
-		private Type(String name) {
+		Type(String name) {
 			this.name = name;
 		}
 		
@@ -722,14 +717,14 @@ public abstract class Projection {
 	 * The useful quantities that projections can preserve
 	 * @author jkunimune
 	 */
-	public static enum Property {
+	public enum Property {
 		CONFORMAL("Conformal"), EQUIDISTANT("Equidistant"), EQUAL_AREA("Equal-area"),
 		PERSPECTIVE("Perspective"), GNOMONIC("Gnomonic"), RETROAZIMUTHAL("Retroazimuthal"),
 		COMPROMISE("Compromise"), POINTLESS("Pointless"), TRUE("True");
 		
-		private String name;
+		private final String name;
 		
-		private Property(String name) {
+		Property(String name) {
 			this.name = name;
 		}
 		

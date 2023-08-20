@@ -26,10 +26,10 @@ package image;
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Files;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,8 +65,8 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 	
 	private static final double MAX_EDGE_LENGTH = 1/20.; // cut lines that are more than this far across the map
 	
-	private List<Path> paths; //the set of closed curves in this image
-	private List<String> format; //the stuff that goes between the curve descriptions, probably important for something.
+	private final List<Path> paths; //the set of closed curves in this image
+	private final List<String> format; //the stuff that goes between the curve descriptions, like '"></path><path d="'
 	private double vbMinX, vbMinY, vbWidth, vbHeight; //the SVG viewBox
 	private double svgWidth, svgHeight; //the actual SVG dimensions
 	private int length; //the total number of path commands, for optimization purposes
@@ -89,7 +89,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		final SAXParser parser = SAXParserFactory.newInstance().newSAXParser();
 		
 		final DefaultHandler handler = new DefaultHandler() {
-			private Deque<double[]> transformStack =
+			private final Deque<double[]> transformStack =
 					new ArrayDeque<double[]>(Collections.singleton(NULL_TRANSFORM));
 			private String currentFormatString = "";
 			
@@ -124,28 +124,27 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 				else if (attributes.getIndex("cx") >= 0 && attributes.getIndex("cy") >= 0) {
 					attributes = parsePoint(attributes, true);
 				}
-				
+
+				StringBuilder attributesString = new StringBuilder();
 				for (int i = 0; i < attributes.getLength(); i ++)
-					currentFormatString +=
-							" "+attributes.getQName(i)+"=\""+attributes.getValue(i)+"\"";
-				currentFormatString += ">";
+					attributesString.append(String.format(
+							" %s=\"%s\"", attributes.getQName(i), attributes.getValue(i)));
+				currentFormatString += attributesString.append(">");
 			}
 			
 			@Override
 			public void endElement(String uri, String localName, String qName) {
-				currentFormatString += "</"+qName+">";
+				currentFormatString += String.format("</%s>", qName);
 				transformStack.pop();
 			}
 			
 			@Override
 			public void characters(char[] ch, int start, int length) {
+				StringBuilder characterString = new StringBuilder();
 				for (int i = 0; i < length; i ++) {
-					char c = ch[start+i];
-//					if (c >= 128 || c == '\'' || c == '"' || c == '<' || c == '>' || c == '&') // some characters must be escaped here
-//						currentFormatString += "&#" + (int)c + ";";
-//					else
-						currentFormatString += c;
+					characterString.append(ch[start+i]);
 				}
+				currentFormatString += characterString;
 			}
 			
 			@Override
@@ -200,37 +199,39 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 					String type = transString.substring(0, i).trim();
 					String argString = transString.substring(i+1, j);
 					String[] args = argString.split("[,\\s]+");
-					if (type.equals("matrix")) {
-						xScale = Double.parseDouble(args[0]);
-						yScale = Double.parseDouble(args[3]);
-						xTrans = Double.parseDouble(args[4]);
-						yTrans = Double.parseDouble(args[5]);
-					}
-					else if (type.equals("translate")) {
-						if (args.length == 1) {
-							xTrans = yTrans = Double.parseDouble(args[0]);
-						}
-						else {
-							xTrans = Double.parseDouble(args[0]);
-							yTrans = Double.parseDouble(args[1]);
-						}
-					}
-					else if (type.equals("scale")) {
-						if (args.length == 1) {
-							xScale = yScale = Double.parseDouble(args[0]);
-						}
-						else {
+					switch (type) {
+						case "matrix":
 							xScale = Double.parseDouble(args[0]);
-							yScale = Double.parseDouble(args[1]);
-						}
-					} //I'm not worrying about shear and rotation because I don't want to
+							yScale = Double.parseDouble(args[3]);
+							xTrans = Double.parseDouble(args[4]);
+							yTrans = Double.parseDouble(args[5]);
+							break;
+						case "translate":
+							if (args.length == 1) {
+								xTrans = yTrans = Double.parseDouble(args[0]);
+							}
+							else {
+								xTrans = Double.parseDouble(args[0]);
+								yTrans = Double.parseDouble(args[1]);
+							}
+							break;
+						case "scale":
+							if (args.length == 1) {
+								xScale = yScale = Double.parseDouble(args[0]);
+							}
+							else {
+								xScale = Double.parseDouble(args[0]);
+								yScale = Double.parseDouble(args[1]);
+							}
+							break;
+					} // I'm not worrying about shear and rotation because I don't want to
 					transString = transString.substring(j+1);
 				}
 				transformStack.push(new double[] {xScale, yScale, xTrans, yTrans});
 				return SAXUtils.removeAttribute(attrs, "transform");
 			}
 			
-			private Attributes parsePath(Attributes attrs) throws Exception {
+			private Attributes parsePath(Attributes attrs) {
 				currentFormatString += " d=\"";
 				format.add(currentFormatString);
 				paths.add(new Path(attrs.getValue("d"), transformStack.peek(),
@@ -260,7 +261,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			}
 		};
 		
-		parser.parse(new BufferedInputStream(new FileInputStream(file)), handler);
+		parser.parse(new BufferedInputStream(Files.newInputStream(file.toPath())), handler);
 	}
 	
 	
@@ -446,13 +447,9 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			this();
 			this.addAll(Arrays.asList(commands));
 		}
-		
-		public Path(String d, double vbWidth, double vbHeight) throws Exception {
-			this(d, new double[] {1,1,0,0}, 0, 0, vbWidth, vbHeight);
-		}
-		
+
 		public Path(String d, double[] transform,
-				double vbMinX, double vbMinY, double vbWidth, double vbHeight) throws Exception { //I don't know if this is bad coding practice, but I don't really want to find a way to gracefully catch all possible errors into some more specific Exception class
+				double vbMinX, double vbMinY, double vbWidth, double vbHeight) { //I don't know if this is bad coding practice, but I don't really want to find a way to gracefully catch all possible errors into some more specific Exception class
 			super();
 			
 			int i = 0;
@@ -460,14 +457,13 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			double[] last = {0, 0}; //for relative coordinates
 			while (i < d.length()) {
 				char type = d.charAt(i);
-				String argString = "";
-				while (i+1 < d.length() && !isNonELetter(d.charAt(i+1))) {
-					i ++;
-					argString += d.charAt(i);
-				}
-				argString = argString.replaceAll("([0-9\\.])-", "$1,-"); //this is necessary because some Adobe products leave out delimiters between negative numbers
 				i ++;
-				
+				int start = i;
+				while (i < d.length() && !isNonELetter(d.charAt(i)))
+					i ++;
+				String argString = d.substring(start, i);
+				argString = argString.replaceAll("([0-9.])-", "$1,-"); //this is necessary because some Adobe products leave out delimiters between negative numbers
+
 				String[] argStrings;
 				if (argString.trim().isEmpty()) 	argStrings = new String[0];
 				else 								argStrings = argString.trim().split("[\\s,]+");
@@ -527,10 +523,10 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		
 		public String toString(
 				double inMinX, double inMaxY, double outMinX, double outMinY, double outScale) {
-			String s = "";
+			StringBuilder s = new StringBuilder();
 			for (Command c: this)
-				s += c.toString(inMinX, inMaxY, outMinX, outMinY, outScale)+" ";
-			return s;
+				s.append(c.toString(inMinX, inMaxY, outMinX, outMinY, outScale)).append(" ");
+			return s.toString();
 		}
 	}
 	
@@ -547,11 +543,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			this.type = type;
 			this.args = args;
 		}
-		
-		public Command(Command command) {
-			this(command.type, command.args.clone());
-		}
-		
+
 		public String toString() {
 			return this.toString(-1, -1, 0, 0, 1);
 		}
@@ -565,12 +557,12 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 				return " x=\""+formatDouble(outMinX + (args[0]-inMinX)*outScale)+
 						"\" y=\""+formatDouble(outMinY + (inMaxY-args[1])*outScale)+"\"";
 			
-			String s = Character.toString(type);
+			StringBuilder s = new StringBuilder(Character.toString(type));
 			for (int i = 0; i < args.length; i ++) {
 				if (i%2 == 0)
-					s += formatDouble(outMinX + (args[i]-inMinX)*outScale)+",";
+					s.append(formatDouble(outMinX + (args[i] - inMinX)*outScale)).append(",");
 				else
-					s += formatDouble(outMinY + (inMaxY-args[i])*outScale)+",";
+					s.append(formatDouble(outMinY + (inMaxY - args[i])*outScale)).append(",");
 			}
 			return s.substring(0, Math.max(1, s.length()-1));
 		}

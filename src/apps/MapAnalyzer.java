@@ -62,7 +62,7 @@ import utils.Procedure;
  */
 public class MapAnalyzer extends MapApplication {
 
-	public static final void main(String[] args) {
+	public static void main(String[] args) {
 		launch(args);
 	}
 	
@@ -162,7 +162,7 @@ public class MapAnalyzer extends MapApplication {
 	private Region buildDistortionHistograms() {
 		this.sizeChart = new BarChart<String, Number>(new CategoryAxis(), new NumberAxis());
 		this.sizeChart.setPrefWidth(CHART_WIDTH);
-		this.sizeChart.setPrefHeight(IMG_SIZE/2);
+		this.sizeChart.setPrefHeight(IMG_SIZE/2.);
 		this.sizeChart.getXAxis().setLabel("Scale factor");
 		this.sizeChart.setBarGap(0);
 		this.sizeChart.setCategoryGap(0);
@@ -172,7 +172,7 @@ public class MapAnalyzer extends MapApplication {
 		
 		this.shapeChart = new BarChart<String, Number>(new CategoryAxis(), new NumberAxis());
 		this.shapeChart.setPrefWidth(CHART_WIDTH);
-		this.shapeChart.setPrefHeight(IMG_SIZE/2);
+		this.shapeChart.setPrefHeight(IMG_SIZE/2.);
 		this.shapeChart.getXAxis().setLabel("Stretch factor");
 		this.shapeChart.setBarGap(0);
 		this.shapeChart.setCategoryGap(0);
@@ -332,8 +332,8 @@ public class MapAnalyzer extends MapApplication {
 	}
 	
 	
-	private static final Series<String, Number> histogram(double[][] values,
-			double min, double max, int num, DoubleUnaryOperator converter) {
+	private static Series<String, Number> histogram(
+			double[][] values, double min, double max, int num, DoubleUnaryOperator converter) {
 		int[] hist = new int[num+1]; //this array is the histogram values for min, min+dx, ..., max-dx, max
 		int tot = 0;
 		for (double[] row: values) {
@@ -358,7 +358,7 @@ public class MapAnalyzer extends MapApplication {
 	
 	
 	
-	private static final String format(double d) {
+	private static String format(double d) {
 		if (d < 1000)
 			return Double.toString(Math.round(d*100.)/100.);
 		else

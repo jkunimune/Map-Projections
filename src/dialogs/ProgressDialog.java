@@ -44,18 +44,8 @@ public class ProgressDialog<V> extends Dialog<V> {
 	private final Worker<V> worker;
 	private final ProgressBar bar;
 	private final Label words;
-	
-	
-	public static <V> void trackProgress(Worker<V> worker) { //track the worker with a nicely formatted prog
-		ProgressDialog<V> dialog = new ProgressDialog<V>(worker);
-		worker.runningProperty().addListener((wasRunning, isRunning, observable) -> {
-			if (isRunning)
-				dialog.show(); //show this automatically when the Worker runs
-			else
-				dialog.close(); //close this automatically when the Worker stops running
-		});
-	}
-	
+
+
 	public ProgressDialog(Worker<V> worker) {
 		this.worker = worker;
 			

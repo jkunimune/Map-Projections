@@ -100,7 +100,7 @@ public class Snyder {
 	};
 	
 	
-	private static final Complex f(Complex z) {
+	private static Complex f(Complex z) {
 		Complex p = new Complex();
 		for (int k = A.length-1; k >= 0; k --) {
 			p = p.times(z).plus(new Complex(A[k], B[k]));
@@ -109,7 +109,7 @@ public class Snyder {
 	}
 	
 	
-	private static final Complex fp(Complex z) {
+	private static Complex fp(Complex z) {
 		Complex p = new Complex();
 		for (int k = A.length-1; k > 0; k --) {
 			p = p.times(z).plus(new Complex(A[k], B[k]).times(k));

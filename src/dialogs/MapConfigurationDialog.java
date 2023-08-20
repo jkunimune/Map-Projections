@@ -101,7 +101,7 @@ public class MapConfigurationDialog extends Dialog<Boolean> {
 		pane.contentTextProperty().addListener((arg0) -> this.updateGUI());	// set it to refresh the gui when... the content texts?
 		this.setTitle("Save options");	// set the words on it
 		pane.setHeaderText("Please configure the final image");
-		pane.getButtonTypes().addAll(new ButtonType[] { ButtonType.OK, ButtonType.CANCEL });	// add buttons
+		pane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);	// add buttons
 		this.updateGUI();
 		
 		this.setResultConverter(

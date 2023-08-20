@@ -79,7 +79,7 @@ public class Danseiji {
 	
 	private static class DanseijiProjection extends Projection {
 		
-		private String filename; // the data filename
+		private final String filename; // the data filename
 		private double[][][][] cells; // the values of the corner of each cell
 		private int[][] cellShapes; // the slope of each cell
 		private double[][][] pixels; // the pixel values, for inverse mapping

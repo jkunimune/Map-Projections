@@ -39,12 +39,12 @@ import image.SVGMap.Path;
  */
 public class ImageUtils {
 	
-	public static final int blend(int[] colors) {
+	public static int blend(int[] colors) {
 		return blend(colors, 2.2);
 	}
 	
 	
-	public static final int blend(int[] colors, double gamma) {
+	public static int blend(int[] colors, double gamma) {
 		int a_tot = 0;
 		int r_tot = 0;
 		int g_tot = 0;
@@ -59,13 +59,13 @@ public class ImageUtils {
 		if (a_tot == 0)	return 0;
 		else
 			return (a_tot/colors.length << 24) +
-					((int)Math.pow(r_tot/a_tot, 1/gamma) << 16) +
-					((int)Math.pow(g_tot/a_tot, 1/gamma) << 8) +
-					((int)Math.pow(b_tot/a_tot, 1/gamma) << 0);
+					((int)Math.pow((double)r_tot/a_tot, 1/gamma) << 16) +
+					((int)Math.pow((double)g_tot/a_tot, 1/gamma) << 8) +
+					((int)Math.pow((double)b_tot/a_tot, 1/gamma) << 0);
 	}
 	
 	
-	public static final void drawSVGPath(Path path, Color stroke, float strokeWidth, boolean antialias, Graphics2D g) {
+	public static void drawSVGPath(Path path, Color stroke, float strokeWidth, boolean antialias, Graphics2D g) {
 		g.setStroke(new BasicStroke(strokeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
 		g.setColor(stroke);
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
@@ -73,7 +73,7 @@ public class ImageUtils {
 		drawSVGPath(path, g);
 	}
 	
-	public static final void drawSVGPath(Path path, Graphics2D g) {
+	public static void drawSVGPath(Path path, Graphics2D g) {
 		Path2D awtPath = new Path2D.Double(Path2D.WIND_NON_ZERO, path.size());
 		for (Command svgCmd: path) {
 			switch (svgCmd.type) {
