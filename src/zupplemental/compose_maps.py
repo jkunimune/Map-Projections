@@ -105,7 +105,7 @@ def compose_indicatrices2(ctr_meridian):
 def compose_political():
 	print('\t<g transform="matrix(1,0,0,-1,180,90)">')
 	print('\t\t<g class="country">')
-	generate_borders('ne_50m', trim_antarctica=True)
+	generate_borders('ne_50m', trim_antarctica=True, add_circles=True)
 	print('\t\t</g>')
 	print('\t\t<g class="lakes">')
 	plot_shapes('ne_50m_lakes', max_rank=4)
@@ -180,7 +180,7 @@ if __name__ == '__main__':
 	# compose_poster()
 	# compose_indicatrices()
 	# compose_indicatrices2(-0)
-	# compose_political()
-	compose_fine_political()
+	compose_political()
+	# compose_fine_political()
 	# compose_orthodromes()
 	# compose_everything()
