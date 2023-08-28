@@ -9,7 +9,7 @@ SIZE_CLASSES = ['lg', 'md', 'sm', None, None, None]
 CIRCLE_RADIUS = 10
 
 
-def generate_borders(source, borders_only=False, trim_antarctica=False, add_circles=False):
+def generate_borders(source, borders_only=False, trim_antarctica=False, add_circles=False) -> str:
 	"""data from https://www.naturalearthdata.com/"""
 	sf = shapefile.Reader("shapefiles/{}_admin_0_countries".format(source))
 
@@ -22,22 +22,25 @@ def generate_borders(source, borders_only=False, trim_antarctica=False, add_circ
 		sovereignties[region.record.SOV_A3] = sovereignties.get(region.record.SOV_A3, []) + [region]
 
 	# next, go thru and plot the borders
+	result = ""
 	for sovereignty_code, regions in sorted(sovereignties.items()):
 		sovereign_code = complete_sovereign_code_if_necessary(sovereignty_code, regions)
-		print(f'\t\t\t<g id="{sovereign_code}">')
+		result += f'\t\t\t<g id="{sovereign_code}">\n'
 		for region in regions:
 			region_code = region.record.ADM0_A3
 			is_sovereign = region_code == sovereign_code
 			if is_sovereign:
-				region_code = f"{region_code}_"  # add a suffix because ids have to be unique
+				region_code = f"{region_code}-shape"  # add a suffix because ids have to be unique TODO: use classes instead
 			if borders_only:
-				print(f'\t\t\t\t<clipPath id="{region_code}-clipPath">')
-				print(f'\t\t\t\t\t<use href="#{region_code}" />')
-				print(f'\t\t\t\t</clipPath>')
-				print(f'\t\t\t\t<use href="#{region_code}" style="fill:none; clip-path:url(#{region_code}-clipPath);" />')
+				result += (
+					f'\t\t\t\t<clipPath id="{region_code}-clipPath">\n'
+					f'\t\t\t\t\t<use href="#{region_code}" />\n'
+					f'\t\t\t\t</clipPath>\n'
+					f'\t\t\t\t<use href="#{region_code}" style="fill:none; clip-path:url(#{region_code}-clipPath);" />\n'
+				)
 			else:
-				plot(region.shape.points, midx=region.shape.parts, close=False,
-				     fourmat='xd', tabs=4, ident=region_code)
+				result += plot(region.shape.points, midx=region.shape.parts, close=False,
+				               fourmat='xd', tabs=4, ident=region_code)
 
 			if add_circles:
 				too_small = True
@@ -55,8 +58,10 @@ def generate_borders(source, borders_only=False, trim_antarctica=False, add_circ
 						radius = CIRCLE_RADIUS
 					else:
 						radius = CIRCLE_RADIUS/sqrt(2)
-					print(f'\t\t\t\t<circle x="{capital_λ}" y="{capital_ф}" r="{radius} />')
-		print('\t\t\t</g>')
+					result += f'\t\t\t\t<circle x="{capital_λ}" y="{capital_ф}" r="{radius} />\n'
+		result += '\t\t\t</g>\n'
+
+	return result
 
 
 def complete_sovereign_code_if_necessary(sovereignty_code: str, regions: list[ShapeRecord]) -> str:
@@ -74,8 +79,11 @@ def complete_sovereign_code_if_necessary(sovereignty_code: str, regions: list[Sh
 	for region in regions:
 		if region.record.ADM0_A3[:2] == sovereignty_code[:2]:
 			if sovereign_code is not None:
-				raise ValueError(f"there are two possible sovereign codes for {sovereignty_code} and I "
-				                 f"don't know which to use: {sovereign_code} and {region.record.ADM0_A3}")
+				if sovereignty_code == "KA1":
+					return "KAZ"
+				else:
+					raise ValueError(f"there are two possible sovereign codes for {sovereignty_code} and I "
+					                 f"don't know which to use: {sovereign_code} and {region.record.ADM0_A3}")
 			else:
 				sovereign_code = region.record.ADM0_A3
 	if sovereign_code is None:

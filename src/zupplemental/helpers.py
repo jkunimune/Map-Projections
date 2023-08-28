@@ -28,7 +28,7 @@ def obliquify(lat1, lon1, lat0, lon0):
 	return latf, lonf
 
 
-def plot(coords, midx=[0], close=True, fourmat='pr', clazz=None, ident=None, tabs=3):
+def plot(coords, midx=[0], close=True, fourmat='pr', clazz=None, ident=None, tabs=3) -> str:
 	class_attr = 'class="{}" '.format(clazz) if clazz is not None else ''
 	ident_attr = 'id="{}" '.format(ident) if ident is not None else ''
 	tag = '\t'*tabs+'<path {}{}d="'.format(class_attr, ident_attr)
@@ -54,8 +54,8 @@ def plot(coords, midx=[0], close=True, fourmat='pr', clazz=None, ident=None, tab
 			x, y = coord
 
 		tag += '{}{:.3f},{:.3f} '.format(letter, x, y)
-	tag += 'Z" />' if close else '" />'
-	print(tag.replace('.000',''))
+	tag += 'Z" />\n' if close else '" />\n'
+	return tag.replace('.000','')
 
 
 def trim_edges(coast, coast_parts):
@@ -86,20 +86,6 @@ def lengthen_edges(coast):
 			for j in range(math.ceil(abs(x1-x0))-1):
 				coast.insert(i+1, (x1+step*(j+1), y1))
 	return coast
-
-
-def line_break(line):
-	"""replace some space with a newline; whichever space is closest to the center"""
-	total_length = len(line)
-	words = line.split(' ')
-	best_length = float('inf')
-	left_length = 0
-	for i in range(len(words)-1):
-		left_length += len(words[i])+1
-		if max(left_length, total_length-left_length) < best_length:
-			best_length = max(left_length, total_length-left_length)
-			best_idx = left_length
-	return line[:best_idx-1] + '\n' + line[best_idx:]
 
 
 def get_centroid(points, parts=None):
