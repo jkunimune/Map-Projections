@@ -25,22 +25,20 @@ def generate_borders(source, borders_only=False, trim_antarctica=False, add_circ
 	result = ""
 	for sovereignty_code, regions in sorted(sovereignties.items()):
 		sovereign_code = complete_sovereign_code_if_necessary(sovereignty_code, regions)
-		result += f'\t\t\t<g id="{sovereign_code}">\n'
+		result += f'\t\t\t<g class="{sovereign_code}">\n'
 		for region in regions:
 			region_code = region.record.ADM0_A3
 			is_sovereign = region_code == sovereign_code
-			if is_sovereign:
-				region_code = f"{region_code}-shape"  # add a suffix because ids have to be unique TODO: use classes instead
 			if borders_only:
 				result += (
 					f'\t\t\t\t<clipPath id="{region_code}-clipPath">\n'
-					f'\t\t\t\t\t<use href="#{region_code}" />\n'
+					f'\t\t\t\t\t<use href="#{region_code}-shape" />\n'
 					f'\t\t\t\t</clipPath>\n'
-					f'\t\t\t\t<use href="#{region_code}" style="fill:none; clip-path:url(#{region_code}-clipPath);" />\n'
+					f'\t\t\t\t<use href="#{region_code}-shape" style="fill:none; clip-path:url(#{region_code}-clipPath);" />\n'
 				)
-			else:
+			else:  # TODO: include the sovereign of an admin-1 region in the class
 				result += plot(region.shape.points, midx=region.shape.parts, close=False,
-				               fourmat='xd', tabs=4, ident=region_code)
+				               fourmat='xd', tabs=4, clazz=region_code, ident=region_code+"-shape")
 
 			if add_circles:
 				too_small = True
