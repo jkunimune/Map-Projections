@@ -4,11 +4,11 @@
 import math
 import re
 
-from generate_borders import plot_political_shapes
+from generate_political_shapes import plot_political_shapes
 from generate_graticule import generate_graticule, generate_backdrop
 from generate_indicatrices import generate_indicatrices
 from generate_orthodromes import generate_orthodromes
-from generate_shape import plot_shapes
+from generate_shapes import plot_shapes
 from generate_labels import generate_topographical_labels, label_shapes, label_points
 
 
