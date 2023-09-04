@@ -56,6 +56,8 @@ def plot_texts(
 			tipe = region.record.type.lower()
 		except AttributeError:
 			tipe = region.record.featurecla.lower()
+		if tipe == "depression":
+			continue  # skip depressions because I don't like them
 
 		if secondary_attr is not None and tipe == 'dependency':
 			label = f"{region.record.name} ({secondary_attr_value})"  # indicate dependencies' sovereigns in parentheses
@@ -69,7 +71,7 @@ def plot_texts(
 		# create the label as a <text> tag
 		result += f'\t<text class="label-{label_class} label-{label_size}" x="{180+x:.03f}" y="{90-y:.03f}">{label}</text>\n'
 		# add circles to the ones that need markers
-		if force_points or (tipe in ['mountain', 'depression', 'pole', 'waterfall']):
+		if force_points or (tipe in ['mountain', 'pole', 'waterfall']):
 			circle_size = sqrt(text_size - rank + 1) if text_size != 0 else 1
 			result += f'\t<circle cx="{180+x:.03f}" cy="{90-y:.03f}" r="{circle_size*0.15:.03f}" />\n'
 	return result
