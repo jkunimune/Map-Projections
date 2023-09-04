@@ -43,8 +43,9 @@ def plot_political_shapes(filename, mode="polygon", trim_antarctica=False) -> st
 			is_sovereign = region_code == sovereign_code
 
 			if mode == "polygon":
+				clazz = region_code if not is_sovereign else None
 				sovereign_content += plot(region.shape.points, midx=region.shape.parts, close=False,
-				                          fourmat='xd', tabs=4, clazz=region_code, ident=region_code+"-shape")
+				                          fourmat='xd', tabs=4, clazz=clazz, ident=region_code+"-shape")
 
 			elif mode == "border":
 				sovereign_content += (
