@@ -112,13 +112,15 @@ def main():
 		"../../input/Political.svg",
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
 		'		<g class="country">\n'
-		+ plot_political_shapes('ne_50m_admin_0_countries', trim_antarctica=True, mode="polygon") +
+		+ plot_political_shapes('ne_50m_admin_0_countries', trim_antarctica=True,
+		                        which="big", add_circles=False)
+		+ plot_political_shapes('ne_50m_admin_0_countries', trim_antarctica=True,
+		                        which="small", add_circles=True) +
 		'		</g>\n'
 		'		<g class="lakes">\n'
 		+ plot_shapes('ne_50m_lakes', max_rank=4) +
 		'		</g>\n'
 		'		<g class="country">\n'
-		+ plot_political_shapes('ne_50m_admin_0_countries', trim_antarctica=True, mode="circle") +
 		'		</g>\n'
 		'	</g>\n'
 		+ label_shapes('ne_50m_admin_0_countries', "pol", secondary_attr="NOTE_ADM0")
@@ -156,10 +158,10 @@ def main():
 		'<rect class="water" width="100%" height="100%" />\n'
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
 		'		<g class="country">\n'
-		+ plot_political_shapes('ne_10m_admin_0_countries', trim_antarctica=True, mode="polygon") +
+		+ plot_political_shapes('ne_10m_admin_0_countries', trim_antarctica=True) +
 		'		</g>\n'
 		'		<g class="thick-country-border">\n'
-		+ plot_political_shapes('ne_10m_admin_0_countries', trim_antarctica=True, mode="border") +
+		+ plot_political_shapes('ne_10m_admin_0_countries', trim_antarctica=True, only_border=True) +
 		'		</g>\n'
 		'		<g class="country-border">\n'
 		+ plot_shapes('ne_10m_admin_0_map_units') +
