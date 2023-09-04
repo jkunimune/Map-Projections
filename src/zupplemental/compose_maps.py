@@ -118,7 +118,7 @@ def main():
 		+ plot_shapes('ne_50m_lakes', max_rank=4) +
 		'		</g>\n'
 		'	</g>\n'
-		+ label_shapes('ne_50m_admin_0_countries', "pol")
+		+ label_shapes('ne_50m_admin_0_countries', "pol", secondary_attr="NOTE_ADM0")
 	)
 
 	# fine_political
@@ -147,47 +147,47 @@ def main():
 		'	</g>\n'
 	)
 
-	# # everything
-	# write_svg_code_to_file(
-	# 	"../../input/Advanced/Supermap.svg",
-	# 	'	<g transform="matrix(1,0,0,-1,180,90)">\n'
-	# 	'		<g class="country">\n'
-	# 	+ generate_borders('ne_10m', trim_antarctica=True, borders_only=False) +
-	# 	'		<g class="border">\n'
-	# 	+ generate_borders('ne_10m', trim_antarctica=True, borders_only=True) +
-	# 	'		</g>\n'
-	# 	'		</g>\n'
-	# 	'		<g class="sovereign">\n'
-	# 	+ plot_shapes('ne_10m_admin_0_map_units') +
-	# 	'		</g>\n'
-	# 	'		<g class="admin">\n'
-	# 	+ plot_shapes('ne_10m_admin_1_states_provinces_lines', filter_field='adm0_a3',
-	# 	              filter_vals=['RUS', 'CAN', 'CHN', 'USA', 'BRA', 'AUS', 'IND', 'ARG', 'KAZ']) +
-	# 	'		</g>\n'
-	# 	'		<g class="dispute">\n'
-	# 	+ plot_shapes('ne_10m_admin_0_boundary_lines_disputed_areas') +
-	# 	'		</g>\n'
-	# 	'		<g class="coastline">\n'
-	# 	+ plot_shapes('ne_10m_coastline', trim_antarctica=True) +
-	# 	'		</g>\n'
-	# 	'		<g class="river">\n'
-	# 	+ plot_shapes('ne_10m_rivers_lake_centerlines', max_rank=5) +
-	# 	'		</g>\n'
-	# 	'		<g class="lake">\n'
-	# 	+ plot_shapes('ne_10m_lakes', max_rank=4) +
-	# 	'		</g>\n'
-	# 	'		<g class="graticule">\n'
-	# 	+ generate_graticule(5, 1, include_tropics=True, adjust_poles=True)
-	# 	+ plot_shapes('ne_10m_geographic_lines', clazz="dateline", filter_field='name',
-	# 	              filter_vals=["International Date Line"]) +
-	# 	'		</g>\n'
-	# 	'	</g>\n'
-	# 	+ generate_topographical_labels('ne_50m', max_rank=2, text_size=4)
-	# 	+ label_shapes('ne_10m_lakes', "sea", max_rank=1, text_size=1)
-	# 	+ label_shapes('ne_10m_admin_0_countries', "pol", text_size=4)
-	# 	+ label_points('cities_capital', "cap", text_size=1)
-	# 	+ label_points('cities_other', "cit", text_size=0)
-	# )
+	# everything
+	write_svg_code_to_file(
+		"../../input/Advanced/Supermap.svg",
+		'<rect class="water" width="100%" height="100%" />\n'
+		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
+		'		<g class="country">\n'
+		+ generate_borders('ne_10m', trim_antarctica=True, borders_only=False) +
+		'		<g class="border">\n'
+		+ generate_borders('ne_10m', trim_antarctica=True, borders_only=True) +
+		'		</g>\n'
+		'		</g>\n'
+		'		<g class="sovereign">\n'
+		+ plot_shapes('ne_10m_admin_0_map_units') +
+		'		</g>\n'
+		'		<g class="admin">\n'
+		+ plot_shapes('ne_10m_admin_1_states_provinces_lines', filter_field='ADM0_A3',
+		              filter_values=['RUS', 'CAN', 'CHN', 'USA', 'BRA', 'AUS', 'IND', 'ARG', 'KAZ']) +
+		'		</g>\n'
+		'		<g class="dispute">\n'
+		+ plot_shapes('ne_10m_admin_0_boundary_lines_disputed_areas') +
+		'		</g>\n'
+		'		<g class="coastline">\n'
+		+ plot_shapes('ne_10m_coastline', trim_antarctica=True) +
+		'		</g>\n'
+		'		<g class="river">\n'
+		+ plot_shapes('ne_10m_rivers_lake_centerlines', max_rank=5) +
+		'		</g>\n'
+		'		<g class="lake">\n'
+		+ plot_shapes('ne_10m_lakes', max_rank=4) +
+		'		</g>\n'
+		'		<g class="graticule">\n'
+		+ generate_graticule(5, 1, include_tropics=True, adjust_poles=True)
+		+ plot_shapes('ne_10m_geographic_lines', clazz="dateline", filter_field='name',
+		              filter_values=["International Date Line"]) +
+		'		</g>\n'
+		'	</g>\n'
+		+ generate_topographical_labels('ne_50m', max_rank=2, text_size=4)
+		+ label_shapes('ne_10m_lakes', "sea", max_rank=1, text_size=1)
+		+ label_shapes('ne_10m_admin_0_countries', "pol", text_size=4, secondary_attr="NOTE_ADM0")
+		+ label_points('ne_50m_populated_places_simple', "cit", text_size=0, max_rank=3)
+	)
 
 
 def write_svg_code_to_file(filename: str, code: str) -> None:
@@ -199,6 +199,7 @@ def write_svg_code_to_file(filename: str, code: str) -> None:
 	new_text = header + code + footer
 	with open(filename, "w", encoding="utf-8") as file:
 		file.write(new_text)
+	print(f"saved '{filename}")
 
 
 if __name__ == '__main__':

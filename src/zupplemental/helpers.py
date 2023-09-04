@@ -1,5 +1,10 @@
+from __future__ import annotations
+
 import math
 import random as rng
+from types import SimpleNamespace
+
+import shapefile
 
 
 def obliquify(lat1, lon1, lat0, lon0):
@@ -140,3 +145,24 @@ def get_centroid(points, parts=None):
 	loncr = math.atan2(yc, xc)
 	latcr = math.atan2(zc, math.hypot(xc, yc))
 	return (math.degrees(loncr), math.degrees(latcr))
+
+def normalize_shaperecord(shaperecord: shapefile.ShapeRecord) -> BetterShapeRecord:
+	""" the Natural Earth dataset has a really horrible problem with inconsistent casing.  some of their
+	    records' field names are all-lowercase, some are all-uppercase, and some are camel-case.  which is
+	    especially a problem because sometimes the same field across different shapefiles from their database
+	    will have different case (a country has a NAME, but a mountain only has a name).  isn't the whole
+	    point that the different shapefiles are supposed to go together well?  I mean, I get that they do
+	    geometricly.  but this is such an easy thing to standardize.  so I'm going to do it for them now, at
+	    runtime.
+	"""
+	record_fields = {}
+	for attr in vars(shaperecord.record)["_Record__field_positions"].keys():
+		if "__" not in attr:
+			record_fields[attr.lower()] = getattr(shaperecord.record, attr)
+	better_shaperecord = BetterShapeRecord(shaperecord.shape, SimpleNamespace(**record_fields))
+	return better_shaperecord
+
+class BetterShapeRecord:
+	def __init__(self, shape, record):
+		self.shape = shape
+		self.record = record
