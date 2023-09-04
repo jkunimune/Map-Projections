@@ -1,11 +1,9 @@
 from math import inf
 
-import shapefile
 from numpy import pi, sqrt
-from shapefile import ShapeRecord
 from shapely import Polygon
 
-from helpers import plot, trim_edges
+from helpers import plot, trim_edges, load_shaperecords, ShapeRecord
 
 SIZE_CLASSES = [
 	'lg', 'md', 'sm', None, None, None]
@@ -13,8 +11,8 @@ CIRCLE_RADIUS = .7
 
 
 def plot_political_shapes(filename, which="all", only_border=False, add_circles=False,
-                          trim_antarctica=False) -> str:
-	""" data from https://www.naturalearthdata.com/
+                          trim_antarctica=False, add_title=False) -> str:
+	""" it's like plot_shapes but it also can make circles and handles, like, dependencies and stuff
 	    :param filename: the name of the natural earth dataset to use (minus the .shp)
 	    :param which: either "all" to do all countries, "big" to exclude small countries,
 	                  or "small" to exclude big countries
@@ -22,20 +20,15 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 	                        clip to that existing shape
 	    :param add_circles: add circles to each small country
 	    :param trim_antarctica: whether to adjust antarctica's shape
+	    :param add_title: add mouseover text
 	"""
-	try:
-		sf = shapefile.Reader(f"shapefiles/{filename}")
-	except shapefile.ShapefileException:
-		raise FileNotFoundError(f"The shapefile {filename} is missing; please download it and put it in "
-		                        f"src/zupplemental/shapefiles/")
-
 	# first sort records into a dictionary by admin0 A3 code
 	sovereignties: dict[str, list[ShapeRecord]] = {}
-	for region in sf.shapeRecords():
+	for region in load_shaperecords(filename):
 		if trim_antarctica:
-			if region.record.SOV_A3 == 'ATA':  # if it is Antarctica, trim it
+			if region.record["sov_a3"] == 'ATA':  # if it is Antarctica, trim it
 				region.shape.points = trim_edges(region.shape.points, region.shape.parts)
-		sovereignties[region.record.SOV_A3] = sovereignties.get(region.record.SOV_A3, []) + [region]
+		sovereignties[region.record["sov_a3"]] = sovereignties.get(region.record["sov_a3"], []) + [region]
 
 	# next, go thru and plot the borders
 	result = ""
@@ -43,8 +36,9 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 		sovereign_code = complete_sovereign_code_if_necessary(sovereignty_code, regions)
 		sovereign_content = ''
 		for region in regions:
-			region_code = region.record.ADM0_A3
+			region_code = region.record["adm0_a3"]
 			is_sovereign = region_code == sovereign_code
+			title = region.record["name"]
 
 			small = True
 			max_size = -inf
@@ -66,7 +60,8 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 			if not only_border:
 				clazz = region_code if not is_sovereign else None
 				sovereign_content += plot(region.shape.points, midx=region.shape.parts, close=False,
-				                          fourmat='xd', tabs=4, clazz=clazz, ident=region_code+"-shape")
+				                          fourmat='xd', tabs=4, clazz=clazz, ident=region_code+"-shape",
+				                          title=title if add_title else None)
 
 			else:
 				sovereign_content += (
@@ -77,13 +72,15 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 				)
 
 			if add_circles and small:
-				capital_λ, capital_ф = float(region.record.LABEL_X), float(region.record.LABEL_Y)
+				capital_λ, capital_ф = float(region.record["label_x"]), float(region.record["label_y"])
 				if is_sovereign:
 					radius = CIRCLE_RADIUS
 				else:
 					radius = CIRCLE_RADIUS/sqrt(2)
 				sovereign_content += f'\t\t\t\t<circle class="{region_code}" ' \
 				                     f'cx="{capital_λ}" cy="{capital_ф}" r="{radius}" />\n'
+				if add_title:
+					sovereign_content = sovereign_content[:-4] + f'><title>{title}</title></circle>\n'
 
 		if len(sovereign_content) > 0:
 			result += f'\t\t\t<g class="{sovereign_code}">\n' + \
@@ -106,15 +103,15 @@ def complete_sovereign_code_if_necessary(sovereignty_code: str, regions: list[Sh
 	"""
 	sovereign_code = None
 	for region in regions:
-		if region.record.ADM0_A3[:2] == sovereignty_code[:2]:
+		if region.record["adm0_a3"][:2] == sovereignty_code[:2]:
 			if sovereign_code is not None:
 				if sovereignty_code == "KA1":
 					return "KAZ"
 				else:
 					raise ValueError(f"there are two possible sovereign codes for {sovereignty_code} and I "
-					                 f"don't know which to use: {sovereign_code} and {region.record.ADM0_A3}")
+					                 f"don't know which to use: {sovereign_code} and {region.record['adm0_a3']}")
 			else:
-				sovereign_code = region.record.ADM0_A3
+				sovereign_code = region.record['adm0_a3']
 	if sovereign_code is None:
 		raise ValueError(f"there are no possible sovereign codes for {sovereignty_code}")
 	return sovereign_code

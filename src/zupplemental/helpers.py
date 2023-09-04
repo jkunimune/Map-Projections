@@ -2,9 +2,24 @@ from __future__ import annotations
 
 import math
 import random as rng
-from types import SimpleNamespace
+from typing import Any, Iterable
 
 import shapefile
+
+
+def load_shaperecords(filename) -> Iterable[ShapeRecord]:
+	""" load a shapefile, with a good error message, and transmuting from the annoying pyshp api to
+	    this dictier one https://www.naturalearthdata.com/
+	"""
+	try:
+		sf = shapefile.Reader(f"shapefiles/{filename}")
+	except shapefile.ShapefileException:
+		raise FileNotFoundError(f"The shapefile {filename} is missing; please download it and put it in "
+		                        f"src/zupplemental/shapefiles/")
+	good_shaperecords = []
+	for bad_shaperecord in sf.shapeRecords():
+		good_shaperecords.append(normalize_shaperecord(bad_shaperecord))
+	return good_shaperecords
 
 
 def obliquify(lat1, lon1, lat0, lon0):
@@ -33,7 +48,7 @@ def obliquify(lat1, lon1, lat0, lon0):
 	return latf, lonf
 
 
-def plot(coords, midx=[0], close=True, fourmat='pr', clazz=None, ident=None, tabs=3) -> str:
+def plot(coords, midx=[0], close=True, fourmat='pr', clazz=None, ident=None, tabs=3, title=None) -> str:
 	class_attr = 'class="{}" '.format(clazz) if clazz is not None else ''
 	ident_attr = 'id="{}" '.format(ident) if ident is not None else ''
 	tag = '\t'*tabs+'<path {}{}d="'.format(class_attr, ident_attr)
@@ -59,7 +74,12 @@ def plot(coords, midx=[0], close=True, fourmat='pr', clazz=None, ident=None, tab
 			x, y = coord
 
 		tag += '{}{:.3f},{:.3f} '.format(letter, x, y)
-	tag += 'Z" />\n' if close else '" />\n'
+	if close:
+		tag += 'Z'
+	if title is not None:
+		tag += f'"><title>{title}</title></path>\n'
+	else:
+		tag += '" />\n'
 	return tag.replace('.000','')
 
 
@@ -147,7 +167,7 @@ def get_centroid(points, parts=None):
 	latcr = math.atan2(zc, math.hypot(xc, yc))
 	return (math.degrees(loncr), math.degrees(latcr))
 
-def normalize_shaperecord(shaperecord: shapefile.ShapeRecord) -> BetterShapeRecord:
+def normalize_shaperecord(shaperecord: shapefile.ShapeRecord) -> ShapeRecord:
 	""" the Natural Earth dataset has a really horrible problem with inconsistent casing.  some of their
 	    records' field names are all-lowercase, some are all-uppercase, and some are camel-case.  which is
 	    especially a problem because sometimes the same field across different shapefiles from their database
@@ -160,10 +180,10 @@ def normalize_shaperecord(shaperecord: shapefile.ShapeRecord) -> BetterShapeReco
 	for attr in vars(shaperecord.record)["_Record__field_positions"].keys():
 		if "__" not in attr:
 			record_fields[attr.lower()] = getattr(shaperecord.record, attr)
-	better_shaperecord = BetterShapeRecord(shaperecord.shape, SimpleNamespace(**record_fields))
+	better_shaperecord = ShapeRecord(shaperecord.shape, record_fields)
 	return better_shaperecord
 
-class BetterShapeRecord:
-	def __init__(self, shape, record):
+class ShapeRecord:
+	def __init__(self, shape: shapefile.Shape, record: dict[str, Any]):
 		self.shape = shape
 		self.record = record

@@ -112,9 +112,9 @@ def main():
 		"../../input/Political.svg",
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
 		'		<g class="country">\n'
-		+ plot_political_shapes('ne_50m_admin_0_countries', trim_antarctica=True,
+		+ plot_political_shapes('ne_50m_admin_0_countries', trim_antarctica=True, add_title=True,
 		                        which="big", add_circles=False)
-		+ plot_political_shapes('ne_50m_admin_0_countries', trim_antarctica=True,
+		+ plot_political_shapes('ne_50m_admin_0_countries', trim_antarctica=True, add_title=True,
 		                        which="small", add_circles=True) +
 		'		</g>\n'
 		'		<g class="lakes">\n'
@@ -123,7 +123,7 @@ def main():
 		'		<g class="country">\n'
 		'		</g>\n'
 		'	</g>\n'
-		+ label_shapes('ne_50m_admin_0_countries', "pol", secondary_attr="NOTE_ADM0")
+		+ label_shapes('ne_50m_admin_0_countries', "pol", secondary_attr="note_adm0")
 	)
 
 	# fine_political
@@ -167,7 +167,7 @@ def main():
 		+ plot_shapes('ne_10m_admin_0_map_units') +
 		'		</g>\n'
 		'		<g class="province-border">\n'
-		+ plot_shapes('ne_10m_admin_1_states_provinces_lines', filter_field='ADM0_A3',
+		+ plot_shapes('ne_10m_admin_1_states_provinces_lines', filter_field='adm0_a3',
 		              filter_values=['RUS', 'CAN', 'CHN', 'USA', 'BRA', 'AUS', 'IND', 'ARG', 'KAZ']) +
 		'		</g>\n'
 		'		<g class="disputed-border">\n'
@@ -190,7 +190,7 @@ def main():
 		'	</g>\n'
 		+ generate_topographical_labels('ne_50m', max_rank=2, text_size=4)
 		+ label_shapes('ne_10m_lakes', "sea", max_rank=1, text_size=1)
-		+ label_shapes('ne_10m_admin_0_countries', "pol", text_size=4, secondary_attr="NOTE_ADM0")
+		+ label_shapes('ne_10m_admin_0_countries', "pol", text_size=4, secondary_attr="note_adm0")
 		+ label_points('ne_50m_populated_places_simple', "cit", text_size=0, max_rank=3)
 	)
 
