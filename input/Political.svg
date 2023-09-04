@@ -59,7 +59,7 @@
 			fill-opacity:1;
 			stroke:#000000;
 			stroke-width:.02;
-			fill:#A5B7C0; /* grey */
+			fill:#FF0000; /* grey */
 		}
 		.KOR, .LBY, .AUT, .MCO, .CHL, .MNG, .NGA, .NLD, .NZL, .PAN, .BHS, .PSE,
 		.ROU, .RWA, .SAU, .SLB, .SLV, .SMR, .SWE, .TGO, .THA, .TJK, .TON, .WSM,
@@ -68,15 +68,15 @@
 		}
 		.ALB, .LUX, .PHL, .BLR, .BLZ, .BRA, .CAF, .CAN, .MLI, .COM, .CYN, .CYP,
 		.DMA, .ECU, .ERI, .ESP, .EST, .GAB, .GEO, .GRD, .HRV, .IND, .IRN, .ISL,
-		.JAM, .KEN {
+		.JAM, .KEN, .TUV {
 			fill:#C87A85; /* red */
 		}
 		.AGO, .AZE, .BEN, .TZA, .BOL, .BRB, .TLS, .CHN, .CIV, .CMR, .CRI, .CUB,
 		.CZE, .DJI, .DNK, .DZA, .EGY, .FIN, .FRA, .GRC, .GTM, .KHM, .KOS, .KWT {
 			fill:#D89D7F; /* orange */
 		}
-		.LIE, .LSO, .LTU, .MDV, .MHL, .MLT, .OMN, .PLW, .PNG, .SDS, .SEN, .SGP,
-		.SLE, .SRB, .SVN, .SYR, .BRN, .TWN, .BGD, .UKR, .URY, .UZB, .VEN, .ZWE {
+		.BRN, .LIE, .LSO, .LTU, .MDV, .MHL, .MLT, .OMN, .PLW, .PNG, .SDS, .SEN,
+		.SGP, .SLE, .SRB, .SVN, .SYR, .TWN, .BGD, .UKR, .URY, .UZB, .VEN, .ZWE {
 			fill:#D5C58F; /* yellow */
 		}
 		.AFG, .AND, .VNM, .BEL, .BFA, .BGR, .BWA, .CHE, .COD, .COL, .CPV, .ETH,
