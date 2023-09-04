@@ -126,6 +126,7 @@ def get_centroid(points, parts=None):
 	max_latnum = math.sin(math.radians(maxP))
 	min_lonnum = math.radians(minL)
 	max_lonnum = math.radians(maxL)
+	rng.seed(0)
 	while j < 4000 or num_in < 10: #monte carlo
 		j += 1
 		latr = math.asin(rng.random()*(max_latnum-min_latnum)+min_latnum)
