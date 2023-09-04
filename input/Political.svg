@@ -1110,6 +1110,209 @@
 			<path d="M139.938,-30.964 L139.920,-31.027 L139.876,-31.084 L139.835,-31.126 L139.800,-31.124 L139.744,-31.080 L139.659,-31.033 L139.613,-31.011 L139.519,-30.925 L139.488,-30.877 L139.550,-30.774 L139.719,-30.566 L139.896,-30.374 L139.951,-30.321 L140.011,-30.341 L140.044,-30.423 L140.026,-30.524 L139.982,-30.854 Z" />
 			<path d="M137.914,-29.100 L137.777,-29.038 L137.619,-29.051 L137.478,-29.012 L137.407,-29.029 L137.344,-29.025 L137.301,-28.988 L137.239,-28.892 L137.146,-28.887 L137.125,-28.918 L137.120,-28.978 L137.075,-29.014 L137.018,-29.015 L136.949,-28.953 L136.894,-28.832 L136.917,-28.756 L136.922,-28.689 L136.883,-28.450 L136.907,-28.426 L136.966,-28.394 L136.990,-28.314 L136.969,-28.199 L136.913,-28.103 L136.889,-28.064 L136.830,-28.044 L136.785,-28.019 L136.800,-27.967 L136.891,-27.911 L137.033,-27.859 L137.328,-27.974 L137.453,-28.087 L137.566,-28.116 L137.672,-28.120 L137.702,-28.143 L137.707,-28.196 L137.720,-28.280 L137.774,-28.350 L137.733,-28.390 L137.712,-28.537 L137.680,-28.562 L137.676,-28.645 L137.786,-28.840 L137.905,-28.985 L138.014,-29.051 L138.010,-29.091 Z" />
 		</g>
+		<g class="country">
+			<g class="AND">
+				<circle class="AND" cx="1.539409" cy="42.547643" r="0.7" />
+			</g>
+			<g class="ATG">
+				<circle class="ATG" cx="-61.790612" cy="17.352249" r="0.7" />
+			</g>
+			<g class="AUS">
+				<circle class="IOA" cx="105.67259" cy="-10.490789" r="0.4949747468305832" />
+				<circle class="HMD" cx="73.50521" cy="-53.103462" r="0.4949747468305832" />
+				<circle class="NFK" cx="167.954531" cy="-29.033042" r="0.4949747468305832" />
+				<circle class="ATC" cx="123.586368" cy="-12.432571" r="0.4949747468305832" />
+			</g>
+			<g class="BHR">
+				<circle class="BHR" cx="50.554816" cy="26.055972" r="0.7" />
+			</g>
+			<g class="BHS">
+				<circle class="BHS" cx="-77.146688" cy="26.401789" r="0.7" />
+			</g>
+			<g class="BRB">
+				<circle class="BRB" cx="-59.568966" cy="13.163709" r="0.7" />
+			</g>
+			<g class="BRN">
+				<circle class="BRN" cx="114.551943" cy="4.448298" r="0.7" />
+			</g>
+			<g class="CHN">
+				<circle class="MAC" cx="113.556038" cy="22.129735" r="0.4949747468305832" />
+				<circle class="HKG" cx="114.097769" cy="22.448829" r="0.4949747468305832" />
+			</g>
+			<g class="COM">
+				<circle class="COM" cx="43.318094" cy="-11.727683" r="0.7" />
+			</g>
+			<g class="CPV">
+				<circle class="CPV" cx="-23.639434" cy="15.074761" r="0.7" />
+			</g>
+			<g class="CYN">
+				<circle class="CYN" cx="33.692434" cy="35.216071" r="0.7" />
+			</g>
+			<g class="CYP">
+				<circle class="CYP" cx="33.084182" cy="34.913329" r="0.7" />
+			</g>
+			<g class="DMA">
+				<circle class="DMA" cx="-61.344958" cy="15.458829" r="0.7" />
+			</g>
+			<g class="DNK">
+				<circle class="FRO" cx="-7.058429" cy="62.185604" r="0.4949747468305832" />
+			</g>
+			<g class="FIN">
+				<circle class="ALD" cx="19.869671" cy="60.156467" r="0.4949747468305832" />
+			</g>
+			<g class="FJI">
+				<circle class="FJI" cx="177.975427" cy="-17.826099" r="0.7" />
+			</g>
+			<g class="FRA">
+				<circle class="SPM" cx="-56.332352" cy="47.040344" r="0.4949747468305832" />
+				<circle class="WLF" cx="-178.137436" cy="-14.286415" r="0.4949747468305832" />
+				<circle class="MAF" cx="-63.049399" cy="18.081302" r="0.4949747468305832" />
+				<circle class="BLM" cx="-62.833193" cy="17.901987" r="0.4949747468305832" />
+				<circle class="PYF" cx="-149.46157" cy="-17.628081" r="0.4949747468305832" />
+				<circle class="NCL" cx="165.084004" cy="-21.064697" r="0.4949747468305832" />
+				<circle class="ATF" cx="69.122136" cy="-49.303721" r="0.4949747468305832" />
+			</g>
+			<g class="FSM">
+				<circle class="FSM" cx="158.234019" cy="6.887553" r="0.7" />
+			</g>
+			<g class="GBR">
+				<circle class="SGS" cx="-31.063179" cy="-55.683402" r="0.4949747468305832" />
+				<circle class="IOT" cx="71.348349" cy="-6.190826" r="0.4949747468305832" />
+				<circle class="SHN" cx="-5.71262" cy="-15.950487" r="0.4949747468305832" />
+				<circle class="PCN" cx="-128.317536" cy="-24.364576" r="0.4949747468305832" />
+				<circle class="AIA" cx="-63.026361" cy="18.242979" r="0.4949747468305832" />
+				<circle class="FLK" cx="-58.738602" cy="-51.608913" r="0.4949747468305832" />
+				<circle class="CYM" cx="-81.24055" cy="19.319862" r="0.4949747468305832" />
+				<circle class="BMU" cx="-64.763573" cy="32.296592" r="0.4949747468305832" />
+				<circle class="VGB" cx="-64.63661" cy="18.426606" r="0.4949747468305832" />
+				<circle class="TCA" cx="-71.752704" cy="21.81663" r="0.4949747468305832" />
+				<circle class="MSR" cx="-62.188252" cy="16.73717" r="0.4949747468305832" />
+				<circle class="JEY" cx="-2.090146" cy="49.220808" r="0.4949747468305832" />
+				<circle class="GGY" cx="-2.561736" cy="49.463533" r="0.4949747468305832" />
+				<circle class="IMN" cx="-4.530069" cy="54.220833" r="0.4949747468305832" />
+			</g>
+			<g class="GMB">
+				<circle class="GMB" cx="-14.998318" cy="13.641721" r="0.7" />
+			</g>
+			<g class="GRD">
+				<circle class="GRD" cx="-61.680461" cy="12.113156" r="0.7" />
+			</g>
+			<g class="ISR">
+				<circle class="PSX" cx="35.291341" cy="32.047431" r="0.4949747468305832" />
+			</g>
+			<g class="JAM">
+				<circle class="JAM" cx="-77.318767" cy="18.137124" r="0.7" />
+			</g>
+			<g class="KAS">
+				<circle class="KAS" cx="77.129553" cy="35.340606" r="0.7" />
+			</g>
+			<g class="KIR">
+				<circle class="KIR" cx="-157.384577" cy="1.820437" r="0.7" />
+			</g>
+			<g class="KNA">
+				<circle class="KNA" cx="-62.757975" cy="17.336558" r="0.7" />
+			</g>
+			<g class="KOS">
+				<circle class="KOS" cx="20.860719" cy="42.593587" r="0.7" />
+			</g>
+			<g class="LBN">
+				<circle class="LBN" cx="35.992892" cy="34.133368" r="0.7" />
+			</g>
+			<g class="LCA">
+				<circle class="LCA" cx="-60.980094" cy="13.892371" r="0.7" />
+			</g>
+			<g class="LIE">
+				<circle class="LIE" cx="9.559439" cy="47.111405" r="0.7" />
+			</g>
+			<g class="LUX">
+				<circle class="LUX" cx="6.07762" cy="49.733732" r="0.7" />
+			</g>
+			<g class="MCO">
+				<circle class="MCO" cx="7.398291" cy="43.739652" r="0.7" />
+			</g>
+			<g class="MDV">
+				<circle class="MDV" cx="73.507554" cy="4.174441" r="0.7" />
+			</g>
+			<g class="MHL">
+				<circle class="MHL" cx="171.193609" cy="7.082568" r="0.7" />
+			</g>
+			<g class="MLT">
+				<circle class="MLT" cx="14.433005" cy="35.892886" r="0.7" />
+			</g>
+			<g class="MNE">
+				<circle class="MNE" cx="19.143727" cy="42.803101" r="0.7" />
+			</g>
+			<g class="MUS">
+				<circle class="MUS" cx="57.565848" cy="-20.299506" r="0.7" />
+			</g>
+			<g class="NLD">
+				<circle class="ABW" cx="-69.972795" cy="12.5174" r="0.4949747468305832" />
+				<circle class="CUW" cx="-68.920578" cy="12.145039" r="0.4949747468305832" />
+				<circle class="SXM" cx="-63.070133" cy="18.04088" r="0.4949747468305832" />
+			</g>
+			<g class="NRU">
+				<circle class="NRU" cx="166.932644" cy="-0.520261" r="0.7" />
+			</g>
+			<g class="NZL">
+				<circle class="NIU" cx="-169.862565" cy="-19.045956" r="0.4949747468305832" />
+				<circle class="COK" cx="-159.785675" cy="-21.215993" r="0.4949747468305832" />
+			</g>
+			<g class="PLW">
+				<circle class="PLW" cx="134.580157" cy="7.518252" r="0.7" />
+			</g>
+			<g class="QAT">
+				<circle class="QAT" cx="51.143509" cy="25.237383" r="0.7" />
+			</g>
+			<g class="SGP">
+				<circle class="SGP" cx="103.816925" cy="1.366587" r="0.7" />
+			</g>
+			<g class="SLB">
+				<circle class="SLB" cx="159.170468" cy="-8.029548" r="0.7" />
+			</g>
+			<g class="SMR">
+				<circle class="SMR" cx="12.441206" cy="43.933916" r="0.7" />
+			</g>
+			<g class="STP">
+				<circle class="STP" cx="7.021" cy="0.9709" r="0.7" />
+			</g>
+			<g class="SWZ">
+				<circle class="SWZ" cx="31.467264" cy="-26.533676" r="0.7" />
+			</g>
+			<g class="SYC">
+				<circle class="SYC" cx="55.480175" cy="-4.676659" r="0.7" />
+			</g>
+			<g class="TLS">
+				<circle class="TLS" cx="125.854679" cy="-8.803705" r="0.7" />
+			</g>
+			<g class="TON">
+				<circle class="TON" cx="-175.163014" cy="-21.210026" r="0.7" />
+			</g>
+			<g class="TTO">
+				<circle class="TTO" cx="-60.9184" cy="10.9989" r="0.7" />
+			</g>
+			<g class="TUV">
+				<circle class="TUV" cx="179.209587" cy="-8.513717" r="0.7" />
+			</g>
+			<g class="USA">
+				<circle class="MNP" cx="145.734397" cy="15.188188" r="0.4949747468305832" />
+				<circle class="VIR" cx="-64.779172" cy="17.746706" r="0.4949747468305832" />
+				<circle class="GUM" cx="144.703614" cy="13.354173" r="0.4949747468305832" />
+				<circle class="ASM" cx="-170.747153" cy="-14.32671" r="0.4949747468305832" />
+				<circle class="PRI" cx="-66.481065" cy="18.234668" r="0.4949747468305832" />
+			</g>
+			<g class="VAT">
+				<circle class="VAT" cx="12.453418" cy="41.903323" r="0.7" />
+			</g>
+			<g class="VCT">
+				<circle class="VCT" cx="-61.3359" cy="13.0879" r="0.7" />
+			</g>
+			<g class="VUT">
+				<circle class="VUT" cx="166.908762" cy="-15.37153" r="0.7" />
+			</g>
+			<g class="WSM">
+				<circle class="WSM" cx="-172.438241" cy="-13.639139" r="0.7" />
+			</g>
+		</g>
 	</g>
 	<text class="label-pol label-xs" x="209.115" y="109.023">Zimbabwe</text>
 	<text class="label-pol label-xs" x="207.820" y="103.118">Zambia</text>
@@ -1118,7 +1321,7 @@
 	<text class="label-pol label-xs" x="113.402" y="83.567">Venezuela</text>
 	<text class="label-pol label-xs" x="192.433" y="48.098">Vatican</text>
 	<text class="label-pol label-xs" x="348.211" y="106.976">Vanuatu</text>
-	<text class="label-pol label-xs" x="243.304" y="48.264">Uzbekistan</text>
+	<text class="label-pol label-xs" x="243.212" y="48.165">Uzbekistan</text>
 	<text class="label-pol label-xs" x="124.218" y="122.517">Uruguay</text>
 	<text class="label-pol label-xs" x="338.231" y="83.116">Micronesia</text>
 	<text class="label-pol label-xs" x="349.301" y="81.516">Marshall Is.</text>
@@ -1127,7 +1330,7 @@
 	<text class="label-pol label-xs" x="324.795" y="76.560">Guam (U.S.A.)</text>
 	<text class="label-pol label-xs" x="9.306" y="104.309">American Samoa (U.S.A.)</text>
 	<text class="label-pol label-xs" x="113.384" y="71.765">Puerto Rico (U.S.A.)</text>
-	<text class="label-pol label-sm" x="81.249" y="50.001">United States of America</text>
+	<text class="label-pol label-sm" x="81.096" y="50.192">United States of America</text>
 	<text class="label-pol label-xs" x="147.861" y="146.238">S. Geo. and the Is. (U.K.)</text>
 	<text class="label-pol label-xs" x="252.424" y="97.328">Br. Indian Ocean Ter.</text>
 	<text class="label-pol label-xs" x="169.963" y="101.943">Saint Helena (U.K.)</text>
@@ -1144,10 +1347,10 @@
 	<text class="label-pol label-xs" x="175.438" y="35.767">Isle of Man</text>
 	<text class="label-pol label-sm" x="176.801" y="34.573">United Kingdom</text>
 	<text class="label-pol label-xs" x="233.978" y="65.655">United Arab Emirates</text>
-	<text class="label-pol label-xs" x="211.304" y="40.811">Ukraine</text>
+	<text class="label-pol label-xs" x="211.438" y="40.868">Ukraine</text>
 	<text class="label-pol label-xs" x="212.270" y="88.625">Uganda</text>
 	<text class="label-pol label-xs" x="239.562" y="51.025">Turkmenistan</text>
-	<text class="label-pol label-sm" x="215.414" y="50.940">Turkey</text>
+	<text class="label-pol label-sm" x="215.471" y="50.942">Turkey</text>
 	<text class="label-pol label-xs" x="189.516" y="56.215">Tunisia</text>
 	<text class="label-pol label-xs" x="118.784" y="79.305">Trinidad and Tobago</text>
 	<text class="label-pol label-xs" x="5.358" y="110.008">Tonga</text>
@@ -1163,11 +1366,11 @@
 	<text class="label-pol label-xs" x="211.450" y="116.526">eSwatini</text>
 	<text class="label-pol label-xs" x="123.978" y="86.082">Suriname</text>
 	<text class="label-pol label-xs" x="209.708" y="82.143">S. Sudan</text>
-	<text class="label-pol label-xs" x="209.970" y="74.034">Sudan</text>
+	<text class="label-pol label-xs" x="209.938" y="74.014">Sudan</text>
 	<text class="label-pol label-xs" x="260.792" y="82.119">Sri Lanka</text>
 	<text class="label-pol label-sm" x="177.036" y="50.105">Spain</text>
 	<text class="label-pol label-sm" x="308.471" y="54.088">South Korea</text>
-	<text class="label-pol label-sm" x="205.414" y="118.930">South Africa</text>
+	<text class="label-pol label-sm" x="205.289" y="119.052">South Africa</text>
 	<text class="label-pol label-xs" x="226.177" y="84.856">Somalia</text>
 	<text class="label-pol label-xs" x="225.798" y="80.252">Somaliland</text>
 	<text class="label-pol label-xs" x="341.303" y="99.221">Solomon Is.</text>
@@ -1178,7 +1381,7 @@
 	<text class="label-pol label-xs" x="235.463" y="94.672">Seychelles</text>
 	<text class="label-pol label-xs" x="200.908" y="45.794">Serbia</text>
 	<text class="label-pol label-xs" x="165.541" y="75.497">Senegal</text>
-	<text class="label-pol label-sm" x="224.865" y="66.099">Saudi Arabia</text>
+	<text class="label-pol label-sm" x="224.785" y="65.932">Saudi Arabia</text>
 	<text class="label-pol label-xs" x="186.960" y="89.127">São Tomé and Principe</text>
 	<text class="label-pol label-xs" x="192.456" y="46.058">San Marino</text>
 	<text class="label-pol label-xs" x="7.886" y="103.756">Samoa</text>
@@ -1186,7 +1389,7 @@
 	<text class="label-pol label-xs" x="119.020" y="76.095">Saint Lucia</text>
 	<text class="label-pol label-xs" x="117.314" y="72.748">St. Kitts and Nevis</text>
 	<text class="label-pol label-xs" x="209.867" y="91.936">Rwanda</text>
-	<text class="label-pol label-sm" x="275.935" y="24.038">Russia</text>
+	<text class="label-pol label-sm" x="275.536" y="24.251">Russia</text>
 	<text class="label-pol label-xs" x="204.974" y="44.033">Romania</text>
 	<text class="label-pol label-xs" x="231.182" y="64.641">Qatar</text>
 	<text class="label-pol label-sm" x="172.154" y="50.429">Portugal</text>
@@ -1197,12 +1400,12 @@
 	<text class="label-pol label-sm" x="325.856" y="96.632">Papua New Guinea</text>
 	<text class="label-pol label-xs" x="99.888" y="81.591">Panama</text>
 	<text class="label-pol label-xs" x="312.897" y="84.633">Palau</text>
-	<text class="label-pol label-sm" x="249.118" y="60.100">Pakistan</text>
+	<text class="label-pol label-sm" x="249.196" y="60.148">Pakistan</text>
 	<text class="label-pol label-xs" x="235.908" y="68.498">Oman</text>
-	<text class="label-pol label-xs" x="192.120" y="26.300">Norway</text>
+	<text class="label-pol label-xs" x="192.131" y="26.270">Norway</text>
 	<text class="label-pol label-xs" x="307.518" y="49.641">North Korea</text>
 	<text class="label-pol label-sm" x="188.657" y="80.925">Nigeria</text>
-	<text class="label-pol label-xs" x="189.311" y="72.688">Niger</text>
+	<text class="label-pol label-xs" x="189.384" y="72.522">Niger</text>
 	<text class="label-pol label-xs" x="94.586" y="77.128">Nicaragua</text>
 	<text class="label-pol label-sm" x="350.424" y="133.560">New Zealand</text>
 	<text class="label-pol label-xs" x="10.129" y="109.052">Niue (Assoc. with N.Z.)</text>
@@ -1214,17 +1417,17 @@
 	<text class="label-pol label-xs" x="346.933" y="90.520">Nauru</text>
 	<text class="label-pol label-xs" x="198.490" y="112.953">Namibia</text>
 	<text class="label-pol label-xs" x="215.533" y="108.663">Mozambique</text>
-	<text class="label-pol label-xs" x="171.257" y="60.314">Morocco</text>
+	<text class="label-pol label-xs" x="171.287" y="60.194">Morocco</text>
 	<text class="label-pol label-xs" x="167.110" y="65.769">W. Sahara</text>
 	<text class="label-pol label-xs" x="199.392" y="47.294">Montenegro</text>
-	<text class="label-pol label-xs" x="282.967" y="42.980">Mongolia</text>
+	<text class="label-pol label-xs" x="283.190" y="43.026">Mongolia</text>
 	<text class="label-pol label-xs" x="208.375" y="43.036">Moldova</text>
 	<text class="label-pol label-xs" x="187.408" y="46.249">Monaco</text>
-	<text class="label-pol label-sm" x="77.313" y="65.846">Mexico</text>
+	<text class="label-pol label-sm" x="77.827" y="66.040">Mexico</text>
 	<text class="label-pol label-xs" x="237.555" y="110.252">Mauritius</text>
 	<text class="label-pol label-xs" x="169.057" y="68.984">Mauritania</text>
 	<text class="label-pol label-xs" x="194.373" y="54.052">Malta</text>
-	<text class="label-pol label-xs" x="176.391" y="72.711">Mali</text>
+	<text class="label-pol label-xs" x="176.336" y="72.683">Mali</text>
 	<text class="label-pol label-xs" x="253.455" y="86.261">Maldives</text>
 	<text class="label-pol label-xs" x="294.403" y="86.074">Malaysia</text>
 	<text class="label-pol label-xs" x="214.282" y="103.263">Malawi</text>
@@ -1233,7 +1436,7 @@
 	<text class="label-pol label-xs" x="186.109" y="40.194">Luxembourg</text>
 	<text class="label-pol label-xs" x="203.838" y="34.848">Lithuania</text>
 	<text class="label-pol label-xs" x="189.545" y="42.836">Liechtenstein</text>
-	<text class="label-pol label-xs" x="198.005" y="63.017">Libya</text>
+	<text class="label-pol label-xs" x="198.030" y="62.970">Libya</text>
 	<text class="label-pol label-xs" x="170.546" y="83.555">Liberia</text>
 	<text class="label-pol label-xs" x="208.221" y="119.612">Lesotho</text>
 	<text class="label-pol label-xs" x="215.847" y="56.123">Lebanon</text>
@@ -1244,7 +1447,7 @@
 	<text class="label-pol label-xs" x="200.891" y="47.443">Kosovo</text>
 	<text class="label-pol label-xs" x="22.623" y="88.119">Kiribati</text>
 	<text class="label-pol label-sm" x="217.892" y="89.600">Kenya</text>
-	<text class="label-pol label-xs" x="247.488" y="41.616">Kazakhstan</text>
+	<text class="label-pol label-xs" x="247.086" y="41.544">Kazakhstan</text>
 	<text class="label-pol label-xs" x="217.122" y="58.719">Jordan</text>
 	<text class="label-pol label-sm" x="316.441" y="52.504">Japan</text>
 	<text class="label-pol label-xs" x="102.725" y="71.881">Jamaica</text>
@@ -1253,9 +1456,9 @@
 	<text class="label-pol label-xs" x="214.885" y="58.129">Palestine</text>
 	<text class="label-pol label-xs" x="171.791" y="36.580">Ireland</text>
 	<text class="label-pol label-xs" x="223.660" y="56.782">Iraq</text>
-	<text class="label-pol label-sm" x="234.480" y="57.484">Iran</text>
+	<text class="label-pol label-sm" x="234.331" y="57.393">Iran</text>
 	<text class="label-pol label-sm" x="280.633" y="90.140">Indonesia</text>
-	<text class="label-pol label-sm" x="259.445" y="67.298">India</text>
+	<text class="label-pol label-sm" x="259.357" y="67.047">India</text>
 	<text class="label-pol label-xs" x="160.984" y="25.034">Iceland</text>
 	<text class="label-pol label-xs" x="199.485" y="42.847">Hungary</text>
 	<text class="label-pol label-xs" x="93.740" y="75.253">Honduras</text>
@@ -1292,7 +1495,7 @@
 	<text class="label-pol label-xs" x="109.830" y="71.225">Dominican Rep.</text>
 	<text class="label-pol label-xs" x="118.634" y="74.570">Dominica</text>
 	<text class="label-pol label-xs" x="222.587" y="78.175">Djibouti</text>
-	<text class="label-pol label-xs" x="138.328" y="16.916">Greenland</text>
+	<text class="label-pol label-xs" x="138.480" y="17.003">Greenland</text>
 	<text class="label-pol label-xs" x="173.086" y="28.115">Faeroe Is. (Den.)</text>
 	<text class="label-pol label-xs" x="191.629" y="33.817">Denmark</text>
 	<text class="label-pol label-xs" x="195.461" y="40.193">Czechia</text>
@@ -1302,18 +1505,18 @@
 	<text class="label-pol label-xs" x="196.459" y="45.516">Croatia</text>
 	<text class="label-pol label-xs" x="174.445" y="82.462">Côte d'Ivoire</text>
 	<text class="label-pol label-xs" x="95.764" y="80.370">Costa Rica</text>
-	<text class="label-pol label-sm" x="203.674" y="92.869">Dem. Rep. Congo</text>
+	<text class="label-pol label-sm" x="203.748" y="92.780">Dem. Rep. Congo</text>
 	<text class="label-pol label-xs" x="194.876" y="90.658">Congo</text>
 	<text class="label-pol label-xs" x="223.877" y="101.868">Comoros</text>
 	<text class="label-pol label-sm" x="107.049" y="85.901">Colombia</text>
-	<text class="label-pol label-sm" x="282.501" y="53.267">China</text>
+	<text class="label-pol label-sm" x="284.089" y="53.301">China</text>
 	<text class="label-pol label-xs" x="293.514" y="67.779">Macao</text>
 	<text class="label-pol label-xs" x="294.087" y="67.620">Hong Kong</text>
 	<text class="label-pol label-sm" x="108.642" y="125.695">Chile</text>
 	<text class="label-pol label-xs" x="198.716" y="74.540">Chad</text>
 	<text class="label-pol label-xs" x="200.917" y="83.367">Central African Rep.</text>
 	<text class="label-pol label-xs" x="155.988" y="73.994">Cabo Verde</text>
-	<text class="label-pol label-sm" x="80.530" y="31.454">Canada</text>
+	<text class="label-pol label-sm" x="81.227" y="31.438">Canada</text>
 	<text class="label-pol label-xs" x="192.358" y="82.623">Cameroon</text>
 	<text class="label-pol label-xs" x="284.963" y="77.442">Cambodia</text>
 	<text class="label-pol label-xs" x="276.663" y="70.804">Myanmar</text>
@@ -1321,7 +1524,7 @@
 	<text class="label-pol label-xs" x="178.433" y="77.749">Burkina Faso</text>
 	<text class="label-pol label-xs" x="205.465" y="47.259">Bulgaria</text>
 	<text class="label-pol label-xs" x="294.695" y="85.477">Brunei</text>
-	<text class="label-pol label-sm" x="126.521" y="100.513">Brazil</text>
+	<text class="label-pol label-sm" x="126.936" y="101.021">Brazil</text>
 	<text class="label-pol label-xs" x="204.671" y="112.321">Botswana</text>
 	<text class="label-pol label-xs" x="197.660" y="46.082">Bosnia and Herz.</text>
 	<text class="label-pol label-xs" x="116.429" y="106.301">Bolivia</text>
@@ -1336,21 +1539,21 @@
 	<text class="label-pol label-xs" x="104.134" y="66.061">Bahamas</text>
 	<text class="label-pol label-xs" x="227.567" y="49.855">Azerbaijan</text>
 	<text class="label-pol label-xs" x="193.336" y="42.300">Austria</text>
-	<text class="label-pol label-sm" x="313.763" y="115.529">Australia</text>
+	<text class="label-pol label-sm" x="314.351" y="115.637">Australia</text>
 	<text class="label-pol label-xs" x="281.276" y="101.315">Indian Ocean Ter. (Auz.)</text>
 	<text class="label-pol label-xs" x="253.544" y="143.075">Heard I. and McDonald Is. (Auz.)</text>
 	<text class="label-pol label-xs" x="347.948" y="119.055">Norfolk Island (Auz.)</text>
 	<text class="label-pol label-xs" x="303.584" y="102.430">Ashmore and Cartier Is. (Auz.)</text>
 	<text class="label-pol label-xs" x="225.012" y="49.920">Armenia</text>
-	<text class="label-pol label-sm" x="115.137" y="124.493">Argentina</text>
+	<text class="label-pol label-sm" x="115.281" y="124.277">Argentina</text>
 	<text class="label-pol label-xs" x="118.213" y="72.644">Antigua and Barb.</text>
 	<text class="label-pol label-xs" x="197.895" y="101.224">Angola</text>
 	<text class="label-pol label-xs" x="181.578" y="47.461">Andorra</text>
-	<text class="label-pol label-xs" x="182.627" y="62.002">Algeria</text>
+	<text class="label-pol label-xs" x="182.644" y="62.002">Algeria</text>
 	<text class="label-pol label-xs" x="200.156" y="48.849">Albania</text>
 	<text class="label-pol label-xs" x="247.689" y="56.076">Afghanistan</text>
 	<text class="label-pol label-xs" x="257.283" y="54.614">Siachen Glacier</text>
-	<text class="label-pol label-xs" x="258.794" y="174.629">Antarctica</text>
+	<text class="label-pol label-xs" x="265.640" y="174.619">Antarctica</text>
 	<text class="label-pol label-xs" x="116.932" y="71.956">Sint Maarten</text>
 	<text class="label-pol label-xs" x="359.206" y="98.501">Tuvalu</text>
 </svg>

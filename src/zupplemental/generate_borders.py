@@ -1,3 +1,5 @@
+from math import inf
+
 import shapefile
 from numpy import pi, sqrt
 from shapefile import ShapeRecord
@@ -6,12 +8,22 @@ from shapely import Polygon
 from helpers import plot, trim_edges
 
 SIZE_CLASSES = ['lg', 'md', 'sm', None, None, None]
-CIRCLE_RADIUS = 10
+CIRCLE_RADIUS = .7
 
 
-def generate_borders(source, borders_only=False, trim_antarctica=False, add_circles=False) -> str:
-	"""data from https://www.naturalearthdata.com/"""
-	sf = shapefile.Reader("shapefiles/{}_admin_0_countries".format(source))
+def plot_political_shapes(filename, mode="polygon", trim_antarctica=False) -> str:
+	""" data from https://www.naturalearthdata.com/
+	    :param filename: the name of the natural earth dataset to use (minus the .shp)
+	    :param mode: either 'polygon' to draw and fill each country normally, 'border' to copy the
+	                 existing polygon and trim it to that polygon (you should only use 'border' after
+	                 using 'polygon' in the same file), or 'circle' to make circles for the small countries
+	    :param trim_antarctica: whether to adjust antarctica's shape
+	"""
+	try:
+		sf = shapefile.Reader(f"shapefiles/{filename}")
+	except shapefile.ShapefileException:
+		raise FileNotFoundError(f"The shapefile {filename} is missing; please download it and put it in "
+		                        f"src/zupplemental/shapefiles/")
 
 	# first sort records into a dictionary by admin0 A3 code
 	sovereignties: dict[str, list[ShapeRecord]] = {}
@@ -25,39 +37,51 @@ def generate_borders(source, borders_only=False, trim_antarctica=False, add_circ
 	result = ""
 	for sovereignty_code, regions in sorted(sovereignties.items()):
 		sovereign_code = complete_sovereign_code_if_necessary(sovereignty_code, regions)
-		result += f'\t\t\t<g class="{sovereign_code}">\n'
+		sovereign_content = ''
 		for region in regions:
 			region_code = region.record.ADM0_A3
 			is_sovereign = region_code == sovereign_code
-			if borders_only:
-				result += (
+
+			if mode == "polygon":
+				sovereign_content += plot(region.shape.points, midx=region.shape.parts, close=False,
+				                          fourmat='xd', tabs=4, clazz=region_code, ident=region_code+"-shape")
+
+			elif mode == "border":
+				sovereign_content += (
 					f'\t\t\t\t<clipPath id="{region_code}-clipPath">\n'
 					f'\t\t\t\t\t<use href="#{region_code}-shape" />\n'
 					f'\t\t\t\t</clipPath>\n'
-					f'\t\t\t\t<use href="#{region_code}-shape" style="fill:none; clip-path:url(#{region_code}-clipPath);" />\n'
+					f'\t\t\t\t<use href="#{region_code}-shape" style="clip-path:url(#{region_code}-clipPath);" />\n'
 				)
-			else:  # TODO: include the sovereign of an admin-1 region in the class
-				result += plot(region.shape.points, midx=region.shape.parts, close=False,
-				               fourmat='xd', tabs=4, clazz=region_code, ident=region_code+"-shape")
 
-			if add_circles:
+			elif mode == "circle":
 				too_small = True
+				max_size = -inf
 				for i in range(len(region.shape.parts)):
 					if i + 1 < len(region.shape.parts):
 						part = region.shape.points[region.shape.parts[i]:region.shape.parts[i + 1]]
 					else:
 						part = region.shape.points[region.shape.parts[i]:]
 					# if Polygon(part).buffer(-CIRCLE_RADIUS).area == 0:
-					if Polygon(part).area < pi*CIRCLE_RADIUS**2:
+					if Polygon(part).area > pi*CIRCLE_RADIUS**2:
 						too_small = False
+					max_size = max(Polygon(part).area, max_size)
 				if too_small:
 					capital_λ, capital_ф = float(region.record.LABEL_X), float(region.record.LABEL_Y)
 					if is_sovereign:
 						radius = CIRCLE_RADIUS
 					else:
 						radius = CIRCLE_RADIUS/sqrt(2)
-					result += f'\t\t\t\t<circle x="{capital_λ}" y="{capital_ф}" r="{radius} />\n'
-		result += '\t\t\t</g>\n'
+					sovereign_content += f'\t\t\t\t<circle class="{region_code}" ' \
+					                     f'cx="{capital_λ}" cy="{capital_ф}" r="{radius}" />\n'
+
+			else:
+				raise ValueError(f"unrecognized mode: '{mode}'")
+
+		if len(sovereign_content) > 0:
+			result += f'\t\t\t<g class="{sovereign_code}">\n' + \
+			          sovereign_content + \
+			          f'\t\t\t</g>\n'
 
 	return result
 

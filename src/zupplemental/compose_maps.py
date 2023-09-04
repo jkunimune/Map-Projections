@@ -4,7 +4,7 @@
 import math
 import re
 
-from generate_borders import generate_borders
+from generate_borders import plot_political_shapes
 from generate_graticule import generate_graticule, generate_backdrop
 from generate_indicatrices import generate_indicatrices
 from generate_orthodromes import generate_orthodromes
@@ -112,10 +112,13 @@ def main():
 		"../../input/Political.svg",
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
 		'		<g class="country">\n'
-		+ generate_borders('ne_50m', trim_antarctica=True, add_circles=True) +
+		+ plot_political_shapes('ne_50m_admin_0_countries', trim_antarctica=True, mode="polygon") +
 		'		</g>\n'
 		'		<g class="lakes">\n'
 		+ plot_shapes('ne_50m_lakes', max_rank=4) +
+		'		</g>\n'
+		'		<g class="country">\n'
+		+ plot_political_shapes('ne_50m_admin_0_countries', trim_antarctica=True, mode="circle") +
 		'		</g>\n'
 		'	</g>\n'
 		+ label_shapes('ne_50m_admin_0_countries', "pol", secondary_attr="NOTE_ADM0")
@@ -153,9 +156,9 @@ def main():
 		'<rect class="water" width="100%" height="100%" />\n'
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
 		'		<g class="country">\n'
-		+ generate_borders('ne_10m', trim_antarctica=True, borders_only=False) +
+		+ plot_political_shapes('ne_10m_admin_0_countries', trim_antarctica=True, mode="polygon") +
 		'		<g class="border">\n'
-		+ generate_borders('ne_10m', trim_antarctica=True, borders_only=True) +
+		+ plot_political_shapes('ne_10m_admin_0_countries', trim_antarctica=True, mode="border") +
 		'		</g>\n'
 		'		</g>\n'
 		'		<g class="sovereign">\n'
@@ -199,7 +202,7 @@ def write_svg_code_to_file(filename: str, code: str) -> None:
 	new_text = header + code + footer
 	with open(filename, "w", encoding="utf-8") as file:
 		file.write(new_text)
-	print(f"saved '{filename}")
+	print(f"saved '{filename}'")
 
 
 if __name__ == '__main__':
