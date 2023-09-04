@@ -157,18 +157,18 @@ def main():
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
 		'		<g class="country">\n'
 		+ plot_political_shapes('ne_10m_admin_0_countries', trim_antarctica=True, mode="polygon") +
-		'		<g class="border">\n'
+		'		</g>\n'
+		'		<g class="thick-country-border">\n'
 		+ plot_political_shapes('ne_10m_admin_0_countries', trim_antarctica=True, mode="border") +
 		'		</g>\n'
-		'		</g>\n'
-		'		<g class="sovereign">\n'
+		'		<g class="country-border">\n'
 		+ plot_shapes('ne_10m_admin_0_map_units') +
 		'		</g>\n'
-		'		<g class="admin">\n'
+		'		<g class="province-border">\n'
 		+ plot_shapes('ne_10m_admin_1_states_provinces_lines', filter_field='ADM0_A3',
 		              filter_values=['RUS', 'CAN', 'CHN', 'USA', 'BRA', 'AUS', 'IND', 'ARG', 'KAZ']) +
 		'		</g>\n'
-		'		<g class="dispute">\n'
+		'		<g class="disputed-border">\n'
 		+ plot_shapes('ne_10m_admin_0_boundary_lines_disputed_areas') +
 		'		</g>\n'
 		'		<g class="coastline">\n'
