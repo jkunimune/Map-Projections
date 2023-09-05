@@ -107,9 +107,33 @@ def main():
 			'	</g>\n'
 		)
 
+	# orthodromes
+	write_svg_code_to_file(
+		"../../input/Orthodromes.svg",
+		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
+		'		<g class="lines">\n'
+		+ generate_orthodromes() +
+		'		</g>\n'
+		'	</g>\n'
+	)
+
 	# political
 	write_svg_code_to_file(
 		"../../input/Political.svg",
+		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
+		'		<g class="country">\n'
+		+ plot_political_shapes('ne_50m_admin_0_countries', trim_antarctica=True) +
+		'		</g>\n'
+		'		<g class="lakes">\n'
+		+ plot_shapes('ne_50m_lakes', max_rank=4) +
+		'		</g>\n'
+		'	</g>\n'
+		+ label_shapes('ne_50m_admin_0_countries', "pol", secondary_attr="note_adm0")
+	)
+
+	# political template (countries)
+	write_svg_code_to_file(
+		"../../input/Advanced/Template countries.svg",
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
 		'		<g class="country">\n'
 		+ plot_political_shapes('ne_50m_admin_0_countries', trim_antarctica=True, add_title=True,
@@ -120,34 +144,21 @@ def main():
 		'		<g class="lakes">\n'
 		+ plot_shapes('ne_50m_lakes', max_rank=4) +
 		'		</g>\n'
-		'		<g class="country">\n'
-		'		</g>\n'
 		'	</g>\n'
-		+ label_shapes('ne_50m_admin_0_countries', "pol", secondary_attr="note_adm0")
 	)
 
-	# fine_political
+	# political template (provinces)
 	write_svg_code_to_file(
-		"../../input/Advanced/Fine political.svg",
+		"../../input/Advanced/Template provinces.svg",
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
-		'		<g class="country">\n'
-		+ plot_shapes('ne_50m_admin_0_countries', trim_antarctica=True) +
-		'		</g>\n'
 		'		<g class="province">\n'
-		+ plot_shapes('ne_50m_admin_1_states_provinces', trim_antarctica=True) +
+		+ plot_political_shapes('ne_10m_admin_1_states_provinces', trim_antarctica=True, add_title=True) +
+		'		</g>\n'
+		'		<g class="country">\n'
+		+ plot_shapes('ne_10m_admin_0_countries', trim_antarctica=True) +
 		'		</g>\n'
 		'		<g class="lakes">\n'
 		+ plot_shapes('ne_50m_lakes', max_rank=4) +
-		'		</g>\n'
-		'	</g>\n'
-	)
-
-	# orthodromes
-	write_svg_code_to_file(
-		"../../input/Orthodromes.svg",
-		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
-		'		<g class="lines">\n'
-		+ generate_orthodromes() +
 		'		</g>\n'
 		'	</g>\n'
 	)

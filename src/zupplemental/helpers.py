@@ -80,7 +80,7 @@ def plot(coords, midx=[0], close=True, fourmat='pr', clazz=None, ident=None, tab
 		tag += f'"><title>{title}</title></path>\n'
 	else:
 		tag += '" />\n'
-	return tag.replace('.000','')
+	return tag.replace('.000', '')
 
 
 def trim_edges(coast, coast_parts):

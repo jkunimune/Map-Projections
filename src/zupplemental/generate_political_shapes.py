@@ -9,6 +9,41 @@ SIZE_CLASSES = [
 	'lg', 'md', 'sm', None, None, None]
 CIRCLE_RADIUS = .7
 
+SOVEREIGN_CODES = {
+	"AU1": "AUS", "CH1": "CHN", "CU1": "CUB", "DN1": "DNK", "FI1": "FIN", "FR1": "FRA",
+	"IS1": "ISR", "KA1": "KAZ", "GB1": "GBR", "NL1": "NLD", "NZ1": "NZL", "US1": "USA",
+}
+ISO_A3_TO_A2 = {
+	"AFG": "AF", "AGO": "AO", "ALB": "AL", "AND": "AD", "ARE": "AE", "ARG": "AR", "ARM": "AM",
+	"ATA": "AQ", "ATG": "AG", "AUS": "AU", "AUT": "AT", "AZE": "AZ", "BDI": "BI", "BEL": "BE",
+	"BEN": "BJ", "BFA": "BF", "BGD": "BD", "BGR": "BG", "BHR": "BH", "BHS": "BS", "BIH": "BA",
+	"BLR": "BY", "BLZ": "BZ", "BOL": "BO", "BRA": "BR", "BRB": "BB", "BRN": "BN", "BTN": "BT",
+	"BWA": "BW", "CAF": "CF", "CAN": "CA", "CHN": "CN", "CHE": "CH", "CHL": "CL", "CIV": "CI",
+	"CMR": "CM", "COD": "CD", "COG": "CG", "COL": "CO", "COM": "KM", "CPV": "CV", "CRI": "CR",
+	"CUB": "CU", "CYN": "CY", "CYP": "CY", "CZE": "CZ", "DEU": "DE", "DJI": "DJ", "DMA": "DM",
+	"DNK": "DK", "DOM": "DO", "DZA": "DZ", "ECU": "EC", "EGY": "EG", "ERI": "ER", "ESP": "ES",
+	"EST": "EE", "ETH": "ET", "FIN": "FI", "FJI": "FJ", "FRA": "FR", "FSM": "FM", "GAB": "GA",
+	"GBR": "GB", "GEO": "GE", "GHA": "GH", "GIN": "GN", "GMB": "GM", "GNB": "GW", "GNQ": "GQ",
+	"GRC": "GR", "GRD": "GD", "GTM": "GT", "GUY": "GY", "HND": "HN", "HRV": "HR", "HTI": "HT",
+	"HUN": "HU", "IDN": "ID", "IND": "IN", "IRL": "IE", "IRN": "IR", "IRQ": "IQ", "ISL": "IS",
+	"ISR": "IL", "ITA": "IT", "JAM": "JM", "JOR": "JO", "JPN": "JP", "KAZ": "KZ", "KAS": "__",
+	"KEN": "KE", "KGZ": "KG", "KHM": "KH", "KIR": "KI", "KNA": "KN", "KOR": "KR", "KOS": "XK",
+	"KWT": "KW", "LAO": "LA", "LBN": "LB", "LBR": "LR", "LBY": "LY", "LCA": "LC", "LIE": "LI",
+	"LKA": "LK", "LSO": "LS", "LTU": "LT", "LUX": "LU", "LVA": "LV", "MAR": "MA", "MCO": "MC",
+	"MDA": "MD", "MDG": "MG", "MDV": "MV", "MEX": "MX", "MHL": "MH", "MKD": "MK", "MLI": "ML",
+	"MLT": "MT", "MMR": "MM", "MNE": "ME", "MNG": "MN", "MOZ": "MZ", "MRT": "MR", "MUS": "MU",
+	"MWI": "MW", "MYS": "MY", "NAM": "NA", "NER": "NE", "NGA": "NG", "NIC": "NI", "NLD": "NL",
+	"NOR": "NO", "NPL": "NP", "NRU": "NR", "NZL": "NZ", "OMN": "OM", "PAK": "PK", "PAN": "PA",
+	"PER": "PE", "PGA": "PG", "PHL": "PH", "PLW": "PW", "PNG": "PG", "POL": "PL", "PRK": "KP",
+	"PRT": "PT", "PRY": "PY", "QAT": "QA", "ROU": "RO", "RUS": "RU", "RWA": "RW", "SAH": "EH",
+	"SAU": "SA", "SDN": "SD", "SDS": "SS", "SEN": "SN", "SGP": "SG", "SLB": "SB", "SLE": "SL",
+	"SLV": "SV", "SMR": "SM", "SOL": "__", "SOM": "SO", "SRB": "RS", "STP": "ST", "SUR": "SR",
+	"SVK": "SK", "SVN": "SI", "SWE": "SE", "SWZ": "SZ", "SYC": "SC", "SYR": "SY", "TCD": "TD",
+	"TGO": "TG", "THA": "TH", "TJK": "TJ", "TKM": "TM", "TLS": "TL", "TON": "TO", "TTO": "TT",
+	"TUN": "TN", "TUR": "TR", "TUV": "TV", "TWN": "TW", "TZA": "TZ", "UGA": "UG", "UKR": "UA",
+	"URY": "UY", "USA": "US", "UZB": "UZ", "VAT": "VA", "VCT": "VC", "VEN": "VE", "VNM": "VN",
+	"VUT": "VU", "WSM": "WS", "YEM": "YE", "ZAF": "ZA", "ZMB": "ZM", "ZWE": "ZW", }
+
 
 def plot_political_shapes(filename, which="all", only_border=False, add_circles=False,
                           trim_antarctica=False, add_title=False) -> str:
@@ -22,71 +57,97 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 	    :param trim_antarctica: whether to adjust antarctica's shape
 	    :param add_title: add mouseover text
 	"""
-	# first sort records into a dictionary by admin0 A3 code
-	sovereignties: dict[str, list[ShapeRecord]] = {}
+	# first sort records into a dictionary by ISO 3166 codes
+	hierarchially_arranged_regions: dict[tuple[str, ...], ShapeRecord] = {}
 	for region in load_shaperecords(filename):
 		if trim_antarctica:
 			if region.record["sov_a3"] == 'ATA':  # if it is Antarctica, trim it
 				region.shape.points = trim_edges(region.shape.points, region.shape.parts)
-		sovereignties[region.record["sov_a3"]] = sovereignties.get(region.record["sov_a3"], []) + [region]
+		sovereign_code = region.record["sov_a3"]
+		if sovereign_code in SOVEREIGN_CODES:
+			sovereign_code = SOVEREIGN_CODES[sovereign_code]  # convert US1 to USA
+		if "iso_3166_2" in region.record:  # either key them by sovereign, admin0, admin1
+			sovereign_code = ISO_A3_TO_A2[sovereign_code]
+			iso_code = region.record["iso_3166_2"]
+			if iso_code.startswith("-99"):
+				iso_code = "__" + iso_code[3:]
+			if iso_code.endswith("~"):
+				iso_code = iso_code[:-1]
+			country_code, province_code = iso_code.split("-")
+			key = (sovereign_code, country_code, province_code)
+		else:  # or by sovereign, admin0
+			key = (sovereign_code, region.record["adm0_a3"])
+		if key[0] == key[1]:  # remove duplicate layers
+			key = key[1:]
+		hierarchially_arranged_regions[key] = region
 
 	# next, go thru and plot the borders
+	current_state = []
 	result = ""
-	for sovereignty_code, regions in sorted(sovereignties.items()):
-		sovereign_code = complete_sovereign_code_if_necessary(sovereignty_code, regions)
-		sovereign_content = ''
-		for region in regions:
-			region_code = region.record["adm0_a3"]
-			is_sovereign = region_code == sovereign_code
-			title = region.record["name"]
+	# for each item
+	for key in sorted(hierarchially_arranged_regions.keys()):
+		region = hierarchially_arranged_regions[key]
 
-			small = True
-			max_size = -inf
-			for i in range(len(region.shape.parts)):
-				if i + 1 < len(region.shape.parts):
-					part = region.shape.points[region.shape.parts[i]:region.shape.parts[i + 1]]
-				else:
-					part = region.shape.points[region.shape.parts[i]:]
-				# if Polygon(part).buffer(-CIRCLE_RADIUS).area == 0:
-				if Polygon(part).area > pi*CIRCLE_RADIUS**2:
-					small = False
-				max_size = max(Polygon(part).area, max_size)
-
-			if which == "small" and not small:
-				continue
-			elif which == "big" and small:
-				continue
-
-			if not only_border:
-				clazz = region_code if not is_sovereign else None
-				sovereign_content += plot(region.shape.points, midx=region.shape.parts, close=False,
-				                          fourmat='xd', tabs=4, clazz=clazz, ident=region_code+"-shape",
-				                          title=title if add_title else None)
-
+		# decide whether it's "small"
+		small = True
+		max_size = -inf
+		for i in range(len(region.shape.parts)):
+			if i + 1 < len(region.shape.parts):
+				part = region.shape.points[region.shape.parts[i]:region.shape.parts[i + 1]]
 			else:
-				sovereign_content += (
-					f'\t\t\t\t<clipPath id="{region_code}-clipPath">\n'
-					f'\t\t\t\t\t<use href="#{region_code}-shape" />\n'
-					f'\t\t\t\t</clipPath>\n'
-					f'\t\t\t\t<use href="#{region_code}-shape" style="clip-path:url(#{region_code}-clipPath);" />\n'
-				)
+				part = region.shape.points[region.shape.parts[i]:]
+			# if Polygon(part).buffer(-CIRCLE_RADIUS).area == 0:
+			if Polygon(part).area > pi*CIRCLE_RADIUS**2:
+				small = False
+			max_size = max(Polygon(part).area, max_size)
 
-			if add_circles and small:
-				capital_λ, capital_ф = float(region.record["label_x"]), float(region.record["label_y"])
-				if is_sovereign:
-					radius = CIRCLE_RADIUS
-				else:
-					radius = CIRCLE_RADIUS/sqrt(2)
-				sovereign_content += f'\t\t\t\t<circle class="{region_code}" ' \
-				                     f'cx="{capital_λ}" cy="{capital_ф}" r="{radius}" />\n'
-				if add_title:
-					sovereign_content = sovereign_content[:-4] + f'><title>{title}</title></circle>\n'
+		if which == "small" and not small:
+			continue
+		elif which == "big" and small:
+			continue
 
-		if len(sovereign_content) > 0:
-			result += f'\t\t\t<g class="{sovereign_code}">\n' + \
-			          sovereign_content + \
-			          f'\t\t\t</g>\n'
+		# make some other decisions
+		is_sovereign = len(key) == 1  # this won't work for admin-1-states-provinces but that's fine
+		title = region.record["name"]
 
+		# exit any <g>s we're no longer in
+		while current_state and (len(current_state) > len(key) or current_state[-1] != key[len(current_state) - 1]):
+			result += '\t'*(2 + len(current_state)) + f'</g>\n'
+			current_state.pop()
+		# enter any new <g>s
+		while len(current_state) < len(key):
+			current_state.append(key[len(current_state)])
+			result += '\t'*(2 + len(current_state)) + f'<g class="{current_state[-1]}">\n'
+
+		# then put in whatever type of content is appropriate:
+		# the normal polygon
+		if not only_border:
+			result += plot(region.shape.points, midx=region.shape.parts, close=False,
+			               fourmat='xd', tabs=3 + len(current_state), ident=f"{key[-1]}-shape",
+			               title=title if add_title else None)
+		# or the clipped and copied thick border
+		else:
+			result += (
+				f'\t\t\t\t\t<clipPath id="{key[-1]}-clipPath">\n'
+				f'\t\t\t\t\t<use href="#{key[-1]}-shape" />\n'
+				f'\t\t\t\t\t</clipPath>\n'
+				f'\t\t\t\t\t<use href="#{key[-1]}-shape" style="clip-path:url(#{key[-1]}-clipPath);" />\n'
+			)
+		# and potentially also a circle
+		if add_circles and small:
+			x_center, y_center = float(region.record["label_x"]), float(region.record["label_y"])
+			if is_sovereign:
+				radius = CIRCLE_RADIUS
+			else:
+				radius = CIRCLE_RADIUS/sqrt(2)
+			result += f'\t\t\t\t\t<circle cx="{x_center}" cy="{y_center}" r="{radius}" />\n'
+			if add_title:
+				result = result[:-4] + f'><title>{title}</title></circle>\n'
+
+	# exit all <g>s before returning
+	while len(current_state) > 0:
+		result += '\t'*(2 + len(current_state)) + f'</g>\n'
+		current_state.pop()
 	return result
 
 
