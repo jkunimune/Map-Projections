@@ -68,15 +68,16 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 			sovereign_code = SOVEREIGN_CODES[sovereign_code]  # convert US1 to USA
 		if "iso_3166_2" in region.record:  # either key them by sovereign, admin0, admin1
 			sovereign_code = ISO_A3_TO_A2[sovereign_code]
-			iso_code = region.record["iso_3166_2"]
-			if iso_code.startswith("-99"):
-				iso_code = "__" + iso_code[3:]
-			if iso_code.endswith("~"):
-				iso_code = iso_code[:-1]
-			country_code, province_code = iso_code.split("-")
+			province_code = region.record["iso_3166_2"]
+			if province_code.startswith("-99"):
+				province_code = "__" + province_code[3:]
+			if province_code.endswith("~"):
+				province_code = province_code[:-1]
+			country_code = province_code[:province_code.index("-")]
 			key = (sovereign_code, country_code, province_code)
 		else:  # or by sovereign, admin0
-			key = (sovereign_code, region.record["adm0_a3"])
+			country_code = region.record["adm0_a3"]
+			key = (sovereign_code, country_code)
 		if key[0] == key[1]:  # remove duplicate layers
 			key = key[1:]
 		hierarchially_arranged_regions[key] = region
@@ -123,15 +124,15 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 		# the normal polygon
 		if not only_border:
 			result += plot(region.shape.points, midx=region.shape.parts, close=False,
-			               fourmat='xd', tabs=3 + len(current_state), ident=f"{key[-1]}-shape",
+			               fourmat='xd', tabs=3 + len(current_state), ident=key[-1],
 			               title=title if add_title else None)
 		# or the clipped and copied thick border
 		else:
 			result += (
 				f'\t\t\t\t\t<clipPath id="{key[-1]}-clipPath">\n'
-				f'\t\t\t\t\t<use href="#{key[-1]}-shape" />\n'
+				f'\t\t\t\t\t<use href="#{key[-1]}" />\n'
 				f'\t\t\t\t\t</clipPath>\n'
-				f'\t\t\t\t\t<use href="#{key[-1]}-shape" style="clip-path:url(#{key[-1]}-clipPath);" />\n'
+				f'\t\t\t\t\t<use href="#{key[-1]}" style="clip-path:url(#{key[-1]}-clipPath);" />\n'
 			)
 		# and potentially also a circle
 		if add_circles and small:
@@ -140,7 +141,7 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 				radius = CIRCLE_RADIUS
 			else:
 				radius = CIRCLE_RADIUS/sqrt(2)
-			result += f'\t\t\t\t\t<circle cx="{x_center}" cy="{y_center}" r="{radius}" />\n'
+			result += f'\t\t\t\t\t<circle id="{key[-1]}-circle" cx="{x_center}" cy="{y_center}" r="{radius}" />\n'
 			if add_title:
 				result = result[:-4] + f'><title>{title}</title></circle>\n'
 
