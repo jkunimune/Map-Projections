@@ -13,7 +13,7 @@
 		<rdf:RDF>
 			<cc:work>
 				<rdf:Description
-					 about="https://github.com/jkunimune15/Map-Projections/"
+					 about="https://github.com/jkunimune/Map-Projections/"
 					 dc:title="Icosohedral orthodromic mesh - Equirectangular projection"
 					 dc:description="A mesh of great circles that intersect with 10-fold symmetry at 12 principal nodes and 6-fold symmetry at 20 minor nodes. Aligns with the edges of an icosohedron and its dual dodecahedron."
 					 dc:creator="Justin Kunimune"

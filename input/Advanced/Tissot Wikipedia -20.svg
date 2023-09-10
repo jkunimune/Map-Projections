@@ -13,7 +13,7 @@
 		<rdf:RDF>
 			<cc:work>
 				<rdf:Description
-					 about="https://github.com/jkunimune15/Map-Projections/"
+					 about="https://github.com/jkunimune/Map-Projections/"
 					 dc:title="Equirectangular map of the world - coastlines, graticule, and indicatrices"
 					 dc:description="A map of the world, showing all landmasses with 10 degree graticule and Tissot's indicatrices of diameter 1,000km and spacing 30 degrees. Coastlines precise to 110km."
 					 dc:creator="Justin Kunimune"

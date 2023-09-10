@@ -13,7 +13,7 @@
 		<rdf:RDF>
 			<cc:work>
 				<rdf:Description
-					 about="https://github.com/jkunimune15/Map-Projections/"
+					 about="https://github.com/jkunimune/Map-Projections/"
 					 dc:title="Equirectangular map - 5 degree graticule"
 					 dc:description="An Equirectangular graticule, showing all landmasses with 5 degree graticule, including the Polar Circles and the Tropics."
 					 dc:creator="Justin Kunimune"

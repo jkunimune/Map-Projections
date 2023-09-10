@@ -13,9 +13,9 @@
 		<rdf:RDF>
 			<cc:work>
 				<rdf:Description
-					 about="https://github.com/jkunimune15/Map-Projections/"
+					 about="https://github.com/jkunimune/Map-Projections/"
 					 dc:title="Equirectangular map of the world - political borders"
-					 dc:description="A map of the world, showing all countries recognised by the UN as SVG paths, with major lakes overlaid. Borders precise to 50km."
+					 dc:description="A map of the world, showing all countries' de-factor borders as SVG paths, with major lakes overlaid. Borders precise to 50km."
 					 dc:creator="Justin Kunimune"
 					 dc:source="http://www.naturalearthdata.com/"
 					 dc:date="2018-02-04"

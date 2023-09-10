@@ -13,7 +13,7 @@
 		<rdf:RDF>
 			<cc:work>
 				<rdf:Description
-					 about="https://github.com/jkunimune15/Map-Projections/"
+					 about="https://github.com/jkunimune/Map-Projections/"
 					 dc:title="Equirectangular map of the world - coastlines and lakes"
 					 dc:description="A map of the world, showing all landmasses as SVG paths. Coastlines precise to 50km."
 					 dc:creator="Justin Kunimune"

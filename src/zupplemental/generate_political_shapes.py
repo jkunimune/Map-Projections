@@ -1,9 +1,11 @@
 from math import inf
 
+import shapefile
 from numpy import pi, sqrt
 from shapely import Polygon
 
-from helpers import plot, trim_edges, load_shaperecords, ShapeRecord
+from helpers import plot, trim_edges, ShapeRecord, \
+	load_shapes_from_one_place_and_records_from_another, load_shaperecords
 
 SIZE_CLASSES = [
 	'lg', 'md', 'sm', None, None, None]
@@ -46,7 +48,7 @@ ISO_A3_TO_A2 = {
 
 
 def plot_political_shapes(filename, which="all", only_border=False, add_circles=False,
-                          trim_antarctica=False, add_title=False) -> str:
+                          trim_antarctica=False, add_title=False, include_circles_from=None) -> str:
 	""" it's like plot_shapes but it also can make circles and handles, like, dependencies and stuff
 	    :param filename: the name of the natural earth dataset to use (minus the .shp)
 	    :param which: either "all" to do all countries, "big" to exclude small countries,
@@ -56,12 +58,20 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 	    :param add_circles: add circles to each small country
 	    :param trim_antarctica: whether to adjust antarctica's shape
 	    :param add_title: add mouseover text
+	    :param include_circles_from: an additional filename from which to borrow small objects. anything
+	                                 present in this shapefile but not in the main one will be included
+	                                 in the output as only a circle (assuming add_circles is True)
 	"""
-	# first sort records into a dictionary by ISO 3166 codes
+	if include_circles_from is None:
+		regions = load_shaperecords(filename)
+	else:
+		regions = load_shapes_from_one_place_and_records_from_another(filename, include_circles_from)
+	# go thru the records and sort them into a dictionary by ISO 3166 codes
 	hierarchially_arranged_regions: dict[tuple[str, ...], ShapeRecord] = {}
-	for region in load_shaperecords(filename):
+	for region in regions:
+		# if it Antarctica, trim it
 		if trim_antarctica:
-			if region.record["sov_a3"] == 'ATA':  # if it is Antarctica, trim it
+			if region.record["sov_a3"] == 'ATA':
 				region.shape.points = trim_edges(region.shape.points, region.shape.parts)
 		sovereign_code = region.record["sov_a3"]
 		if sovereign_code in SOVEREIGN_CODES:
@@ -90,26 +100,30 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 		region = hierarchially_arranged_regions[key]
 
 		# decide whether it's "small"
-		small = True
-		max_size = -inf
-		for i in range(len(region.shape.parts)):
-			if i + 1 < len(region.shape.parts):
-				part = region.shape.points[region.shape.parts[i]:region.shape.parts[i + 1]]
-			else:
-				part = region.shape.points[region.shape.parts[i]:]
-			# if Polygon(part).buffer(-CIRCLE_RADIUS).area == 0:
-			if Polygon(part).area > pi*CIRCLE_RADIUS**2:
-				small = False
-			max_size = max(Polygon(part).area, max_size)
+		is_small = True
+		if region.shape.shapeType != shapefile.NULL:
+			max_size = -inf
+			for i in range(len(region.shape.parts)):
+				if i + 1 < len(region.shape.parts):
+					part = region.shape.points[region.shape.parts[i]:region.shape.parts[i + 1]]
+				else:
+					part = region.shape.points[region.shape.parts[i]:]
+				# if Polygon(part).buffer(-CIRCLE_RADIUS).area == 0:
+				if Polygon(part).area > pi*CIRCLE_RADIUS**2:
+					is_small = False
+				max_size = max(Polygon(part).area, max_size)
 
-		if which == "small" and not small:
+		if which == "small" and not is_small:
 			continue
-		elif which == "big" and small:
+		elif which == "big" and is_small:
 			continue
 
 		# make some other decisions
 		is_sovereign = len(key) == 1  # this won't work for admin-1-states-provinces but that's fine
 		title = region.record["name"]
+		is_inhabited = (region.record.get("pop_est", inf) > 500 and  # Vatican is inhabited but US Minor Outlying I. are not
+		                region.record["type"] != "Lease" and  # don't circle Baykonur or Guantanamo
+		                "Base" not in region.record["admin"])  # don't circle military bases
 
 		# exit any <g>s we're no longer in
 		while current_state and (len(current_state) > len(key) or current_state[-1] != key[len(current_state) - 1]):
@@ -128,21 +142,23 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 			               title=title if add_title else None)
 		# or the clipped and copied thick border
 		else:
+			indentation = '\t'*(3 + len(current_state))
 			result += (
-				f'\t\t\t\t\t<clipPath id="{key[-1]}-clipPath">\n'
-				f'\t\t\t\t\t<use href="#{key[-1]}" />\n'
-				f'\t\t\t\t\t</clipPath>\n'
-				f'\t\t\t\t\t<use href="#{key[-1]}" style="clip-path:url(#{key[-1]}-clipPath);" />\n'
+				f'{indentation}<clipPath id="{key[-1]}-clipPath">\n'
+				f'{indentation}<use href="#{key[-1]}" />\n'
+				f'{indentation}</clipPath>\n'
+				f'{indentation}<use href="#{key[-1]}" style="clip-path:url(#{key[-1]}-clipPath);" />\n'
 			)
 		# and potentially also a circle
-		if add_circles and small:
+		if add_circles and is_small and is_inhabited:
 			x_center, y_center = float(region.record["label_x"]), float(region.record["label_y"])
 			if is_sovereign:
 				radius = CIRCLE_RADIUS
 			else:
 				radius = CIRCLE_RADIUS/sqrt(2)
-			result += f'\t\t\t\t\t<circle id="{key[-1]}-circle" cx="{x_center}" cy="{y_center}" r="{radius}" />\n'
-			if add_title:
+			indentation = '\t'*(3 + len(current_state))
+			result += f'{indentation}<circle id="{key[-1]}-circle" cx="{x_center}" cy="{y_center}" r="{radius}" />\n'
+			if add_title:  # TODO: move circle just into group
 				result = result[:-4] + f'><title>{title}</title></circle>\n'
 
 	# exit all <g>s before returning

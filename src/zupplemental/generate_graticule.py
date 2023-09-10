@@ -18,7 +18,13 @@ def plot_parallel(phid, granularity, cut=0, clazz=None) -> str:
 
 
 def generate_graticule(spacing, granularity, include_tropics=False, adjust_poles=False, double_dateline=False) -> str:
-	"""Generate a mesh of latitude and longitude lines"""
+	""" Generate a mesh of latitude and longitude lines
+	    :param spacing: the number of degrees between adjacent lines
+	    :param granularity: the number of degrees between vertices on a line
+	    :param include_tropics: whether to also include the tropic lines and polar circles
+	    :param adjust_poles: whether to make most meridians stop short of the poles to reduce clutter
+	    :param double_dateline: whether to draw the 180°E meridian in addition to the 180°W one
+	"""
 	result = ""
 	NUM_BASE = 90//spacing
 	cuts = [0]*(4*NUM_BASE)

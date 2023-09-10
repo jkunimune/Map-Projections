@@ -13,7 +13,7 @@
 		<rdf:RDF>
 			<cc:work>
 				<rdf:Description
-					 about="https://github.com/jkunimune15/Map-Projections/"
+					 about="https://github.com/jkunimune/Map-Projections/"
 					 dc:title="Equirectangular map of the world - coastlines with Tissot's indicatrices"
 					 dc:description="A map of the world, showing all landmasses with Tissot's indicatrices of radius 3 degrees 45 minutes and spacing 15 degrees. Coastlines precise to 50km."
 					 dc:creator="Justin Kunimune"

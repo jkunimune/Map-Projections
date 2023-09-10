@@ -134,22 +134,27 @@ def main():
 	# political template (countries)
 	write_svg_code_to_file(
 		"../../input/Advanced/Template countries.svg",
+		'	<rect class="water" width="100%" height="100%" />\n'
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
 		'		<g class="country">\n'
-		+ plot_political_shapes('ne_50m_admin_0_countries', trim_antarctica=True, add_title=True,
+		+ plot_political_shapes('ne_110m_admin_0_countries', trim_antarctica=True, add_title=True,
 		                        which="big", add_circles=False)
-		+ plot_political_shapes('ne_50m_admin_0_countries', trim_antarctica=True, add_title=True,
-		                        which="small", add_circles=True) +
+		+ plot_political_shapes('ne_110m_admin_0_countries', trim_antarctica=True, add_title=True,
+		                        which="small", add_circles=True, include_circles_from='ne_10m_admin_0_countries') +
 		'		</g>\n'
-		'		<g class="lakes">\n'
-		+ plot_shapes('ne_50m_lakes', max_rank=4) +
+		'		<g class="water">\n'
+		+ plot_shapes('ne_110m_lakes', max_rank=4) +
 		'		</g>\n'
+		# '		<g class="graticule">\n'
+		# + generate_graticule(30, 1) +
+		# '		</g>\n'
 		'	</g>\n'
 	)
 
 	# political template (provinces)
 	write_svg_code_to_file(
 		"../../input/Advanced/Template provinces.svg",
+		'	<rect class="water" width="100%" height="100%" />\n'
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
 		'		<g class="province">\n'
 		+ plot_political_shapes('ne_10m_admin_1_states_provinces', trim_antarctica=True, add_title=True) +
@@ -157,8 +162,8 @@ def main():
 		'		<g class="country">\n'
 		+ plot_shapes('ne_10m_admin_0_countries', trim_antarctica=True) +
 		'		</g>\n'
-		'		<g class="lakes">\n'
-		+ plot_shapes('ne_50m_lakes', max_rank=4) +
+		'		<g class="water">\n'
+		+ plot_shapes('ne_10m_lakes', max_rank=4) +
 		'		</g>\n'
 		'	</g>\n'
 	)
@@ -166,7 +171,7 @@ def main():
 	# everything
 	write_svg_code_to_file(
 		"../../input/Advanced/Supermap.svg",
-		'<rect class="water" width="100%" height="100%" />\n'
+		'   <rect class="water" width="100%" height="100%" />\n'
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
 		'		<g class="country">\n'
 		+ plot_political_shapes('ne_10m_admin_0_countries', trim_antarctica=True) +

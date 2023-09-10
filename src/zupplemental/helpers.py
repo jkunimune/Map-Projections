@@ -9,7 +9,10 @@ import shapefile
 
 def load_shaperecords(filename) -> Iterable[ShapeRecord]:
 	""" load a shapefile, with a good error message, and transmuting from the annoying pyshp api to
-	    this dictier one https://www.naturalearthdata.com/
+	    this dictier one. also, optionally, import some small shapes from a similar higher-
+	    fidelity shapefile, in case you want to have all the shaperecords present even if they're
+	    too small to show.
+	    https://www.naturalearthdata.com/
 	"""
 	try:
 		sf = shapefile.Reader(f"shapefiles/{filename}")
@@ -20,6 +23,29 @@ def load_shaperecords(filename) -> Iterable[ShapeRecord]:
 	for bad_shaperecord in sf.shapeRecords():
 		good_shaperecords.append(normalize_shaperecord(bad_shaperecord))
 	return good_shaperecords
+
+
+def load_shapes_from_one_place_and_records_from_another(shape_filename, record_filename, identifier="adm0_a3") -> Iterable[ShapeRecord]:
+	""" load two shapefiles and take the shapes from one but the records from the other.  any shapes
+	    in the first without corresponding records in the other will be dropd.  any records in the
+	    other without corresponding shapes in the first will be assigned a NULL geometry.  this is
+	    useful if you want to load low-resolution country border shapes, but also want to know which
+	    small countries are being excluded so you can mark them with circles.
+	"""
+	shape_regions = load_shaperecords(shape_filename)
+	record_regions = load_shaperecords(record_filename)
+	new_regions = []
+	for region in record_regions:
+		record = region.record
+		shape = None
+		for other_region in shape_regions:
+			if region.record[identifier] == other_region.record[identifier]:
+				shape = other_region.shape
+				break
+		if shape is None:
+			shape = shapefile.Shape(shapefile.NODATA)
+		new_regions.append(ShapeRecord(shape, record))
+	return new_regions
 
 
 def obliquify(lat1, lon1, lat0, lon0):
@@ -49,16 +75,16 @@ def obliquify(lat1, lon1, lat0, lon0):
 
 
 def plot(coords, midx=[0], close=True, fourmat='pr', clazz=None, ident=None, tabs=3, title=None) -> str:
-	class_attr = 'class="{}" '.format(clazz) if clazz is not None else ''
-	ident_attr = 'id="{}" '.format(ident) if ident is not None else ''
-	tag = '\t'*tabs+'<path {}{}d="'.format(class_attr, ident_attr)
+	class_attr = f'class="{clazz}" ' if clazz is not None else ''
+	ident_attr = f'id="{ident}" ' if ident is not None else ''
+	tag = '\t'*tabs + f'<path {class_attr}{ident_attr}d="'
 	last_move = None
 	for i, coord in enumerate(coords):
 		if i > 0 and coords[i-1] == coords[i]:
-			continue #no point repeating commands, though that sometimes happens
+			continue  # no point repeating commands, though that sometimes happens
 		if coord == last_move:
 			tag += 'Z'
-			continue #save space by removing unnecessary repetitions
+			continue  # save space by removing unnecessary repetitions
 
 		if i in midx:
 			letter = 'M'
