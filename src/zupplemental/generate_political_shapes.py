@@ -68,7 +68,7 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 	else:
 		regions = load_shapes_from_one_place_and_records_from_another(filename, include_circles_from)
 	# go thru the records and sort them into a dictionary by ISO 3166 codes
-	hierarchially_arranged_regions: dict[tuple[str, ...], ShapeRecord] = {}
+	hierarchially_arranged_regions: dict[tuple[tuple[str, ...], str], ShapeRecord] = {}
 	for region in regions:
 		# if it Antarctica, trim it
 		if trim_antarctica:
@@ -85,19 +85,24 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 			if province_code.endswith("~"):
 				province_code = province_code[:-1]
 			country_code = province_code[:province_code.index("-")]
-			key = (sovereign_code, country_code, province_code)
+			hierarchial_identifier = (sovereign_code, country_code, province_code)
+			unique_identifier = region.record["adm1_code"]
 		else:  # or by sovereign, admin0
 			country_code = region.record["adm0_a3"]
-			key = (sovereign_code, country_code)
-		if key[0] == key[1]:  # remove duplicate layers
-			key = key[1:]
+			hierarchial_identifier = (sovereign_code, country_code)
+			unique_identifier = country_code
+		if hierarchial_identifier[0] == hierarchial_identifier[1]:  # remove duplicate layers
+			hierarchial_identifier = hierarchial_identifier[1:]
+		key = (hierarchial_identifier, unique_identifier)
 		hierarchially_arranged_regions[key] = region
 
 	# next, go thru and plot the borders
 	current_state = []
 	result = ""
+	already_titled = set()
 	# for each item
 	for key in sorted(hierarchially_arranged_regions.keys()):
+		hierarchy, identifier = key
 		region = hierarchially_arranged_regions[key]
 
 		# decide whether it's "small"
@@ -119,18 +124,18 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 		# make some other decisions
 		title = region.record["name"]
 		has_geometry = region.shape.shapeType != shapefile.NULL
-		is_sovereign = len(key) == 1  # this won't work for admin-1-states-provinces but that's fine
+		is_sovereign = len(hierarchy) == 1  # this won't work for admin-1-states-provinces but that's fine
 		is_inhabited = (region.record.get("pop_est", inf) > 500 and  # Vatican is inhabited but US Minor Outlying I. are not
 		                region.record["type"] != "Lease" and  # don't circle Baykonur or Guantanamo
 		                "Base" not in region.record["admin"])  # don't circle military bases
 
 		# exit any <g>s we're no longer in
-		while current_state and (len(current_state) > len(key) or current_state[-1] != key[len(current_state) - 1]):
+		while current_state and (len(current_state) > len(hierarchy) or current_state[-1] != hierarchy[len(current_state) - 1]):
 			result += '\t'*(2 + len(current_state)) + f'</g>\n'
 			current_state.pop()
 		# enter any new <g>s
-		while len(current_state) < len(key):
-			current_state.append(key[len(current_state)])
+		while len(current_state) < len(hierarchy):
+			current_state.append(hierarchy[len(current_state)])
 			result += '\t'*(2 + len(current_state)) + f'<g class="{current_state[-1]}">\n'
 		indentation = '\t'*(3 + len(current_state))
 
@@ -139,15 +144,15 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 		if not only_border:
 			if has_geometry:
 				result += plot(region.shape.points, midx=region.shape.parts, close=False,
-				               fourmat='xd', tabs=3 + len(current_state), ident=key[-1])
+				               fourmat='xd', tabs=3 + len(current_state), ident=identifier)
 		# or the clipped and copied thick border
 		else:
 			if has_geometry:
 				result += (
-					f'{indentation}<clipPath id="{key[-1]}-clipPath">\n'
-					f'{indentation}<use href="#{key[-1]}" />\n'
+					f'{indentation}<clipPath id="{identifier}-clipPath">\n'
+					f'{indentation}<use href="#{identifier}" />\n'
 					f'{indentation}</clipPath>\n'
-					f'{indentation}<use href="#{key[-1]}" style="clip-path:url(#{key[-1]}-clipPath);" />\n'
+					f'{indentation}<use href="#{identifier}" style="clip-path:url(#{identifier}-clipPath);" />\n'
 				)
 		# and potentially also a circle
 		if add_circles and is_small and is_inhabited:
@@ -156,11 +161,12 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 				radius = CIRCLE_RADIUS
 			else:
 				radius = CIRCLE_RADIUS/sqrt(2)
-			result += f'{indentation}<circle id="{key[-1]}-circle" cx="{x_center}" cy="{y_center}" r="{radius}" />\n'
+			result += f'{indentation}<circle id="{identifier}-circle" cx="{x_center}" cy="{y_center}" r="{radius}" />\n'
 
-		if add_title:
+		if add_title and tuple(hierarchy) not in already_titled:
 			if has_geometry or is_inhabited:
 				result += f'{indentation}<title>{title}</title>\n'
+				already_titled.add(tuple(hierarchy))  # occasionally a thing can get two titles if the hierarchy isn't unique; only label the first one
 
 	# exit all <g>s before returning
 	while len(current_state) > 0:
