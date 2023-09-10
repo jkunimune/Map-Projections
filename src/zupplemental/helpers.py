@@ -43,7 +43,7 @@ def load_shapes_from_one_place_and_records_from_another(shape_filename, record_f
 				shape = other_region.shape
 				break
 		if shape is None:
-			shape = shapefile.Shape(shapefile.NODATA)
+			shape = shapefile.Shape(shapefile.NULL)
 		new_regions.append(ShapeRecord(shape, record))
 	return new_regions
 
@@ -74,7 +74,7 @@ def obliquify(lat1, lon1, lat0, lon0):
 	return latf, lonf
 
 
-def plot(coords, midx=[0], close=True, fourmat='pr', clazz=None, ident=None, tabs=3, title=None) -> str:
+def plot(coords, midx=[0], close=True, fourmat='pr', clazz=None, ident=None, tabs=3) -> str:
 	class_attr = f'class="{clazz}" ' if clazz is not None else ''
 	ident_attr = f'id="{ident}" ' if ident is not None else ''
 	tag = '\t'*tabs + f'<path {class_attr}{ident_attr}d="'
@@ -102,10 +102,7 @@ def plot(coords, midx=[0], close=True, fourmat='pr', clazz=None, ident=None, tab
 		tag += '{}{:.3f},{:.3f} '.format(letter, x, y)
 	if close:
 		tag += 'Z'
-	if title is not None:
-		tag += f'"><title>{title}</title></path>\n'
-	else:
-		tag += '" />\n'
+	tag += '" />\n'
 	return tag.replace('.000', '')
 
 

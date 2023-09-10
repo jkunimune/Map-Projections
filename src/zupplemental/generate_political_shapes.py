@@ -1,3 +1,4 @@
+import re
 from math import inf
 
 import shapefile
@@ -101,16 +102,14 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 
 		# decide whether it's "small"
 		is_small = True
-		if region.shape.shapeType != shapefile.NULL:
-			for i in range(len(region.shape.parts)):
-				if i + 1 < len(region.shape.parts):
-					part = region.shape.points[region.shape.parts[i]:region.shape.parts[i + 1]]
-				else:
-					part = region.shape.points[region.shape.parts[i]:]
-				area = Polygon(part).area*cos(radians(part[0][1]))
-				# if Polygon(part).buffer(-CIRCLE_RADIUS).area == 0:
-				if area > pi*CIRCLE_RADIUS**2:
-					is_small = False
+		for i in range(len(region.shape.parts)):
+			if i + 1 < len(region.shape.parts):
+				part = region.shape.points[region.shape.parts[i]:region.shape.parts[i + 1]]
+			else:
+				part = region.shape.points[region.shape.parts[i]:]
+			area = Polygon(part).area*cos(radians(part[0][1]))
+			if area > pi*CIRCLE_RADIUS**2:
+				is_small = False
 
 		if which == "small" and not is_small:
 			continue
@@ -118,8 +117,9 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 			continue
 
 		# make some other decisions
-		is_sovereign = len(key) == 1  # this won't work for admin-1-states-provinces but that's fine
 		title = region.record["name"]
+		has_geometry = region.shape.shapeType != shapefile.NULL
+		is_sovereign = len(key) == 1  # this won't work for admin-1-states-provinces but that's fine
 		is_inhabited = (region.record.get("pop_est", inf) > 500 and  # Vatican is inhabited but US Minor Outlying I. are not
 		                region.record["type"] != "Lease" and  # don't circle Baykonur or Guantanamo
 		                "Base" not in region.record["admin"])  # don't circle military bases
@@ -132,22 +132,23 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 		while len(current_state) < len(key):
 			current_state.append(key[len(current_state)])
 			result += '\t'*(2 + len(current_state)) + f'<g class="{current_state[-1]}">\n'
+		indentation = '\t'*(3 + len(current_state))
 
 		# then put in whatever type of content is appropriate:
 		# the normal polygon
 		if not only_border:
-			result += plot(region.shape.points, midx=region.shape.parts, close=False,
-			               fourmat='xd', tabs=3 + len(current_state), ident=key[-1],
-			               title=title if add_title else None)
+			if has_geometry:
+				result += plot(region.shape.points, midx=region.shape.parts, close=False,
+				               fourmat='xd', tabs=3 + len(current_state), ident=key[-1])
 		# or the clipped and copied thick border
 		else:
-			indentation = '\t'*(3 + len(current_state))
-			result += (
-				f'{indentation}<clipPath id="{key[-1]}-clipPath">\n'
-				f'{indentation}<use href="#{key[-1]}" />\n'
-				f'{indentation}</clipPath>\n'
-				f'{indentation}<use href="#{key[-1]}" style="clip-path:url(#{key[-1]}-clipPath);" />\n'
-			)
+			if has_geometry:
+				result += (
+					f'{indentation}<clipPath id="{key[-1]}-clipPath">\n'
+					f'{indentation}<use href="#{key[-1]}" />\n'
+					f'{indentation}</clipPath>\n'
+					f'{indentation}<use href="#{key[-1]}" style="clip-path:url(#{key[-1]}-clipPath);" />\n'
+				)
 		# and potentially also a circle
 		if add_circles and is_small and is_inhabited:
 			x_center, y_center = float(region.record["label_x"]), float(region.record["label_y"])
@@ -155,15 +156,25 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 				radius = CIRCLE_RADIUS
 			else:
 				radius = CIRCLE_RADIUS/sqrt(2)
-			indentation = '\t'*(3 + len(current_state))
 			result += f'{indentation}<circle id="{key[-1]}-circle" cx="{x_center}" cy="{y_center}" r="{radius}" />\n'
-			if add_title:  # TODO: move circle just into group
-				result = result[:-4] + f'><title>{title}</title></circle>\n'
+
+		if add_title:
+			if has_geometry or is_inhabited:
+				result += f'{indentation}<title>{title}</title>\n'
 
 	# exit all <g>s before returning
 	while len(current_state) > 0:
 		result += '\t'*(2 + len(current_state)) + f'</g>\n'
 		current_state.pop()
+
+	# remove any groups with no elements
+	for i in range(3):
+		result = re.sub(r'(\t)*<g class="([A-Za-z_-]+)">(\s*)</g>\n',
+		                '', result)
+	# simplify any groups with only a single element
+	result = re.sub(r'<g class="([A-Za-z_-]+)">(\s*)<([a-z]+) ([^\n]*)>(\s*)</g>',
+	                '<\\3 class="\\1" \\4>', result)
+
 	return result
 
 
