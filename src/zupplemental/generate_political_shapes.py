@@ -1,7 +1,7 @@
 from math import inf
 
 import shapefile
-from numpy import pi, sqrt
+from numpy import pi, sqrt, cos, radians
 from shapely import Polygon
 
 from helpers import plot, trim_edges, ShapeRecord, \
@@ -102,16 +102,15 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 		# decide whether it's "small"
 		is_small = True
 		if region.shape.shapeType != shapefile.NULL:
-			max_size = -inf
 			for i in range(len(region.shape.parts)):
 				if i + 1 < len(region.shape.parts):
 					part = region.shape.points[region.shape.parts[i]:region.shape.parts[i + 1]]
 				else:
 					part = region.shape.points[region.shape.parts[i]:]
+				area = Polygon(part).area*cos(radians(part[0][1]))
 				# if Polygon(part).buffer(-CIRCLE_RADIUS).area == 0:
-				if Polygon(part).area > pi*CIRCLE_RADIUS**2:
+				if area > pi*CIRCLE_RADIUS**2:
 					is_small = False
-				max_size = max(Polygon(part).area, max_size)
 
 		if which == "small" and not is_small:
 			continue
