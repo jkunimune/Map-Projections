@@ -122,12 +122,15 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 			continue
 
 		# make some other decisions
-		title = region.record["name"]
 		has_geometry = region.shape.shapeType != shapefile.NULL
 		is_sovereign = len(hierarchy) == 1  # this won't work for admin-1-states-provinces but that's fine
 		is_inhabited = (region.record.get("pop_est", inf) > 500 and  # Vatican is inhabited but US Minor Outlying I. are not
 		                region.record["type"] != "Lease" and  # don't circle Baykonur or Guantanamo
 		                "Base" not in region.record["admin"])  # don't circle military bases
+		if not is_sovereign and 'note_adm0' in region.record:
+			label = f"{region.record['name_long']} ({region.record['note_adm0']})"  # indicate dependencies' sovereigns in parentheses
+		else:
+			label = region.record["name_long"]
 
 		# exit any <g>s we're no longer in
 		while current_state and (len(current_state) > len(hierarchy) or current_state[-1] != hierarchy[len(current_state) - 1]):
@@ -165,7 +168,7 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 
 		if add_title and tuple(hierarchy) not in already_titled:
 			if has_geometry or is_inhabited:
-				result += f'{indentation}<title>{title}</title>\n'
+				result += f'{indentation}<title>{label}</title>\n'
 				already_titled.add(tuple(hierarchy))  # occasionally a thing can get two titles if the hierarchy isn't unique; only label the first one
 
 	# exit all <g>s before returning
