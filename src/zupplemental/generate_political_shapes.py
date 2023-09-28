@@ -165,8 +165,8 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 			if is_sovereign:
 				radius = CIRCLE_RADIUS
 			else:
-				radius = CIRCLE_RADIUS/sqrt(2)
-			result += f'{indentation}<circle id="{identifier}-circle" cx="{x_center}" cy="{y_center}" r="{radius}" />\n'
+				radius = round(CIRCLE_RADIUS/sqrt(2), 2)
+			result += f'{indentation}<circle id="{identifier}-circle" cx="{x_center:.3f}" cy="{y_center:.3f}" r="{radius}" />\n'
 
 		if add_title and tuple(hierarchy) not in already_titled:
 			if has_geometry or is_inhabited:

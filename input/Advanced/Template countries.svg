@@ -680,92 +680,92 @@
 				<title>Zimbabwe</title>
 			</g>
 			<g class="AND">
-				<circle id="AND-circle" cx="1.539409" cy="42.547643" r="0.7" />
+				<circle id="AND-circle" cx="1.539" cy="42.548" r="0.7" />
 				<title>Andorra</title>
 			</g>
 			<g class="ATG">
-				<circle id="ATG-circle" cx="-61.790612" cy="17.352249" r="0.7" />
+				<circle id="ATG-circle" cx="-61.791" cy="17.352" r="0.7" />
 				<title>Antigua and Barbuda</title>
 			</g>
 			<g class="AUS">
 				<g class="IOA">
-					<circle id="IOA-circle" cx="105.67259" cy="-10.490789" r="0.4949747468305832" />
+					<circle id="IOA-circle" cx="105.673" cy="-10.491" r="0.49" />
 					<title>Indian Ocean Territories (Auz.)</title>
 				</g>
 				<g class="NFK">
-					<circle id="NFK-circle" cx="167.954531" cy="-29.033042" r="0.4949747468305832" />
+					<circle id="NFK-circle" cx="167.955" cy="-29.033" r="0.49" />
 					<title>Norfolk Island (Auz.)</title>
 				</g>
 			</g>
 			<g class="BHR">
-				<circle id="BHR-circle" cx="50.554816" cy="26.055972" r="0.7" />
+				<circle id="BHR-circle" cx="50.555" cy="26.056" r="0.7" />
 				<title>Bahrain</title>
 			</g>
 			<g class="BHS">
 				<path id="BHS" d="M-78.980,26.790 L-78.510,26.870 L-77.850,26.840 L-77.820,26.580 L-78.910,26.420 ZM-77.790,27.040 L-77,26.590 L-77.173,25.879 L-77.356,26.007 L-77.340,26.530 L-77.788,26.925 ZM-78.191,25.210 L-77.890,25.170 L-77.540,24.340 L-77.535,23.760 L-77.780,23.710 L-78.034,24.286 L-78.408,24.576 Z" />
-				<circle id="BHS-circle" cx="-77.146688" cy="26.401789" r="0.7" />
+				<circle id="BHS-circle" cx="-77.147" cy="26.402" r="0.7" />
 				<title>Bahamas</title>
 			</g>
 			<g class="BRB">
-				<circle id="BRB-circle" cx="-59.568966" cy="13.163709" r="0.7" />
+				<circle id="BRB-circle" cx="-59.569" cy="13.164" r="0.7" />
 				<title>Barbados</title>
 			</g>
 			<g class="BRN">
 				<path id="BRN" d="M115.451,5.448 L115.406,4.955 L115.347,4.317 L114.870,4.348 L114.660,4.008 L114.204,4.526 L114.600,4.900 Z" />
-				<circle id="BRN-circle" cx="114.551943" cy="4.448298" r="0.7" />
+				<circle id="BRN-circle" cx="114.552" cy="4.448" r="0.7" />
 				<title>Brunei Darussalam</title>
 			</g>
 			<g class="CHN">
 				<g class="HKG">
-					<circle id="HKG-circle" cx="114.097769" cy="22.448829" r="0.4949747468305832" />
+					<circle id="HKG-circle" cx="114.098" cy="22.449" r="0.49" />
 					<title>Hong Kong (Cn.)</title>
 				</g>
 				<g class="MAC">
-					<circle id="MAC-circle" cx="113.556038" cy="22.129735" r="0.4949747468305832" />
+					<circle id="MAC-circle" cx="113.556" cy="22.130" r="0.49" />
 					<title>Macao (Cn.)</title>
 				</g>
 			</g>
 			<g class="CNM">
-				<circle id="CNM-circle" cx="33.288134" cy="35.140713" r="0.7" />
+				<circle id="CNM-circle" cx="33.288" cy="35.141" r="0.7" />
 				<title>Cyprus U.N. Buffer Zone</title>
 			</g>
 			<g class="COM">
-				<circle id="COM-circle" cx="43.318094" cy="-11.727683" r="0.7" />
+				<circle id="COM-circle" cx="43.318" cy="-11.728" r="0.7" />
 				<title>Comoros</title>
 			</g>
 			<g class="CPV">
-				<circle id="CPV-circle" cx="-23.639434" cy="15.074761" r="0.7" />
+				<circle id="CPV-circle" cx="-23.639" cy="15.075" r="0.7" />
 				<title>Republic of Cabo Verde</title>
 			</g>
 			<g class="CYN">
 				<path id="CYN" d="M32.732,35.140 L32.802,35.146 L32.947,35.387 L33.667,35.373 L34.576,35.672 L33.901,35.246 L33.974,35.059 L33.866,35.094 L33.675,35.018 L33.526,35.039 L33.476,35 L33.456,35.101 L33.384,35.163 L33.191,35.173 L32.920,35.088 Z" />
-				<circle id="CYN-circle" cx="33.692434" cy="35.216071" r="0.7" />
+				<circle id="CYN-circle" cx="33.692" cy="35.216" r="0.7" />
 				<title>Northern Cyprus</title>
 			</g>
 			<g class="CYP">
 				<path id="CYP" d="M32.732,35.140 L32.920,35.088 L33.191,35.173 L33.384,35.163 L33.456,35.101 L33.476,35 L33.526,35.039 L33.675,35.018 L33.866,35.094 L33.974,35.059 L34.005,34.978 L32.980,34.572 L32.490,34.702 L32.257,35.103 Z" />
-				<circle id="CYP-circle" cx="33.084182" cy="34.913329" r="0.7" />
+				<circle id="CYP-circle" cx="33.084" cy="34.913" r="0.7" />
 				<title>Cyprus</title>
 			</g>
 			<g class="DMA">
-				<circle id="DMA-circle" cx="-61.344958" cy="15.458829" r="0.7" />
+				<circle id="DMA-circle" cx="-61.345" cy="15.459" r="0.7" />
 				<title>Dominica</title>
 			</g>
 			<g class="DNK">
 				<g class="FRO">
-					<circle id="FRO-circle" cx="-7.058429" cy="62.185604" r="0.4949747468305832" />
+					<circle id="FRO-circle" cx="-7.058" cy="62.186" r="0.49" />
 					<title>Faeroe Islands (Den.)</title>
 				</g>
 			</g>
 			<g class="FIN">
 				<g class="ALD">
-					<circle id="ALD-circle" cx="19.869671" cy="60.156467" r="0.4949747468305832" />
+					<circle id="ALD-circle" cx="19.870" cy="60.156" r="0.49" />
 					<title>Åland Islands (Fin.)</title>
 				</g>
 			</g>
 			<g class="FJI">
 				<path id="FJI" d="M180,-16.067 L180,-16.555 L179.364,-16.801 L178.725,-17.012 L178.597,-16.639 L179.097,-16.434 L179.414,-16.379 ZM178.126,-17.505 L178.374,-17.340 L178.718,-17.628 L178.553,-18.151 L177.933,-18.288 L177.381,-18.164 L177.285,-17.725 L177.671,-17.381 ZM-179.793,-16.021 L-179.917,-16.502 L-180,-16.555 L-180,-16.067 Z" />
-				<circle id="FJI-circle" cx="177.975427" cy="-17.826099" r="0.7" />
+				<circle id="FJI-circle" cx="177.975" cy="-17.826" r="0.7" />
 				<title>Fiji</title>
 			</g>
 			<g class="FRA">
@@ -774,295 +774,295 @@
 					<title>French Southern and Antarctic Lands (Fr.)</title>
 				</g>
 				<g class="BLM">
-					<circle id="BLM-circle" cx="-62.833193" cy="17.901987" r="0.4949747468305832" />
+					<circle id="BLM-circle" cx="-62.833" cy="17.902" r="0.49" />
 					<title>Saint-Barthélemy (Fr.)</title>
 				</g>
 				<g class="MAF">
-					<circle id="MAF-circle" cx="-63.049399" cy="18.081302" r="0.4949747468305832" />
+					<circle id="MAF-circle" cx="-63.049" cy="18.081" r="0.49" />
 					<title>Saint-Martin (Fr.)</title>
 				</g>
 				<g class="PYF">
-					<circle id="PYF-circle" cx="-149.46157" cy="-17.628081" r="0.4949747468305832" />
+					<circle id="PYF-circle" cx="-149.462" cy="-17.628" r="0.49" />
 					<title>French Polynesia (Fr.)</title>
 				</g>
 				<g class="SPM">
-					<circle id="SPM-circle" cx="-56.332352" cy="47.040344" r="0.4949747468305832" />
+					<circle id="SPM-circle" cx="-56.332" cy="47.040" r="0.49" />
 					<title>Saint Pierre and Miquelon (Fr.)</title>
 				</g>
 				<g class="WLF">
-					<circle id="WLF-circle" cx="-178.137436" cy="-14.286415" r="0.4949747468305832" />
+					<circle id="WLF-circle" cx="-178.137" cy="-14.286" r="0.49" />
 					<title>Wallis and Futuna Islands (Fr.)</title>
 				</g>
 			</g>
 			<g class="FSM">
-				<circle id="FSM-circle" cx="158.234019" cy="6.887553" r="0.7" />
+				<circle id="FSM-circle" cx="158.234" cy="6.888" r="0.7" />
 				<title>Federated States of Micronesia</title>
 			</g>
 			<g class="GBR">
 				<g class="AIA">
-					<circle id="AIA-circle" cx="-63.026361" cy="18.242979" r="0.4949747468305832" />
+					<circle id="AIA-circle" cx="-63.026" cy="18.243" r="0.49" />
 					<title>Anguilla (U.K.)</title>
 				</g>
 				<g class="BMU">
-					<circle id="BMU-circle" cx="-64.763573" cy="32.296592" r="0.4949747468305832" />
+					<circle id="BMU-circle" cx="-64.764" cy="32.297" r="0.49" />
 					<title>Bermuda (U.K.)</title>
 				</g>
 				<g class="CYM">
-					<circle id="CYM-circle" cx="-81.24055" cy="19.319862" r="0.4949747468305832" />
+					<circle id="CYM-circle" cx="-81.241" cy="19.320" r="0.49" />
 					<title>Cayman Islands (U.K.)</title>
 				</g>
 				<g class="FLK">
 					<path id="FLK" d="M-61.200,-51.850 L-60,-51.250 L-59.150,-51.500 L-58.550,-51.100 L-57.750,-51.550 L-58.050,-51.900 L-59.400,-52.200 L-59.850,-51.850 L-60.700,-52.300 Z" />
-					<circle id="FLK-circle" cx="-58.738602" cy="-51.608913" r="0.4949747468305832" />
+					<circle id="FLK-circle" cx="-58.739" cy="-51.609" r="0.49" />
 					<title>Falkland Islands / Malvinas (U.K.)</title>
 				</g>
 				<g class="GGY">
-					<circle id="GGY-circle" cx="-2.561736" cy="49.463533" r="0.4949747468305832" />
+					<circle id="GGY-circle" cx="-2.562" cy="49.464" r="0.49" />
 					<title>Guernsey (U.K.)</title>
 				</g>
 				<g class="GIB">
-					<circle id="GIB-circle" cx="-5.3467" cy="36.129426" r="0.4949747468305832" />
+					<circle id="GIB-circle" cx="-5.347" cy="36.129" r="0.49" />
 					<title>Gibraltar (U.K.)</title>
 				</g>
 				<g class="IMN">
-					<circle id="IMN-circle" cx="-4.530069" cy="54.220833" r="0.4949747468305832" />
+					<circle id="IMN-circle" cx="-4.530" cy="54.221" r="0.49" />
 					<title>Isle of Man (U.K.)</title>
 				</g>
 				<g class="IOT">
-					<circle id="IOT-circle" cx="71.348349" cy="-6.190826" r="0.4949747468305832" />
+					<circle id="IOT-circle" cx="71.348" cy="-6.191" r="0.49" />
 					<title>British Indian Ocean Territory (U.K.)</title>
 				</g>
 				<g class="JEY">
-					<circle id="JEY-circle" cx="-2.090146" cy="49.220808" r="0.4949747468305832" />
+					<circle id="JEY-circle" cx="-2.090" cy="49.221" r="0.49" />
 					<title>Jersey (U.K.)</title>
 				</g>
 				<g class="MSR">
-					<circle id="MSR-circle" cx="-62.188252" cy="16.73717" r="0.4949747468305832" />
+					<circle id="MSR-circle" cx="-62.188" cy="16.737" r="0.49" />
 					<title>Montserrat (U.K.)</title>
 				</g>
 				<g class="SHN">
-					<circle id="SHN-circle" cx="-5.71262" cy="-15.950487" r="0.4949747468305832" />
+					<circle id="SHN-circle" cx="-5.713" cy="-15.950" r="0.49" />
 					<title>Saint Helena (U.K.)</title>
 				</g>
 				<g class="TCA">
-					<circle id="TCA-circle" cx="-71.752704" cy="21.81663" r="0.4949747468305832" />
+					<circle id="TCA-circle" cx="-71.753" cy="21.817" r="0.49" />
 					<title>Turks and Caicos Islands (U.K.)</title>
 				</g>
 				<g class="VGB">
-					<circle id="VGB-circle" cx="-64.63661" cy="18.426606" r="0.4949747468305832" />
+					<circle id="VGB-circle" cx="-64.637" cy="18.427" r="0.49" />
 					<title>British Virgin Islands (U.K.)</title>
 				</g>
 			</g>
 			<g class="GMB">
 				<path id="GMB" d="M-16.714,13.595 L-15.625,13.624 L-15.399,13.860 L-15.082,13.876 L-14.687,13.630 L-14.377,13.626 L-14.047,13.794 L-13.845,13.505 L-14.278,13.281 L-14.712,13.298 L-15.141,13.510 L-15.512,13.279 L-15.691,13.270 L-15.931,13.130 L-16.842,13.151 Z" />
-				<circle id="GMB-circle" cx="-14.998318" cy="13.641721" r="0.7" />
+				<circle id="GMB-circle" cx="-14.998" cy="13.642" r="0.7" />
 				<title>The Gambia</title>
 			</g>
 			<g class="GRD">
-				<circle id="GRD-circle" cx="-61.680461" cy="12.113156" r="0.7" />
+				<circle id="GRD-circle" cx="-61.680" cy="12.113" r="0.7" />
 				<title>Grenada</title>
 			</g>
 			<g class="ISR">
 				<g class="PSX">
 					<path id="PSX" d="M35.398,31.489 L34.927,31.353 L34.971,31.617 L35.226,31.754 L34.975,31.867 L35.184,32.533 L35.546,32.394 L35.545,31.783 Z" />
-					<circle id="PSX-circle" cx="35.291341" cy="32.047431" r="0.4949747468305832" />
+					<circle id="PSX-circle" cx="35.291" cy="32.047" r="0.49" />
 					<title>Palestine ()</title>
 				</g>
 			</g>
 			<g class="JAM">
 				<path id="JAM" d="M-77.570,18.491 L-76.897,18.401 L-76.365,18.161 L-76.200,17.887 L-76.903,17.868 L-77.206,17.701 L-77.766,17.862 L-78.338,18.226 L-78.218,18.455 L-77.797,18.524 Z" />
-				<circle id="JAM-circle" cx="-77.318767" cy="18.137124" r="0.7" />
+				<circle id="JAM-circle" cx="-77.319" cy="18.137" r="0.7" />
 				<title>Jamaica</title>
 			</g>
 			<g class="KAS">
-				<circle id="KAS-circle" cx="77.129553" cy="35.340606" r="0.7" />
+				<circle id="KAS-circle" cx="77.130" cy="35.341" r="0.7" />
 				<title>Siachen Glacier</title>
 			</g>
 			<g class="KIR">
-				<circle id="KIR-circle" cx="-157.384577" cy="1.820437" r="0.7" />
+				<circle id="KIR-circle" cx="-157.385" cy="1.820" r="0.7" />
 				<title>Kiribati</title>
 			</g>
 			<g class="KNA">
-				<circle id="KNA-circle" cx="-62.757975" cy="17.336558" r="0.7" />
+				<circle id="KNA-circle" cx="-62.758" cy="17.337" r="0.7" />
 				<title>Saint Kitts and Nevis</title>
 			</g>
 			<g class="KOS">
 				<path id="KOS" d="M20.590,41.855 L20.523,42.218 L20.284,42.320 L20.071,42.589 L20.258,42.813 L20.497,42.885 L20.635,43.217 L20.814,43.272 L20.957,43.131 L21.143,43.069 L21.274,42.910 L21.439,42.863 L21.633,42.677 L21.775,42.683 L21.663,42.439 L21.543,42.320 L21.577,42.245 L21.353,42.207 L20.762,42.052 L20.717,41.847 Z" />
-				<circle id="KOS-circle" cx="20.860719" cy="42.593587" r="0.7" />
+				<circle id="KOS-circle" cx="20.861" cy="42.594" r="0.7" />
 				<title>Kosovo</title>
 			</g>
 			<g class="KWT">
 				<path id="KWT" d="M47.975,29.976 L48.183,29.534 L48.094,29.306 L48.416,28.552 L47.709,28.526 L47.460,29.003 L46.569,29.099 L47.303,30.059 Z" />
-				<circle id="KWT-circle" cx="47.313999" cy="29.413628" r="0.7" />
+				<circle id="KWT-circle" cx="47.314" cy="29.414" r="0.7" />
 				<title>Kuwait</title>
 			</g>
 			<g class="LBN">
 				<path id="LBN" d="M35.821,33.277 L35.553,33.264 L35.461,33.089 L35.126,33.091 L35.482,33.905 L35.980,34.610 L35.998,34.645 L36.448,34.594 L36.612,34.202 L36.066,33.825 Z" />
-				<circle id="LBN-circle" cx="35.992892" cy="34.133368" r="0.7" />
+				<circle id="LBN-circle" cx="35.993" cy="34.133" r="0.7" />
 				<title>Lebanon</title>
 			</g>
 			<g class="LCA">
-				<circle id="LCA-circle" cx="-60.980094" cy="13.892371" r="0.7" />
+				<circle id="LCA-circle" cx="-60.980" cy="13.892" r="0.7" />
 				<title>Saint Lucia</title>
 			</g>
 			<g class="LIE">
-				<circle id="LIE-circle" cx="9.559439" cy="47.111405" r="0.7" />
+				<circle id="LIE-circle" cx="9.559" cy="47.111" r="0.7" />
 				<title>Liechtenstein</title>
 			</g>
 			<g class="LUX">
 				<path id="LUX" d="M6.043,50.128 L6.243,49.902 L6.186,49.464 L5.898,49.443 L5.674,49.529 L5.782,50.090 Z" />
-				<circle id="LUX-circle" cx="6.07762" cy="49.733732" r="0.7" />
+				<circle id="LUX-circle" cx="6.078" cy="49.734" r="0.7" />
 				<title>Luxembourg</title>
 			</g>
 			<g class="MCO">
-				<circle id="MCO-circle" cx="7.398291" cy="43.739652" r="0.7" />
+				<circle id="MCO-circle" cx="7.398" cy="43.740" r="0.7" />
 				<title>Monaco</title>
 			</g>
 			<g class="MDV">
-				<circle id="MDV-circle" cx="73.507554" cy="4.174441" r="0.7" />
+				<circle id="MDV-circle" cx="73.508" cy="4.174" r="0.7" />
 				<title>Maldives</title>
 			</g>
 			<g class="MHL">
-				<circle id="MHL-circle" cx="171.193609" cy="7.082568" r="0.7" />
+				<circle id="MHL-circle" cx="171.194" cy="7.083" r="0.7" />
 				<title>Marshall Islands</title>
 			</g>
 			<g class="MLT">
-				<circle id="MLT-circle" cx="14.433005" cy="35.892886" r="0.7" />
+				<circle id="MLT-circle" cx="14.433" cy="35.893" r="0.7" />
 				<title>Malta</title>
 			</g>
 			<g class="MNE">
 				<path id="MNE" d="M20.071,42.589 L19.802,42.500 L19.738,42.688 L19.304,42.196 L19.372,41.878 L19.162,41.955 L18.882,42.282 L18.450,42.480 L18.560,42.650 L18.706,43.200 L19.032,43.433 L19.219,43.524 L19.484,43.352 L19.630,43.214 L19.959,43.106 L20.340,42.899 L20.258,42.813 Z" />
-				<circle id="MNE-circle" cx="19.143727" cy="42.803101" r="0.7" />
+				<circle id="MNE-circle" cx="19.144" cy="42.803" r="0.7" />
 				<title>Montenegro</title>
 			</g>
 			<g class="MUS">
-				<circle id="MUS-circle" cx="57.565848" cy="-20.299506" r="0.7" />
+				<circle id="MUS-circle" cx="57.566" cy="-20.300" r="0.7" />
 				<title>Mauritius</title>
 			</g>
 			<g class="NLD">
 				<g class="ABW">
-					<circle id="ABW-circle" cx="-69.972795" cy="12.5174" r="0.4949747468305832" />
+					<circle id="ABW-circle" cx="-69.973" cy="12.517" r="0.49" />
 					<title>Aruba (Neth.)</title>
 				</g>
 				<g class="CUW">
-					<circle id="CUW-circle" cx="-68.920578" cy="12.145039" r="0.4949747468305832" />
+					<circle id="CUW-circle" cx="-68.921" cy="12.145" r="0.49" />
 					<title>Curaçao (Neth.)</title>
 				</g>
 				<g class="SXM">
-					<circle id="SXM-circle" cx="-63.070133" cy="18.04088" r="0.4949747468305832" />
+					<circle id="SXM-circle" cx="-63.070" cy="18.041" r="0.49" />
 					<title>Sint Maarten (Neth.)</title>
 				</g>
 			</g>
 			<g class="NRU">
-				<circle id="NRU-circle" cx="166.932644" cy="-0.520261" r="0.7" />
+				<circle id="NRU-circle" cx="166.933" cy="-0.520" r="0.7" />
 				<title>Nauru</title>
 			</g>
 			<g class="NZL">
 				<g class="COK">
-					<circle id="COK-circle" cx="-159.785675" cy="-21.215993" r="0.4949747468305832" />
+					<circle id="COK-circle" cx="-159.786" cy="-21.216" r="0.49" />
 					<title>Cook Islands (Assoc. with N.Z.)</title>
 				</g>
 				<g class="NIU">
-					<circle id="NIU-circle" cx="-169.862565" cy="-19.045956" r="0.4949747468305832" />
+					<circle id="NIU-circle" cx="-169.863" cy="-19.046" r="0.49" />
 					<title>Niue (Assoc. with N.Z.)</title>
 				</g>
 			</g>
 			<g class="PLW">
-				<circle id="PLW-circle" cx="134.580157" cy="7.518252" r="0.7" />
+				<circle id="PLW-circle" cx="134.580" cy="7.518" r="0.7" />
 				<title>Palau</title>
 			</g>
 			<g class="QAT">
 				<path id="QAT" d="M50.810,24.755 L50.744,25.482 L51.013,26.007 L51.286,26.115 L51.589,25.801 L51.607,25.216 L51.390,24.627 L51.112,24.556 Z" />
-				<circle id="QAT-circle" cx="51.143509" cy="25.237383" r="0.7" />
+				<circle id="QAT-circle" cx="51.144" cy="25.237" r="0.7" />
 				<title>Qatar</title>
 			</g>
 			<g class="SGP">
-				<circle id="SGP-circle" cx="103.816925" cy="1.366587" r="0.7" />
+				<circle id="SGP-circle" cx="103.817" cy="1.367" r="0.7" />
 				<title>Singapore</title>
 			</g>
 			<g class="SLB">
 				<path id="SLB" d="M162.119,-10.483 L162.399,-10.826 L161.700,-10.820 L161.320,-10.205 L161.917,-10.447 ZM161.680,-9.600 L161.529,-9.784 L160.788,-8.918 L160.580,-8.320 L160.920,-8.320 L161.280,-9.120 ZM160.852,-9.873 L160.463,-9.895 L159.849,-9.794 L159.640,-9.640 L159.703,-9.243 L160.363,-9.400 L160.689,-9.610 ZM159.640,-8.020 L159.875,-8.337 L159.917,-8.538 L159.134,-8.114 L158.586,-7.755 L158.211,-7.422 L158.360,-7.320 L158.820,-7.560 ZM157.140,-7.022 L157.538,-7.348 L157.339,-7.405 L156.902,-7.177 L156.491,-6.766 L156.543,-6.599 Z" />
-				<circle id="SLB-circle" cx="159.170468" cy="-8.029548" r="0.7" />
+				<circle id="SLB-circle" cx="159.170" cy="-8.030" r="0.7" />
 				<title>Solomon Islands</title>
 			</g>
 			<g class="SMR">
-				<circle id="SMR-circle" cx="12.441206" cy="43.933916" r="0.7" />
+				<circle id="SMR-circle" cx="12.441" cy="43.934" r="0.7" />
 				<title>San Marino</title>
 			</g>
 			<g class="STP">
-				<circle id="STP-circle" cx="7.021" cy="0.9709" r="0.7" />
+				<circle id="STP-circle" cx="7.021" cy="0.971" r="0.7" />
 				<title>São Tomé and Principe</title>
 			</g>
 			<g class="SVN">
 				<path id="SVN" d="M13.806,46.509 L14.632,46.432 L15.137,46.659 L16.012,46.684 L16.202,46.852 L16.371,46.841 L16.565,46.504 L15.769,46.238 L15.672,45.834 L15.324,45.732 L15.328,45.452 L14.935,45.472 L14.595,45.635 L14.412,45.466 L13.715,45.500 L13.938,45.591 L13.698,46.017 Z" />
-				<circle id="SVN-circle" cx="14.915312" cy="46.06076" r="0.7" />
+				<circle id="SVN-circle" cx="14.915" cy="46.061" r="0.7" />
 				<title>Slovenia</title>
 			</g>
 			<g class="SWZ">
 				<path id="SWZ" d="M32.072,-26.734 L31.868,-27.178 L31.283,-27.286 L30.686,-26.744 L30.677,-26.398 L30.950,-26.023 L31.044,-25.731 L31.333,-25.660 L31.838,-25.843 L31.986,-26.292 Z" />
-				<circle id="SWZ-circle" cx="31.467264" cy="-26.533676" r="0.7" />
+				<circle id="SWZ-circle" cx="31.467" cy="-26.534" r="0.7" />
 				<title>Kingdom of eSwatini</title>
 			</g>
 			<g class="SYC">
-				<circle id="SYC-circle" cx="55.480175" cy="-4.676659" r="0.7" />
+				<circle id="SYC-circle" cx="55.480" cy="-4.677" r="0.7" />
 				<title>Seychelles</title>
 			</g>
 			<g class="TLS">
 				<path id="TLS" d="M124.969,-8.893 L125.086,-8.657 L125.947,-8.432 L126.645,-8.398 L126.957,-8.273 L127.336,-8.397 L126.968,-8.668 L125.926,-9.106 L125.089,-9.393 L125.070,-9.090 Z" />
-				<circle id="TLS-circle" cx="125.854679" cy="-8.803705" r="0.7" />
+				<circle id="TLS-circle" cx="125.855" cy="-8.804" r="0.7" />
 				<title>Timor-Leste</title>
 			</g>
 			<g class="TON">
-				<circle id="TON-circle" cx="-175.163014" cy="-21.210026" r="0.7" />
+				<circle id="TON-circle" cx="-175.163" cy="-21.210" r="0.7" />
 				<title>Tonga</title>
 			</g>
 			<g class="TTO">
 				<path id="TTO" d="M-61.680,10.760 L-61.105,10.890 L-60.895,10.855 L-60.935,10.110 L-61.770,10 L-61.950,10.090 L-61.660,10.365 Z" />
-				<circle id="TTO-circle" cx="-60.9184" cy="10.9989" r="0.7" />
+				<circle id="TTO-circle" cx="-60.918" cy="10.999" r="0.7" />
 				<title>Trinidad and Tobago</title>
 			</g>
 			<g class="TUV">
-				<circle id="TUV-circle" cx="179.209587" cy="-8.513717" r="0.7" />
+				<circle id="TUV-circle" cx="179.210" cy="-8.514" r="0.7" />
 				<title>Tuvalu</title>
 			</g>
 			<g class="USA">
 				<g class="ASM">
-					<circle id="ASM-circle" cx="-170.747153" cy="-14.32671" r="0.4949747468305832" />
+					<circle id="ASM-circle" cx="-170.747" cy="-14.327" r="0.49" />
 					<title>American Samoa (U.S.A.)</title>
 				</g>
 				<g class="GUM">
-					<circle id="GUM-circle" cx="144.703614" cy="13.354173" r="0.4949747468305832" />
+					<circle id="GUM-circle" cx="144.704" cy="13.354" r="0.49" />
 					<title>Guam (U.S.A.)</title>
 				</g>
 				<g class="MNP">
-					<circle id="MNP-circle" cx="145.734397" cy="15.188188" r="0.4949747468305832" />
+					<circle id="MNP-circle" cx="145.734" cy="15.188" r="0.49" />
 					<title>Northern Mariana Islands (U.S.A.)</title>
 				</g>
 				<g class="PRI">
 					<path id="PRI" d="M-66.282,18.515 L-65.771,18.427 L-65.591,18.228 L-65.847,17.976 L-66.600,17.982 L-67.184,17.947 L-67.242,18.374 L-67.101,18.521 Z" />
-					<circle id="PRI-circle" cx="-66.481065" cy="18.234668" r="0.4949747468305832" />
+					<circle id="PRI-circle" cx="-66.481" cy="18.235" r="0.49" />
 					<title>Puerto Rico (U.S.A.)</title>
 				</g>
 				<g class="VIR">
-					<circle id="VIR-circle" cx="-64.779172" cy="17.746706" r="0.4949747468305832" />
+					<circle id="VIR-circle" cx="-64.779" cy="17.747" r="0.49" />
 					<title>United States Virgin Islands (U.S.A.)</title>
 				</g>
 			</g>
 			<g class="VAT">
-				<circle id="VAT-circle" cx="12.453418" cy="41.903323" r="0.7" />
+				<circle id="VAT-circle" cx="12.453" cy="41.903" r="0.7" />
 				<title>Vatican</title>
 			</g>
 			<g class="VCT">
-				<circle id="VCT-circle" cx="-61.3359" cy="13.0879" r="0.7" />
+				<circle id="VCT-circle" cx="-61.336" cy="13.088" r="0.7" />
 				<title>Saint Vincent and the Grenadines</title>
 			</g>
 			<g class="VUT">
 				<path id="VUT" d="M167.217,-15.892 L167.845,-16.466 L167.515,-16.598 L167.180,-16.160 ZM166.793,-15.669 L166.650,-15.393 L166.629,-14.626 L167.108,-14.934 L167.270,-15.740 L167.001,-15.615 Z" />
-				<circle id="VUT-circle" cx="166.908762" cy="-15.37153" r="0.7" />
+				<circle id="VUT-circle" cx="166.909" cy="-15.372" r="0.7" />
 				<title>Vanuatu</title>
 			</g>
 			<g class="WSM">
-				<circle id="WSM-circle" cx="-172.438241" cy="-13.639139" r="0.7" />
+				<circle id="WSM-circle" cx="-172.438" cy="-13.639" r="0.7" />
 				<title>Samoa</title>
 			</g>
 		</g>
