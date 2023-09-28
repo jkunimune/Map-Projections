@@ -129,8 +129,10 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 		                "Base" not in region.record["admin"])  # don't circle military bases
 		if not is_sovereign and 'note_adm0' in region.record:
 			label = f"{region.record['name_long']} ({region.record['note_adm0']})"  # indicate dependencies' sovereigns in parentheses
-		else:
+		elif "name_long" in region.record:
 			label = region.record["name_long"]
+		else:
+			label = region.record["name"]
 
 		# exit any <g>s we're no longer in
 		while current_state and (len(current_state) > len(hierarchy) or current_state[-1] != hierarchy[len(current_state) - 1]):
