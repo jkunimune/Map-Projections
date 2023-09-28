@@ -1,21 +1,26 @@
+import re
+
 import numpy as np
 from matplotlib import pyplot as plt
 from numpy import inf, hypot, log, pi, cos, sin, newaxis
 from numpy.typing import NDArray
 from scipy import optimize
 
-
+FILENAME = "Elastic III political template.svg"
 TERMINATION_THRESHOLD = 1e-9
 
 
 def main():
-	centers_original = np.random.random((12, 2))
-	radii = np.random.uniform(.05, .20, 12)
+	svg, centers_original, radii = read_svg_circles(FILENAME)
+
+	if radii.size == 0:
+		raise ValueError("the given file did not contain any circles")
 
 	centers = centers_original
 
 	length_scale = np.min(radii)
 
+	plt.figure(facecolor="none", figsize=(8, 4))
 	plot_circles(centers, centers_original, radii)
 
 	# first ramp up a center-to-center repulsive force until no circles overlap
@@ -68,6 +73,7 @@ def main():
 
 		plot_circles(centers, centers_original, radii)
 
+	write_svg_circles(FILENAME, svg, centers, radii)
 	print("done")
 	plt.show()
 
@@ -129,6 +135,30 @@ def calculate_distance_matrix(centers: NDArray[float], radii: NDArray[float], mo
 		return inner_distance, center_to_center_direction
 	else:
 		raise ValueError(f"unrecognized mode: '{mode}'")
+
+
+def read_svg_circles(filename: str) -> tuple[str, NDArray[float], NDArray[float]]:
+	circle_pattern = r'cx="([-0-9.]+)" cy="([-0-9.]+)" r="([-0-9.]+)"'
+	centers = []
+	radii = []
+	with open(f"../../output/{filename}") as svg_file:
+		contents = svg_file.read()
+	while re.search(circle_pattern, contents):
+		i = len(radii)
+		match = re.search(circle_pattern, contents)
+		x, y, r = [float(value) for value in match.groups()]
+		centers.append((x, y))
+		radii.append(r)
+		contents = re.sub(circle_pattern, f"<<{i}>>", contents, count=1)
+	return contents, np.array(centers), np.array(radii)
+
+
+def write_svg_circles(filename: str, contents: str, centers: NDArray[float], radii: NDArray[float]):
+	for i in range(len(radii)):
+		contents = contents.replace(
+			f"<<{i}>>", f'cx="{centers[i, 0]}" cy="{centers[i, 1]}" r="{radii[i]}"')
+	with open(f"../../output/{filename[:-4]}-spaced.svg", "w") as svg_file:
+		svg_file.write(contents)
 
 
 if __name__ == "__main__":
