@@ -1,11 +1,10 @@
 # read data from a shapefile into SVG format
-from numpy import sqrt
 
 from helpers import get_centroid, load_shaperecords
 
 
 def plot_texts(
-		filename, label_class, max_rank, text_size,
+		filename, max_rank, label_type=None, circle_size=None,
 		regulate_case=False, secondary_attr=None, force_points=False) -> str:
 	result = ""
 	for region in load_shaperecords(filename):
@@ -43,26 +42,41 @@ def plot_texts(
 		if regulate_case:
 			label = region.record["name"].upper()
 		label = label.replace("&", "&amp;")
-		label_size = ['xs', 'sm', 'md', 'lg', 'xl'][max(0, int(text_size-rank))]  # lower ranks get bigger text
+
+		# set an appropriate label class
+		if label_type is not None:
+			label_class = f"label-{label_type}"
+		elif tipe in ["range/mtn", "foothills"]:
+			label_class = "label-mountain"
+		elif tipe in ["peninsula", "isthmus", "pen/cape"]:
+			label_class = "label-peninsula"
+		elif tipe in ["sea", "bay", "gulf", "sound"]:
+			label_class = "label-sea"
+		elif tipe in ["strait", "channel"]:
+			label_class = "label-strait"
+		elif tipe in ["tundra", "desert", "plain"]:
+			label_class = "label-biome"
+		else:
+			print(tipe)
+			label_class = f"label-{tipe.replace(' ', '-')}"
 
 		# create the label as a <text> tag
-		result += f'\t<text class="label-{label_class} label-{label_size}" x="{180+x:.03f}" y="{90-y:.03f}">{label}</text>\n'
+		result += f'\t<text class="{label_class}" x="{180 + x:.03f}" y="{90 - y:.03f}">{label}</text>\n'
 		# add circles to the ones that need markers
 		if force_points or (tipe in ['mountain', 'pole', 'waterfall']):
-			circle_size = sqrt(text_size - rank + 1) if text_size != 0 else 1
-			result += f'\t<circle cx="{180+x:.03f}" cy="{90-y:.03f}" r="{circle_size*0.15:.03f}" />\n'
+			result += f'\t<circle cx="{180+x:.03f}" cy="{90-y:.03f}" r="{circle_size:.03f}" />\n'
 	return result
 
-def label_shapes(filename, label_class, max_rank=float('inf'), text_size=3, secondary_attr=None) -> str:
-	return plot_texts(filename, label_class, max_rank, text_size, secondary_attr=secondary_attr)
+def label_shapes(filename, max_rank=float('inf'), label_type=None, circle_size=3, secondary_attr=None) -> str:
+	return plot_texts(filename, max_rank, label_type, circle_size, secondary_attr=secondary_attr)
 
-def label_points(filename, label_class, max_rank=float('inf'), text_size=3) -> str:
-	return plot_texts(filename, label_class, max_rank, text_size, force_points=True)
+def label_points(filename, max_rank=float('inf'), label_type=None, circle_size=3) -> str:
+	return plot_texts(filename, max_rank, label_type, circle_size, force_points=True)
 
-def generate_topographical_labels(source, max_rank=float('inf'), text_size=3) -> str:
+def generate_topographical_labels(source, circle_size, max_rank=float('inf')) -> str:
 	result = ""
-	result += plot_texts(source+'_geography_regions_points', 'geo', max_rank, text_size)
-	result += plot_texts(source+'_geography_regions_polys', 'geo', max_rank, text_size, regulate_case=True)
-	result += plot_texts(source+'_geography_regions_elevation_points', 'geo', max_rank, text_size)
-	result += plot_texts(source+'_geography_marine_polys', 'sea', max_rank, text_size)
+	result += plot_texts(source+'_geography_regions_points', max_rank, circle_size=circle_size)
+	result += plot_texts(source+'_geography_regions_polys', max_rank, circle_size=circle_size, regulate_case=True)
+	result += plot_texts(source+'_geography_regions_elevation_points', max_rank, circle_size=circle_size)
+	result += plot_texts(source+'_geography_marine_polys', max_rank, circle_size=circle_size)
 	return result

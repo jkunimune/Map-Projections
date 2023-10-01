@@ -42,18 +42,13 @@
 			fill:#ffffff;
 			stroke:none;
 		}
-		.label-pol {
-			font-family:"Trajan Pro 3", "Trajan Pro", Trajan, serif;
+		.label-polity {
+			font-family:"Noto Sans", sans-serif;
 			text-anchor:middle;
 			alignment-baseline:middle;
 			font-weight:normal;
 			color:#000000;
-		}
-		.label-sm, .label-xs {
 			font-size:1.2px;
-		}
-		.label-md, .label-lg {
-			font-size:1.6px;
 		}
 		.country {
 			fill-opacity:1;
@@ -727,246 +722,246 @@
 			<path d="M137.914,-29.100 L137.777,-29.038 L137.619,-29.051 L137.478,-29.012 L137.407,-29.029 L137.344,-29.025 L137.301,-28.988 L137.239,-28.892 L137.146,-28.887 L137.125,-28.918 L137.120,-28.978 L137.075,-29.014 L137.018,-29.015 L136.949,-28.953 L136.894,-28.832 L136.917,-28.756 L136.922,-28.689 L136.883,-28.450 L136.907,-28.426 L136.966,-28.394 L136.990,-28.314 L136.969,-28.199 L136.913,-28.103 L136.889,-28.064 L136.830,-28.044 L136.785,-28.019 L136.800,-27.967 L136.891,-27.911 L137.033,-27.859 L137.328,-27.974 L137.453,-28.087 L137.566,-28.116 L137.672,-28.120 L137.702,-28.143 L137.707,-28.196 L137.720,-28.280 L137.774,-28.350 L137.733,-28.390 L137.712,-28.537 L137.680,-28.562 L137.676,-28.645 L137.786,-28.840 L137.905,-28.985 L138.014,-29.051 L138.010,-29.091 Z" />
 		</g>
 	</g>
-	<text class="label-pol label-xs" x="209.115" y="109.023">Zimbabwe</text>
-	<text class="label-pol label-xs" x="207.820" y="103.118">Zambia</text>
-	<text class="label-pol label-xs" x="228.530" y="74.342">Yemen</text>
-	<text class="label-pol label-sm" x="285.786" y="74.036">Vietnam</text>
-	<text class="label-pol label-xs" x="113.402" y="83.567">Venezuela</text>
-	<text class="label-pol label-xs" x="192.433" y="48.098">Vatican</text>
-	<text class="label-pol label-xs" x="348.211" y="106.976">Vanuatu</text>
-	<text class="label-pol label-xs" x="243.305" y="48.293">Uzbekistan</text>
-	<text class="label-pol label-xs" x="124.218" y="122.517">Uruguay</text>
-	<text class="label-pol label-xs" x="338.231" y="83.116">Micronesia</text>
-	<text class="label-pol label-xs" x="349.301" y="81.516">Marshall Is.</text>
-	<text class="label-pol label-xs" x="325.494" y="73.541">N. Mariana Is. (U.S.A.)</text>
-	<text class="label-pol label-xs" x="115.198" y="71.957">U.S. Virgin Is. (U.S.A.)</text>
-	<text class="label-pol label-xs" x="324.795" y="76.560">Guam (U.S.A.)</text>
-	<text class="label-pol label-xs" x="9.306" y="104.309">American Samoa (U.S.A.)</text>
-	<text class="label-pol label-xs" x="113.384" y="71.765">Puerto Rico (U.S.A.)</text>
-	<text class="label-pol label-sm" x="81.474" y="50.036">United States of America</text>
-	<text class="label-pol label-xs" x="147.861" y="146.238">S. Geo. and the Is. (U.K.)</text>
-	<text class="label-pol label-xs" x="252.424" y="97.328">Br. Indian Ocean Ter.</text>
-	<text class="label-pol label-xs" x="169.963" y="101.943">Saint Helena (U.K.)</text>
-	<text class="label-pol label-xs" x="51.680" y="114.368">Pitcairn Is. (U.K.)</text>
-	<text class="label-pol label-xs" x="116.930" y="71.779">Anguilla (U.K.)</text>
-	<text class="label-pol label-xs" x="120.532" y="141.789">Falkland Is.</text>
-	<text class="label-pol label-xs" x="99.419" y="70.481">Cayman Is. (U.K.)</text>
-	<text class="label-pol label-xs" x="115.234" y="57.677">Bermuda (U.K.)</text>
-	<text class="label-pol label-xs" x="115.516" y="71.424">British Virgin Is. (U.K.)</text>
-	<text class="label-pol label-xs" x="108.010" y="68.148">Turks and Caicos Is. (U.K.)</text>
-	<text class="label-pol label-xs" x="117.814" y="73.255">Montserrat (U.K.)</text>
-	<text class="label-pol label-xs" x="177.877" y="40.782">Jersey</text>
-	<text class="label-pol label-xs" x="177.421" y="40.532">Guernsey</text>
-	<text class="label-pol label-xs" x="175.438" y="35.767">Isle of Man</text>
-	<text class="label-pol label-sm" x="176.801" y="34.573">United Kingdom</text>
-	<text class="label-pol label-xs" x="233.978" y="65.655">United Arab Emirates</text>
-	<text class="label-pol label-xs" x="211.341" y="40.825">Ukraine</text>
-	<text class="label-pol label-xs" x="212.270" y="88.625">Uganda</text>
-	<text class="label-pol label-xs" x="239.562" y="51.025">Turkmenistan</text>
-	<text class="label-pol label-sm" x="215.515" y="50.889">Turkey</text>
-	<text class="label-pol label-xs" x="189.516" y="56.215">Tunisia</text>
-	<text class="label-pol label-xs" x="118.784" y="79.305">Trinidad and Tobago</text>
-	<text class="label-pol label-xs" x="5.358" y="110.008">Tonga</text>
-	<text class="label-pol label-xs" x="180.844" y="81.397">Togo</text>
-	<text class="label-pol label-xs" x="305.666" y="98.826">Timor-Leste</text>
-	<text class="label-pol label-xs" x="281.507" y="76.969">Thailand</text>
-	<text class="label-pol label-xs" x="214.894" y="96.356">Tanzania</text>
-	<text class="label-pol label-xs" x="251.234" y="51.140">Tajikistan</text>
-	<text class="label-pol label-xs" x="300.108" y="66.399">Taiwan</text>
-	<text class="label-pol label-xs" x="219.062" y="55.193">Syria</text>
-	<text class="label-pol label-xs" x="188.212" y="43.197">Switzerland</text>
-	<text class="label-pol label-xs" x="197.651" y="27.808">Sweden</text>
-	<text class="label-pol label-xs" x="211.450" y="116.526">eSwatini</text>
-	<text class="label-pol label-xs" x="123.978" y="86.082">Suriname</text>
-	<text class="label-pol label-xs" x="209.708" y="82.143">S. Sudan</text>
-	<text class="label-pol label-xs" x="209.998" y="73.954">Sudan</text>
-	<text class="label-pol label-xs" x="260.792" y="82.119">Sri Lanka</text>
-	<text class="label-pol label-sm" x="177.036" y="50.105">Spain</text>
-	<text class="label-pol label-sm" x="308.471" y="54.088">South Korea</text>
-	<text class="label-pol label-sm" x="205.311" y="118.969">South Africa</text>
-	<text class="label-pol label-xs" x="226.177" y="84.856">Somalia</text>
-	<text class="label-pol label-xs" x="225.798" y="80.252">Somaliland</text>
-	<text class="label-pol label-xs" x="341.303" y="99.221">Solomon Is.</text>
-	<text class="label-pol label-xs" x="199.701" y="41.319">Slovakia</text>
-	<text class="label-pol label-xs" x="194.947" y="43.854">Slovenia</text>
-	<text class="label-pol label-xs" x="283.823" y="88.644">Singapore</text>
-	<text class="label-pol label-xs" x="168.212" y="81.548">Sierra Leone</text>
-	<text class="label-pol label-xs" x="235.463" y="94.672">Seychelles</text>
-	<text class="label-pol label-xs" x="200.908" y="45.794">Serbia</text>
-	<text class="label-pol label-xs" x="165.541" y="75.497">Senegal</text>
-	<text class="label-pol label-sm" x="224.782" y="65.916">Saudi Arabia</text>
-	<text class="label-pol label-xs" x="186.960" y="89.127">São Tomé and Principe</text>
-	<text class="label-pol label-xs" x="192.456" y="46.058">San Marino</text>
-	<text class="label-pol label-xs" x="7.886" y="103.756">Samoa</text>
-	<text class="label-pol label-xs" x="118.761" y="76.973">St. Vin. and Gren.</text>
-	<text class="label-pol label-xs" x="119.020" y="76.095">Saint Lucia</text>
-	<text class="label-pol label-xs" x="117.314" y="72.748">St. Kitts and Nevis</text>
-	<text class="label-pol label-xs" x="209.867" y="91.936">Rwanda</text>
-	<text class="label-pol label-sm" x="276.409" y="24.206">Russia</text>
-	<text class="label-pol label-xs" x="204.974" y="44.033">Romania</text>
-	<text class="label-pol label-xs" x="231.182" y="64.641">Qatar</text>
-	<text class="label-pol label-sm" x="172.154" y="50.429">Portugal</text>
-	<text class="label-pol label-xs" x="199.117" y="38.071">Poland</text>
-	<text class="label-pol label-sm" x="301.781" y="77.049">Philippines</text>
-	<text class="label-pol label-sm" x="104.989" y="99.194">Peru</text>
-	<text class="label-pol label-xs" x="121.554" y="113.420">Paraguay</text>
-	<text class="label-pol label-sm" x="325.856" y="96.632">Papua New Guinea</text>
-	<text class="label-pol label-xs" x="99.888" y="81.591">Panama</text>
-	<text class="label-pol label-xs" x="312.897" y="84.633">Palau</text>
-	<text class="label-pol label-sm" x="249.331" y="60.037">Pakistan</text>
-	<text class="label-pol label-xs" x="235.908" y="68.498">Oman</text>
-	<text class="label-pol label-xs" x="192.484" y="25.895">Norway</text>
-	<text class="label-pol label-xs" x="307.518" y="49.641">North Korea</text>
-	<text class="label-pol label-sm" x="188.657" y="80.925">Nigeria</text>
-	<text class="label-pol label-xs" x="189.441" y="72.531">Niger</text>
-	<text class="label-pol label-xs" x="94.586" y="77.128">Nicaragua</text>
-	<text class="label-pol label-sm" x="350.424" y="133.560">New Zealand</text>
-	<text class="label-pol label-xs" x="10.129" y="109.052">Niue (Assoc. with N.Z.)</text>
-	<text class="label-pol label-xs" x="20.210" y="111.218">Cook Is. (Assoc. with N.Z.)</text>
-	<text class="label-pol label-xs" x="185.323" y="37.904">Netherlands</text>
-	<text class="label-pol label-xs" x="110.019" y="77.481">Aruba</text>
-	<text class="label-pol label-xs" x="111.045" y="77.787">Curaçao</text>
-	<text class="label-pol label-xs" x="264.107" y="61.626">Nepal</text>
-	<text class="label-pol label-xs" x="346.933" y="90.520">Nauru</text>
-	<text class="label-pol label-xs" x="198.490" y="112.953">Namibia</text>
-	<text class="label-pol label-xs" x="215.533" y="108.663">Mozambique</text>
-	<text class="label-pol label-xs" x="171.435" y="60.129">Morocco</text>
-	<text class="label-pol label-xs" x="167.110" y="65.769">W. Sahara</text>
-	<text class="label-pol label-xs" x="199.392" y="47.294">Montenegro</text>
-	<text class="label-pol label-xs" x="283.286" y="42.997">Mongolia</text>
-	<text class="label-pol label-xs" x="208.375" y="43.036">Moldova</text>
-	<text class="label-pol label-xs" x="187.408" y="46.249">Monaco</text>
-	<text class="label-pol label-sm" x="77.860" y="66.142">Mexico</text>
-	<text class="label-pol label-xs" x="237.555" y="110.252">Mauritius</text>
-	<text class="label-pol label-xs" x="169.057" y="68.984">Mauritania</text>
-	<text class="label-pol label-xs" x="194.373" y="54.052">Malta</text>
-	<text class="label-pol label-xs" x="176.508" y="72.509">Mali</text>
-	<text class="label-pol label-xs" x="253.455" y="86.261">Maldives</text>
-	<text class="label-pol label-xs" x="294.403" y="86.074">Malaysia</text>
-	<text class="label-pol label-xs" x="214.282" y="103.263">Malawi</text>
-	<text class="label-pol label-xs" x="226.870" y="108.825">Madagascar</text>
-	<text class="label-pol label-xs" x="201.727" y="48.396">North Macedonia</text>
-	<text class="label-pol label-xs" x="186.109" y="40.194">Luxembourg</text>
-	<text class="label-pol label-xs" x="203.838" y="34.848">Lithuania</text>
-	<text class="label-pol label-xs" x="189.545" y="42.836">Liechtenstein</text>
-	<text class="label-pol label-xs" x="198.156" y="63.069">Libya</text>
-	<text class="label-pol label-xs" x="170.546" y="83.555">Liberia</text>
-	<text class="label-pol label-xs" x="208.221" y="119.612">Lesotho</text>
-	<text class="label-pol label-xs" x="215.847" y="56.123">Lebanon</text>
-	<text class="label-pol label-xs" x="204.608" y="33.135">Latvia</text>
-	<text class="label-pol label-xs" x="283.884" y="71.792">Laos</text>
-	<text class="label-pol label-xs" x="254.738" y="48.776">Kyrgyzstan</text>
-	<text class="label-pol label-xs" x="227.487" y="60.685">Kuwait</text>
-	<text class="label-pol label-xs" x="200.891" y="47.443">Kosovo</text>
-	<text class="label-pol label-xs" x="22.623" y="88.119">Kiribati</text>
-	<text class="label-pol label-sm" x="217.892" y="89.600">Kenya</text>
-	<text class="label-pol label-xs" x="247.360" y="41.612">Kazakhstan</text>
-	<text class="label-pol label-xs" x="217.122" y="58.719">Jordan</text>
-	<text class="label-pol label-sm" x="316.441" y="52.504">Japan</text>
-	<text class="label-pol label-xs" x="102.725" y="71.881">Jamaica</text>
-	<text class="label-pol label-sm" x="192.557" y="48.115">Italy</text>
-	<text class="label-pol label-xs" x="215.067" y="58.553">Israel</text>
-	<text class="label-pol label-xs" x="214.885" y="58.129">Palestine</text>
-	<text class="label-pol label-xs" x="171.791" y="36.580">Ireland</text>
-	<text class="label-pol label-xs" x="223.660" y="56.782">Iraq</text>
-	<text class="label-pol label-sm" x="234.559" y="57.525">Iran</text>
-	<text class="label-pol label-sm" x="280.633" y="90.140">Indonesia</text>
-	<text class="label-pol label-sm" x="259.721" y="67.129">India</text>
-	<text class="label-pol label-xs" x="160.984" y="25.034">Iceland</text>
-	<text class="label-pol label-xs" x="199.485" y="42.847">Hungary</text>
-	<text class="label-pol label-xs" x="93.740" y="75.253">Honduras</text>
-	<text class="label-pol label-xs" x="106.938" y="70.934">Haiti</text>
-	<text class="label-pol label-xs" x="121.063" y="85.125">Guyana</text>
-	<text class="label-pol label-xs" x="164.807" y="78.190">Guinea-Bissau</text>
-	<text class="label-pol label-xs" x="168.634" y="80.055">Guinea</text>
-	<text class="label-pol label-xs" x="89.768" y="74.224">Guatemala</text>
-	<text class="label-pol label-xs" x="118.305" y="77.877">Grenada</text>
-	<text class="label-pol label-xs" x="203.939" y="51.661">Greece</text>
-	<text class="label-pol label-xs" x="178.972" y="82.035">Ghana</text>
-	<text class="label-pol label-sm" x="190.437" y="38.831">Germany</text>
-	<text class="label-pol label-xs" x="223.325" y="47.680">Georgia</text>
-	<text class="label-pol label-xs" x="164.674" y="76.562">Gambia</text>
-	<text class="label-pol label-xs" x="191.592" y="90.807">Gabon</text>
-	<text class="label-pol label-sm" x="181.689" y="43.281">France</text>
-	<text class="label-pol label-xs" x="123.738" y="43.074">St. Pierre and Miquelon (Fr.)</text>
-	<text class="label-pol label-xs" x="2.839" y="103.773">Wallis and Futuna Is. (Fr.)</text>
-	<text class="label-pol label-xs" x="116.934" y="71.908">St-Martin (Fr.)</text>
-	<text class="label-pol label-xs" x="117.162" y="72.101">St-Barthélemy (Fr.)</text>
-	<text class="label-pol label-xs" x="30.607" y="107.679">Fr. Polynesia (Fr.)</text>
-	<text class="label-pol label-xs" x="344.034" y="110.888">New Caledonia (Fr.)</text>
-	<text class="label-pol label-xs" x="249.663" y="139.183">Fr. S. Antarctic Lands (Fr.)</text>
-	<text class="label-pol label-xs" x="200.065" y="29.791">Åland</text>
-	<text class="label-pol label-xs" x="206.079" y="25.060">Finland</text>
-	<text class="label-pol label-xs" x="357.961" y="107.789">Fiji</text>
-	<text class="label-pol label-sm" x="220.489" y="80.846">Ethiopia</text>
-	<text class="label-pol label-xs" x="205.003" y="31.418">Estonia</text>
-	<text class="label-pol label-xs" x="219.772" y="74.809">Eritrea</text>
-	<text class="label-pol label-xs" x="189.885" y="87.641">Eq. Guinea</text>
-	<text class="label-pol label-xs" x="91.089" y="76.202">El Salvador</text>
-	<text class="label-pol label-sm" x="210.787" y="63.175">Egypt</text>
-	<text class="label-pol label-xs" x="101.894" y="91.768">Ecuador</text>
-	<text class="label-pol label-xs" x="109.830" y="71.225">Dominican Rep.</text>
-	<text class="label-pol label-xs" x="118.634" y="74.570">Dominica</text>
-	<text class="label-pol label-xs" x="222.587" y="78.175">Djibouti</text>
-	<text class="label-pol label-xs" x="138.090" y="17.017">Greenland</text>
-	<text class="label-pol label-xs" x="173.086" y="28.115">Faeroe Is. (Den.)</text>
-	<text class="label-pol label-xs" x="191.629" y="33.817">Denmark</text>
-	<text class="label-pol label-xs" x="195.461" y="40.193">Czechia</text>
-	<text class="label-pol label-xs" x="213.634" y="54.669">N. Cyprus</text>
-	<text class="label-pol label-xs" x="213.176" y="55.124">Cyprus</text>
-	<text class="label-pol label-xs" x="100.488" y="68.477">Cuba</text>
-	<text class="label-pol label-xs" x="196.459" y="45.516">Croatia</text>
-	<text class="label-pol label-xs" x="174.445" y="82.462">Côte d'Ivoire</text>
-	<text class="label-pol label-xs" x="95.764" y="80.370">Costa Rica</text>
-	<text class="label-pol label-sm" x="203.593" y="92.920">Dem. Rep. Congo</text>
-	<text class="label-pol label-xs" x="194.876" y="90.658">Congo</text>
-	<text class="label-pol label-xs" x="223.877" y="101.868">Comoros</text>
-	<text class="label-pol label-sm" x="107.049" y="85.901">Colombia</text>
-	<text class="label-pol label-sm" x="283.523" y="53.217">China</text>
-	<text class="label-pol label-xs" x="293.514" y="67.779">Macao</text>
-	<text class="label-pol label-xs" x="294.087" y="67.620">Hong Kong</text>
-	<text class="label-pol label-sm" x="108.642" y="125.695">Chile</text>
-	<text class="label-pol label-xs" x="198.716" y="74.540">Chad</text>
-	<text class="label-pol label-xs" x="200.917" y="83.367">Central African Rep.</text>
-	<text class="label-pol label-xs" x="155.988" y="73.994">Cabo Verde</text>
-	<text class="label-pol label-sm" x="80.941" y="31.382">Canada</text>
-	<text class="label-pol label-xs" x="192.358" y="82.623">Cameroon</text>
-	<text class="label-pol label-xs" x="284.963" y="77.442">Cambodia</text>
-	<text class="label-pol label-xs" x="276.663" y="70.804">Myanmar</text>
-	<text class="label-pol label-xs" x="209.913" y="93.384">Burundi</text>
-	<text class="label-pol label-xs" x="178.433" y="77.749">Burkina Faso</text>
-	<text class="label-pol label-xs" x="205.465" y="47.259">Bulgaria</text>
-	<text class="label-pol label-xs" x="294.695" y="85.477">Brunei</text>
-	<text class="label-pol label-sm" x="126.878" y="100.640">Brazil</text>
-	<text class="label-pol label-xs" x="204.671" y="112.321">Botswana</text>
-	<text class="label-pol label-xs" x="197.660" y="46.082">Bosnia and Herz.</text>
-	<text class="label-pol label-xs" x="116.429" y="106.301">Bolivia</text>
-	<text class="label-pol label-xs" x="270.411" y="62.494">Bhutan</text>
-	<text class="label-pol label-xs" x="182.299" y="80.700">Benin</text>
-	<text class="label-pol label-xs" x="91.487" y="72.815">Belize</text>
-	<text class="label-pol label-sm" x="184.445" y="39.499">Belgium</text>
-	<text class="label-pol label-xs" x="207.943" y="36.295">Belarus</text>
-	<text class="label-pol label-xs" x="120.463" y="76.810">Barbados</text>
-	<text class="label-pol label-xs" x="270.328" y="66.319">Bangladesh</text>
-	<text class="label-pol label-xs" x="230.535" y="63.973">Bahrain</text>
-	<text class="label-pol label-xs" x="104.134" y="66.061">Bahamas</text>
-	<text class="label-pol label-xs" x="227.567" y="49.855">Azerbaijan</text>
-	<text class="label-pol label-xs" x="193.336" y="42.300">Austria</text>
-	<text class="label-pol label-sm" x="314.411" y="115.529">Australia</text>
-	<text class="label-pol label-xs" x="281.276" y="101.315">Indian Ocean Ter. (Auz.)</text>
-	<text class="label-pol label-xs" x="253.544" y="143.075">Heard I. and McDonald Is. (Auz.)</text>
-	<text class="label-pol label-xs" x="347.948" y="119.055">Norfolk Island (Auz.)</text>
-	<text class="label-pol label-xs" x="303.584" y="102.430">Ashmore and Cartier Is. (Auz.)</text>
-	<text class="label-pol label-xs" x="225.012" y="49.920">Armenia</text>
-	<text class="label-pol label-sm" x="115.364" y="124.199">Argentina</text>
-	<text class="label-pol label-xs" x="118.213" y="72.644">Antigua and Barb.</text>
-	<text class="label-pol label-xs" x="197.895" y="101.224">Angola</text>
-	<text class="label-pol label-xs" x="181.578" y="47.461">Andorra</text>
-	<text class="label-pol label-xs" x="182.539" y="61.835">Algeria</text>
-	<text class="label-pol label-xs" x="200.156" y="48.849">Albania</text>
-	<text class="label-pol label-xs" x="247.689" y="56.076">Afghanistan</text>
-	<text class="label-pol label-xs" x="257.283" y="54.614">Siachen Glacier</text>
-	<text class="label-pol label-xs" x="263.826" y="174.324">Antarctica</text>
-	<text class="label-pol label-xs" x="116.932" y="71.956">Sint Maarten</text>
-	<text class="label-pol label-xs" x="359.206" y="98.501">Tuvalu</text>
+	<text class="label-polity" x="209.115" y="109.023">Zimbabwe</text>
+	<text class="label-polity" x="207.820" y="103.118">Zambia</text>
+	<text class="label-polity" x="228.530" y="74.342">Yemen</text>
+	<text class="label-polity" x="285.786" y="74.036">Vietnam</text>
+	<text class="label-polity" x="113.402" y="83.567">Venezuela</text>
+	<text class="label-polity" x="192.433" y="48.098">Vatican</text>
+	<text class="label-polity" x="348.211" y="106.976">Vanuatu</text>
+	<text class="label-polity" x="243.305" y="48.293">Uzbekistan</text>
+	<text class="label-polity" x="124.218" y="122.517">Uruguay</text>
+	<text class="label-polity" x="338.231" y="83.116">Micronesia</text>
+	<text class="label-polity" x="349.301" y="81.516">Marshall Is.</text>
+	<text class="label-polity" x="325.494" y="73.541">N. Mariana Is. (U.S.A.)</text>
+	<text class="label-polity" x="115.198" y="71.957">U.S. Virgin Is. (U.S.A.)</text>
+	<text class="label-polity" x="324.795" y="76.560">Guam (U.S.A.)</text>
+	<text class="label-polity" x="9.306" y="104.309">American Samoa (U.S.A.)</text>
+	<text class="label-polity" x="113.384" y="71.765">Puerto Rico (U.S.A.)</text>
+	<text class="label-polity" x="81.474" y="50.036">United States of America</text>
+	<text class="label-polity" x="147.861" y="146.238">S. Geo. and the Is. (U.K.)</text>
+	<text class="label-polity" x="252.424" y="97.328">Br. Indian Ocean Ter.</text>
+	<text class="label-polity" x="169.963" y="101.943">Saint Helena (U.K.)</text>
+	<text class="label-polity" x="51.680" y="114.368">Pitcairn Is. (U.K.)</text>
+	<text class="label-polity" x="116.930" y="71.779">Anguilla (U.K.)</text>
+	<text class="label-polity" x="120.532" y="141.789">Falkland Is.</text>
+	<text class="label-polity" x="99.419" y="70.481">Cayman Is. (U.K.)</text>
+	<text class="label-polity" x="115.234" y="57.677">Bermuda (U.K.)</text>
+	<text class="label-polity" x="115.516" y="71.424">British Virgin Is. (U.K.)</text>
+	<text class="label-polity" x="108.010" y="68.148">Turks and Caicos Is. (U.K.)</text>
+	<text class="label-polity" x="117.814" y="73.255">Montserrat (U.K.)</text>
+	<text class="label-polity" x="177.877" y="40.782">Jersey</text>
+	<text class="label-polity" x="177.421" y="40.532">Guernsey</text>
+	<text class="label-polity" x="175.438" y="35.767">Isle of Man</text>
+	<text class="label-polity" x="176.801" y="34.573">United Kingdom</text>
+	<text class="label-polity" x="233.978" y="65.655">United Arab Emirates</text>
+	<text class="label-polity" x="211.341" y="40.825">Ukraine</text>
+	<text class="label-polity" x="212.270" y="88.625">Uganda</text>
+	<text class="label-polity" x="239.562" y="51.025">Turkmenistan</text>
+	<text class="label-polity" x="215.515" y="50.889">Turkey</text>
+	<text class="label-polity" x="189.516" y="56.215">Tunisia</text>
+	<text class="label-polity" x="118.784" y="79.305">Trinidad and Tobago</text>
+	<text class="label-polity" x="5.358" y="110.008">Tonga</text>
+	<text class="label-polity" x="180.844" y="81.397">Togo</text>
+	<text class="label-polity" x="305.666" y="98.826">Timor-Leste</text>
+	<text class="label-polity" x="281.507" y="76.969">Thailand</text>
+	<text class="label-polity" x="214.894" y="96.356">Tanzania</text>
+	<text class="label-polity" x="251.234" y="51.140">Tajikistan</text>
+	<text class="label-polity" x="300.108" y="66.399">Taiwan</text>
+	<text class="label-polity" x="219.062" y="55.193">Syria</text>
+	<text class="label-polity" x="188.212" y="43.197">Switzerland</text>
+	<text class="label-polity" x="197.651" y="27.808">Sweden</text>
+	<text class="label-polity" x="211.450" y="116.526">eSwatini</text>
+	<text class="label-polity" x="123.978" y="86.082">Suriname</text>
+	<text class="label-polity" x="209.708" y="82.143">S. Sudan</text>
+	<text class="label-polity" x="209.998" y="73.954">Sudan</text>
+	<text class="label-polity" x="260.792" y="82.119">Sri Lanka</text>
+	<text class="label-polity" x="177.036" y="50.105">Spain</text>
+	<text class="label-polity" x="308.471" y="54.088">South Korea</text>
+	<text class="label-polity" x="205.311" y="118.969">South Africa</text>
+	<text class="label-polity" x="226.177" y="84.856">Somalia</text>
+	<text class="label-polity" x="225.798" y="80.252">Somaliland</text>
+	<text class="label-polity" x="341.303" y="99.221">Solomon Is.</text>
+	<text class="label-polity" x="199.701" y="41.319">Slovakia</text>
+	<text class="label-polity" x="194.947" y="43.854">Slovenia</text>
+	<text class="label-polity" x="283.823" y="88.644">Singapore</text>
+	<text class="label-polity" x="168.212" y="81.548">Sierra Leone</text>
+	<text class="label-polity" x="235.463" y="94.672">Seychelles</text>
+	<text class="label-polity" x="200.908" y="45.794">Serbia</text>
+	<text class="label-polity" x="165.541" y="75.497">Senegal</text>
+	<text class="label-polity" x="224.782" y="65.916">Saudi Arabia</text>
+	<text class="label-polity" x="186.960" y="89.127">São Tomé and Principe</text>
+	<text class="label-polity" x="192.456" y="46.058">San Marino</text>
+	<text class="label-polity" x="7.886" y="103.756">Samoa</text>
+	<text class="label-polity" x="118.761" y="76.973">St. Vin. and Gren.</text>
+	<text class="label-polity" x="119.020" y="76.095">Saint Lucia</text>
+	<text class="label-polity" x="117.314" y="72.748">St. Kitts and Nevis</text>
+	<text class="label-polity" x="209.867" y="91.936">Rwanda</text>
+	<text class="label-polity" x="276.409" y="24.206">Russia</text>
+	<text class="label-polity" x="204.974" y="44.033">Romania</text>
+	<text class="label-polity" x="231.182" y="64.641">Qatar</text>
+	<text class="label-polity" x="172.154" y="50.429">Portugal</text>
+	<text class="label-polity" x="199.117" y="38.071">Poland</text>
+	<text class="label-polity" x="301.781" y="77.049">Philippines</text>
+	<text class="label-polity" x="104.989" y="99.194">Peru</text>
+	<text class="label-polity" x="121.554" y="113.420">Paraguay</text>
+	<text class="label-polity" x="325.856" y="96.632">Papua New Guinea</text>
+	<text class="label-polity" x="99.888" y="81.591">Panama</text>
+	<text class="label-polity" x="312.897" y="84.633">Palau</text>
+	<text class="label-polity" x="249.331" y="60.037">Pakistan</text>
+	<text class="label-polity" x="235.908" y="68.498">Oman</text>
+	<text class="label-polity" x="192.484" y="25.895">Norway</text>
+	<text class="label-polity" x="307.518" y="49.641">North Korea</text>
+	<text class="label-polity" x="188.657" y="80.925">Nigeria</text>
+	<text class="label-polity" x="189.441" y="72.531">Niger</text>
+	<text class="label-polity" x="94.586" y="77.128">Nicaragua</text>
+	<text class="label-polity" x="350.424" y="133.560">New Zealand</text>
+	<text class="label-polity" x="10.129" y="109.052">Niue (Assoc. with N.Z.)</text>
+	<text class="label-polity" x="20.210" y="111.218">Cook Is. (Assoc. with N.Z.)</text>
+	<text class="label-polity" x="185.323" y="37.904">Netherlands</text>
+	<text class="label-polity" x="110.019" y="77.481">Aruba</text>
+	<text class="label-polity" x="111.045" y="77.787">Curaçao</text>
+	<text class="label-polity" x="264.107" y="61.626">Nepal</text>
+	<text class="label-polity" x="346.933" y="90.520">Nauru</text>
+	<text class="label-polity" x="198.490" y="112.953">Namibia</text>
+	<text class="label-polity" x="215.533" y="108.663">Mozambique</text>
+	<text class="label-polity" x="171.435" y="60.129">Morocco</text>
+	<text class="label-polity" x="167.110" y="65.769">W. Sahara</text>
+	<text class="label-polity" x="199.392" y="47.294">Montenegro</text>
+	<text class="label-polity" x="283.286" y="42.997">Mongolia</text>
+	<text class="label-polity" x="208.375" y="43.036">Moldova</text>
+	<text class="label-polity" x="187.408" y="46.249">Monaco</text>
+	<text class="label-polity" x="77.860" y="66.142">Mexico</text>
+	<text class="label-polity" x="237.555" y="110.252">Mauritius</text>
+	<text class="label-polity" x="169.057" y="68.984">Mauritania</text>
+	<text class="label-polity" x="194.373" y="54.052">Malta</text>
+	<text class="label-polity" x="176.508" y="72.509">Mali</text>
+	<text class="label-polity" x="253.455" y="86.261">Maldives</text>
+	<text class="label-polity" x="294.403" y="86.074">Malaysia</text>
+	<text class="label-polity" x="214.282" y="103.263">Malawi</text>
+	<text class="label-polity" x="226.870" y="108.825">Madagascar</text>
+	<text class="label-polity" x="201.727" y="48.396">North Macedonia</text>
+	<text class="label-polity" x="186.109" y="40.194">Luxembourg</text>
+	<text class="label-polity" x="203.838" y="34.848">Lithuania</text>
+	<text class="label-polity" x="189.545" y="42.836">Liechtenstein</text>
+	<text class="label-polity" x="198.156" y="63.069">Libya</text>
+	<text class="label-polity" x="170.546" y="83.555">Liberia</text>
+	<text class="label-polity" x="208.221" y="119.612">Lesotho</text>
+	<text class="label-polity" x="215.847" y="56.123">Lebanon</text>
+	<text class="label-polity" x="204.608" y="33.135">Latvia</text>
+	<text class="label-polity" x="283.884" y="71.792">Laos</text>
+	<text class="label-polity" x="254.738" y="48.776">Kyrgyzstan</text>
+	<text class="label-polity" x="227.487" y="60.685">Kuwait</text>
+	<text class="label-polity" x="200.891" y="47.443">Kosovo</text>
+	<text class="label-polity" x="22.623" y="88.119">Kiribati</text>
+	<text class="label-polity" x="217.892" y="89.600">Kenya</text>
+	<text class="label-polity" x="247.360" y="41.612">Kazakhstan</text>
+	<text class="label-polity" x="217.122" y="58.719">Jordan</text>
+	<text class="label-polity" x="316.441" y="52.504">Japan</text>
+	<text class="label-polity" x="102.725" y="71.881">Jamaica</text>
+	<text class="label-polity" x="192.557" y="48.115">Italy</text>
+	<text class="label-polity" x="215.067" y="58.553">Israel</text>
+	<text class="label-polity" x="214.885" y="58.129">Palestine</text>
+	<text class="label-polity" x="171.791" y="36.580">Ireland</text>
+	<text class="label-polity" x="223.660" y="56.782">Iraq</text>
+	<text class="label-polity" x="234.559" y="57.525">Iran</text>
+	<text class="label-polity" x="280.633" y="90.140">Indonesia</text>
+	<text class="label-polity" x="259.721" y="67.129">India</text>
+	<text class="label-polity" x="160.984" y="25.034">Iceland</text>
+	<text class="label-polity" x="199.485" y="42.847">Hungary</text>
+	<text class="label-polity" x="93.740" y="75.253">Honduras</text>
+	<text class="label-polity" x="106.938" y="70.934">Haiti</text>
+	<text class="label-polity" x="121.063" y="85.125">Guyana</text>
+	<text class="label-polity" x="164.807" y="78.190">Guinea-Bissau</text>
+	<text class="label-polity" x="168.634" y="80.055">Guinea</text>
+	<text class="label-polity" x="89.768" y="74.224">Guatemala</text>
+	<text class="label-polity" x="118.305" y="77.877">Grenada</text>
+	<text class="label-polity" x="203.939" y="51.661">Greece</text>
+	<text class="label-polity" x="178.972" y="82.035">Ghana</text>
+	<text class="label-polity" x="190.437" y="38.831">Germany</text>
+	<text class="label-polity" x="223.325" y="47.680">Georgia</text>
+	<text class="label-polity" x="164.674" y="76.562">Gambia</text>
+	<text class="label-polity" x="191.592" y="90.807">Gabon</text>
+	<text class="label-polity" x="181.689" y="43.281">France</text>
+	<text class="label-polity" x="123.738" y="43.074">St. Pierre and Miquelon (Fr.)</text>
+	<text class="label-polity" x="2.839" y="103.773">Wallis and Futuna Is. (Fr.)</text>
+	<text class="label-polity" x="116.934" y="71.908">St-Martin (Fr.)</text>
+	<text class="label-polity" x="117.162" y="72.101">St-Barthélemy (Fr.)</text>
+	<text class="label-polity" x="30.607" y="107.679">Fr. Polynesia (Fr.)</text>
+	<text class="label-polity" x="344.034" y="110.888">New Caledonia (Fr.)</text>
+	<text class="label-polity" x="249.663" y="139.183">Fr. S. Antarctic Lands (Fr.)</text>
+	<text class="label-polity" x="200.065" y="29.791">Åland</text>
+	<text class="label-polity" x="206.079" y="25.060">Finland</text>
+	<text class="label-polity" x="357.961" y="107.789">Fiji</text>
+	<text class="label-polity" x="220.489" y="80.846">Ethiopia</text>
+	<text class="label-polity" x="205.003" y="31.418">Estonia</text>
+	<text class="label-polity" x="219.772" y="74.809">Eritrea</text>
+	<text class="label-polity" x="189.885" y="87.641">Eq. Guinea</text>
+	<text class="label-polity" x="91.089" y="76.202">El Salvador</text>
+	<text class="label-polity" x="210.787" y="63.175">Egypt</text>
+	<text class="label-polity" x="101.894" y="91.768">Ecuador</text>
+	<text class="label-polity" x="109.830" y="71.225">Dominican Rep.</text>
+	<text class="label-polity" x="118.634" y="74.570">Dominica</text>
+	<text class="label-polity" x="222.587" y="78.175">Djibouti</text>
+	<text class="label-polity" x="138.090" y="17.017">Greenland</text>
+	<text class="label-polity" x="173.086" y="28.115">Faeroe Is. (Den.)</text>
+	<text class="label-polity" x="191.629" y="33.817">Denmark</text>
+	<text class="label-polity" x="195.461" y="40.193">Czechia</text>
+	<text class="label-polity" x="213.634" y="54.669">N. Cyprus</text>
+	<text class="label-polity" x="213.176" y="55.124">Cyprus</text>
+	<text class="label-polity" x="100.488" y="68.477">Cuba</text>
+	<text class="label-polity" x="196.459" y="45.516">Croatia</text>
+	<text class="label-polity" x="174.445" y="82.462">Côte d'Ivoire</text>
+	<text class="label-polity" x="95.764" y="80.370">Costa Rica</text>
+	<text class="label-polity" x="203.593" y="92.920">Dem. Rep. Congo</text>
+	<text class="label-polity" x="194.876" y="90.658">Congo</text>
+	<text class="label-polity" x="223.877" y="101.868">Comoros</text>
+	<text class="label-polity" x="107.049" y="85.901">Colombia</text>
+	<text class="label-polity" x="283.523" y="53.217">China</text>
+	<text class="label-polity" x="293.514" y="67.779">Macao</text>
+	<text class="label-polity" x="294.087" y="67.620">Hong Kong</text>
+	<text class="label-polity" x="108.642" y="125.695">Chile</text>
+	<text class="label-polity" x="198.716" y="74.540">Chad</text>
+	<text class="label-polity" x="200.917" y="83.367">Central African Rep.</text>
+	<text class="label-polity" x="155.988" y="73.994">Cabo Verde</text>
+	<text class="label-polity" x="80.941" y="31.382">Canada</text>
+	<text class="label-polity" x="192.358" y="82.623">Cameroon</text>
+	<text class="label-polity" x="284.963" y="77.442">Cambodia</text>
+	<text class="label-polity" x="276.663" y="70.804">Myanmar</text>
+	<text class="label-polity" x="209.913" y="93.384">Burundi</text>
+	<text class="label-polity" x="178.433" y="77.749">Burkina Faso</text>
+	<text class="label-polity" x="205.465" y="47.259">Bulgaria</text>
+	<text class="label-polity" x="294.695" y="85.477">Brunei</text>
+	<text class="label-polity" x="126.878" y="100.640">Brazil</text>
+	<text class="label-polity" x="204.671" y="112.321">Botswana</text>
+	<text class="label-polity" x="197.660" y="46.082">Bosnia and Herz.</text>
+	<text class="label-polity" x="116.429" y="106.301">Bolivia</text>
+	<text class="label-polity" x="270.411" y="62.494">Bhutan</text>
+	<text class="label-polity" x="182.299" y="80.700">Benin</text>
+	<text class="label-polity" x="91.487" y="72.815">Belize</text>
+	<text class="label-polity" x="184.445" y="39.499">Belgium</text>
+	<text class="label-polity" x="207.943" y="36.295">Belarus</text>
+	<text class="label-polity" x="120.463" y="76.810">Barbados</text>
+	<text class="label-polity" x="270.328" y="66.319">Bangladesh</text>
+	<text class="label-polity" x="230.535" y="63.973">Bahrain</text>
+	<text class="label-polity" x="104.134" y="66.061">Bahamas</text>
+	<text class="label-polity" x="227.567" y="49.855">Azerbaijan</text>
+	<text class="label-polity" x="193.336" y="42.300">Austria</text>
+	<text class="label-polity" x="314.411" y="115.529">Australia</text>
+	<text class="label-polity" x="281.276" y="101.315">Indian Ocean Ter. (Auz.)</text>
+	<text class="label-polity" x="253.544" y="143.075">Heard I. and McDonald Is. (Auz.)</text>
+	<text class="label-polity" x="347.948" y="119.055">Norfolk Island (Auz.)</text>
+	<text class="label-polity" x="303.584" y="102.430">Ashmore and Cartier Is. (Auz.)</text>
+	<text class="label-polity" x="225.012" y="49.920">Armenia</text>
+	<text class="label-polity" x="115.364" y="124.199">Argentina</text>
+	<text class="label-polity" x="118.213" y="72.644">Antigua and Barb.</text>
+	<text class="label-polity" x="197.895" y="101.224">Angola</text>
+	<text class="label-polity" x="181.578" y="47.461">Andorra</text>
+	<text class="label-polity" x="182.539" y="61.835">Algeria</text>
+	<text class="label-polity" x="200.156" y="48.849">Albania</text>
+	<text class="label-polity" x="247.689" y="56.076">Afghanistan</text>
+	<text class="label-polity" x="257.283" y="54.614">Siachen Glacier</text>
+	<text class="label-polity" x="263.826" y="174.324">Antarctica</text>
+	<text class="label-polity" x="116.932" y="71.956">Sint Maarten</text>
+	<text class="label-polity" x="359.206" y="98.501">Tuvalu</text>
 </svg>

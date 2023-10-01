@@ -128,7 +128,7 @@ def main():
 		+ plot_shapes('ne_50m_lakes', max_rank=4) +
 		'		</g>\n'
 		'	</g>\n'
-		+ label_shapes('ne_50m_admin_0_countries', "pol", secondary_attr="note_adm0")
+		+ label_shapes('ne_50m_admin_0_countries', label_type="polity", secondary_attr="note_adm0")
 	)
 
 	# political template (countries)
@@ -171,13 +171,16 @@ def main():
 	# everything
 	write_svg_code_to_file(
 		"../../input/Advanced/Supermap.svg",
-		'   <rect class="water" width="100%" height="100%" />\n'
+		'	<rect class="water" width="100%" height="100%" />\n'
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
 		'		<g class="country">\n'
 		+ plot_political_shapes('ne_10m_admin_0_countries', trim_antarctica=True) +
 		'		</g>\n'
 		'		<g class="thick-country-border">\n'
 		+ plot_political_shapes('ne_10m_admin_0_countries', trim_antarctica=True, only_border=True) +
+		'		</g>\n'
+		'		<g class="river">\n'
+		+ plot_shapes('ne_10m_rivers_lake_centerlines', max_rank=5) +
 		'		</g>\n'
 		'		<g class="country-border">\n'
 		+ plot_shapes('ne_10m_admin_0_map_units') +
@@ -192,9 +195,6 @@ def main():
 		'		<g class="coastline">\n'
 		+ plot_shapes('ne_10m_coastline', trim_antarctica=True) +
 		'		</g>\n'
-		'		<g class="river">\n'
-		+ plot_shapes('ne_10m_rivers_lake_centerlines', max_rank=5) +
-		'		</g>\n'
 		'		<g class="lake">\n'
 		+ plot_shapes('ne_10m_lakes', max_rank=4) +
 		'		</g>\n'
@@ -204,10 +204,10 @@ def main():
 		              filter_values=["International Date Line"]) +
 		'		</g>\n'
 		'	</g>\n'
-		+ generate_topographical_labels('ne_50m', max_rank=2, text_size=4)
-		+ label_shapes('ne_10m_lakes', "sea", max_rank=1, text_size=1)
-		+ label_shapes('ne_10m_admin_0_countries', "pol", text_size=4, secondary_attr="note_adm0")
-		+ label_points('ne_50m_populated_places_simple', "cit", text_size=0, max_rank=3)
+		+ generate_topographical_labels('ne_50m', max_rank=1, circle_size=.26)
+		+ label_shapes('ne_10m_lakes', label_type="lake", max_rank=1)
+		+ label_shapes('ne_10m_admin_0_countries', label_type="polity", secondary_attr="note_adm0")
+		+ label_points('ne_50m_populated_places_simple', label_type="city", circle_size=.13, max_rank=3)
 	)
 
 
