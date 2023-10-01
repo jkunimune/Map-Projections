@@ -134,6 +134,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 				}
 				// pull out the d from <path>
 				else if (tagName.equals("path")) {
+					currentFormatString.append(parseAttributes(attributes, "d"));
 					currentFormatString.append(" d=\"");
 					formatStrings.add(currentFormatString.toString());
 					// represent it as a Path object
@@ -143,29 +144,30 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 						throw new SAXException(e.getLocalizedMessage(), null);
 					}
 					currentFormatString = new StringBuilder("\"");
-					currentFormatString.append(parseAttributes(attributes, "d"));
 				}
 				// pull out the x and y from <rect> or <text>
 				else if (attributes.getIndex("x") >= 0 && attributes.getIndex("y") >= 0) {
+					currentFormatString.append(parseAttributes(attributes, "x", "y"));
+					currentFormatString.append(" ");
 					formatStrings.add(currentFormatString.toString());
 					// represent it as a Path object with one vertex
 					paths.add(parsePoint(
 							Double.parseDouble(attributes.getValue("x")),
 							Double.parseDouble(attributes.getValue("y")),
 							'P'));
-					currentFormatString = new StringBuilder(
-							parseAttributes(attributes, "x", "y"));
+					currentFormatString = new StringBuilder();
 				}
 				// pull out the cx and cy from <circle>
 				else if (attributes.getIndex("cx") >= 0 && attributes.getIndex("cy") >= 0) {
+					currentFormatString.append(parseAttributes(attributes, "cx", "cy"));
+					currentFormatString.append(" ");
 					formatStrings.add(currentFormatString.toString()); //points are represented as single-point paths
 					// represent it as a Path object with one vertex
 					paths.add(parsePoint(
 							Double.parseDouble(attributes.getValue("cx")),
 							Double.parseDouble(attributes.getValue("cy")),
 							'O'));
-					currentFormatString = new StringBuilder(
-							parseAttributes(attributes, "cx", "cy"));
+					currentFormatString = new StringBuilder();
 				}
 				// for everything else, you can just leave all of the attributes in the formatString
 				else {
@@ -570,7 +572,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 			StringBuilder s = new StringBuilder();
 			for (Command c: this)
 				s.append(c.toString(inMinX, inMaxY, outMinX, outMinY, outScale)).append(" ");
-			return s.toString();
+			return s.toString().trim();
 		}
 	}
 	
@@ -595,11 +597,11 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		public String toString(
 				double inMinX, double inMaxY, double outMinX, double outMinY, double outScale) {
 			if (type == 'O') //'O' and 'P' are special; specific points
-				return format(" cx=\"%s\" cy=\"%s\"",
+				return format("cx=\"%s\" cy=\"%s\"",
 				              formatDouble(outMinX + (args[0] - inMinX)*outScale),
 				              formatDouble(outMinY + (inMaxY - args[1])*outScale));
 			else if (type == 'P')
-				return format(" x=\"%s\" cy=\"%s\"",
+				return format("x=\"%s\" cy=\"%s\"",
 				              formatDouble(outMinX + (args[0] - inMinX)*outScale),
 				              formatDouble(outMinY + (inMaxY - args[1])*outScale));
 			else {

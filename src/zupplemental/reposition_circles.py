@@ -6,7 +6,7 @@ from numpy import inf, hypot, log, pi, cos, sin, newaxis
 from numpy.typing import NDArray
 from scipy import optimize
 
-FILENAME = "Elastic III political template.svg"
+FILENAME = "mymap.svg"
 TERMINATION_THRESHOLD = 1e-9
 
 
@@ -138,7 +138,7 @@ def calculate_distance_matrix(centers: NDArray[float], radii: NDArray[float], mo
 
 
 def read_svg_circles(filename: str) -> tuple[str, NDArray[float], NDArray[float]]:
-	circle_pattern = r'cx="([-0-9.]+)" cy="([-0-9.]+)" r="([-0-9.]+)"'
+	circle_pattern = r'r="([-0-9.]+)" cx="([-0-9.]+)" cy="([-0-9.]+)"'
 	centers = []
 	radii = []
 	with open(f"../../output/{filename}") as svg_file:
@@ -146,7 +146,7 @@ def read_svg_circles(filename: str) -> tuple[str, NDArray[float], NDArray[float]
 	while re.search(circle_pattern, contents):
 		i = len(radii)
 		match = re.search(circle_pattern, contents)
-		x, y, r = [float(value) for value in match.groups()]
+		r, x, y = [float(value) for value in match.groups()]
 		centers.append((x, y))
 		radii.append(r)
 		contents = re.sub(circle_pattern, f"<<{i}>>", contents, count=1)
