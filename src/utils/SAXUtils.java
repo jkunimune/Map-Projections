@@ -45,12 +45,5 @@ public class SAXUtils {
 		}
 		return s1.toString();
 	}
-	
-	
-	public static Attributes removeAttribute(Attributes attrs, String... ss) {
-		AttributesImpl modAttrs = new AttributesImpl(attrs);
-		for (String s: ss)
-			modAttrs.removeAttribute(modAttrs.getIndex(s));
-		return modAttrs;
-	}
+
 }

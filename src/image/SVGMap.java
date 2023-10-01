@@ -110,7 +110,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 				// first parse any transformation embedded in this element
 				if (attributes.getIndex("transform") >= 0) {
 					transformStack.push(parseTransform(attributes.getValue("transform")));
-					SAXUtils.removeAttribute(attributes, "transform");
+					attributes.removeAttribute(attributes.getIndex("transform"));
 				}
 				else {
 					transformStack.push(transformStack.peek());
