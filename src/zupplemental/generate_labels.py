@@ -57,7 +57,6 @@ def plot_texts(
 		elif tipe in ["tundra", "desert", "plain"]:
 			label_class = "label-biome"
 		else:
-			print(tipe)
 			label_class = f"label-{tipe.replace(' ', '-')}"
 
 		# create the label as a <text> tag

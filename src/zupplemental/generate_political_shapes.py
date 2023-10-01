@@ -48,15 +48,14 @@ ISO_A3_TO_A2 = {
 	"VUT": "VU", "WSM": "WS", "YEM": "YE", "ZAF": "ZA", "ZMB": "ZM", "ZWE": "ZW", }
 
 
-def plot_political_shapes(filename, which="all", only_border=False, add_circles=False,
+def plot_political_shapes(filename, mode="normal",
                           trim_antarctica=False, add_title=False, include_circles_from=None) -> str:
 	""" it's like plot_shapes but it also can make circles and handles, like, dependencies and stuff
 	    :param filename: the name of the natural earth dataset to use (minus the .shp)
-	    :param which: either "all" to do all countries, "big" to exclude small countries,
-	                  or "small" to exclude big countries
-	    :param only_border: redraw the border by copying an existing element of the same ID, and
-	                        clip to that existing shape
-	    :param add_circles: add circles to each small country
+	    :param mode: one of "normal" to draw countries' shapes as one would expect,
+	                        "trace" to redraw each border by copying an existing element of the same
+	                        ID and clip to that existing shape, or
+	                        "circle" to do circles at the center of mass specificly for small countries
 	    :param trim_antarctica: whether to adjust antarctica's shape
 	    :param add_title: add mouseover text
 	    :param include_circles_from: an additional filename from which to borrow small objects. anything
@@ -116,11 +115,6 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 			if area > pi*CIRCLE_RADIUS**2:
 				is_small = False
 
-		if which == "small" and not is_small:
-			continue
-		elif which == "big" and is_small:
-			continue
-
 		# make some other decisions
 		has_geometry = region.shape.shapeType != shapefile.NULL
 		is_sovereign = len(hierarchy) == 1  # this won't work for admin-1-states-provinces but that's fine
@@ -145,13 +139,15 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 		indentation = '\t'*(3 + len(current_state))
 
 		# then put in whatever type of content is appropriate:
+		any_content = False
 		# the normal polygon
-		if not only_border:
+		if mode == "normal":
 			if has_geometry:
 				result += plot(region.shape.points, midx=region.shape.parts, close=False,
 				               fourmat='xd', tabs=3 + len(current_state), ident=identifier)
+				any_content = True
 		# or the clipped and copied thick border
-		else:
+		elif mode == "trace":
 			if has_geometry:
 				result += (
 					f'{indentation}<clipPath id="{identifier}-clipPath">\n'
@@ -159,16 +155,20 @@ def plot_political_shapes(filename, which="all", only_border=False, add_circles=
 					f'{indentation}</clipPath>\n'
 					f'{indentation}<use href="#{identifier}" style="clip-path:url(#{identifier}-clipPath);" />\n'
 				)
-		# and potentially also a circle
-		if add_circles and is_small and is_inhabited:
-			x_center, y_center = float(region.record["label_x"]), float(region.record["label_y"])
-			if is_sovereign:
-				radius = CIRCLE_RADIUS
-			else:
-				radius = round(CIRCLE_RADIUS/sqrt(2), 2)
-			result += f'{indentation}<circle id="{identifier}-circle" cx="{x_center:.3f}" cy="{y_center:.3f}" r="{radius}" />\n'
+				any_content = True
+		# or just a circle
+		elif mode == "circle":
+			if is_small and is_inhabited:
+				x_center, y_center = float(region.record["label_x"]), float(region.record["label_y"])
+				if is_sovereign:
+					radius = CIRCLE_RADIUS
+				else:
+					radius = round(CIRCLE_RADIUS/sqrt(2), 2)
+				result += f'{indentation}<circle id="{identifier}-circle" cx="{x_center:.3f}" cy="{y_center:.3f}" r="{radius}" />\n'
+				any_content = True
 
-		if add_title and tuple(hierarchy) not in already_titled:
+		# also a title if that's desired
+		if add_title and any_content and tuple(hierarchy) not in already_titled:
 			if has_geometry or is_inhabited:
 				result += f'{indentation}<title>{label}</title>\n'
 				already_titled.add(tuple(hierarchy))  # occasionally a thing can get two titles if the hierarchy isn't unique; only label the first one
