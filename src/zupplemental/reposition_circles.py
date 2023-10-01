@@ -35,14 +35,14 @@ def main():
 				current_centers, radii, "center-to-center")
 			return current_anchor_energy + current_repulsive_energy
 
-		# def total_force(x) -> NDArray[float]:
-		# 	current_centers = x.reshape((-1, 2))
-		# 	current_anchor_force = calculate_anchor_force(current_centers, centers_original)
-		# 	current_repulsive_force = repulsion_strength*calculate_repulsive_force(
-		# 		current_centers, radii, "center-to-center")
-		# 	return current_anchor_force + current_repulsive_force
+		def total_negative_force(x) -> NDArray[float]:
+			current_centers = x.reshape((-1, 2))
+			current_anchor_force = calculate_anchor_force(current_centers, centers_original)
+			current_repulsive_force = repulsion_strength*calculate_repulsive_force(
+				current_centers, radii, "center-to-center")
+			return -np.ravel(current_anchor_force + current_repulsive_force)
 
-		solution = optimize.minimize(total_energy, x0=centers.ravel())
+		solution = optimize.minimize(fun=total_energy, jac=total_negative_force, x0=centers.ravel())
 		centers = solution.x.reshape((-1, 2))
 
 		plot_circles(centers, centers_original, radii)
@@ -59,14 +59,14 @@ def main():
 				current_centers, radii, "inner")
 			return current_anchor_energy + current_repulsive_energy
 
-		# def total_force(x):
-		# 	current_centers = x.reshape((-1, 2))
-		# 	current_anchor_force = calculate_anchor_force(current_centers, centers_original)
-		# 	current_repulsive_force = repulsion_strength*calculate_repulsive_force(
-		# 		current_centers, radii, "inner")
-		# 	return current_anchor_force + current_repulsive_force
+		def total_negative_force(x):
+			current_centers = x.reshape((-1, 2))
+			current_anchor_force = calculate_anchor_force(current_centers, centers_original)
+			current_repulsive_force = repulsion_strength*calculate_repulsive_force(
+				current_centers, radii, "inner")
+			return -np.ravel(current_anchor_force + current_repulsive_force)
 
-		solution = optimize.minimize(total_energy, x0=centers.ravel())
+		solution = optimize.minimize(fun=total_energy, jac=total_negative_force, x0=centers.ravel())
 		new_centers = solution.x.reshape((-1, 2))
 		change = np.sum((new_centers - centers)**2)
 		centers = new_centers
@@ -94,19 +94,20 @@ def any_overlap(center, radius):
 	return np.any(distance < 0)
 
 
-# def calculate_anchor_force(centers: NDArray[float], centers_original: NDArray[float]):
-# 	return centers_original - centers
+def calculate_anchor_force(centers: NDArray[float], centers_original: NDArray[float]):
+	return centers_original - centers
 
 
 def calculate_anchor_energy(centers: NDArray[float], centers_original: NDArray[float]):
-	return 1/2*np.sum((centers_original - centers)**2)
+	return 1/4*np.sum((centers_original - centers)**2)
 
 
-# def calculate_repulsive_force(center: NDArray[float], radii: NDArray[float], mode: str):
-# 	distance_matrix, direction_matrix = calculate_distance_matrix(center, radii, mode)
-# 	distance_matrix = np.where(distance_matrix != 0, distance_matrix, REFERENCE_LENGTH_SCALE)
-# 	force_matrix = direction_matrix/distance_matrix[:, :, newaxis]
-# 	return np.sum(force_matrix, axis=0)
+def calculate_repulsive_force(center: NDArray[float], radii: NDArray[float], mode: str):
+	length_scale = np.min(radii)
+	distance_matrix, direction_matrix = calculate_distance_matrix(center, radii, mode)
+	distance_matrix = np.where(distance_matrix != 0, distance_matrix, length_scale)
+	force_matrix = direction_matrix/distance_matrix[:, :, newaxis]
+	return np.sum(force_matrix, axis=0)
 
 
 def calculate_repulsive_energy(centers: NDArray[float], radii: NDArray[float], mode: str) -> float:
