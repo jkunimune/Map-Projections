@@ -333,7 +333,7 @@ public class Elastik {
 
 			BufferedReader in = null;
 			try {
-				in = new BufferedReader(new FileReader(String.format("data/%s", filename))); // parsing the input mesh is pretty simple
+				in = new BufferedReader(new FileReader(String.format("res/%s", filename))); // parsing the input mesh is pretty simple
 
 				// load the basic projection information
 				String line = in.readLine();  // read the header
