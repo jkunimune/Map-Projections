@@ -127,9 +127,6 @@ public class Elastik {
 		 * @return the latitude and longitude, in radians, or null if the point is not on the mesh
 		 */
 		public double[] inverse(double x, double y) {
-			if (hypot(x + 2500, y - 6500) > 1000)
-				return new double[] {0, 0};
-
 			// start by interpolating on the raster
 			double[] guess = inverse_by_interpolation(x, y);
 
