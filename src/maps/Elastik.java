@@ -127,6 +127,9 @@ public class Elastik {
 		 * @return the latitude and longitude, in radians, or null if the point is not on the mesh
 		 */
 		public double[] inverse(double x, double y) {
+			if (hypot(x + 2500, y - 6500) > 1000)
+				return new double[] {0, 0};
+
 			// start by interpolating on the raster
 			double[] guess = inverse_by_interpolation(x, y);
 
@@ -222,7 +225,7 @@ public class Elastik {
 				if (distance < distance_tolerance)
 					return guess;  // solution is found
 				if (num_steps > max_num_steps)
-					return null;  // too many iterations have elapsed
+					return null;  // too many outer iterations have elapsed
 
 				// evaluate the jacobian using finite differences
 				double[][] jacobian = new double[2][2];
@@ -282,8 +285,7 @@ public class Elastik {
 							new_guess[l] = guess[l] - step[l] - 1/2.*step_correction[l];
 
 						// put the new location back in bounds
-						new_guess[0] = SplineSurface.fix_latitude(new_guess[0]);
-						new_guess[1] = SplineSurface.fix_longitude(new_guess[1]);
+						new_guess = SplineSurface.fix_latitude_and_longitude(new_guess[0], new_guess[1]);
 
 						// re-evaluate the function
 						double[] new_residual = new double[2];
@@ -301,7 +303,7 @@ public class Elastik {
 							break;
 						}
 						if (num_step_sizes > max_num_step_sizes) {
-							// too many iterations have elapsed
+							// too many inner iterations have elapsed
 							return null;
 						}
 					}
@@ -618,8 +620,10 @@ public class Elastik {
 		 * @return the value of the spline
 		 */
 		public double evaluate(double ф, double λ) {
-			ф = fix_latitude(ф);
-			λ = fix_longitude(λ);
+			double[] fixed_coordinates = fix_latitude_and_longitude(ф, λ);
+			ф = fixed_coordinates[0];
+			λ = fixed_coordinates[1];
+
 			double i_partial = (ф + PI/2)/PI*(values.length - 1);
 			int i = (int)floor(min(i_partial, values.length - 2));
 			double j_partial = (λ + PI)/(2*PI)*(values[i].length - 1);
@@ -681,30 +685,25 @@ public class Elastik {
 		}
 
 		/**
-		 * recenter a latitude so that it is in the range [-PI/2, PI/2].  if it's outside of that,
-		 * it will get reflected about the poles until it isn't.
+		 * recenter a set of spherical coordinates so that the latitude is in the range [-PI/2, PI/2]
+		 * and the longitude is in the range [-PI, PI].  if it's outside of the latitude bounds, it
+		 * will get reflected about the poles until it isn't.  if it's out of the longitude bounds,
+		 * it will get modulused such that it isn't.
 		 * @param ф the latitude (radians)
-		 * @return the equivalent in-bounds latitude
+		 * @param λ the longitude (radians)
+		 * @return the equivalent in-bounds latitude and longitude in an array
 		 */
-		private static double fix_latitude(double ф) {
+		private static double[] fix_latitude_and_longitude(double ф, double λ) {
 			if (ф < -PI/2 || ф > PI/2) {
 				ф = ф - floor((ф + PI/2)/(2*PI))*(2*PI);
-				if (ф > PI/2)
+				if (ф > PI/2) {
 					ф = PI - ф;
+					λ = λ + PI;
+				}
 			}
-			return ф;
-		}
-
-		/**
-		 * recenter a longitude so that it is in the range [-PI, PI].  if it's outside of that, it
-		 * will get modulused such that it isn't.
-		 * @param λ the longitude (radians)
-		 * @return the equivalent in-bounds longitude
-		 */
-		private static double fix_longitude(double λ) {
 			if (λ < -PI || λ > PI)
 				λ = λ - floor((λ + PI)/(2*PI))*(2*PI);
-			return λ;
+			return new double[] {ф, λ};
 		}
 	}
 
