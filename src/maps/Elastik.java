@@ -157,23 +157,23 @@ public class Elastik {
 		 */
 		private double[] inverse_by_interpolation(double x, double y) {
 			// find the correct bin
-			double i_partial = (y - raster_lower)/raster_height*(inverse_raster.length - 1);
+			double i_partial = (x - raster_left)/raster_width*(inverse_raster.length - 1);
 			int i = (int) floor(min(i_partial, inverse_raster.length - 2));
-			double j_partial = (x - raster_left)/raster_width*(inverse_raster[i].length - 1);
+			double j_partial = (y - raster_lower)/raster_height*(inverse_raster[i].length - 1);
 			int j = (int) floor(min(j_partial, inverse_raster[i].length - 2));
 
 			// calculate the linear weights
-			double right_weight = j_partial - j;
+			double right_weight = i_partial - i;
 			double left_weight = 1 - right_weight;
-			double upper_weight = i_partial - i;
+			double upper_weight = j_partial - j;
 			double lower_weight = 1 - upper_weight;
 
 			// perform the interpolation on our 3D cartesian inverse raster
 			double[] result = new double[3];
 			for (int l = 0; l < 3; l ++) {
 				result[l] = left_weight*(lower_weight*inverse_raster[i][j][l] +
-				                         upper_weight*inverse_raster[i + 1][j][l]) +
-				            right_weight*(lower_weight*inverse_raster[i][j + 1][l] +
+				                         upper_weight*inverse_raster[i][j + 1][l]) +
+				            right_weight*(lower_weight*inverse_raster[i + 1][j][l] +
 				                          upper_weight*inverse_raster[i + 1][j + 1][l]);
 			}
 
@@ -399,11 +399,11 @@ public class Elastik {
 				raster_lower = parseDouble(row[1]);
 				raster_width = parseDouble(row[2]) - raster_left;
 				raster_height = parseDouble(row[3]) - raster_lower;
-				inverse_raster = new double[num_ys][num_xs][3];
-				for (int i = 0; i < num_ys; i ++) {
+				inverse_raster = new double[num_xs][num_ys][3];
+				for (int i = 0; i < num_xs; i ++) {
 					line = in.readLine();  // read each row of coordinates
 					row = line.split(",\\s*");
-					for (int j = 0; j < num_xs; j ++) {
+					for (int j = 0; j < num_ys; j ++) {
 						double ф = toRadians(parseDouble(row[2*j]));
 						double λ = toRadians(parseDouble(row[2*j + 1]));
 						inverse_raster[i][j][0] = cos(ф)*cos(λ);  // save the inverse raster in cartesian
