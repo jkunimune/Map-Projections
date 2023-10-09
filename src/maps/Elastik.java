@@ -257,10 +257,11 @@ public class Elastik {
 					double[][] amplified_hessian = new double[][] {
 							{ hessian[0][0] + step_limiter, hessian[0][1] },
 							{ hessian[1][0], hessian[1][1] + step_limiter*λ_factor } };
-					double[] step = LinAlg.solve_linear_equation(amplified_hessian, gradient);
+					double[] step = LinAlg.dot(
+							-1, LinAlg.solve_linear_equation(amplified_hessian, gradient));
 
 					// calculate the second-order correction to the step
-					double[] expected_change = LinAlg.dot(jacobian, step);
+					double[] expected_slope = LinAlg.dot(jacobian, step);
 					double[] curvature = new double[2];
 					for (int l = 0; l < 2; l ++) {
 						double fore_residual = sections[i][l].evaluate(
@@ -268,18 +269,19 @@ public class Elastik {
 								guess[1] + step[1]*second_finite_difference) - target[l];
 						curvature[l] = 2./second_finite_difference*(
 								(fore_residual - residual[l])/second_finite_difference
-								- expected_change[l]);
+								- expected_slope[l]);
 					}
-					double[] step_correction = LinAlg.solve_linear_equation(
-							amplified_hessian,
-							LinAlg.dot(jacobian_transpose, curvature));
+					double[] step_correction = LinAlg.dot(
+							-1/2., LinAlg.solve_linear_equation(
+									amplified_hessian,
+									LinAlg.dot(jacobian_transpose, curvature)));
 
 					// check the correction magnitude condition before applying the correction
 					if (LinAlg.square(step_correction)/LinAlg.square(step) < .25) {
 						// take the step
 						double[] new_guess = new double[2];
 						for (int l = 0; l < 2; l++)
-							new_guess[l] = guess[l] - step[l] - 1/2.*step_correction[l];
+							new_guess[l] = guess[l] + step[l] + step_correction[l];
 
 						// put the new location back in bounds
 						new_guess = SplineSurface.fix_latitude_and_longitude(new_guess[0], new_guess[1]);
@@ -710,8 +712,19 @@ public class Elastik {
 	 */
 	private static class LinAlg {
 		/**
+		 * evaluate the product of a scalar with a vector
+		 * @return the vector scaled by a factor of a
+		 */
+		private static double[] dot(double a, double[] b) {
+			double[] product = new double[b.length];
+			for (int i = 0; i < b.length; i ++)
+				product[i] = a*b[i];
+			return product;
+		}
+
+		/**
 		 * evaluate the inner product of two vectors
-		 * @return the 2-vector resulting from the dot-product of A and b
+		 * @return the 2-vector resulting from the dot-product of a and b
 		 */
 		private static double dot(double[] a, double[] b) {
 			if (a.length != b.length)
