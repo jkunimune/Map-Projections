@@ -75,6 +75,8 @@ public class Elastik {
 			false, Type.OTHER, Property.COMPROMISE, true,
 			"elastic-earth-III.txt");
 
+	private static final double EARTH_RADIUS = 6370;
+
 
 
 	private static class ElastikProjection extends Projection {
@@ -185,15 +187,16 @@ public class Elastik {
 
 		/**
 		 * convert a location on the map plane to a location on the globe by iteratively searching
-		 * for the coordinates that project to x and y on a given section.  the algorithm is
+		 * for the coordinates that project to x and y on a given section.  the iteration is
+		 * performed in 3D cartesian space rather than 2D spherical space.  the algorithm is
 		 * Levenberg-Marquardt; see <i>J. Res. NIST</i> 103, p. 633 (1998).
 		 * @param x the x value, in the same units as this.width
 		 * @param y the y value, in the same units as this.height
-		 * @param i the index of the section to search
+		 * @param section_index the index of the section to search
 		 * @param initial_guess an initial input that projects to the correct vicinity
 		 * @return the latitude and longitude, in radians, or null if no solution can be found
 		 */
-		private double[] inverse_by_iteration(double x, double y, int i, double[] initial_guess) {
+		private double[] inverse_by_iteration(double x, double y, int section_index, double[] initial_guess) {
 			final double finite_difference = 1e-5; // radians
 			final double second_finite_difference = 0.1; // dimensionless
 			final double distance_tolerance = pow(1e-2, 2); // km^2
@@ -202,13 +205,14 @@ public class Elastik {
 			final double backstep_relaxation_factor = 12.0;
 			final int max_num_steps = 40;
 			final int max_num_step_sizes = 40;
-			double[] target = {x, y};
+			double[] target = {x, y, EARTH_RADIUS};
 
 			// instantiate the state variables
-			double[] guess = initial_guess.clone();
-			double[] residual = new double[2];
-			for (int l = 0; l < 2; l ++)
-				residual[l] = sections[i][l].evaluate(guess[0], guess[1]) - target[l];
+			double[] guess = convert_spherical_to_cartesian(initial_guess);
+			double[] projection = project_cartesian(guess, section_index);
+			double[] residual = new double[3];
+			for (int i = 0; i < 3; i ++)
+				residual[i] = projection[i] - target[i];
 			double distance = 1/2.*LinAlg.square(residual);
 			if (isNaN(distance))  // if this section doesn't cover the initial guess, it's probably pointless
 				return null;
@@ -220,21 +224,21 @@ public class Elastik {
 
 				// check the stopping conditions
 				if (distance < distance_tolerance)
-					return guess;  // solution is found
+					return convert_cartesian_to_spherical(guess);  // solution is found
 				if (num_steps > max_num_steps)
 					return null;  // too many outer iterations have elapsed
 
 				// evaluate the jacobian using finite differences
-				double[][] jacobian = new double[2][2];
-				for (int l = 0; l < 2; l ++) {
-					double north_residual = sections[i][l].evaluate(
-							guess[0] + finite_difference, guess[1]) - target[l];
-					jacobian[l][0] = (north_residual - residual[l])/finite_difference;
-					double east_residual = sections[i][l].evaluate(
-							guess[0], guess[1] + finite_difference) - target[l];
-					jacobian[l][1] = (east_residual - residual[l])/finite_difference;
-					if (isNaN(jacobian[l][0]) || isNaN(jacobian[l][1]))
-						return null;  // if we're butting up against the edge, that means there's probably no solution
+				double[][] jacobian = new double[3][3];
+				for (int j = 0; j < 3; j ++) {
+					double[] perturbed_guess = guess.clone();
+					perturbed_guess[j] += finite_difference;
+					double[] perturbed_projection = project_cartesian(perturbed_guess, section_index);
+					for (int i = 0; i < 3; i ++) {
+						jacobian[i][j] = (perturbed_projection[i] - projection[i])/finite_difference;
+						if (isNaN(jacobian[i][j]))
+							return null;  // if we're butting up against the edge of the feasible region, that means there's probably no solution
+					}
 				}
 
 				double[][] jacobian_transpose = LinAlg.transpose(jacobian);
@@ -243,57 +247,64 @@ public class Elastik {
 
 				// check the other stopping condition
 				double sum_cosines_squared = 0;
-				for (int l = 0; l < 2; l ++)
-					sum_cosines_squared += pow(gradient[l], 2)/(LinAlg.square(jacobian_transpose[l])*distance);
+				for (int j = 0; j < 3; j ++)
+					sum_cosines_squared += pow(gradient[j], 2)/(LinAlg.square(jacobian_transpose[j])*distance);
 				if (sum_cosines_squared < cosine_tolerance)
-					return guess;  // local minimum is found
+					return convert_cartesian_to_spherical(guess);  // local minimum is found
 
 				// perform a backtracking line-search
-				double λ_factor = max(.01, pow(cos(guess[0]), 2));
 				int num_step_sizes = 0;
 				while (true) {
 
 					// calculate the step
-					double[][] amplified_hessian = new double[][] {
-							{ hessian[0][0] + step_limiter, hessian[0][1] },
-							{ hessian[1][0], hessian[1][1] + step_limiter*λ_factor } };
-					double[] step = LinAlg.solve_linear_equation(amplified_hessian, gradient);
+					double[][] amplified_hessian = new double[3][3];
+					for (int i = 0; i < 3; i ++) {
+						for (int j = 0; j < 3; j ++) {
+							if (i == j)
+								amplified_hessian[i][j] = hessian[i][j] + step_limiter;
+							else
+								amplified_hessian[i][j] = hessian[i][j];
+						}
+					}
+					double[] step = LinAlg.dot(
+							-1, LinAlg.solve_linear_equation(amplified_hessian, gradient));
 
 					// calculate the second-order correction to the step
 					double[] expected_change = LinAlg.dot(jacobian, step);
-					double[] curvature = new double[2];
-					for (int l = 0; l < 2; l ++) {
-						double fore_residual = sections[i][l].evaluate(
-								guess[0] + step[0]*second_finite_difference,
-								guess[1] + step[1]*second_finite_difference) - target[l];
-						curvature[l] = 2./second_finite_difference*(
-								(fore_residual - residual[l])/second_finite_difference
-								- expected_change[l]);
+					double[] fore_guess = new double[3];
+					for (int j = 0; j < 3; j ++)
+						fore_guess[j] = guess[j] + second_finite_difference*step[j];
+					double[] fore_projection = project_cartesian(fore_guess, section_index);
+					double[] curvature = new double[3];
+					for (int i = 0; i < 3; i ++) {
+						curvature[i] = 2./second_finite_difference*(
+								(fore_projection[i] - projection[i])/second_finite_difference
+								- expected_change[i]);
 					}
-					double[] step_correction = LinAlg.solve_linear_equation(
-							amplified_hessian,
-							LinAlg.dot(jacobian_transpose, curvature));
+					double[] step_correction = LinAlg.dot(
+							-1/2., LinAlg.solve_linear_equation(
+									amplified_hessian,
+									LinAlg.dot(jacobian_transpose, curvature)));
 
 					// check the correction magnitude condition before applying the correction
 					if (LinAlg.square(step_correction)/LinAlg.square(step) < .25) {
 						// take the step
-						double[] new_guess = new double[2];
-						for (int l = 0; l < 2; l++)
-							new_guess[l] = guess[l] - step[l] - 1/2.*step_correction[l];
-
-						// put the new location back in bounds
-						new_guess = SplineSurface.fix_latitude_and_longitude(new_guess[0], new_guess[1]);
+						double[] new_guess = new double[3];
+						for (int j = 0; j < 3; j++)
+							new_guess[j] = guess[j] + step[j] + step_correction[j];
 
 						// re-evaluate the function
-						double[] new_residual = new double[2];
-						for (int l = 0; l < 2; l++)
-							new_residual[l] = sections[i][l].evaluate(new_guess[0], new_guess[1]) - target[l];
+						double[] new_projection = project_cartesian(new_guess, section_index);
+						double[] new_residual = new double[3];
+						for (int i = 0; i < 3; i++)
+							new_residual[i] = new_projection[i] - target[i];
 						double new_distance = 1/2.*LinAlg.square(new_residual);
 
 						// check the line-search stopping conditions
 						if (!isNaN(new_distance) && new_distance < distance) {
 							// valid step is found
 							guess = new_guess;
+							projection = new_projection;
 							residual = new_residual;
 							distance = new_distance;
 							step_limiter /= backstep_relaxation_factor;
@@ -306,8 +317,7 @@ public class Elastik {
 					}
 
 					if (step_limiter == 0)
-						step_limiter += (sqrt(1.4*(1 - pow(hessian[0][1], 2)/(hessian[0][0]*hessian[1][1])) + 1) - 1)
-						                *min(hessian[0][0], hessian[1][1]/λ_factor);
+						step_limiter += min(min(hessian[0][0], hessian[1][1]), hessian[2][2])*1e-1;
 					else
 						step_limiter *= backstep_factor;
 					num_step_sizes ++;
@@ -315,6 +325,41 @@ public class Elastik {
 
 				num_steps ++;
 			}
+		}
+
+
+		private double[] project_cartesian(double[] input, int section_index) {
+			double[] spherical_coordinates = convert_cartesian_to_spherical(input);
+			double ф = spherical_coordinates[0];
+			double λ = spherical_coordinates[1];
+			double r = spherical_coordinates[2];
+			double[] output = new double[3];
+			for (int i = 0; i < 2; i ++)
+				output[i] = sections[section_index][i].evaluate(ф, λ);
+			output[2] = r;
+			return output;
+		}
+
+
+		private double[] convert_spherical_to_cartesian(double[] spherical_coordinates) {
+			double ф = spherical_coordinates[0];
+			double λ = spherical_coordinates[1];
+			double r = (spherical_coordinates.length > 2) ? spherical_coordinates[2] : EARTH_RADIUS;
+			double x = r*cos(ф)*cos(λ);
+			double y = r*cos(ф)*sin(λ);
+			double z = r*sin(ф);
+			return new double[] {x, y, z};
+		}
+
+
+		private double[] convert_cartesian_to_spherical(double[] cartesian_coordinates) {
+			double x = cartesian_coordinates[0];
+			double y = cartesian_coordinates[1];
+			double z = cartesian_coordinates[2];
+			double ф = atan(z/sqrt(x*x + y*y));
+			double λ = atan2(y, x);
+			double r = sqrt(x*x + y*y + z*z);
+			return new double[] {ф, λ, r};
 		}
 
 
@@ -710,8 +755,19 @@ public class Elastik {
 	 */
 	private static class LinAlg {
 		/**
+		 * evaluate the product of a scalar with a vector
+		 * @return the vector scaled by a factor of a
+		 */
+		private static double[] dot(double a, double[] b) {
+			double[] product = new double[b.length];
+			for (int i = 0; i < b.length; i ++)
+				product[i] = a*b[i];
+			return product;
+		}
+
+		/**
 		 * evaluate the inner product of two vectors
-		 * @return the 2-vector resulting from the dot-product of A and b
+		 * @return the 2-vector resulting from the dot-product of a and b
 		 */
 		private static double dot(double[] a, double[] b) {
 			if (a.length != b.length)
@@ -778,12 +834,29 @@ public class Elastik {
 		 * @return the 2-vector x that solves the linear equation Ax = b
 		 */
 		private static double[] solve_linear_equation(double[][] A, double[] b) {
-			if (A.length != 2 || b.length != 2)
-				throw new IllegalArgumentException("this function has only been implemented for 2D equations.");
-			double det = A[0][0]*A[1][1] - A[0][1]*A[1][0];
-			return new double[]{
-					(A[1][1]*b[0] - A[0][1]*b[1])/det,
-					(A[0][0]*b[1] - A[1][0]*b[0])/det};
+			if (A.length != 3 || b.length != 3)
+				throw new IllegalArgumentException("this function has only been implemented for 3D equations.");
+			double det = A[0][0]*(A[1][1]*A[2][2] - A[1][2]*A[2][1]) +
+			             A[0][1]*(A[1][2]*A[2][0] - A[1][0]*A[2][2]) +
+			             A[0][2]*(A[1][0]*A[2][1] - A[1][1]*A[2][0]);
+			double[][] cofactors = new double[3][3];
+			for (int i = 0; i < 3; i ++) {
+				for (int j = 0; j < 3; j ++) {
+					double subdet =
+							A[(i + 1)%3][(j + 1)%3]*A[(i + 2)%3][(j + 2)%3] -
+							A[(i + 1)%3][(j + 2)%3]*A[(i + 2)%3][(j + 1)%3];
+					cofactors[i][j] = subdet;
+				}
+			}
+			double[][] inverse = new double[3][3];
+			for (int i = 0; i < 3; i ++)
+				for (int j = 0; j < 3; j ++)
+					inverse[i][j] = cofactors[j][i]/det;
+			double[] solution = new double[3];
+			for (int i = 0; i < 3; i ++)
+				for (int j = 0; j < 3; j ++)
+					solution[i] += inverse[i][j]*b[j];
+			return solution;
 		}
 	}
 }
