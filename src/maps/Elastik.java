@@ -557,53 +557,42 @@ public class Elastik {
 		 *         the approximate longitude-derivate of the function at each node
 		 */
 		private static double[][][] estimate_gradients(double[][] values) {
+			// instantiate both gradient arrays
 			final int m = values.length;
 			final int n = values[0].length;
-			// instantiate both gradient arrays
 			double[][] gradients_dф = new double[m][n];
 			double[][] gradients_dλ = new double[m][n];
+
+			// use twoth- or first-order finite differences to estimate gradients
 			for (int i = 0; i < m; i ++) {
 				for (int j = 0; j < n; j ++) {
 					if (isFinite(values[i][j])) {
 
+						// derivative /dф
 						if (i - 1 >= 0 && isFinite(values[i - 1][j])) {
 							if (i + 1 < m && isFinite(values[i + 1][j]))
+								// central second-order
 								gradients_dф[i][j] = (values[i + 1][j] - values[i - 1][j])/2.;
-							else {
-								if (i - 2 >= 0 && isFinite(values[i - 2][j]))
-									gradients_dф[i][j] = (3*values[i][j] - 4*values[i - 1][j] + values[i - 2][j])/2.;
-								else
-									gradients_dф[i][j] = values[i][j] - values[i - 1][j];
-							}
+							else
+								// backward first-order
+								gradients_dф[i][j] = values[i][j] - values[i - 1][j];
 						}
-						else {
-							if (i + 1 < m && isFinite(values[i + 1][j])) {
-								if (i + 2 < m && isFinite(values[i + 2][j]))
-									gradients_dф[i][j] = (-3*values[i][j] + 4*values[i + 1][j] - values[i + 2][j])/2.;
-								else
-									gradients_dф[i][j] = values[i + 1][j] - values[i][j];
-							}
-						}
+						else if (i + 1 < m && isFinite(values[i + 1][j]))
+							// forward first-order
+							gradients_dф[i][j] = values[i + 1][j] - values[i][j];
 
+						// derivative /dλ
 						if (j - 1 >= 0 && isFinite(values[i][j - 1])) {
 							if (j + 1 < n && isFinite(values[i][j + 1]))
+								// central second-order
 								gradients_dλ[i][j] = (values[i][j + 1] - values[i][j - 1])/2.;
-							else {
-								if (j - 2 >= 0 && isFinite(values[i][j - 2]))
-									gradients_dλ[i][j] = (3*values[i][j] - 4*values[i][j - 1] + values[i][j - 2])/2.;
-								else
-									gradients_dλ[i][j] = values[i][j] - values[i][j - 1];
-							}
+							else
+								// backward first-order
+								gradients_dλ[i][j] = values[i][j] - values[i][j - 1];
 						}
-						else {
-							if (j + 1 < n && isFinite(values[i][j + 1])) {
-								if (j + 2 < n && isFinite(values[i][j + 2]))
-									gradients_dλ[i][j] = (-3*values[i][j] + 4*values[i][j + 1] - values[i][j + 2])/2.;
-								else
-									gradients_dλ[i][j] = values[i][j + 1] - values[i][j];
-							}
-						}
-
+						else if (j + 1 < n && isFinite(values[i][j + 1]))
+							// forward first-order
+							gradients_dλ[i][j] = values[i][j + 1] - values[i][j];
 					}
 				}
 			}
