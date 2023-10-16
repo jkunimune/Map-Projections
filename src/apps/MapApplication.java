@@ -80,7 +80,7 @@ import maps.ArbitraryPseudocylindrical;
 import maps.Azimuthal;
 import maps.Conic;
 import maps.Cylindrical;
-import maps.Elastik;
+import maps.Elastic;
 import maps.EqualEarth;
 import maps.Gyorffy;
 import maps.Lenticular;
@@ -154,7 +154,7 @@ public abstract class MapApplication extends Application {
 			{ Misc.BONNE, Snyder.GS50, Misc.GUYOU, Misc.HAMMER_RETROAZIMUTHAL,
 			  Pseudocylindrical.LEMONS, Misc.PEIRCE_QUINCUNCIAL, Misc.T_SHIRT,
 			  Misc.TWO_POINT_EQUIDISTANT, Misc.FLAT_EARTH },
-			{ Elastik.ELASTIK_I, Elastik.ELASTIK_II, Elastik.ELASTIK_III,
+			{ Elastic.ELASTIC_I, Elastic.ELASTIC_II, Elastic.ELASTIC_III,
 			  Danseiji.DANSEIJI_N, Danseiji.DANSEIJI_I, Danseiji.DANSEIJI_II, Danseiji.DANSEIJI_III,
 			  Danseiji.DANSEIJI_IV, Danseiji.DANSEIJI_V, Danseiji.DANSEIJI_VI,
 			  Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH, Polyhedral.TETRAGRAPH,

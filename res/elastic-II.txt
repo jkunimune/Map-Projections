@@ -1,4 +1,4 @@
-Elastic Earth II projection (3 sections):
+Elastic II projection (3 sections):
 section 0:
 boundary (455 vertices):
  -35.0, 149.1

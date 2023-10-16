@@ -1,4 +1,4 @@
-Elastic Earth I projection (3 sections):
+Elastic I projection (3 sections):
 section 0:
 boundary (12 vertices):
   40.0,-180.0

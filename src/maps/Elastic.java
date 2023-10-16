@@ -56,28 +56,28 @@ import static java.lang.Math.toRadians;
  *
  * @author Justin Kunimune
  */
-public class Elastik {
+public class Elastic {
 
-	public static final ElastikProjection ELASTIK_I = new ElastikProjection(
-			"Elastic Earth I", "A map optimised to display landmasses accurately and without interruption.",
+	public static final ElasticProjection ELASTIC_I = new ElasticProjection(
+			"Elastic I", "A map optimised to display landmasses accurately and without interruption.",
 			true, Type.OTHER, Property.COMPROMISE, true,
-			"elastic-earth-I.txt");
+			"elastic-I.txt");
 
 
-	public static final ElastikProjection ELASTIK_II = new ElastikProjection(
-			"Elastic Earth II", "A map optimised to display oceans and their drainage basins accurately and without interruption.",
+	public static final ElasticProjection ELASTIC_II = new ElasticProjection(
+			"Elastic II", "A map optimised to display oceans and their drainage basins accurately and without interruption.",
 			true, Type.OTHER, Property.COMPROMISE, true,
-			"elastic-earth-II.txt");
+			"elastic-II.txt");
 
 
-	public static final ElastikProjection ELASTIK_III = new ElastikProjection(
-			"Elastic Earth III", "A map optimised to show off the continents by compressing the oceans.",
+	public static final ElasticProjection ELASTIC_III = new ElasticProjection(
+			"Elastic III", "A map optimised to show off the continents by compressing the oceans.",
 			false, Type.OTHER, Property.COMPROMISE, true,
-			"elastic-earth-III.txt");
+			"elastic-III.txt");
 
 
 
-	private static class ElastikProjection extends Projection {
+	private static class ElasticProjection extends Projection {
 
 		private final String filename; // the data filename
 		private Polygon[] section_borders; // the unprojected bounds of each section
@@ -87,7 +87,7 @@ public class Elastik {
 		private double raster_width, raster_height; // the spacial extent of the inverse raster
 
 
-		public ElastikProjection(
+		public ElasticProjection(
 				String title, String description, boolean interrupted, Type type, Property property,
 				boolean based_on_land, String filename) {
 			super(title, description, 0, 0,

@@ -1,4 +1,4 @@
-Elastic Earth III projection (2 sections):
+Elastic III projection (2 sections):
 section 0:
 boundary (5 vertices):
   90.0,  11.5

@@ -57,17 +57,17 @@ public class Danseiji {
 	
 	
 	public static final DanseijiProjection DANSEIJI_III = new DanseijiProjection(
-			"Danseiji III", "A map optimised to move distortion from the continents into the oceans. I recommend using the newer Elastic Earth III instead.",
+			"Danseiji III", "A map optimised to move distortion from the continents into the oceans. I recommend using the newer Elastic III instead.",
 			true, Type.OTHER, Property.COMPROMISE, true, "danseijiIII.csv");
 	
 	
 	public static final DanseijiProjection DANSEIJI_IV = new DanseijiProjection(
-			"Danseiji IV", "A map optimised to display landmasses accurately and without interruption. I recommend using the newer Elastic Earth I instead.",
+			"Danseiji IV", "A map optimised to display landmasses accurately and without interruption. I recommend using the newer Elastic I instead.",
 			true, Type.OTHER, Property.COMPROMISE, true, "danseijiIV.csv");
 	
 	
 	public static final DanseijiProjection DANSEIJI_V = new DanseijiProjection(
-			"Danseiji V", "A map optimised to show off the continents by compressing the oceans. I recommend using the newer Elastic Earth III instead.",
+			"Danseiji V", "A map optimised to show off the continents by compressing the oceans. I recommend using the newer Elastic III instead.",
 			true, Type.OTHER, Property.COMPROMISE, true, "danseijiV.csv");
 	
 	
