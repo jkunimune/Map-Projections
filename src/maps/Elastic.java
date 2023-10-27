@@ -31,13 +31,11 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import static java.lang.Double.NaN;
-import static java.lang.Double.POSITIVE_INFINITY;
 import static java.lang.Double.isFinite;
 import static java.lang.Double.isNaN;
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
 import static java.lang.Math.PI;
-import static java.lang.Math.abs;
 import static java.lang.Math.atan;
 import static java.lang.Math.atan2;
 import static java.lang.Math.cos;
@@ -115,7 +113,6 @@ public class Elastic {
 					return result;
 				}
 			}
-			// return NaNs if no section contains the point
 			return new double[] {NaN, NaN};
 		}
 
@@ -483,16 +480,20 @@ public class Elastic {
 		}
 
 		/**
-		 * determine whether the given point falls within this polygon or not. this is accomplished by drawing a
-		 * a north-south line out from the point, finding where it first crosses a polygon edge, and checking if the
-		 * edge is going clockwise or widdershins. it is contained iff the nearest edge is going widdershins.
+		 * determine whether the given point falls within this polygon or not. the method used is a typical even/odd
+		 * algorithm, with the caveat that the directionality of the polygon is significant.  if the vertices go
+		 * counterclockwise, the contianed points are everything inside the polygon as one would expect, but if the
+		 * vertices go clockwise, the contained points are actually everything <i>outside</i> the polygon.
 		 * @param ф the latitude of the point
 		 * @param λ the longitude of the point
 		 * @return true if the point is contained by the polygon and false otherwise
 		 */
 		public boolean contains(double ф, double λ) {
-			double nearest_Δф = POSITIVE_INFINITY;
-			double nearest_crossing_sign = 0;
+			// this is a slightly modified version of your typical ray casting scheme, but instead of just counting
+			// the crossings, we weigh them by their distance.  it's like the polygon is a current-carrying wire;
+			// points inside have a positive "magnetic field" and points outside have a negative "magnetic field".
+			double magnetic_field = 0;
+
 			// for each edge of the polygon
 			for (int i = 1; i < ф_vertices.length; i ++) {
 				// that is not due north-south
@@ -504,26 +505,28 @@ public class Elastic {
 					if (crosses) {
 						// calculate *where* it crosses
 						double ф_intersect;
-						if (ф_vertices[i - 1] == ф_vertices[i]) {
+						if (ф_vertices[i - 1] == ф_vertices[i])
 							ф_intersect = ф_vertices[i];  // be mindful of efficiency and avoiding roundoff errors
-						}
+						else if (λ_vertices[i - 1] == λ)
+							ф_intersect = ф_vertices[i - 1];
+						else if (λ_vertices[i] == λ)
+							ф_intersect = ф_vertices[i];
 						else {
 							double Δλ0 = λ - λ_vertices[i - 1];
 							double Δλ1 = λ_vertices[i] - λ;
 							ф_intersect = (ф_vertices[i - 1]*Δλ1 + ф_vertices[i]*Δλ0)/(Δλ0 + Δλ1);
 						}
-						double Δф = abs(ф_intersect - ф);
-						if (Δф == 0)  // if it's on the line, count this point as in
+						// if it's on the line, count this point as in
+						if (ф_intersect == ф)
 							return true;
-						else if (Δф < nearest_Δф) { // otherwise, check the direction
-							nearest_Δф = Δф;
-							nearest_crossing_sign = signum(
-									(ф_intersect - ф)*(λ_vertices[i - 1] - λ_vertices[i]));
-						}
+						// otherwise, check the direction
+						else
+							magnetic_field += signum(λ_vertices[i - 1] - λ_vertices[i])/
+							                  (ф_intersect - ф);
 					}
 				}
 			}
-			return nearest_crossing_sign > 0;
+			return magnetic_field > 0;
 		}
 	}
 
