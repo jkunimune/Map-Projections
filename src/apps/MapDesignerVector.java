@@ -50,6 +50,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import maps.Projection;
+import utils.BoundingBox;
 import utils.Math2;
 
 /**
@@ -203,7 +204,7 @@ public class MapDesignerVector extends MapApplication {
 					updateMessage("Rendering map\u2026"); //then render
 
 					int width, height;
-					if (proj.isLandscape()) { //fit it to an IMG_SIZE x IMG_SIZE box
+					if (proj.getAspectRatio() >= 1) { //fit it to an IMG_SIZE x IMG_SIZE box
 						width = IMG_SIZE;
 						height = (int)Math.max(IMG_SIZE/proj.getAspectRatio(), 1);
 					}
@@ -211,13 +212,12 @@ public class MapDesignerVector extends MapApplication {
 						width = (int)Math.max(IMG_SIZE/proj.getAspectRatio(), 1);
 						height = IMG_SIZE;
 					}
-					rendered = drawImage(map, proj.getWidth(), proj.getHeight(), width, height);
+					rendered = drawImage(map, proj.getBounds(), width, height);
 				}
 
 				return file -> {
 					SVGMap altered = input.replace("Equirectangular", proj.getName());
-					altered.save(map, file, -proj.getWidth()/2, proj.getHeight()/2,
-								 proj.getWidth(), proj.getHeight()); //save
+					altered.save(map, file, proj.getBounds()); //save
 				};
 			}
 
@@ -257,6 +257,12 @@ public class MapDesignerVector extends MapApplication {
 		updateProgress.accept(-1, 1);
 		updateMessage.accept("Generating map\u2026");
 
+		// set some bounds that are bigger than the map area but finite, so that we don't end up with absurdly SVG coordinates
+		double absoluteMinX = 2*proj.getBounds().xMin - proj.getBounds().xMax;
+		double absoluteMaxX = 2*proj.getBounds().xMax - proj.getBounds().xMin;
+		double absoluteMinY = 2*proj.getBounds().yMin - proj.getBounds().yMax;
+		double absoluteMaxY = 2*proj.getBounds().yMax - proj.getBounds().yMin;
+
 		List<Path> theMap = new LinkedList<>();
 		int i = 0;
 		for (Path pathS: input) {
@@ -272,10 +278,8 @@ public class MapDesignerVector extends MapApplication {
 					double[] coords = proj.project(cmdS.args[k+1], cmdS.args[k], aspect);
 					if (Double.isNaN(coords[0]) || Double.isNaN(coords[1]))
 						System.err.println(proj+" returns "+coords[0]+","+coords[1]+" at "+cmdS.args[k+1]+","+cmdS.args[k]+"!");
-					cmdP.args[k] =
-						  Math.max(Math.min(coords[0], proj.getWidth()), -proj.getWidth());
-					cmdP.args[k+1] =
-						  Math.max(Math.min(coords[1], proj.getHeight()), -proj.getHeight());
+					cmdP.args[k] = Math.max(Math.min(coords[0], absoluteMaxX), absoluteMinX);
+					cmdP.args[k+1] = Math.max(Math.min(coords[1], absoluteMaxY), absoluteMinY);
 				}
 				pathP.add(cmdP); //TODO: if I was smart, I would divide landmasses that hit an interruption so that I didn't get those annoying lines that cross the map, and then run adaptive resampling to make sure the cuts look clean and not polygonal (e.g. so Antarctica extends all the way to the bottom), but that sounds really hard.
 
@@ -296,10 +300,8 @@ public class MapDesignerVector extends MapApplication {
 	}
 
 
-	private static Canvas drawImage(Iterable<Path> paths, double inWidth, double inHeight,
+	private static Canvas drawImage(Iterable<Path> paths, BoundingBox domain,
 			int outWidth, int outHeight) { //parse the SVG path, with a few modifications
-		final double mX = inWidth/2;
-		final double mY = inHeight/2;
 		Canvas c = new Canvas(outWidth, outHeight);
 		GraphicsContext g = c.getGraphicsContext2D();
 		g.clearRect(0, 0, c.getWidth(), c.getHeight());
@@ -310,9 +312,9 @@ public class MapDesignerVector extends MapApplication {
 				final double[] args = new double[cmd.args.length];
 				for (int i = 0; i < args.length; i ++)
 					if (i%2 == 0)
-						args[i] = Math2.linInterp(cmd.args[i], -mX, mX, 0, c.getWidth());
+						args[i] = Math2.linInterp(cmd.args[i], domain.xMin, domain.xMax, 0, c.getWidth());
 					else
-						args[i] = Math2.linInterp(cmd.args[i], -mY, mY, c.getHeight(), 0);
+						args[i] = Math2.linInterp(cmd.args[i], domain.yMin, domain.yMax, c.getHeight(), 0);
 				
 				switch (cmd.type) {
 				case 'M':

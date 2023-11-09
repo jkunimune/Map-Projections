@@ -25,6 +25,7 @@ package maps;
 
 import maps.Projection.Property;
 import maps.Projection.Type;
+import utils.BoundingBox;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -88,7 +89,7 @@ public class Elastic {
 		public ElasticProjection(
 				String title, String description, boolean interrupted, Type type, Property property,
 				boolean based_on_land, String filename) {
-			super(title, description, 0, 0,
+			super(title, description, null,
 			      true, false, true, !interrupted,
 			      type, property, 4,
 			      new String[0], new double[0][], !based_on_land);
@@ -372,20 +373,19 @@ public class Elastic {
 				// load the projected border
 				line = in.readLine();  // read the projected border header
 				int num_vertices = parseInt(line.substring(20, line.length() - 11));  // get the length of the border
-				double left = 0, right = 0;
-				double lower = 0, upper = 0;
+				double x_min = 0, x_max = 0;
+				double y_min = 0, y_max = 0;
 				for (int i = 0; i < num_vertices; i ++) {
 					line = in.readLine();  // read the border vertex coordinates
 					String[] row = line.split(",\\s*");
 					double x = parseDouble(row[0]);
 					double y = parseDouble(row[1]);
-					left = min(left, x); // use this to update the bounding box
-					right = max(right, x);
-					lower = min(lower, y);
-					upper = max(upper, y);
+					x_min = min(x_min, x); // use this to update the bounding box
+					x_max = max(x_max, x);
+					y_min = min(y_min, y);
+					y_max = max(y_max, y);
 				}
-				width = right - left;
-				height = upper - lower;
+				bounds = new BoundingBox(x_min, x_max, y_min, y_max);
 
 				// load the inverse raster
 				line = in.readLine();  // read this section inverse points header

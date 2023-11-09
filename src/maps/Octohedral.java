@@ -25,6 +25,7 @@ package maps;
 
 import de.jtem.mfc.field.Complex;
 import maps.Projection.Property;
+import utils.BoundingBox;
 import utils.Math2;
 
 /**
@@ -213,10 +214,10 @@ public class Octohedral {
 		public OctohedralProjection(String name, String desc, double altitude, double cutSize,
 				int fisc, Property property, int rating, Configuration config) {
 			super(name, desc,
-					config.fullWidth*altitude-config.cutWidth*cutSize,
-					config.fullHeight*altitude-config.cutHeight*cutSize, fisc,
-					(cutSize == 0) ? Type.OCTOHEDRAL : Type.TETRADECAHEDRAL, property, rating,
-					new String[] {}, new double[][] {}, config.hasAspect);
+			      new BoundingBox(config.fullWidth*altitude - config.cutWidth*cutSize,
+			                      config.fullHeight*altitude - config.cutHeight*cutSize),
+			      fisc, (cutSize == 0) ? Type.OCTOHEDRAL : Type.TETRADECAHEDRAL, property, rating,
+                  new String[] {}, new double[][] {}, config.hasAspect);
 			this.size = altitude;
 			this.config = config;
 		}

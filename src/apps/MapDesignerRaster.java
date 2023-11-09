@@ -52,6 +52,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import maps.Projection;
+import utils.BoundingBox;
 import utils.Flag;
 import utils.MutableDouble;
 import utils.Procedure;
@@ -181,7 +182,7 @@ public class MapDesignerRaster extends MapApplication {
 	
 	private Task<SavableImage> calculateTaskForUpdate() {
 		loadParameters();
-		if (getProjection().isLandscape()) //fit it to an IMG_SIZE x IMG_SIZE box
+		if (getProjection().getAspectRatio() >= 1) //fit it to an IMG_SIZE x IMG_SIZE box
 			return calculateTask(
 					IMG_SIZE, (int)Math.max(1,IMG_SIZE/getProjection().getAspectRatio()), 1);
 		else
@@ -271,6 +272,7 @@ public class MapDesignerRaster extends MapApplication {
 		updateProgress.accept(-1, 1);
 		updateMessage.accept("Generating map\u2026");
 
+		BoundingBox domain = proj.getBounds();
 		BufferedImage theMap = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB); //why is this a BufferedImage when the rest of this program uses JavaFX? Because the only JavaFX alternatives are WritableImage, which doesn't do anything but single-pixel-editing, and Canvas, which doesn't properly support transparency.
 		for (int y = 0; y < theMap.getHeight(); y ++) { //iterate through the map, filling in pixels
 			if (isCancelled.get()) 	return null;
@@ -279,8 +281,8 @@ public class MapDesignerRaster extends MapApplication {
 				int[] colors = new int[step*step];
 				for (int dy = 0; dy < step; dy ++) {
 					for (int dx = 0; dx < step; dx ++) {
-						double X = ((x+(dx+.5)/step)/width - 1/2.) *proj.getWidth();
-						double Y = (1/2. - (y+(dy+.5)/step)/height) *proj.getHeight();
+						double X = domain.xMin + (domain.xMax - domain.xMin)*(x+(dx+.5)/step)/width;
+						double Y = domain.yMax - (domain.yMax - domain.yMin)*(y+(dy+.5)/step)/height;
 						double[] coords = proj.inverse(X, Y, aspect, crop);
 						if (coords != null) { //if it is null, the default (0:transparent) is used
 							if (Double.isNaN(coords[0]) || Double.isNaN(coords[1]))

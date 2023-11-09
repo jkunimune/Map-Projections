@@ -25,6 +25,7 @@ package maps;
 
 import maps.Projection.Property;
 import maps.Projection.Type;
+import utils.BoundingBox;
 import utils.NumericalAnalysis;
 
 /**
@@ -37,10 +38,12 @@ public class EqualEarth {
 
 	private static final double[] A = {1.340264, -.081106, .000893, .003796};
 	private static final double B = Math.sqrt(3)/2;
+	private static final double Y_SCALE = poly9(Math.PI/3)/(Math.PI/3);
 	
 	
 	public static final Projection EQUAL_EARTH = new Projection(
-			"Equal Earth", 2/B/poly8(0)*Math.PI, 2*poly9(Math.PI/3),
+			"Equal Earth",
+			new BoundingBox(2/B/poly8(0)*Math.PI, 2*poly9(Math.PI/3)),
 			0b1111, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3, null,
 			"specifically designed to woo Gall-Peters supporters away from that horrid projection") {
 		
@@ -51,7 +54,7 @@ public class EqualEarth {
 		
 		public double[] inverse(double x, double y) {
 			double th = NumericalAnalysis.newtonRaphsonApproximation(
-					y, y/(height/2)*Math.PI/3, EqualEarth::poly9, EqualEarth::poly8, 1e-6);
+					y, y/Y_SCALE, EqualEarth::poly9, EqualEarth::poly8, 1e-6);
 			return new double[] { Math.asin(Math.sin(th)/B), x*B/Math.cos(th)*poly8(th) };
 		}
 	};

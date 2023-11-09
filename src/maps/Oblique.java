@@ -60,8 +60,7 @@ public class Oblique extends Projection {
 	@Override
 	public void initialize(double... params) {
 		base.initialize(params);
-		this.width = base.width;
-		this.height = base.height;
+		this.bounds = base.bounds;
 	}
 	
 }

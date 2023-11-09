@@ -26,6 +26,7 @@ package maps;
 import de.jtem.mfc.field.Complex;
 import maps.Projection.Property;
 import maps.Projection.Type;
+import utils.BoundingBox;
 
 /**
  * A map optimised specifically for the 50 united states of America.
@@ -52,7 +53,7 @@ public class Snyder {
 	
 	public static final Projection GS50 =
 			new Projection(
-					"GS50", "'MURKA!", 1.6, 1.1, 0b0011, Type.POLYNOMIAL, Property.CONFORMAL, 4,
+					"GS50", "'MURKA!", new BoundingBox(1.6, 1.1), 0b0011, Type.POLYNOMIAL, Property.CONFORMAL, 4,
 					new String[] {}, new double[][] {}, false) {
 		
 		public double[] project(double lat, double lon) {

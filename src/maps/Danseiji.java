@@ -30,6 +30,7 @@ import java.util.Arrays;
 
 import maps.Projection.Property;
 import maps.Projection.Type;
+import utils.BoundingBox;
 
 /**
  * A class for completely arbitrary projections, where every square degree can be specified anywhere on the plane.
@@ -88,7 +89,7 @@ public class Danseiji {
 		public DanseijiProjection(
 				String title, String description, boolean interrupted, Type type, Property property,
 				boolean basedOnLand, String filename) {
-			super(title, description, 0, 0, interrupted ? 0b1010 : 0b1011, type, property, 3,
+			super(title, description, null, interrupted ? 0b1010 : 0b1011, type, property, 3,
 					new String[0], new double[0][], !basedOnLand);
 			this.filename = filename;
 		}
@@ -107,8 +108,7 @@ public class Danseiji {
 				cellShapes = new int[cells.length][cells[0].length];
 				edge = new double[Integer.parseInt(row[3])][];
 				pixels = new double[Integer.parseInt(row[4])][Integer.parseInt(row[5])][2];
-				width = Double.parseDouble(row[6]);
-				height = Double.parseDouble(row[7]);
+				bounds = new BoundingBox(Double.parseDouble(row[6]), Double.parseDouble(row[7]));
 				
 				for (int i = 0; i < vertices.length; i ++) { // do the vertex coordinates
 					row = in.readLine().split(",");
@@ -143,8 +143,7 @@ public class Danseiji {
 				cellShapes = new int[][] {{0}};
 				edge = new double[][] {{0,0}};
 				pixels = new double[][][] {{{0,0}}};
-				width = 0;
-				height = 0;
+				bounds = new BoundingBox(0, 0);
 				e.printStackTrace();
 				throw new IllegalArgumentException("Missing or corrupt data file for "+this.getName());
 			} finally {
@@ -218,10 +217,10 @@ public class Danseiji {
 						inside = !inside; // toggle the boolean
 			}
 			
-			double i = (height/2 - y)/height*(pixels.length-1);
+			double i = (bounds.yMax - y)/(bounds.yMax - bounds.yMin)*(pixels.length-1);
 			int i0 = Math.min((int)i, pixels.length-2);
 			double cy = i - i0;
-			double j = (x + width/2)/width*(pixels[i0].length-1);
+			double j = (x - bounds.xMin)/(bounds.xMax - bounds.xMin)*(pixels[i0].length-1);
 			int j0 = Math.min((int)j, pixels[i0].length-2);
 			double cx = j - j0;
 			

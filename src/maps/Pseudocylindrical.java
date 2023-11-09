@@ -25,6 +25,7 @@ package maps;
 
 import maps.Projection.Property;
 import maps.Projection.Type;
+import utils.BoundingBox;
 import utils.NumericalAnalysis;
 
 /**
@@ -36,7 +37,7 @@ public class Pseudocylindrical {
 	
 	public static final Projection SINUSOIDAL = new Projection(
 			"Sinusoidal", "An equal-area map shaped like a sine-wave.",
-			2*Math.PI, Math.PI, 0b1111, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 1) {
+			new BoundingBox(2*Math.PI, Math.PI), 0b1111, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 1) {
 		
 		public double[] project(double lat, double lon) {
 			return new double[] { Math.cos(lat)*lon, lat };
@@ -50,7 +51,7 @@ public class Pseudocylindrical {
 	
 	public static final Projection MOLLWEIDE = new Projection(
 			"Mollweide", "An equal-area projection shaped like an ellipse.",
-			4, 2, 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
+			new BoundingBox(4, 2), 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
 		
 		public double[] project(double lat, double lon) {
 			double tht = NumericalAnalysis.newtonRaphsonApproximation(
@@ -73,7 +74,7 @@ public class Pseudocylindrical {
 	
 	public static final Projection HOMOLOSINE = new Projection(
 			"Homolosine (uninterrupted)", "A combination of the sinusoidal and Mollweide projections.",
-			2*Math.PI, 2.72282, 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
+			new BoundingBox(2*Math.PI, 2.72282), 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
 		
 		private final double phiH = 0.71098;
 		private final double scale = Math.sqrt(2);
@@ -105,7 +106,7 @@ public class Pseudocylindrical {
 	
 	public static final Projection HOMOLOSINE_INTERRUPTED = new Projection(
 			"Good Homolosine", "An interrupted combination of the sinusoidal and Mollweide projections.",
-			2*Math.PI, 2.72282, 0b1100, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
+			new BoundingBox(2*Math.PI, 2.72282), 0b1100, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
 		
 		private final double[][] edges = {
 				{Math.toRadians(-40), Math.toRadians(180)},
@@ -144,7 +145,7 @@ public class Pseudocylindrical {
 	
 	public static final Projection ECKERT_IV = new Projection(
 			"Eckert IV", "An equal-area projection released in a set of six (I'm only giving you the one because the others are not good).",
-			4, 2, 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
+			new BoundingBox(4, 2), 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
 		
 		public double[] project(double lat, double lon) {
 			double tht = NumericalAnalysis.newtonRaphsonApproximation(
@@ -166,7 +167,7 @@ public class Pseudocylindrical {
 	
 	public static final Projection WAGNER_II = new Projection(
 			"Wagner II", "A compromise projection with sinusoidal meridians.",
-			2*2.9054, 2*1.4527, 0b1111, Type.OTHER, Property.COMPROMISE, 2) {
+			new BoundingBox(2*2.9054, 2*1.4527), 0b1111, Type.OTHER, Property.COMPROMISE, 2) {
 		
 		private final double c0 = 0.92483, c1 = 1.38725,
 				c2 = 0.88022, c3 = 0.8855;
@@ -185,7 +186,7 @@ public class Pseudocylindrical {
 	
 	public static final Projection WAGNER_V = new Projection(
 			"Wagner V", "A compromise projection with elliptical meridians.",
-			2*2.8581, 2*1.4291, 0b1111, Type.OTHER, Property.COMPROMISE, 3) {
+			new BoundingBox(2*2.8581, 2*1.4291), 0b1111, Type.OTHER, Property.COMPROMISE, 3) {
 		
 		private final double c0 = 0.909771, c1 = 1.650142,
 				c2 = 3.008957, c3 = 0.8855;
@@ -205,7 +206,7 @@ public class Pseudocylindrical {
 	
 	
 	public static final Projection KAVRAYSKIY_VII = new Projection(
-			"Kavrayskiy VII", Math.PI*Math.sqrt(3), Math.PI, 0b1111, Type.PSEUDOCYLINDRICAL,
+			"Kavrayskiy VII", new BoundingBox(Math.PI*Math.sqrt(3), Math.PI), 0b1111, Type.PSEUDOCYLINDRICAL,
 			Property.COMPROMISE, 2, null, "mostly popular in the former Soviet Union") {
 		
 		public double[] project(double lat, double lon) {
@@ -220,7 +221,7 @@ public class Pseudocylindrical {
 	
 	
 	public static final Projection LEMONS = new Projection(
-			"Lemons", "BURN LIFE'S HOUSE DOWN!!!", 2*Math.PI, Math.PI, 0b1110,
+			"Lemons", "BURN LIFE'S HOUSE DOWN!!!", new BoundingBox(2*Math.PI, Math.PI), 0b1110,
 			Type.CYLINDRICAL, Property.COMPROMISE, 2) {
 		
 		private static final int NUM_LEMONS = 12; //number of lemons

@@ -25,6 +25,7 @@ package maps;
 
 import maps.Projection.Property;
 import maps.Projection.Type;
+import utils.BoundingBox;
 import utils.Dixon;
 import utils.Math2;
 import utils.NumericalAnalysis;
@@ -312,7 +313,7 @@ public class Polyhedral {
 		public PolyhedralProjection(
 				String name, int fisc, Configuration config, Property property, int rating,
 				String adjective, String addendum) {
-			super(name, config.width, config.height, fisc, config.type, property, rating,
+			super(name, config.bounds, fisc, config.type, property, rating,
 					adjective, addendum);
 			this.configuration = config;
 		}
@@ -320,7 +321,7 @@ public class Polyhedral {
 		public PolyhedralProjection(
 				String name, String description, int fisc, Configuration config, Property property,
 				int rating) {
-			super(name, description, config.width, config.height, fisc, config.type, property,
+			super(name, description, config.bounds, fisc, config.type, property,
 					rating);
 			this.configuration = config;
 		}
@@ -328,7 +329,7 @@ public class Polyhedral {
 		public PolyhedralProjection(
 				String name, String description, int fisc, Configuration config, Property property,
 				int rating, String[] paramNames, double[][] paramValues) {
-			super(name, description, config.width, config.height, fisc, config.type, property,
+			super(name, description, config.bounds, fisc, config.type, property,
 					rating, paramNames, paramValues);
 			this.configuration = config;
 		}
@@ -371,7 +372,7 @@ public class Polyhedral {
 			final double y0 = centrum[5];
 			
 			double[] output = { r*Math.cos(th) + x0, r*Math.sin(th) + y0 };
-			if (Math.abs(output[0]) > width/2 || Math.abs(output[1]) > height/2) { //rotate OOB bits around nearest singularity
+			if (output[0] < bounds.xMin || output[0] > bounds.xMax || output[1] < bounds.yMin || output[1] > bounds.yMax) { //rotate OOB bits around nearest singularity
 				output = configuration.rotateOOB(output[0], output[1], x0, y0);
 			}
 			return output;
@@ -430,7 +431,7 @@ public class Polyhedral {
 	private static enum Configuration {
 		
 		/*		  LATITUDE,		 LONGITUDE,		 CTR_MERID,		 PLANE_ROT,		 X,	 Y */
-		TETRAHEDRON_WIDE_FACE(3, 3, 6., 2*Math.sqrt(3), new double[][] { // [<|>] arrangement, face-centred
+		TETRAHEDRON_WIDE_FACE(3, 3, new BoundingBox(6., 2*Math.sqrt(3)), new double[][] { // [<|>] arrangement, face-centred
 				{ ASIN_ONE_THD,	 Math.PI,	-2*Math.PI/3,	-2*Math.PI/3,	 2,	 Math.sqrt(3),-1,2 },
 				{ ASIN_ONE_THD,	 Math.PI,	 2*Math.PI/3,	-Math.PI/3,		-2,	 Math.sqrt(3) },
 				{-Math.PI/2,	 0,			 2*Math.PI/3,	 2*Math.PI/3,	 2,	-Math.sqrt(3),-2,1 },
@@ -438,7 +439,7 @@ public class Polyhedral {
 				{ ASIN_ONE_THD,	 Math.PI/3,	-2*Math.PI/3,	 Math.PI,		 1,	 0 },
 				{ ASIN_ONE_THD,	-Math.PI/3,	 2*Math.PI/3,	 0,				-1,	 0 }}),
 		
-		TRIANGLE_FACE(3, 3, 4*Math.sqrt(3), 6., new double[][] { // \delta arrangement, like they are often published
+		TRIANGLE_FACE(3, 3, new BoundingBox(4*Math.sqrt(3), 6.), new double[][] { // \delta arrangement, like they are often published
 				{ ASIN_ONE_THD,	 Math.PI/3,	 0,				-5*Math.PI/6,	 Math.sqrt(3),	2 },
 				{ ASIN_ONE_THD,	-Math.PI/3,	 0,				-Math.PI/6,		-Math.sqrt(3),	2 },
 				{ ASIN_ONE_THD,	 Math.PI,	 0,				 Math.PI/2,		 0,			-1 },
@@ -447,19 +448,19 @@ public class Polyhedral {
 				return y > Math.sqrt(3)*Math.abs(x) - 3;
 			}
 		},
-		TETRAHEDRON_WIDE_VERTEX(3, 6, 6., 2*Math.sqrt(3), new double[][] { // [<|>] arrangement, vertex-centred
+		TETRAHEDRON_WIDE_VERTEX(3, 6, new BoundingBox(6., 2*Math.sqrt(3)), new double[][] { // [<|>] arrangement, vertex-centred
 				{ Math.PI/2,	 0,				 0,				-Math.PI/2,		 0,	 Math.sqrt(3) },
 				{-ASIN_ONE_THD,	 0,				 Math.PI,		 Math.PI/2,		 0,	-Math.sqrt(3) },
 				{-ASIN_ONE_THD,	 2*Math.PI/3,	 Math.PI,		 5*Math.PI/6,	 3,	 0 },
 				{-ASIN_ONE_THD,	-2*Math.PI/3,	 Math.PI,		 Math.PI/6,		-3,	 0 }}) {
 			@Override public double[] rotateOOB(double x, double y, double xCen, double yCen) {
-				if (Math.abs(x) > width/2)
+				if (x < bounds.xMin || x > bounds.xMax)
 					return new double[] {2*xCen - x, -y};
 				else
-					return new double[] {-x, height*Math.signum(y) - y};
+					return new double[] {-x, 2*bounds.yMax*Math.signum(y) - y};
 			}
 		},
-		AUTHAGRAPH(3, 6, 4*Math.sqrt(3), 3, new double[][] { // |\/\/`| arrangement, vertex-centred
+		AUTHAGRAPH(3, 6, new BoundingBox(4*Math.sqrt(3), 3), new double[][] { // |\/\/`| arrangement, vertex-centred
 				{-ASIN_ONE_THD,	 Math.PI,		 Math.PI,	 0,	-2*Math.sqrt(3)-.6096,	 1.5 },
 				{-ASIN_ONE_THD,	-Math.PI/3,		 Math.PI/3,	 0,	-Math.sqrt(3)-.6096,	-1.5 },
 				{ Math.PI/2,	 0,				 Math.PI,	 0,	 0-.6096,				 1.5 },
@@ -467,16 +468,16 @@ public class Polyhedral {
 				{-ASIN_ONE_THD,	 Math.PI,		 Math.PI,	 0,	 2*Math.sqrt(3)-.6096,	 1.5 },
 				{-ASIN_ONE_THD,	-Math.PI/3,		 Math.PI/3,	 0,	 3*Math.sqrt(3)-.6096,	-1.5 }}) {
 			@Override public double[] rotateOOB(double x, double y, double xCen, double yCen) {
-				if (Math.abs(y) > height/2) {
+				if (y < bounds.yMin || y > bounds.yMax) {
 					x = 2*xCen - x;
 					y = 2*yCen - y;
 				}
-				if (Math.abs(x) > width/2)
-					x = Math2.floorMod(x+width/2,width)-width/2;
+				if (x < bounds.xMin || x > bounds.xMax)
+					x = Math2.floorMod(x + bounds.xMax,2*bounds.xMax) - bounds.xMax;
 				return new double[] {x, y};
 			}
 		},
-		DYMAXION(5, 6, 5.5, 1.5*Math.sqrt(3), new double[][] { // I can't draw this in ASCII. You know what "Dymaxion" means
+		DYMAXION(5, 6, new BoundingBox(5.5, 1.5*Math.sqrt(3)), new double[][] { // I can't draw this in ASCII. You know what "Dymaxion" means
 				{ Math.PI/2,    0.0,		-3*Math.PI/5,-Math.PI/2,  -1.5, Math.sqrt(3),  -3,3 }, //West Africa
 				{ Math.PI/2,    0.0,		 Math.PI/5,	 -Math.PI/2,   0.5, Math.sqrt(3),  -1,1 }, //Brazil
 				{ Math.PI/2,    0.0,		 3*Math.PI/5,-Math.PI/2,   1.5, Math.sqrt(3),  -1,1 }, //South Atlantic O.
@@ -501,13 +502,12 @@ public class Polyhedral {
 				{-Math.PI/2,    0.0,		-Math.PI/5,	  Math.PI/2,  -2.0,-Math.sqrt(3)/2, 0,3 }}); //Melanesia
 		/*		  LATITUDE,	    LONGITUDE,	 CTR_MERID,	  PLANE_ROT,   X,   Y               RANGE */
 		public final int sphereSym, planarSym; //the numbers of symmetries in the two coordinate systems
-		public final double width, height; //the width and height of a map with this configuration
+		public final BoundingBox bounds; //the width and height of a map with this configuration
 		public final double[][] centrumSet; //the mathematical information about this configuration
 		public final Type type; //holds the number of faces
 		
-		private Configuration(int sphereSym, int planarSym, double width, double height, double[][] centrumSet) {
-			this.width = width;
-			this.height = height;
+		private Configuration(int sphereSym, int planarSym, BoundingBox bounds, double[][] centrumSet) {
+			this.bounds = bounds;
 			this.sphereSym = sphereSym;
 			this.planarSym = planarSym;
 			this.centrumSet = centrumSet;

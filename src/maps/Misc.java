@@ -29,6 +29,7 @@ import de.jtem.ellipticFunctions.Jacobi;
 import image.SVGMap.Path;
 import maps.Projection.Property;
 import maps.Projection.Type;
+import utils.BoundingBox;
 import utils.Elliptic;
 import utils.Math2;
 import utils.NumericalAnalysis;
@@ -43,7 +44,7 @@ public class Misc {
 	public static final Projection PEIRCE_QUINCUNCIAL =
 			new Projection(
 					"Peirce Quincuncial", "A conformal projection that uses complex elliptic functions.",
-					2, 2, 0b1001, Type.OTHER, Property.CONFORMAL, 3) {
+					new BoundingBox(2, 2), 0b1001, Type.OTHER, Property.CONFORMAL, 3) {
 		
 		private static final double K_RT_HALF = 1.854074677; //this is approx K(sqrt(1/2))
 		
@@ -77,7 +78,8 @@ public class Misc {
 	
 	public static final Projection GUYOU =
 			new Projection(
-					"Guyou", "Peirce Quincuncial, rearranged a bit.", 2., 1., 0b1001,
+					"Guyou", "Peirce Quincuncial, rearranged a bit.",
+					new BoundingBox(2, 1), 0b1001,
 					Type.OTHER, Property.CONFORMAL, 3) {
 		
 		private static final double K_RT_HALF = 1.854074677; //this is approx K(sqrt(1/2))
@@ -114,7 +116,7 @@ public class Misc {
 	public static final Projection HAMMER_RETROAZIMUTHAL =
 			new Projection(
 					"Hammer Retroazimuthal", "The full version of a map where bearing and distance to a reference point is preserved.",
-					2*Math.PI, 2*Math.PI, 0b1110, Type.PSEUDOCONIC, Property.RETROAZIMUTHAL, 2,
+					new BoundingBox(2*Math.PI, 2*Math.PI), 0b1110, Type.PSEUDOCONIC, Property.RETROAZIMUTHAL, 2,
 					new String[] {"Latitude","Longitude"},
 					new double[][] {{-89,89,21.4}, {-180,180,39.8}}, false) {
 		
@@ -168,12 +170,12 @@ public class Misc {
 	public static final Projection TWO_POINT_EQUIDISTANT =
 			new Projection(
 					"Two-point Equidistant", "A map that preserves distances, but not azimuths, to two arbitrary points.",
-					0, 0, 0b1111, Type.OTHER, Property.EQUIDISTANT, 3,
+					null, 0b1111, Type.OTHER, Property.EQUIDISTANT, 3,
 					new String[] {"Latitude 1","Longitude 1","Latitude 2","Longitude 2"},
 					new double[][] {{-90,90,41.9},{-180,180,12.5},{-90,90,34.7},{-180,180,112.4}},
 					false) {
 		
-		private double lat1, lon1, lat2, lon2, D, a, b, c;
+		private double lat1, lon1, lat2, lon2, D, a, c;
 		
 		public void initialize(double... params) {
 			this.lat1 = Math.toRadians(params[0]); //coordinates of first reference
@@ -183,9 +185,8 @@ public class Misc {
 			this.D = dist(lat1,lon1, lat2,lon2); //distance between references
 			this.a = Math.PI - D/2; //semimajor axis
 			this.c = D/2; //focal distance
-			this.b = Math.sqrt(Math.pow(a, 2) - Math.pow(c, 2)); //semiminor axis
-			this.width = 2*a;
-			this.height = 2*b;
+			double b = Math.sqrt(Math.pow(a, 2) - Math.pow(c, 2)); //semiminor axis
+			this.bounds = new BoundingBox(2*a, 2*b);
 		}
 		
 		public double[] project(double lat0, double lon0) {
@@ -236,21 +237,21 @@ public class Misc {
 	public static final Projection BRAUN_CONIC =
 			new Projection(
 					"Braun conic", "A particular perspective conic that is tangent at 30\u00B0.",
-					4*Math.sqrt(3), 2*Math.sqrt(3), 0b1111,
+					new BoundingBox(-2*Math.sqrt(3), 2*Math.sqrt(3), -2*Math.sqrt(3), 0), 0b1111,
 					Type.CONIC, Property.PERSPECTIVE, 3) {
 		
 		public double[] project(double lat, double lon) {
 			double r = 1.5*(Math.sqrt(3) - Math.tan((lat + Math.PI/6)/2));
 			double th = lon/2;
 			double x = r*Math.sin(th);
-			double y = height/2 - r*Math.cos(th);
+			double y = -r*Math.cos(th);
 			return new double[] {x, y};
 		}
 		
 		public double[] inverse(double x, double y) {
-			double r = Math.hypot(x, y - height/2);
-			double th = Math.atan2(x, height/2 - y);
-			if (r > height)
+			double r = Math.hypot(x, y);
+			double th = Math.atan2(x, -y);
+			if (r > bounds.xMax)
 				return null;
 			double lat = 2*Math.atan(Math.sqrt(3) - 2/3.*r) - Math.PI/6;
 			double lon = th*2;
@@ -262,11 +263,10 @@ public class Misc {
 	public static final Projection BONNE =
 			new Projection(
 					"Bonne", "A traditional pseudoconic projection, also known as the Sylvanus projection.",
-					10, 10, 0b1111, Type.PSEUDOCONIC, Property.EQUAL_AREA, 1,
+					null, 0b1111, Type.PSEUDOCONIC, Property.EQUAL_AREA, 1,
 					new String[] {"Std. Parallel"}, new double[][] {{-90, 90, 45}}) {
 		
 		private double r0;
-		private double yC; // the y coordinate of the centers of the parallels
 		private boolean reversed; // if the standard parallel is southern
 		
 		public void initialize(double... params) {
@@ -276,15 +276,13 @@ public class Misc {
 				lat0 = -lat0;
 			this.r0 = 1/Math.tan(lat0) + lat0;
 			if (Double.isInfinite(r0)) {
-				this.width = Pseudocylindrical.SINUSOIDAL.getWidth();
-				this.height = Pseudocylindrical.SINUSOIDAL.getHeight();
+				this.bounds = Pseudocylindrical.SINUSOIDAL.bounds;
 			}
 			else { // for such a simple map projection...
 				double argmaxX = NumericalAnalysis.bisectionFind(
 						(p) -> (Math.PI*(1/(r0-p)*Math.cos(p) - Math.sin(p))*Math.cos(Math.PI/(r0-p)*Math.cos(p)) - Math.sin(Math.PI/(r0-p)*Math.cos(p))),
 						-Math.PI/2, 0, 1e-3); // it sure is complicated to find its dimensions!
 				double maxX = (r0 - argmaxX)*Math.sin(Math.PI/(r0 - argmaxX)*Math.cos(argmaxX));
-				this.width = 2*maxX;
 				double argmaxY;
 				try {
 					argmaxY = NumericalAnalysis.bisectionFind(
@@ -295,8 +293,9 @@ public class Misc {
 				}
 				double maxY = Math.max(-r0 + Math.PI/2,
 						-(r0 - argmaxY)*Math.cos(Math.PI/(r0 - argmaxY)*Math.cos(argmaxY)));
-				this.height = r0 + Math.PI/2 + maxY;
-				this.yC = (r0 + Math.PI/2 - maxY)/2;
+				this.bounds = new BoundingBox(-maxX, maxX, -r0 - Math.PI/2, maxY);
+				if (reversed)
+					this.bounds = new BoundingBox(-bounds.xMax, -bounds.xMin, -bounds.yMax, -bounds.yMin);
 			}
 		}
 		
@@ -311,7 +310,7 @@ public class Misc {
 			double r = r0 - lat;
 			double th = lon*Math.cos(lat)/r;
 			double x = r*Math.sin(th);
-			double y = yC - r*Math.cos(th);
+			double y = -r*Math.cos(th);
 			
 			if (reversed)
 				return new double[] {-x,-y};
@@ -327,10 +326,10 @@ public class Misc {
 				y = -y;
 			}
 			
-			double r = Math.hypot(x,  y-yC);
+			double r = Math.hypot(x, y);
 			if (r < r0 - Math.PI/2 || r > r0 + Math.PI/2)
 				return null;
-			double th = Math.atan2(x, -(y-yC));
+			double th = Math.atan2(x, -y);
 			double lat = r0 - r;
 			double lon = th*r/Math.cos(lat);
 			
@@ -345,7 +344,7 @@ public class Misc {
 	public static final Projection T_SHIRT =
 			new Projection(
 					"T-Shirt", "A conformal projection onto a torso.",
-					10, 6, 0b1001, Type.OTHER, Property.CONFORMAL, 3) {
+					new BoundingBox(10, 6), 0b1001, Type.OTHER, Property.CONFORMAL, 3) {
 
 		private final double[] X = {0, .507, .753, 1};
 		private final double[] A = {.128, .084, .852, -.500};
@@ -381,7 +380,7 @@ public class Misc {
 	
 	public static final Projection FLAT_EARTH =
 			new Projection(
-					"Flat Earth", "The one true map.", 2, 2, 0b1111,
+					"Flat Earth", "The one true map.", new BoundingBox(2, 2), 0b1111,
 					Type.PLANAR, Property.TRUE, 5, new String[0], new double[0][], false) {
 		
 		private final double[] CORE_LONGITUDES = {

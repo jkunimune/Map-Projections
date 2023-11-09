@@ -27,6 +27,7 @@ import java.util.Arrays;
 
 import maps.Projection.Property;
 import maps.Projection.Type;
+import utils.BoundingBox;
 import utils.Math2;
 import utils.NumericalAnalysis;
 
@@ -40,7 +41,7 @@ public class Tobler {
 	public static final Projection TOBLER =
 			new Projection(
 					"Tobler hyperelliptical", "An equal-area projection shaped like a hyperellipse.",
-					2*Math.PI, Math.PI, 0b1001, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 4,
+					new BoundingBox(2*Math.PI, Math.PI), 0b1001, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 4,
 					new String[]{"alpha","K"},
 					new double[][] {{0,1,0.0}, {1,5,2.5}}) {
 		
@@ -70,13 +71,13 @@ public class Tobler {
 						(Z.length-1.);
 			return new double[] {
 					lon * Math.abs(alpha + (1-alpha)*hyperEllipse(y)),
-					y * Math.signum(lat)*height/2 };
+					y * Math.signum(lat)*Math.PI/2 };
 		}
 		
 		public double[] inverse(double x, double y) {
 			return new double[] {
-					Math.asin(Z[(int)Math.round(Math.abs(2*y/height)*(Z.length-1))])*Math.signum(y),
-					x / Math.abs(alpha + (1-alpha)*hyperEllipse(2*y/height)) };
+					Math.asin(Z[(int)Math.round(Math.abs(2*y/Math.PI)*(Z.length-1))])*Math.signum(y),
+					x / Math.abs(alpha + (1-alpha)*hyperEllipse(2*y/Math.PI)) };
 		}
 		
 		public double dZdY(double y) {

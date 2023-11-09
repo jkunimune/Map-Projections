@@ -23,7 +23,7 @@
  */
 package maps;
 
-import maps.Projection.Type;
+import utils.BoundingBox;
 import utils.NumericalAnalysis;
 
 /**
@@ -36,19 +36,19 @@ public class Gyorffy {
 	private static final double PI2M2 = Math.pow(Math.PI/2, -2);
 	
 	public static final Projection C = new PolynomialProjection(
-			"C", "The optimal pseudocylindrical projection.", Type.PSEUDOCYLINDRICAL, 2,
+			"C", "The optimal pseudocylindrical projection.", 2,
 			new double[] {0.76158, 1.67084, 5.17538, 0.00272, 1, 0, 0});
 
 	public static final Projection D = new PolynomialProjection(
-			"D", "An optimal pointed-polar projection, with an emphasis on polar regions.", Type.OTHER, 3,
+			"D", "An optimal pointed-polar projection, with an emphasis on polar regions.", 3,
 			new double[] {0.71416, 3.79209, 2, 0.00902, 0.87550, 0.01004, 0.00273});
 
 	public static final Projection E = new PolynomialProjection(
-			"E", "The optimal pointed-polar projection.", Type.OTHER, 3,
+			"E", "The optimal pointed-polar projection.", 3,
 			new double[] {0.74532, 2, 4.04753, 0.00730, 0.93884, 0.00271, 0.00450});
 	
 	public static final Projection F = new PolynomialProjection(
-			"F", "The optimal pointed-polar projection, with a rounded outline.", Type.OTHER, 4,
+			"F", "The optimal pointed-polar projection, with a rounded outline.", 4,
 			new double[] {0.77172, 2, 3.26655, 0.00649, 0.88525, 0.00950, 0.00305});
 	
 	
@@ -57,9 +57,10 @@ public class Gyorffy {
 		private final double[] coefs;
 		
 		protected PolynomialProjection(
-				String letter, String description, Type type,
+				String letter, String description,
 				int rating, double[] coefs) {
-			super("Gy\u00F6rffy "+letter, description, 2*coefs[0]*(Math.PI + coefs[3]*Math.pow(Math.PI, 3)), Math.PI,
+			super("Gy\u00F6rffy "+letter, description,
+			      new BoundingBox(2*coefs[0]*(Math.PI + coefs[3]*Math.pow(Math.PI, 3)), Math.PI),
 					0b1011, (coefs[4]==1 && coefs[5]==0 && coefs[6]==0) ? Type.PSEUDOCYLINDRICAL : Type.OTHER,
 					Property.COMPROMISE, rating);
 			this.coefs = coefs;

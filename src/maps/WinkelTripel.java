@@ -25,6 +25,7 @@ package maps;
 
 import maps.Projection.Property;
 import maps.Projection.Type;
+import utils.BoundingBox;
 import utils.NumericalAnalysis;
 
 /**
@@ -47,14 +48,14 @@ public final class WinkelTripel {
 	
 	public static final Projection WINKEL_TRIPEL =
 			new Projection("Winkel Tripel", "National Geographic's compromise projection of choice.",
-					0, 2*Math.PI, 0b1011, Type.OTHER, Property.COMPROMISE, 3,
+					null, 0b1011, Type.OTHER, Property.COMPROMISE, 3,
 					new String[] {"Std. Parallel"}, new double[][] {{0, 90, Math.toDegrees(Math.acos(2/Math.PI))}}) {
 		
 		private double stdParallel;
 		
 		public void initialize(double... params) {
 			this.stdParallel = Math.toRadians(params[0]);
-			this.width = 2*Math.PI*(1 + Math.cos(stdParallel));
+			this.bounds = new BoundingBox(2*Math.PI*(1 + Math.cos(stdParallel)), 2*Math.PI);
 		}
 		
 		public double[] project(double lat, double lon) {

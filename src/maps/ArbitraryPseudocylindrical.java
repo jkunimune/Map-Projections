@@ -25,6 +25,7 @@ package maps;
 
 import java.util.Arrays;
 
+import utils.BoundingBox;
 import utils.NumericalAnalysis;
 
 /**
@@ -62,26 +63,24 @@ public class ArbitraryPseudocylindrical {
 	
 	private static class ArbitraryProjection extends Projection {
 		
-		private final double yMax;
 		private final double[][] table;
 		
 		public ArbitraryProjection(String title, String inventor, double aspectRatio, double[][] table) {
-			super(title, 2, 2*aspectRatio, 0b1111, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE, 3,
-					null, "designed by "+inventor);
-			this.yMax = aspectRatio;
+			super(title, new BoundingBox(2, 2*aspectRatio), 0b1111, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE, 3,
+			      null, "designed by "+inventor);
 			this.table = table;
 		}
 		
 		public double[] project(double lat, double lon) {
 			return new double[] {
 					lon/Math.PI*smartInterpolate(Math.toDegrees(lat), table[0], table[1]),
-					yMax*smartInterpolate(Math.toDegrees(lat), table[0], table[2]) };
+					bounds.yMax*smartInterpolate(Math.toDegrees(lat), table[0], table[2]) };
 		}
 		
 		public double[] inverse(double x, double y) {
 			return new double[] {
-					Math.toRadians(smartInterpolate(y/yMax, table[2], table[0])),
-					Math.PI*x/smartInterpolate(y/yMax, table[2], table[1]) };
+					Math.toRadians(smartInterpolate(y/bounds.yMax, table[2], table[0])),
+					Math.PI*x/smartInterpolate(y/bounds.yMax, table[2], table[1]) };
 		}
 		
 		private static double smartInterpolate(double x, double[] X, double[] f) {

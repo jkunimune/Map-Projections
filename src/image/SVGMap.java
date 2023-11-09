@@ -28,6 +28,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
+import utils.BoundingBox;
 import utils.SAXUtils;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -347,19 +348,21 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 	}
 	
 	
-	public void save(Iterable<Path> paths, File file, double inMinX, double inMaxY, double inWidth,
-			double inHeight) throws IOException {
+	public void save(Iterable<Path> paths, File file, BoundingBox inBounds) throws IOException {
 		BufferedWriter out = new BufferedWriter(new FileWriter(file));
 		
 		final Iterator<String> formatIterator = formatStrings.iterator();
 		final Iterator<Path> curveIterator = paths.iterator();
+
+		double inWidth = inBounds.xMax - inBounds.xMin;
+		double inHeight = inBounds.yMax - inBounds.yMin;
 		
 		out.write(SAXUtils.encode(replacePlaceholders(formatIterator.next(), inWidth/inHeight)));
 		while (curveIterator.hasNext()) {
 			out.write(closePaths(
 					breakWraps(curveIterator.next(), max(inWidth, inHeight))
 				).toString(
-					inMinX, inMaxY, vbMinX, vbMinY,
+					inBounds.xMin, inBounds.yMax, vbMinX, vbMinY,
 					max(vbWidth, vbHeight)/max(inWidth, inHeight)));
 			out.write(SAXUtils.encode(formatIterator.next()));
 		}

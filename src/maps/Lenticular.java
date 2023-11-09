@@ -26,6 +26,7 @@ package maps;
 import de.jtem.mfc.field.Complex;
 import maps.Projection.Property;
 import maps.Projection.Type;
+import utils.BoundingBox;
 import utils.Math2;
 import utils.NumericalAnalysis;
 
@@ -38,7 +39,7 @@ public class Lenticular {
 	
 	public static final Projection AITOFF = new Projection(
 			"Aitoff", "A compromise projection shaped like an ellipse.",
-			2*Math.PI, Math.PI, 0b1111, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE, 2) {
+			new BoundingBox(2*Math.PI, Math.PI), 0b1111, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE, 2) {
 		
 		public double[] project(double lat, double lon) {
 			final double a = Math.acos(Math.cos(lat)*Math.cos(lon/2));
@@ -59,7 +60,7 @@ public class Lenticular {
 	
 	public static final Projection HAMMER = new Projection(
 			"Hammer", "An equal-area projection shaped like an ellipse.",
-			4, 2, 0b1111, Type.PSEUDOAZIMUTHAL, Property.EQUAL_AREA, 1) {
+			new BoundingBox(4, 2), 0b1111, Type.PSEUDOAZIMUTHAL, Property.EQUAL_AREA, 1) {
 		
 		public double[] project(double lat, double lon) {
 			final double z = Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2));
@@ -78,7 +79,7 @@ public class Lenticular {
 	
 	public static final Projection VAN_DER_GRINTEN = new Projection(
 			"Van der Grinten", "A circular compromise map that is popular for some reason.",
-			2, 2, 0b1111, Type.OTHER, Property.COMPROMISE, 0) {
+			new BoundingBox(2, 2), 0b1111, Type.OTHER, Property.COMPROMISE, 0) {
 		
 		public double[] project(double lat, double lon) {
 			if (lat == 0) //special case 1: equator
@@ -119,7 +120,7 @@ public class Lenticular {
 	
 	public static final Projection STREBE_95 = new Projection(
 			"Strebe 1995", "An equal-area map with curvy poles that pushes distortion to the edges.",
-			4, 4, 0b1100, Type.STREBE, Property.COMPROMISE, 2,
+			new BoundingBox(4, 4), 0b1100, Type.STREBE, Property.COMPROMISE, 2,
 			new String[] {"Scale Factor"},
 			new double[][] {{Math.sqrt(2*Math.PI/(4+Math.PI)), Math.sqrt((4+Math.PI)/Math.PI*2), 1.35}}) {
 		
@@ -131,10 +132,11 @@ public class Lenticular {
 		public void initialize(double... params) {
 			factor = params[0];
 			double maxLon = factor*Math.PI*Math.sqrt(2*Math.PI/(4+Math.PI));
-			width = 4*Math.sin(maxLon/2)/Math.sqrt(1+Math.cos(maxLon/2))/factor;
-			height = 0; //add a little extra to air on the side of caution
+			double width = 4*Math.sin(maxLon/2)/Math.sqrt(1+Math.cos(maxLon/2))/factor;
+			double height = 0;
 			for (double v : HEIGHT_COEF) //the equation for height actually ends up being crazy complicated,
 				height = height*factor + v; //so use this polynomial approximation MatLab gave me instead.
+			bounds = new BoundingBox(width, height);
 		}
 		
 		public double[] project(double lat, double lon) {
@@ -165,7 +167,7 @@ public class Lenticular {
 	
 	
 	public static final Projection BERTIN = new Projection(
-			"Bertin", "An artistically conceived oblique map projection", 1.68*2, 2, 0b1011, Type.OTHER, Property.COMPROMISE, 3) {
+			"Bertin", "An artistically conceived oblique map projection", new BoundingBox(1.68*2, 2), 0b1011, Type.OTHER, Property.COMPROMISE, 3) {
 		
 		private final double[] POLE = {Math.toRadians(42), Math.toRadians(-163.5), Math.toRadians(180)};
 		
@@ -200,7 +202,7 @@ public class Lenticular {
 	
 	public static final Projection LAGRANGE = new Projection(
 			"Lagrange", "A circular conformal map.",
-			2, 2, 0b1111, Type.OTHER, Property.CONFORMAL, 2) {
+			new BoundingBox(2, 2), 0b1111, Type.OTHER, Property.CONFORMAL, 2) {
 		
 		public double[] project(double lat, double lon) {
 			if (Math.abs(lat) == Math.PI/2)
@@ -227,7 +229,7 @@ public class Lenticular {
 	
 	public static final Projection EISENLOHR = new Projection(
 			"Eisenlohr", "The optimal conventional conformal map.",
-			2*(Math.log(Math.sqrt(2)-1)+Math.sqrt(2)), Math.sqrt(1+Math.sqrt(.75))+Math.sqrt(1-Math.sqrt(.75))-Math.PI/3,
+			new BoundingBox(2*(Math.log(Math.sqrt(2)-1)+Math.sqrt(2)), Math.sqrt(1+Math.sqrt(.75))+Math.sqrt(1-Math.sqrt(.75))-Math.PI/3),
 			0b1011, Type.OTHER, Property.CONFORMAL, 2) {
 		
 		public double[] project(double lat, double lon) {
@@ -258,7 +260,7 @@ public class Lenticular {
 	
 	public static final Projection WAGNER_VIII = new Projection(
 			"Wagner VIII", "A compromise projection with pseudoazimuthal energy.",
-			2*2.81152, 2*1.52342, 0b1111, Type.OTHER, Property.COMPROMISE, 3) {
+			new BoundingBox(2*2.81152, 2*1.52342), 0b1111, Type.OTHER, Property.COMPROMISE, 3) {
 		
 		private final double m1 = 0.92118, m2 = 0.8855, n = 3.,
 				cX = 5.62290, cY = 2.61626;
@@ -290,7 +292,7 @@ public class Lenticular {
 	
 	public static final Projection POLYCONIC = new Projection(
 			"American polyconic", "A map made for narrow strips of longitude that was really popular with the USGS for a while.",
-			2*Math.PI, 4.81527, 0b1011, Type.OTHER, Property.EQUIDISTANT, 3) {
+			new BoundingBox(2*Math.PI, 4.81527), 0b1011, Type.OTHER, Property.EQUIDISTANT, 3) {
 		
 		public double[] project(double lat, double lon) {
 			if (lat == 0)
