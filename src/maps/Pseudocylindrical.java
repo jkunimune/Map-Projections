@@ -28,6 +28,18 @@ import maps.Projection.Type;
 import utils.BoundingBox;
 import utils.NumericalAnalysis;
 
+import static java.lang.Double.isNaN;
+import static java.lang.Math.PI;
+import static java.lang.Math.abs;
+import static java.lang.Math.asin;
+import static java.lang.Math.cos;
+import static java.lang.Math.floor;
+import static java.lang.Math.pow;
+import static java.lang.Math.signum;
+import static java.lang.Math.sin;
+import static java.lang.Math.sqrt;
+import static java.lang.Math.toRadians;
+
 /**
  * Projections where y is a function of latitude
  * 
@@ -37,14 +49,14 @@ public class Pseudocylindrical {
 	
 	public static final Projection SINUSOIDAL = new Projection(
 			"Sinusoidal", "An equal-area map shaped like a sine-wave.",
-			new BoundingBox(2*Math.PI, Math.PI), 0b1111, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 1) {
+			new BoundingBox(2*PI, PI), 0b1111, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 1) {
 		
 		public double[] project(double lat, double lon) {
-			return new double[] { Math.cos(lat)*lon, lat };
+			return new double[] { cos(lat)*lon, lat };
 		}
 		
 		public double[] inverse(double x, double y) {
-			return new double[] { y, x/Math.cos(y) };
+			return new double[] { y, x/cos(y) };
 		}
 	};
 	
@@ -55,33 +67,33 @@ public class Pseudocylindrical {
 		
 		public double[] project(double lat, double lon) {
 			double tht = NumericalAnalysis.newtonRaphsonApproximation(
-					Math.PI*Math.sin(lat), lat,
-					(t) -> (2*t + Math.sin(2*t)),
-					(t) -> (2 + 2*Math.cos(2*t)), 1e-6);
-			if (Double.isNaN(tht))
-				tht = Math.PI/2*Math.signum(lat);
-			return new double[] { lon/Math.PI*2*Math.cos(tht), Math.sin(tht) };
+					PI*sin(lat), lat,
+					(t) -> (2*t + sin(2*t)),
+					(t) -> (2 + 2*cos(2*t)), 1e-6);
+			if (isNaN(tht))
+				tht = PI/2*signum(lat);
+			return new double[] { lon/PI*2*cos(tht), sin(tht) };
 		}
 		
 		public double[] inverse(double x, double y) {
-			double tht = Math.asin(y);
+			double tht = asin(y);
 			return new double[] {
-					Math.asin((2*tht + Math.sin(2*tht))/Math.PI),
-					x/Math.cos(tht)*Math.PI/2 };
+					asin((2*tht + sin(2*tht))/PI),
+					x/cos(tht)*PI/2 };
 		}
 	};
 	
 	
 	public static final Projection HOMOLOSINE = new Projection(
 			"Homolosine (uninterrupted)", "A combination of the sinusoidal and Mollweide projections.",
-			new BoundingBox(2*Math.PI, 2.72282), 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
+			new BoundingBox(2*PI, 2.72282), 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
 		
 		private final double phiH = 0.71098;
-		private final double scale = Math.sqrt(2);
+		private final double scale = sqrt(2);
 		private final double yH = MOLLWEIDE.project(phiH, 0)[1]*scale;
 		
 		public double[] project(double lat, double lon) {
-			if (Math.abs(lat) <= phiH) {
+			if (abs(lat) <= phiH) {
 				return SINUSOIDAL.project(lat, lon);
 			}
 			else {
@@ -94,7 +106,7 @@ public class Pseudocylindrical {
 		}
 		
 		public double[] inverse(double x, double y) {
-			if (Math.abs(y) <= phiH)
+			if (abs(y) <= phiH)
 				return SINUSOIDAL.inverse(x, y);
 			else if (y > 0)
 				return MOLLWEIDE.inverse(x/scale, (y - phiH + yH)/scale);
@@ -106,14 +118,14 @@ public class Pseudocylindrical {
 	
 	public static final Projection HOMOLOSINE_INTERRUPTED = new Projection(
 			"Good Homolosine", "An interrupted combination of the sinusoidal and Mollweide projections.",
-			new BoundingBox(2*Math.PI, 2.72282), 0b1100, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
+			new BoundingBox(2*PI, 2.72282), 0b1100, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
 		
 		private final double[][] edges = {
-				{Math.toRadians(-40), Math.toRadians(180)},
-				{Math.toRadians(-100), Math.toRadians(-20), Math.toRadians(80), Math.toRadians(180)}};
+				{toRadians(-40), toRadians(180)},
+				{toRadians(-100), toRadians(-20), toRadians(80), toRadians(180)}};
 		private final double[][] centers = {
-				{Math.toRadians(-100), Math.toRadians(30)},
-				{Math.toRadians(-160), Math.toRadians(-60), Math.toRadians(20), Math.toRadians(140)}};
+				{toRadians(-100), toRadians(30)},
+				{toRadians(-160), toRadians(-60), toRadians(20), toRadians(140)}};
 		
 		public double[] project(double lat, double lon) {
 			int i = (lat > 0) ? 0 : 1;
@@ -149,17 +161,17 @@ public class Pseudocylindrical {
 		
 		public double[] project(double lat, double lon) {
 			double tht = NumericalAnalysis.newtonRaphsonApproximation(
-					(2+Math.PI/2)*Math.sin(lat), lat,
-					(t) -> (t + Math.sin(2*t)/2 + 2*Math.sin(t)),
-					(t) -> (1 + Math.cos(2*t) + 2*Math.cos(t)), 1e-4);
-			return new double[] { lon/Math.PI*(1+Math.cos(tht)), Math.sin(tht)};
+					(2+PI/2)*sin(lat), lat,
+					(t) -> (t + sin(2*t)/2 + 2*sin(t)),
+					(t) -> (1 + cos(2*t) + 2*cos(t)), 1e-4);
+			return new double[] { lon/PI*(1+cos(tht)), sin(tht)};
 		}
 		
 		public double[] inverse(double x, double y) {
-			double tht = Math.asin(y);
+			double tht = asin(y);
 			return new double[] {
-					Math.asin((tht + Math.sin(2*tht)/2 + 2*Math.sin(tht))/(2+Math.PI/2)),
-					x/(1 + Math.cos(tht))*Math.PI };
+					asin((tht + sin(2*tht)/2 + 2*sin(tht))/(2+PI/2)),
+					x/(1 + cos(tht))*PI };
 		}
 		
 	};
@@ -173,13 +185,13 @@ public class Pseudocylindrical {
 				c2 = 0.88022, c3 = 0.8855;
 		
 		public double[] project(double lat, double lon) {
-			double psi = Math.asin(c2*Math.sin(c3*lat));
-			return new double[] {c0*lon*Math.cos(psi), c1*psi};
+			double psi = asin(c2*sin(c3*lat));
+			return new double[] {c0*lon*cos(psi), c1*psi};
 		}
 		
 		public double[] inverse(double x, double y) {
 			double psi = y/c1;
-			return new double[] {Math.asin(Math.sin(psi)/c2)/c3, x/c0/Math.cos(psi)};
+			return new double[] {asin(sin(psi)/c2)/c3, x/c0/cos(psi)};
 		}
 	};
 	
@@ -193,58 +205,58 @@ public class Pseudocylindrical {
 		
 		public double[] project(double lat, double lon) {
 			double psi = NumericalAnalysis.newtonRaphsonApproximation(
-					c2*Math.sin(c3*lat), Math.sin(lat)*Math.PI/3, (ps)->(2*ps + Math.sin(2*ps)),
-					(ps)->(2 + 2*Math.cos(2*ps)), 1e-5);
-			return new double[] {c0*lon*Math.cos(psi), c1*Math.sin(psi)};
+					c2*sin(c3*lat), sin(lat)*PI/3, (ps)->(2*ps + sin(2*ps)),
+					(ps)->(2 + 2*cos(2*ps)), 1e-5);
+			return new double[] {c0*lon*cos(psi), c1*sin(psi)};
 		}
 		
 		public double[] inverse(double x, double y) {
-			double psi = Math.asin(y/c1);
-			return new double[] {Math.asin((2*psi + Math.sin(2*psi))/c2)/c3, x/c0/Math.cos(psi)};
+			double psi = asin(y/c1);
+			return new double[] {asin((2*psi + sin(2*psi))/c2)/c3, x/c0/cos(psi)};
 		}
 	};
 	
 	
 	public static final Projection KAVRAYSKIY_VII = new Projection(
-			"Kavrayskiy VII", new BoundingBox(Math.PI*Math.sqrt(3), Math.PI), 0b1111, Type.PSEUDOCYLINDRICAL,
+			"Kavrayskiy VII", new BoundingBox(PI*sqrt(3), PI), 0b1111, Type.PSEUDOCYLINDRICAL,
 			Property.COMPROMISE, 2, null, "mostly popular in the former Soviet Union") {
 		
 		public double[] project(double lat, double lon) {
-			return new double[] { 1.5*lon*Math.sqrt(1/3.-Math.pow(lat/Math.PI, 2)), lat };
+			return new double[] { 1.5*lon*sqrt(1/3.-pow(lat/PI, 2)), lat };
 		}
 		
 		public double[] inverse(double x, double y) {
-			return new double[] { y, x/1.5/Math.sqrt(1/3.-Math.pow(y/Math.PI, 2)) };
+			return new double[] { y, x/1.5/sqrt(1/3.-pow(y/PI, 2)) };
 		}
 		
 	};
 	
 	
 	public static final Projection LEMONS = new Projection(
-			"Lemons", "BURN LIFE'S HOUSE DOWN!!!", new BoundingBox(2*Math.PI, Math.PI), 0b1110,
+			"Lemons", "BURN LIFE'S HOUSE DOWN!!!", new BoundingBox(2*PI, PI), 0b1110,
 			Type.CYLINDRICAL, Property.COMPROMISE, 2) {
 		
 		private static final int NUM_LEMONS = 12; //number of lemons
-		private static final double LEM_WIDTH = 2*Math.PI/NUM_LEMONS; //longitude span of 1 lemon
+		private static final double LEM_WIDTH = 2*PI/NUM_LEMONS; //longitude span of 1 lemon
 		
 		public double[] project(double lat, double lon) {
-			final int lemNum = (int)Math.floor(lon/LEM_WIDTH);
-			final double dl = (lon+2*Math.PI) % LEM_WIDTH - LEM_WIDTH/2;
+			final int lemNum = (int)floor(lon/LEM_WIDTH);
+			final double dl = (lon+2*PI) % LEM_WIDTH - LEM_WIDTH/2;
 			return new double[] {
-					Math.asin(Math.cos(lat)*Math.sin(dl)) + (lemNum+.5)*LEM_WIDTH,
-					Math.asin(Math.sin(lat)/Math.sqrt(1-Math.pow(Math.cos(lat)*Math.sin(dl), 2)))};
+					asin(cos(lat)*sin(dl)) + (lemNum+.5)*LEM_WIDTH,
+					asin(sin(lat)/sqrt(1-pow(cos(lat)*sin(dl), 2)))};
 		}
 		
 		public double[] inverse(double x, double y) {
-			final int lemNum = (int)Math.floor(x/LEM_WIDTH);
-			final double dx = (x+2*Math.PI) % LEM_WIDTH - LEM_WIDTH/2;
-			final double dl = Math.asin(
-					Math.sin(dx)/Math.sqrt(1-Math.pow(Math.cos(dx)*Math.sin(y), 2)));
-			if (Math.abs(dl) > LEM_WIDTH/2)
+			final int lemNum = (int)floor(x/LEM_WIDTH);
+			final double dx = (x+2*PI) % LEM_WIDTH - LEM_WIDTH/2;
+			final double dl = asin(
+					sin(dx)/sqrt(1-pow(cos(dx)*sin(y), 2)));
+			if (abs(dl) > LEM_WIDTH/2)
 				return null;
 			else
 				return new double[] {
-						Math.asin(Math.cos(dx)*Math.sin(y)), dl + (lemNum+.5)*LEM_WIDTH };
+						asin(cos(dx)*sin(y)), dl + (lemNum+.5)*LEM_WIDTH };
 		}
 	};
 }

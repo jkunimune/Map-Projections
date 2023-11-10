@@ -22,16 +22,6 @@
  * SOFTWARE.
  */
 package apps;
-import java.io.File;
-import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.xml.sax.SAXException;
 
 import image.SVGMap;
 import image.SVGMap.Command;
@@ -50,8 +40,22 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import maps.Projection;
+import org.xml.sax.SAXException;
 import utils.BoundingBox;
-import utils.Math2;
+
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
+import static java.lang.Double.isNaN;
+import static java.lang.Math.hypot;
+import static utils.Math2.linInterp;
+import static utils.Math2.max;
+import static utils.Math2.min;
 
 /**
  * An application to make vector oblique aspects of map projections
@@ -206,10 +210,10 @@ public class MapDesignerVector extends MapApplication {
 					int width, height;
 					if (proj.getAspectRatio() >= 1) { //fit it to an IMG_SIZE x IMG_SIZE box
 						width = IMG_SIZE;
-						height = (int)Math.max(IMG_SIZE/proj.getAspectRatio(), 1);
+						height = (int)max(IMG_SIZE/proj.getAspectRatio(), 1);
 					}
 					else {
-						width = (int)Math.max(IMG_SIZE/proj.getAspectRatio(), 1);
+						width = (int)max(IMG_SIZE/proj.getAspectRatio(), 1);
 						height = IMG_SIZE;
 					}
 					rendered = drawImage(map, proj.getBounds(), width, height);
@@ -276,14 +280,14 @@ public class MapDesignerVector extends MapApplication {
 				Command cmdP = new Command(cmdS.type, new double[cmdS.args.length]);
 				for (int k = 0; k < cmdS.args.length; k += 2) {
 					double[] coords = proj.project(cmdS.args[k+1], cmdS.args[k], aspect);
-					if (Double.isNaN(coords[0]) || Double.isNaN(coords[1]))
+					if (isNaN(coords[0]) || isNaN(coords[1]))
 						System.err.println(proj+" returns "+coords[0]+","+coords[1]+" at "+cmdS.args[k+1]+","+cmdS.args[k]+"!");
-					cmdP.args[k] = Math.max(Math.min(coords[0], absoluteMaxX), absoluteMinX);
-					cmdP.args[k+1] = Math.max(Math.min(coords[1], absoluteMaxY), absoluteMinY);
+					cmdP.args[k] = max(min(coords[0], absoluteMaxX), absoluteMinX);
+					cmdP.args[k+1] = max(min(coords[1], absoluteMaxY), absoluteMinY);
 				}
 				pathP.add(cmdP); //TODO: if I was smart, I would divide landmasses that hit an interruption so that I didn't get those annoying lines that cross the map, and then run adaptive resampling to make sure the cuts look clean and not polygonal (e.g. so Antarctica extends all the way to the bottom), but that sounds really hard.
 
-				for (int k = 0; k < Math.max(1, step); k ++) { //increment j by at least 1 and at most step
+				for (int k = 0; k < max(1, step); k ++) { //increment j by at least 1 and at most step
 					if (k != 0 && (j >= pathS.size() - 1 || pathS.get(j).type == 'M'
 						  || pathS.get(j).type == 'Z'))
 						break; //but pause for every moveto and closepath, and for the last command in the path
@@ -312,9 +316,9 @@ public class MapDesignerVector extends MapApplication {
 				final double[] args = new double[cmd.args.length];
 				for (int i = 0; i < args.length; i ++)
 					if (i%2 == 0)
-						args[i] = Math2.linInterp(cmd.args[i], domain.xMin, domain.xMax, 0, c.getWidth());
+						args[i] = linInterp(cmd.args[i], domain.xMin, domain.xMax, 0, c.getWidth());
 					else
-						args[i] = Math2.linInterp(cmd.args[i], domain.yMin, domain.yMax, c.getHeight(), 0);
+						args[i] = linInterp(cmd.args[i], domain.yMin, domain.yMax, c.getHeight(), 0);
 				
 				switch (cmd.type) {
 				case 'M':
@@ -325,7 +329,7 @@ public class MapDesignerVector extends MapApplication {
 				case 'L':
 				case 'T':
 					for (int i = 0; i < args.length; i += 2)
-						if (Math.hypot(args[i+0]-lastX, args[i+1]-lastY) < outWidth/4.) // break lines that are too long
+						if (hypot(args[i+0]-lastX, args[i+1]-lastY) < outWidth/4.) // break lines that are too long
 							g.lineTo(args[i+0], args[i+1]); //TODO: I really need to actually look for interruptions or something
 						else
 							g.moveTo(args[i+0], args[i+1]);
@@ -341,7 +345,7 @@ public class MapDesignerVector extends MapApplication {
 								args[i+0], args[i+1], args[i+2], args[i+3], args[i+4], args[i+5]);
 					break;
 				case 'Z':
-					if (Math.hypot(startX-lastX, startY-lastY) < outWidth/4.)
+					if (hypot(startX-lastX, startY-lastY) < outWidth/4.)
 						g.lineTo(startX, startY);
 					break;
 				default:

@@ -26,6 +26,12 @@ package maps;
 import utils.BoundingBox;
 import utils.NumericalAnalysis;
 
+import static java.lang.Double.isNaN;
+import static java.lang.Math.PI;
+import static java.lang.Math.abs;
+import static java.lang.Math.pow;
+import static java.lang.Math.signum;
+
 /**
  * Some parameterized pseudocylindrical/lenticular projections that have been optimized to minimize error
  * 
@@ -33,7 +39,7 @@ import utils.NumericalAnalysis;
  */
 public class Gyorffy {
 	
-	private static final double PI2M2 = Math.pow(Math.PI/2, -2);
+	private static final double PI2M2 = pow(PI/2, -2);
 	
 	public static final Projection C = new PolynomialProjection(
 			"C", "The optimal pseudocylindrical projection.", 2,
@@ -60,7 +66,7 @@ public class Gyorffy {
 				String letter, String description,
 				int rating, double[] coefs) {
 			super("Gy\u00F6rffy "+letter, description,
-			      new BoundingBox(2*coefs[0]*(Math.PI + coefs[3]*Math.pow(Math.PI, 3)), Math.PI),
+			      new BoundingBox(2*coefs[0]*(PI + coefs[3]*pow(PI, 3)), PI),
 					0b1011, (coefs[4]==1 && coefs[5]==0 && coefs[6]==0) ? Type.PSEUDOCYLINDRICAL : Type.OTHER,
 					Property.COMPROMISE, rating);
 			this.coefs = coefs;
@@ -72,56 +78,60 @@ public class Gyorffy {
 
 		public double[] inverse(double x, double y) {
 			double phi0 = y;
-			double lam0 = x/Math.pow(1 - Math.pow(y/(Math.PI/2), 2), 1/3.);
+			double lam0 = x/pow(1 - pow(y/(PI/2), 2), 1/3.);
 			double[] res = NumericalAnalysis.newtonRaphsonApproximation(
 					x, y, phi0, lam0, Gyorffy::x, Gyorffy::y,
 					Gyorffy::dxdp, Gyorffy::dxdl, Gyorffy::dydp, Gyorffy::dydl,
 					1e-4, this.coefs); // this converges surprisingly well atc
-			if (res == null || Double.isNaN(res[1]) ||
-					(Math.abs(res[1]) < Math.PI && Math.abs(x) > x(y, coefs)))
+			if (res == null || isNaN(res[1]) ||
+					(abs(res[1]) < PI && abs(x) > x(y, coefs)))
 				return null; // it does have a nasty habit of thinking it's converged outside the map, though
 			return res;
 		}
 	}
 	
 	private static double x(double y, double[] c) {
-		return c[0]*Math.pow(1 - Math.pow(2*Math.abs(y)/Math.PI, c[1]), 1/c[2])*(Math.PI + c[3]*Math.pow(Math.PI, 3));
+		return c[0]*pow(1 - pow(2*abs(y)/PI, c[1]), 1/c[2])*(PI + c[3]*pow(PI, 3));
 	}
 	
 	private static double x(double phi, double lam, double[] c) {
-		double lam3 = Math.pow(lam, 3);
-		return c[0]*Math.pow(1 - Math.pow(2*Math.abs(y(phi, lam, c))/Math.PI, c[1]), 1/c[2])*(lam + c[3]*lam3);
+		double lam3 = pow(lam, 3);
+		return c[0]*pow(1 - pow(2*abs(y(phi, lam, c))/PI, c[1]), 1/c[2])*(lam + c[3]*lam3);
 	}
 	
 	private static double y(double phi, double lam, double[] c) {
-		double phi3 = Math.pow(phi, 3);
-		double lam2 = Math.pow(lam, 2);
-		double lam4 = Math.pow(lam, 4);
+		double phi3 = pow(phi, 3);
+		double lam2 = pow(lam, 2);
+		double lam4 = pow(lam, 4);
 		return c[4]*phi + (1-c[4])*PI2M2*phi3 + (c[5]*lam2 + c[6]*lam4)*(phi - PI2M2*phi3);
 	}
 	
 	private static double dxdp(double phi, double lam, double[] c) {
-		double lam3 = Math.pow(lam, 3);
-		return -2/Math.PI*c[0]/c[2]*c[1]*Math.pow(2*Math.abs(y(phi, lam, c))/Math.PI, c[1]-1)*Math.pow(1 - Math.pow(2*Math.abs(y(phi, lam, c))/Math.PI, c[1]), 1/c[2]-1)*(lam + c[3]*lam3)*Math.signum(phi)*dydp(phi, lam, c);
+		double lam3 = pow(lam, 3);
+		return -2/PI*c[0]/c[2]*c[1]*pow(2*abs(y(phi, lam, c))/PI, c[1]-1)*
+		       pow(1 - pow(2*abs(y(phi, lam, c))/PI, c[1]), 1/c[2]-1)*
+		       (lam + c[3]*lam3)*signum(phi)*dydp(phi, lam, c);
 	}
 	
 	private static double dxdl(double phi, double lam, double[] c) {
-		double lam2 = Math.pow(lam, 2);
-		double lam3 = Math.pow(lam, 3);
-		return -2/Math.PI*c[0]/c[2]*c[1]*Math.pow(2*Math.abs(y(phi, lam, c))/Math.PI, c[1]-1)*Math.pow(1 - Math.pow(2*Math.abs(y(phi, lam, c))/Math.PI, c[1]), 1/c[2]-1)*(lam + c[3]*lam3)*Math.signum(phi)*dydl(phi, lam, c)
-				+ c[0]*Math.pow(1 - Math.pow(2*Math.abs(y(phi, lam, c))/Math.PI, c[1]), 1/c[2])*(1 + 3*c[3]*lam2);
+		double lam2 = pow(lam, 2);
+		double lam3 = pow(lam, 3);
+		return -2/PI*c[0]/c[2]*c[1]*pow(2*abs(y(phi, lam, c))/PI, c[1]-1)*
+		       pow(1 - pow(2*abs(y(phi, lam, c))/PI, c[1]), 1/c[2]-1)*
+		       (lam + c[3]*lam3)*signum(phi)*dydl(phi, lam, c) +
+		       c[0]*pow(1 - pow(2*abs(y(phi, lam, c))/PI, c[1]), 1/c[2])*(1 + 3*c[3]*lam2);
 	}
 	
 	private static double dydp(double phi, double lam, double[] c) {
-		double phi2 = Math.pow(phi, 2);
-		double lam2 = Math.pow(lam, 2);
-		double lam4 = Math.pow(lam, 4);
+		double phi2 = pow(phi, 2);
+		double lam2 = pow(lam, 2);
+		double lam4 = pow(lam, 4);
 		return c[4] + (1-c[4])*3*PI2M2*phi2 + (c[5]*lam2 + c[6]*lam4)*(1 - 3*PI2M2*phi2);
 	}
 	
 	private static double dydl(double phi, double lam, double[] c) {
-		double lam3 = Math.pow(lam, 3);
-		double phi3 = Math.pow(phi, 3);
+		double lam3 = pow(lam, 3);
+		double phi3 = pow(phi, 3);
 		return (2*c[5]*lam + 4*c[6]*lam3)*(phi - PI2M2*phi3);
 	}
 	

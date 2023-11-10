@@ -26,6 +26,8 @@ package image;
 import java.io.File;
 import java.io.IOException;
 
+import static java.lang.Math.PI;
+
 /**
  * a PixelMap that only loads one octant of the globe, to save memory
  */
@@ -45,9 +47,9 @@ public class TruncatedPixelMap extends PixelMap {
 
 
 	public int getArgb(double lat, double lon) {
-		if (lat < 0 || lon < 0 || lon > Math.PI/2)
+		if (lat < 0 || lon < 0 || lon > PI/2)
 			return 0;
 		else
-			return super.getArgb(2*lat - Math.PI/2, 4*lon - Math.PI);
+			return super.getArgb(2*lat - PI/2, 4*lon - PI);
 	}
 }

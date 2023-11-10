@@ -22,10 +22,6 @@
  * SOFTWARE.
  */
 package apps;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.util.function.DoubleUnaryOperator;
 
 import image.ImageUtils;
 import image.SavableImage;
@@ -51,9 +47,23 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import maps.Projection;
 import utils.Flag;
-import utils.Math2;
 import utils.MutableDouble;
 import utils.Procedure;
+
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.util.function.DoubleUnaryOperator;
+
+import static java.lang.Double.isFinite;
+import static java.lang.Double.isNaN;
+import static java.lang.Math.PI;
+import static java.lang.Math.exp;
+import static java.lang.Math.log;
+import static java.lang.Math.round;
+import static java.lang.Math.toRadians;
+import static utils.Math2.rms;
+import static utils.Math2.stdDev;
 
 /**
  * An application to analyse the characteristics of map projections
@@ -67,8 +77,6 @@ public class MapAnalyzer extends MapApplication {
 	}
 	
 	
-	
-	private static final double LN_10 = Math.log(10);
 	
 	private static final int CHART_WIDTH = 400;
 	private static final int FINE_SAMP_NUM = 2048;
@@ -257,8 +265,8 @@ public class MapAnalyzer extends MapApplication {
 						this::isCancelled, (p) -> updateProgress(p, 2)); //calculate
 				if (sizeChart != null) {
 					distortionG = proj.calculateDistortion(Projection.globe(GLOBE_RES));
-					sizeDistort = Math2.stdDev(distortionG[0]);
-					shapeDistort = Math2.rms(distortionG[1]);
+					sizeDistort = stdDev(distortionG[0]);
+					shapeDistort = rms(distortionG[1]);
 				}
 				
 				if (isCancelled()) 	return null;
@@ -274,23 +282,23 @@ public class MapAnalyzer extends MapApplication {
 					for (int x = 0; x < width; x ++) {
 						double sizeDistort = distortionM[0][y][x];
 						double shapeDistort = distortionM[1][y][x];
-						double sizeContour = Math.round(sizeDistort/(LN_10/10))*LN_10/10; //contour the size by decibels
-						double shapeContour = Math.round(shapeDistort/(LN_10/20))*LN_10/20; //contour the size by semidecibels
-						if (Double.isNaN(sizeDistort) || Double.isNaN(shapeDistort)) {
+						double sizeContour = round(sizeDistort/(log(10)/10))*log(10)/10; //contour the size by decibels
+						double shapeContour = round(shapeDistort/(log(10)/20))*log(10)/20; //contour the size by semidecibels
+						if (isNaN(sizeDistort) || isNaN(shapeDistort)) {
 							graphic.setRGB(x, y, 0);
 							continue;
 						}
 						
 						int r, g, b;
 						if (sizeDistort < 0) { //if compressing
-							r = (int)(255.9*Math.exp(-shapeContour*.6));
-							g = (int)(255.9*Math.exp(-shapeContour*.6)*Math.exp(sizeContour*.6));
+							r = (int)(255.9*exp(-shapeContour*.6));
+							g = (int)(255.9*exp(-shapeContour*.6)*exp(sizeContour*.6));
 							b = g;
 						}
 						else { //if dilating
-							r = (int)(255.9*Math.exp(-shapeContour*.6)*Math.exp(-sizeContour*.6));
+							r = (int)(255.9*exp(-shapeContour*.6)*exp(-sizeContour*.6));
 							g = r; //I find .6 to be a rather visually pleasing sensitivity
-							b = (int)(255.9*Math.exp(-shapeContour*.6));
+							b = (int)(255.9*exp(-shapeContour*.6));
 						}
 						
 						final int argb = ((((((0xFF)<<8)+r)<<8)+g)<<8)+b;
@@ -303,8 +311,8 @@ public class MapAnalyzer extends MapApplication {
 					updateProgress(-1, 1);
 					updateMessage("Drawing graticule\u2026");
 					ImageUtils.drawSVGPath(
-							proj.drawGraticule(Math.toRadians(gratSpacing), .02,
-									width, height, Math.PI/2, Math.PI, null),
+							proj.drawGraticule(toRadians(gratSpacing), .02,
+									width, height, PI/2, PI, null),
 							GRATICULE_COLOR, GRATICULE_WIDTH, true,
 							(Graphics2D)graphic.getGraphics());
 				}
@@ -319,13 +327,13 @@ public class MapAnalyzer extends MapApplication {
 				if (sizeChart != null) { // and fill the plots with histograms of the new measurements
 					sizeChart.getData().clear();
 					sizeChart.getData().add(histogram(distortionG[0],
-							-LN_10, LN_10, 20, Math::exp));
+							-log(10), log(10), 20, Math::exp));
 					shapeChart.getData().clear();
 					shapeChart.getData().add(histogram(distortionG[1],
-							   0.0, LN_10, 20, Math::exp));
+							   0.0, log(10), 20, Math::exp));
 					
-					avgSizeDistort.setText(format(sizeDistort/LN_10*10)+"dB"); // also put the average numbers in the textboxen
-					avgShapeDistort.setText(format(shapeDistort/LN_10*10)+"dB");
+					avgSizeDistort.setText(format(sizeDistort/log(10)*10)+"dB"); // also put the average numbers in the textboxen
+					avgShapeDistort.setText(format(shapeDistort/log(10)*10)+"dB");
 				}
 			}
 		};
@@ -338,8 +346,8 @@ public class MapAnalyzer extends MapApplication {
 		int tot = 0;
 		for (double[] row: values) {
 			for (double x: row) {
-				if (Double.isFinite(x)) {
-					final int i = (int)Math.round((x-min)/(max-min)*num);
+				if (isFinite(x)) {
+					final int i = (int)round((x-min)/(max-min)*num);
 					if (i >= 0 && i <= num)
 						hist[i] ++;
 					tot ++;
@@ -350,7 +358,7 @@ public class MapAnalyzer extends MapApplication {
 		for (int i = 0; i <= num; i ++) {
 			double x = converter.applyAsDouble(i*(max-min)/num+min);
 			output.getData().add(new Data<String, Number>(
-					Double.toString(Math.round(100*x)/100.),
+					Double.toString(round(100*x)/100.),
 					(double)hist[i]/tot*100));
 		}
 		return output;
@@ -360,7 +368,7 @@ public class MapAnalyzer extends MapApplication {
 	
 	private static String format(double d) {
 		if (d < 1000)
-			return Double.toString(Math.round(d*100.)/100.);
+			return Double.toString(round(d*100.)/100.);
 		else
 			return "1000+";
 	}

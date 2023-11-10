@@ -36,6 +36,9 @@ import javafx.scene.control.Spinner;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 
+import static java.lang.Math.round;
+import static java.lang.Math.sqrt;
+
 public class MapConfigurationDialog extends Dialog<Boolean> {
 
 	public final int MIN_SIZE = 5, MAX_SIZE = 30000;
@@ -58,19 +61,19 @@ public class MapConfigurationDialog extends Dialog<Boolean> {
 		this.maintainRatio.setSelected(true);
 		
 		this.widthBox = new Spinner<Integer>(MIN_SIZE, MAX_SIZE,
-				10*(int)Math.round(DEF_SIZE*Math.sqrt(defaultRatio)/10));
+				10*(int)round(DEF_SIZE*sqrt(defaultRatio)/10));
 		this.widthBox.setEditable(true);
 		this.widthBox.setMaxWidth(Double.MAX_VALUE);
 		
 		this.heightBox = new Spinner<Integer>(MIN_SIZE, MAX_SIZE,
-				10*(int)Math.round(this.widthBox.getValue()/defaultRatio/10));
+				10*(int)round(this.widthBox.getValue()/defaultRatio/10));
 		this.heightBox.setEditable(true);
 		this.widthBox.setMaxWidth(Double.MAX_VALUE);
 		
 		this.widthBox.valueProperty().addListener((observable, prev, now) -> {	// link the Spinners
 				if (realEdit && maintainRatio.isSelected()) {
 					realEdit = false;
-					int prefHeight = (int)Math.round(widthBox.getValue()/defaultRatio);
+					int prefHeight = (int)round(widthBox.getValue()/defaultRatio);
 					heightBox.getValueFactory().setValue(prefHeight);
 					realEdit = true;
 				}
@@ -78,7 +81,7 @@ public class MapConfigurationDialog extends Dialog<Boolean> {
 		this.heightBox.valueProperty().addListener((observable, prev, now) -> {
 				if (realEdit && maintainRatio.isSelected()) {
 					realEdit = false;
-					int prefWidth = (int)Math.round(heightBox.getValue()*defaultRatio);
+					int prefWidth = (int)round(heightBox.getValue()*defaultRatio);
 					widthBox.getValueFactory().setValue(prefWidth);
 					realEdit = true;
 				}

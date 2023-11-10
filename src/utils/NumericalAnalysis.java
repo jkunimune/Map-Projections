@@ -30,6 +30,14 @@ import java.util.function.Function;
 
 import de.jtem.mfc.field.Complex;
 
+import static java.lang.Double.NaN;
+import static java.lang.Double.POSITIVE_INFINITY;
+import static java.lang.Math.abs;
+import static java.lang.Math.ceil;
+import static java.lang.Math.hypot;
+import static utils.Math2.determ;
+import static utils.Math2.min;
+
 /**
  * A whole class just for numeric approximation methods
  * 
@@ -60,7 +68,7 @@ public class NumericalAnalysis {
 	 */
 	public static double simpsonIntegrate(double a, double b, ScalarFunction f, double h, double... constants) {
 		double sum = 0;
-		int N = (int)Math.ceil(Math.abs(b-a)/h)*2;
+		int N = (int)ceil(abs(b-a)/h)*2;
 		double dx = (b - a)/N;
 		for (int i = 0; i <= N; i ++) {
 			double x = a + i*dx;
@@ -84,7 +92,7 @@ public class NumericalAnalysis {
 	 */
 	public static Complex simpsonIntegrate(Complex a, Complex b, Function<Complex, Complex> f, double h) {
 		Complex sum = new Complex(0);
-		int N = (int)Math.ceil(b.minus(a).abs()/h)*2;
+		int N = (int)ceil(b.minus(a).abs()/h)*2;
 		Complex dz = b.minus(a).divide(N);
 		for (int i = 0; i <= N; i ++) {
 			Complex z = a.plus(dz.times(i));
@@ -126,7 +134,7 @@ public class NumericalAnalysis {
 		double sum = 0;
 		for (int i = 0; i <= n; i ++) {
 			while (t < i*T/n) {
-				final double tph = Math.min(t+h, i*T/n);
+				final double tph = min(t+h, i*T/n);
 				sum += (tph-t)/6*(f.evaluate(t, constants)
 							  + 4*f.evaluate((t+tph)/2, constants)
 							  +   f.evaluate(tph, constants));
@@ -152,7 +160,7 @@ public class NumericalAnalysis {
 		double yMax = f.applyAsDouble(xMax);
 		if ((yMin < 0) == (yMax < 0))
 			throw new IllegalArgumentException("Bisection failed; bounds "+xMin+" and "+xMax+" do not necessarily straddle a zero.");
-		while (Math.abs(xMax - xMin) > tolerance) {
+		while (abs(xMax - xMin) > tolerance) {
 			double x = (xMax + xMin)/2;
 			double y = f.applyAsDouble(x);
 			if ((y < 0) == (yMin < 0)) {
@@ -197,13 +205,13 @@ public class NumericalAnalysis {
 			double tolerance, double... constants) {
 		double x = x0;
 		double error = f.evaluate(x, constants) - y;
-		for (int i = 0; i < 8 && Math.abs(error) > tolerance; i ++) {
+		for (int i = 0; i < 8 && abs(error) > tolerance; i ++) {
 			double dydx = dfdx.evaluate(x, constants);
 			x -= error/dydx;
 			error = f.evaluate(x, constants) - y;
 		}
-		if (Math.abs(error) > tolerance)
-			return Double.NaN;
+		if (abs(error) > tolerance)
+			return NaN;
 		else
 			return x;
 	}
@@ -228,7 +236,7 @@ public class NumericalAnalysis {
 			error = f.apply(x).minus(y);
 		}
 		if (error.abs() > tolerance)
-			return new Complex(Double.NaN);
+			return new Complex(NaN);
 		else
 			return x;
 	}
@@ -287,7 +295,7 @@ public class NumericalAnalysis {
 		double lam = lam0;
 		double f1mx = f1.evaluate(phi, lam, constants) -x;
 		double f2my = f2.evaluate(phi, lam, constants) - y;
-		double error = Double.POSITIVE_INFINITY;
+		double error = POSITIVE_INFINITY;
 		
 		for (int i = 0; i < 8 && error > tolerance; i++) {
 			final double dF1dP = df1dp.evaluate(phi, lam, constants);
@@ -300,7 +308,7 @@ public class NumericalAnalysis {
 			
 			f1mx = f1.evaluate(phi, lam, constants) - x;
 			f2my = f2.evaluate(phi, lam, constants) - y;
-			error = Math.hypot(f1mx, f2my);
+			error = hypot(f1mx, f2my);
 		}
 		
 		if (error > tolerance) // if it aborted due to timeout
@@ -328,7 +336,7 @@ public class NumericalAnalysis {
 		for (int i = 1; i < N; i ++) { //i+1 is the number of points interpolated on
 			fx[i] = new double[N];
 			for (int j = i; j < N; j ++) { //the points will be 0, ..., i-1, j
-				fx[i][j] = 1/(X[from+j] - X[from+i-1])*Math2.determ(
+				fx[i][j] = 1/(X[from+j] - X[from+i-1])*determ(
 						fx[i-1][i-1], fx[i-1][j],
 						X[from+i-1] - x, X[from+j] - x); //I won't bother to explain this; go look up Aitken interpolation
 			}

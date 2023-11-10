@@ -26,7 +26,21 @@ package maps;
 import de.jtem.mfc.field.Complex;
 import maps.Projection.Property;
 import utils.BoundingBox;
-import utils.Math2;
+
+import static java.lang.Double.NaN;
+import static java.lang.Math.PI;
+import static java.lang.Math.abs;
+import static java.lang.Math.atan;
+import static java.lang.Math.cos;
+import static java.lang.Math.pow;
+import static java.lang.Math.signum;
+import static java.lang.Math.sin;
+import static java.lang.Math.sqrt;
+import static java.lang.Math.tan;
+import static java.lang.Math.toDegrees;
+import static java.lang.Math.toRadians;
+import static utils.Math2.floorMod;
+import static utils.Math2.min;
 
 /**
  * A class of maps that use octohedral octants. Very similar to Polyhedral, but much faster since
@@ -38,7 +52,7 @@ public class Octohedral {
 	
 	public static final Projection WATERMAN = new OctohedralProjection(
 			"Waterman Butterfly", "A simple Cahill-esque octohedral map arrangement, with Antarctica left on.",
-			2*Math.sqrt(3), (Math.sqrt(3)-1)/2, 0b1010, Property.COMPROMISE, 3,
+			2*sqrt(3), (sqrt(3)-1)/2, 0b1010, Property.COMPROMISE, 3,
 			Configuration.BUTTERFLY) {
 		
 		protected double[] faceProject(double lat, double lon) {
@@ -57,13 +71,13 @@ public class Octohedral {
 			Configuration.M_PROFILE) {
 		
 		protected double[] faceProject(double lat, double lon) {
-			return CahillKeyes.faceProjectD(Math.toDegrees(lat), Math.toDegrees(lon));
+			return CahillKeyes.faceProjectD(toDegrees(lat), toDegrees(lon));
 		}
 		
 		protected double[] faceInverse(double x, double y) {
 			double[] coords = CahillKeyes.faceInverseD(x, y);
 			return (coords == null) ? null :
-				new double[] {Math.toRadians(coords[0]), Math.toRadians(coords[1])};
+				new double[] {toRadians(coords[0]), toRadians(coords[1])};
 		}
 	};
 
@@ -74,24 +88,24 @@ public class Octohedral {
 			Configuration.M_W_S_POLE) {
 
 		public double[] project(double lat, double lon) {
-			return super.project(lat, lon + Math.PI/9); // apply the central meridian manually
+			return super.project(lat, lon + PI/9); // apply the central meridian manually
 		}
 
 		protected double[] faceProject(double lat, double lon) {
-			return CahillKeyes.faceProjectD(Math.toDegrees(lat), Math.toDegrees(lon));
+			return CahillKeyes.faceProjectD(toDegrees(lat), toDegrees(lon));
 		}
 
 		public double[] inverse(double x, double y) {
 			double[] coords = super.inverse(x, y);
 			if (coords == null)	return null;
-			coords[1] = Math2.floorMod(coords[1] - Math.PI/9 + Math.PI, 2*Math.PI) - Math.PI; // apply the central meridian manually
+			coords[1] = floorMod(coords[1] - PI/9 + PI, 2*PI) - PI; // apply the central meridian manually
 			return coords;
 		}
 
 		protected double[] faceInverse(double x, double y) {
 			double[] coords = CahillKeyes.faceInverseD(x, y);
 			return (coords == null) ? null :
-					new double[] {Math.toRadians(coords[0]), Math.toRadians(coords[1])};
+					new double[] {toRadians(coords[0]), toRadians(coords[1])};
 		}
 	};
 
@@ -102,50 +116,50 @@ public class Octohedral {
 			Configuration.SINGLE_OCTANT) {
 
 		protected double[] faceProject(double lat, double lon) {
-			return CahillKeyes.faceProjectD(Math.toDegrees(lat), Math.toDegrees(lon));
+			return CahillKeyes.faceProjectD(toDegrees(lat), toDegrees(lon));
 		}
 
 		protected double[] faceInverse(double x, double y) {
 			double[] coords = CahillKeyes.faceInverseD(x, y);
 			return (coords == null) ? null :
-					new double[] {Math.toRadians(coords[0]), Math.toRadians(coords[1])};
+					new double[] {toRadians(coords[0]), toRadians(coords[1])};
 		}
 	};
 
 
 	public static final OctohedralProjection CONFORMAL_CAHILL = new OctohedralProjection(
 			"Cahill Conformal", "The conformal and only reproducable variant of Cahill's original map.",
-			Math.sqrt(3)/2, 0, 0b1000, Property.CONFORMAL, 3, Configuration.BUTTERFLY) {
+			sqrt(3)/2, 0, 0b1000, Property.CONFORMAL, 3, Configuration.BUTTERFLY) {
 
 		private final double HEXAGON_SCALE = 1.112913; //this is 2^(2/3)/6*\int_0^\pi sin^(-1/3) x dx
 		private final double TOLERANCE = 1e-3;
-		private final double[] VERTEX = {0, Math.PI/4, -3*Math.PI/4}; // TODO this needs to be tilted a bit
+		private final double[] VERTEX = {0, PI/4, -3*PI/4}; // TODO this needs to be tilted a bit
 		
 		protected double[] faceProject(double lat, double lon) {
 			double[] poleCoords = {lat, lon};
 			double[] vertCoords = transformFromOblique(lat, lon, VERTEX); //look at an oblique aspect from the nearest vertex
 			if (poleCoords[0] > vertCoords[0]) { //if this point is closer to the pole
-				Complex w = Complex.fromPolar(Math.pow(Math.tan(Math.PI/4-lat/2), 2/3.), lon*2/3.);
+				Complex w = Complex.fromPolar(pow(tan(PI/4-lat/2), 2/3.), lon*2/3.);
 				Complex z = polynomial(w); //project it as normal
 				return new double[] {z.getRe(), z.getIm()};
 			}
 			else { //if it is closer to the vertex
 				Complex w = Complex.fromPolar(
-						Math.pow(Math.tan(Math.PI/4-vertCoords[0]/2), 2/3.), vertCoords[1]*2/3.);
+						pow(tan(PI/4-vertCoords[0]/2), 2/3.), vertCoords[1]*2/3.);
 				Complex zSkew = polynomial(w); //use the maclaurin series centred there
 				return new double[] {
-						-1/2.*zSkew.getRe() + Math.sqrt(3)/2*zSkew.getIm() + Math.sqrt(3)/2,
-						-Math.sqrt(3)/2*zSkew.getRe() - 1/2.*zSkew.getIm() + 1/2. };
+						-1/2.*zSkew.getRe() + sqrt(3)/2*zSkew.getIm() + sqrt(3)/2,
+						-sqrt(3)/2*zSkew.getRe() - 1/2.*zSkew.getIm() + 1/2. };
 			}
 		}
 		
 		protected double[] faceInverse(double x, double y) {
 			Complex z;
-			if (x < (1-y)/Math.sqrt(3)) //do the Newton Raphson from whichever vertex to which it is closest
+			if (x < (1-y)/sqrt(3)) //do the Newton Raphson from whichever vertex to which it is closest
 				z = new Complex(x, y);
 			else
-				z = new Complex(-1/2.*(x-Math.sqrt(3)/2) - Math.sqrt(3)/2*(y-1/2.),
-						Math.sqrt(3)/2*(x-Math.sqrt(3)/2) - 1/2.*(y-1/2.));
+				z = new Complex(-1/2.*(x-sqrt(3)/2) - sqrt(3)/2*(y-1/2.),
+						sqrt(3)/2*(x-sqrt(3)/2) - 1/2.*(y-1/2.));
 			Complex w = z.divide(HEXAGON_SCALE);
 			Complex error = polynomial(w).minus(z);
 			for (int i = 0; i < 8 && error.abs() > TOLERANCE; i ++) {
@@ -153,37 +167,37 @@ public class Octohedral {
 				w = w.minus(error.divide(dzdw));
 				error = polynomial(w).minus(z);
 			}
-			double[] latLon = { Math.PI/2 - 2*Math.atan(Math.pow(w.abs(), 3/2.)), w.arg()*3/2. }; //inverse conic it back to spherical coordinates
-			if (x < (1-y)/Math.sqrt(3)) //if it was closest to that vertex, the result is easy
+			double[] latLon = { PI/2 - 2*atan(pow(w.abs(), 3/2.)), w.arg()*3/2. }; //inverse conic it back to spherical coordinates
+			if (x < (1-y)/sqrt(3)) //if it was closest to that vertex, the result is easy
 				return latLon;
 			else //if it was closer to the other vertex, do some obliquifying
 				return transformToOblique(latLon, VERTEX);
 		}
 		
 		private Complex polynomial(Complex w) { //an approximation of the true conformal mapping function
-			w = w.times(Complex.fromPolar(1, -Math.PI/6));
+			w = w.times(Complex.fromPolar(1, -PI/6));
 			Complex z = w.plus(w.pow(7).divide(21))
 					.plus(w.pow(11).divide(99)).plus(w.pow(13).divide(1287/16.));
-			return z.divide(Complex.fromPolar(HEXAGON_SCALE, -Math.PI/6));
+			return z.divide(Complex.fromPolar(HEXAGON_SCALE, -PI/6));
 		}
 		
 		private Complex derivative(Complex w) { //the derivative of polynomial()
-			w = w.times(Complex.fromPolar(1, -Math.PI/6));
+			w = w.times(Complex.fromPolar(1, -PI/6));
 			Complex z = new Complex(1).plus(w.pow(6).divide(3))
 					.plus(w.pow(10).divide(9)).plus(w.pow(12).divide(99/16.));
-			return z.divide(Complex.fromPolar(HEXAGON_SCALE, -Math.PI/6));
+			return z.divide(Complex.fromPolar(HEXAGON_SCALE, -PI/6));
 		}
 	};
 	
 	
 	public static final Projection CAHILL_CONCIALDI = new OctohedralProjection(
 			"Cahill\u2013Concialdi", "A conformal octohedral projection with no extra cuts and a unique arrangement.",
-			Math.sqrt(3)/2, 0, 0b1000, Property.CONFORMAL, 4, Configuration.BAT_SHAPE) {
+			sqrt(3)/2, 0, 0b1000, Property.CONFORMAL, 4, Configuration.BAT_SHAPE) {
 		
-		private final double lon0 = Math.toRadians(20);
+		private final double lon0 = toRadians(20);
 		
 		public double[] project(double lat, double lon) {
-			lon = Math2.floorMod(lon - lon0 + Math.PI, 2*Math.PI) - Math.PI; // change the central meridian
+			lon = floorMod(lon - lon0 + PI, 2*PI) - PI; // change the central meridian
 			return super.project(lat, lon);
 		}
 		
@@ -194,7 +208,7 @@ public class Octohedral {
 		public double[] inverse(double x, double y) {
 			double[] coords = super.inverse(x, y);
 			if (coords != null)
-				coords[1] = Math2.floorMod(coords[1] + lon0 + Math.PI, 2*Math.PI) - Math.PI; // change the central meridian
+				coords[1] = floorMod(coords[1] + lon0 + PI, 2*PI) - PI; // change the central meridian
 			return coords;
 		}
 		
@@ -230,15 +244,15 @@ public class Octohedral {
 		
 		public double[] project(double lat, double lon) {
 			for (double[] octant: config.octants) { // try each octant
-				double lonr = Math2.floorMod(lon - octant[3] + Math.PI, 2*Math.PI) - Math.PI; // relative longitude
-				if (Math.abs(lonr) > Math.PI/4 || lat < octant[4] || lat > octant[5]) // if it doesn't fit...
+				double lonr = floorMod(lon - octant[3] + PI, 2*PI) - PI; // relative longitude
+				if (abs(lonr) > PI/4 || lat < octant[4] || lat > octant[5]) // if it doesn't fit...
 					continue; // check the next one
 				if (octant.length > 7 && (lonr < octant[6] || lonr > octant[7])) // also check the longitude restriction
 					continue;
 				double xP = octant[0]*size, yP = octant[1]*size; // vertex coordinates
 				double th = octant[2]; // rotation angle
 				
-				double[] coords = this.faceProject(Math.abs(lat), Math.abs(lonr));
+				double[] coords = this.faceProject(abs(lat), abs(lonr));
 				double xMj = coords[0], yMj = coords[1]; //relative octant coordinates (Mj stands for "Mary Jo Graca")
 				
 				if (lat < 0) //reflect the southern hemisphere over the equator
@@ -247,10 +261,10 @@ public class Octohedral {
 					yMj = -yMj;
 				
 				return new double[] {
-						xP + Math.sin(th)*xMj + Math.cos(th)*yMj,
-						yP - Math.cos(th)*xMj + Math.sin(th)*yMj + config.fullHeight*size/2 };
+						xP + sin(th)*xMj + cos(th)*yMj,
+						yP - cos(th)*xMj + sin(th)*yMj + config.fullHeight*size/2 };
 			}
-			return new double[] {Double.NaN, Double.NaN}; // if none of the octants fit, return null
+			return new double[] {NaN, NaN}; // if none of the octants fit, return null
 		}
 		
 		
@@ -261,24 +275,24 @@ public class Octohedral {
 				double xV = octant[0]*size, yV = octant[1]*size; // vertex coordinates
 				double th = octant[2]; // rotation angle
 				
-				double xMj = Math.sin(th)*(x-xV) - Math.cos(th)*(y-yV); // do the coordinate change
-				double yMj = Math.cos(th)*(x-xV) + Math.sin(th)*(y-yV);
-				if (Math.sqrt(3)*Math.abs(yMj) > Math.min(xMj, 2*size-xMj) + 1e-12) // if the angle is wrong,
+				double xMj = sin(th)*(x-xV) - cos(th)*(y-yV); // do the coordinate change
+				double yMj = cos(th)*(x-xV) + sin(th)*(y-yV);
+				if (sqrt(3)*abs(yMj) > min(xMj, 2*size-xMj) + 1e-12) // if the angle is wrong,
 					continue; // check the next one
 				
-				double[] coords = this.faceInverse(Math.min(xMj, 2*size-xMj), Math.abs(yMj));
+				double[] coords = this.faceInverse(min(xMj, 2*size-xMj), abs(yMj));
 				if (coords == null)
 					continue; // if you got nothing, keep looking
 				double lat = coords[0], lon = coords[1]; // project
 				
-				lat *= Math.signum(size-xMj); // undo the reflections
-				lon *= Math.signum(yMj);
+				lat *= signum(size-xMj); // undo the reflections
+				lon *= signum(yMj);
 				if (lat < octant[4] - 1e-6 || lat > octant[5] + 1e-6) // if the resulting coordinates are wrong
 					continue; // move on
 				if (octant.length > 7 && (lon < octant[6] - 1e-6 || lon > octant[7] + 1e-6)) // also check the longitude restriction
 					continue;
 				
-				lon = Math2.floorMod(lon + octant[3] + Math.PI, 2*Math.PI)- Math.PI;
+				lon = floorMod(lon + octant[3] + PI, 2*PI)- PI;
 				
 				return new double[] { lat, lon };
 			}
@@ -291,44 +305,44 @@ public class Octohedral {
 	
 	private enum Configuration {
 		
-		BUTTERFLY(4, 2, 4/Math.sqrt(3), Math.sqrt(3), true, new double[][] { //the classic four quadrants splayed out in a nice butterfly shape, with Antarctica divided and attached
-			{  0, -1/Math.sqrt(3), -Math.PI/2, -3*Math.PI/4, -Math.PI/2,  Math.PI/2 },
-			{  0, -1/Math.sqrt(3), -Math.PI/6,   -Math.PI/4, -Math.PI/2,  Math.PI/2 },
-			{  0, -1/Math.sqrt(3),  Math.PI/6,    Math.PI/4, -Math.PI/2,  Math.PI/2 },
-			{  0, -1/Math.sqrt(3),  Math.PI/2,  3*Math.PI/4, -Math.PI/2,  Math.PI/2 },
+		BUTTERFLY(4, 2, 4/sqrt(3), sqrt(3), true, new double[][] { //the classic four quadrants splayed out in a nice butterfly shape, with Antarctica divided and attached
+			{  0, -1/sqrt(3), -PI/2, -3*PI/4, -PI/2,  PI/2 },
+			{  0, -1/sqrt(3), -PI/6,   -PI/4, -PI/2,  PI/2 },
+			{  0, -1/sqrt(3),  PI/6,    PI/4, -PI/2,  PI/2 },
+			{  0, -1/sqrt(3),  PI/2,  3*PI/4, -PI/2,  PI/2 },
 		}),
 		
-		M_PROFILE(4, 0, Math.sqrt(3), Math.sqrt(3), true, new double[][] { //The more compact zigzag configuration with Antarctica divided and attached
-			{ -1,               0, -Math.PI/6, -3*Math.PI/4, -Math.PI/2,  Math.PI/2 },
-			{ -1,               0,  Math.PI/6,   -Math.PI/4, -Math.PI/2,  Math.PI/2 },
-			{  1,               0, -Math.PI/6,    Math.PI/4, -Math.PI/2,  Math.PI/2 },
-			{  1,               0,  Math.PI/6,  3*Math.PI/4, -Math.PI/2,  Math.PI/2 },
+		M_PROFILE(4, 0, sqrt(3), sqrt(3), true, new double[][] { //The more compact zigzag configuration with Antarctica divided and attached
+			{ -1,               0, -PI/6, -3*PI/4, -PI/2,  PI/2 },
+			{ -1,               0,  PI/6,   -PI/4, -PI/2,  PI/2 },
+			{  1,               0, -PI/6,    PI/4, -PI/2,  PI/2 },
+			{  1,               0,  PI/6,  3*PI/4, -PI/2,  PI/2 },
 		}),
 		
-		M_W_S_POLE(4, 0, 2.008, Math.sqrt(3), false, new double[][] { //Keyes's current configuration, with Antarctica reassembled in the center
-			{ -1,               0, -Math.PI/6, -3*Math.PI/4, Math.toRadians(-64),  Math.PI/2 },
-			{ -1,               0,  Math.PI/6,   -Math.PI/4,          -Math.PI/2,  Math.PI/2 },
-			{  1,               0, -Math.PI/6,    Math.PI/4, Math.toRadians(-64),  Math.PI/2 },
-			{  1,               0,  Math.PI/6,  3*Math.PI/4, Math.toRadians(-64),  Math.PI/2 },
-			{ -1.6976,  -2.6036,  2*Math.PI/3, -3*Math.PI/4, -Math.PI/2, Math.toRadians(-64) },
-			{  1.6036,  -0.6976,   -Math.PI/3,    Math.PI/4, -Math.PI/2, Math.toRadians(-64) },
-			{  0.9060,  -3.3013, -5*Math.PI/6,  3*Math.PI/4, -Math.PI/2, Math.toRadians(-64) },
+		M_W_S_POLE(4, 0, 2.008, sqrt(3), false, new double[][] { //Keyes's current configuration, with Antarctica reassembled in the center
+			{ -1,               0, -PI/6, -3*PI/4, toRadians(-64),  PI/2 },
+			{ -1,               0,  PI/6,   -PI/4,          -PI/2,  PI/2 },
+			{  1,               0, -PI/6,    PI/4, toRadians(-64),  PI/2 },
+			{  1,               0,  PI/6,  3*PI/4, toRadians(-64),  PI/2 },
+			{ -1.6976,  -2.6036,  2*PI/3, -3*PI/4, -PI/2, toRadians(-64) },
+			{  1.6036,  -0.6976,   -PI/3,    PI/4, -PI/2, toRadians(-64) },
+			{  0.9060,  -3.3013, -5*PI/6,  3*PI/4, -PI/2, toRadians(-64) },
 		}),
 		
-		BAT_SHAPE(3.47, 0, 2.03, 0, false, rotate(0, -1.55, Math.toRadians(5), new double[][] { //Luca Concialdi's obscure "Bat" arrangement that I liked.
-			{               0, -0.5, -2*Math.PI/3, -Math.PI  ,          0,  Math.PI/2, Math.toRadians(-9),  1 },
-			{ -3/Math.sqrt(3),  0.5,            0, -Math.PI  , -Math.PI/2,          0, Math.toRadians( 9),  1 },
-			{               0, -0.5,   -Math.PI/3, -Math.PI/2, -Math.PI/2,  Math.PI/2 },
-			{               0, -0.5,            0,          0, -Math.PI/4,  Math.PI/2 },
-			{               0, -2.5, -2*Math.PI/3,          0, -Math.PI/2, -Math.PI/4, -1, 0 },
-			{               0, -2.5,  2*Math.PI/3,          0, -Math.PI/2, -Math.PI/4, 0,  1 },
-			{               0, -0.5,    Math.PI/3,  Math.PI/2, -Math.PI/2,  Math.PI/2 },
-			{               0, -0.5,  2*Math.PI/3,  Math.PI  ,          0,  Math.PI/2, -1, Math.toRadians(-9) },
-			{  3/Math.sqrt(3),  0.5,            0,  Math.PI  , -Math.PI/2,          0, -1, Math.toRadians( 9) },
+		BAT_SHAPE(3.47, 0, 2.03, 0, false, rotate(0, -1.55, toRadians(5), new double[][] { //Luca Concialdi's obscure "Bat" arrangement that I liked.
+			{               0, -0.5, -2*PI/3, -PI  ,          0,  PI/2, toRadians(-9),  1 },
+			{ -3/sqrt(3),  0.5,            0, -PI  , -PI/2,          0, toRadians( 9),  1 },
+			{               0, -0.5,   -PI/3, -PI/2, -PI/2,  PI/2 },
+			{               0, -0.5,            0,          0, -PI/4,  PI/2 },
+			{               0, -2.5, -2*PI/3,          0, -PI/2, -PI/4, -1, 0 },
+			{               0, -2.5,  2*PI/3,          0, -PI/2, -PI/4, 0,  1 },
+			{               0, -0.5,    PI/3,  PI/2, -PI/2,  PI/2 },
+			{               0, -0.5,  2*PI/3,  PI  ,          0,  PI/2, -1, toRadians(-9) },
+			{  3/sqrt(3),  0.5,            0,  PI  , -PI/2,          0, -1, toRadians( 9) },
 		})),
 
-        SINGLE_OCTANT(1, 0, 2/Math.sqrt(3), Math.sqrt(3), true, new double[][] {
-			{ -0.5, 0, Math.PI/6, Math.PI/4, -Math.PI/2, Math.PI/2 },
+        SINGLE_OCTANT(1, 0, 2/sqrt(3), sqrt(3), true, new double[][] {
+			{ -0.5, 0, PI/6, PI/4, -PI/2, PI/2 },
 		});
 		
 		public final double fullWidth, cutWidth, fullHeight, cutHeight;
@@ -366,8 +380,8 @@ public class Octohedral {
 			for (int i = 0; i < in.length; i ++) {
 				out[i] = new double[in[i].length];
 				System.arraycopy(in[i], 0, out[i], 0, in[i].length);
-				out[i][0] = Math.cos(th)*(in[i][0]-xP) - Math.sin(th)*(in[i][1]-yP) + xP;
-				out[i][1] = Math.sin(th)*(in[i][0]-xP) + Math.cos(th)*(in[i][1]-yP) + yP;
+				out[i][0] = cos(th)*(in[i][0]-xP) - sin(th)*(in[i][1]-yP) + xP;
+				out[i][1] = sin(th)*(in[i][0]-xP) + cos(th)*(in[i][1]-yP) + yP;
 				out[i][2] = in[i][2] + th;
 			}
 			return out;

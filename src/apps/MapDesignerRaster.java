@@ -57,6 +57,13 @@ import utils.Flag;
 import utils.MutableDouble;
 import utils.Procedure;
 
+import static java.lang.Double.isNaN;
+import static java.lang.Integer.parseInt;
+import static java.lang.Math.PI;
+import static java.lang.Math.toRadians;
+import static utils.Math2.max;
+import static utils.Math2.min;
+
 /**
  * An application to make raster oblique aspects of map projections
  * 
@@ -184,10 +191,10 @@ public class MapDesignerRaster extends MapApplication {
 		loadParameters();
 		if (getProjection().getAspectRatio() >= 1) //fit it to an IMG_SIZE x IMG_SIZE box
 			return calculateTask(
-					IMG_SIZE, (int)Math.max(1,IMG_SIZE/getProjection().getAspectRatio()), 1);
+					IMG_SIZE, (int)max(1,IMG_SIZE/getProjection().getAspectRatio()), 1);
 		else
 			return calculateTask(
-					(int)Math.max(1,IMG_SIZE*getProjection().getAspectRatio()), IMG_SIZE, 1);
+					(int)max(1,IMG_SIZE*getProjection().getAspectRatio()), IMG_SIZE, 1);
 	}
 	
 	private Task<SavableImage> calculateTaskForSaving() {
@@ -285,7 +292,7 @@ public class MapDesignerRaster extends MapApplication {
 						double Y = domain.yMax - (domain.yMax - domain.yMin)*(y+(dy+.5)/step)/height;
 						double[] coords = proj.inverse(X, Y, aspect, crop);
 						if (coords != null) { //if it is null, the default (0:transparent) is used
-							if (Double.isNaN(coords[0]) || Double.isNaN(coords[1]))
+							if (isNaN(coords[0]) || isNaN(coords[1]))
 								System.err.println(proj+" returns "+coords[0]+","+coords[1]+" at "+X+","+Y+"!");
 							colors[step*dy+dx] = input.getArgb(coords[0], coords[1]);
 						}
@@ -301,14 +308,14 @@ public class MapDesignerRaster extends MapApplication {
 			updateMessage.accept("Drawing graticule\u2026");
 
 			int r = 255, g = 255, b = 255, a = 255;
-			float lineWidth = (float)(Math.min(width, height)/300);
+			float lineWidth = (float)(min(width, height)/300);
 			BufferedReader fileReader = null;
 			try {
 				fileReader = new BufferedReader(new FileReader("input/graticule.txt"));
-				r = Integer.parseInt(fileReader.readLine().split(":")[1].trim());
-				g = Integer.parseInt(fileReader.readLine().split(":")[1].trim());
-				b = Integer.parseInt(fileReader.readLine().split(":")[1].trim());
-				a = Integer.parseInt(fileReader.readLine().split(":")[1].trim());
+				r = parseInt(fileReader.readLine().split(":")[1].trim());
+				g = parseInt(fileReader.readLine().split(":")[1].trim());
+				b = parseInt(fileReader.readLine().split(":")[1].trim());
+				a = parseInt(fileReader.readLine().split(":")[1].trim());
 				lineWidth = Float.parseFloat(fileReader.readLine().split(":")[1]);
 			} catch (NumberFormatException | IOException e) {
 				e.printStackTrace();
@@ -320,8 +327,8 @@ public class MapDesignerRaster extends MapApplication {
 			}
 
 			ImageUtils.drawSVGPath(
-				  proj.drawGraticule(Math.toRadians(gratSpacing), GRATICULE_PRECISION,
-									 width, height, Math.PI/2, Math.PI, aspect),
+				  proj.drawGraticule(toRadians(gratSpacing), GRATICULE_PRECISION,
+									 width, height, PI/2, PI, aspect),
 				  new Color(r, g, b, a), lineWidth,
 				  true, (Graphics2D)theMap.getGraphics());
 		}

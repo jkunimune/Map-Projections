@@ -25,6 +25,9 @@ package utils;
 
 import org.apache.commons.math3.complex.Complex;
 
+import static java.lang.Math.abs;
+import static utils.Math2.combine;
+
 /**
  * Actually just the one incomplete integral. I honestly don't remember where I got this sequence from
  * 
@@ -44,7 +47,7 @@ public class Elliptic {
 			if (n > 0)
 				i_n = i_n.multiply((2.0 * n - 1) / (2.0 * n))
 						.subtract(phi.cos().multiply(phi.sin().pow(2.0 * n - 1)).divide(2.0 * n));
-			delt = i_n.multiply(Math.abs(Math2.combine(-.5, n))).multiply(k.pow(2.0 * n));
+			delt = i_n.multiply(abs(combine(-.5, n))).multiply(k.pow(2.0 * n));
 			sum = sum.add(delt);
 			n ++;
 		} while (delt.abs() > TOLERANCE);

@@ -28,6 +28,15 @@ import maps.Projection.Type;
 import utils.BoundingBox;
 import utils.NumericalAnalysis;
 
+import static java.lang.Math.PI;
+import static java.lang.Math.acos;
+import static java.lang.Math.cos;
+import static java.lang.Math.pow;
+import static java.lang.Math.sin;
+import static java.lang.Math.sqrt;
+import static java.lang.Math.toDegrees;
+import static java.lang.Math.toRadians;
+
 /**
  * All the useful Winkel Tripel equations and derivatives.
  * I tried solving for these equations myself, and I think I got them mostly
@@ -49,13 +58,13 @@ public final class WinkelTripel {
 	public static final Projection WINKEL_TRIPEL =
 			new Projection("Winkel Tripel", "National Geographic's compromise projection of choice.",
 					null, 0b1011, Type.OTHER, Property.COMPROMISE, 3,
-					new String[] {"Std. Parallel"}, new double[][] {{0, 90, Math.toDegrees(Math.acos(2/Math.PI))}}) {
+					new String[] {"Std. Parallel"}, new double[][] {{0, 90, toDegrees(acos(2/PI))}}) {
 		
 		private double stdParallel;
 		
 		public void initialize(double... params) {
-			this.stdParallel = Math.toRadians(params[0]);
-			this.bounds = new BoundingBox(2*Math.PI*(1 + Math.cos(stdParallel)), 2*Math.PI);
+			this.stdParallel = toRadians(params[0]);
+			this.bounds = new BoundingBox(2*PI*(1 + cos(stdParallel)), 2*PI);
 		}
 		
 		public double[] project(double lat, double lon) {
@@ -65,7 +74,7 @@ public final class WinkelTripel {
 		public double[] inverse(double x, double y) {
 			return NumericalAnalysis.newtonRaphsonApproximation(
 					x, y,
-					y/2, x*(1 + Math.cos(y*Math.PI/2))/(2 + 2*Math.cos(stdParallel)), //inital guess is Eckert V
+					y/2, x*(1 + cos(y*PI/2))/(2 + 2*cos(stdParallel)), //inital guess is Eckert V
 					this::f1pX, this::f2pY,
 					this::df1dphi, this::df1dlam, this::df2dphi, this::df2dlam, .001);
 		}
@@ -73,46 +82,46 @@ public final class WinkelTripel {
 		private double f1pX(double phi, double lam) {
 			final double d = D(phi,lam);
 			final double c = C(phi,lam);
-			return 2*d/Math.sqrt(c)*Math.cos(phi)*Math.sin(lam/2) + lam*Math.cos(stdParallel);
+			return 2*d/sqrt(c)*cos(phi)*sin(lam/2) + lam*cos(stdParallel);
 		}
 		
 		private double f2pY(double phi, double lam) {
 			final double d = D(phi,lam);
 			final double c = C(phi,lam);
-			return d/Math.sqrt(c)*Math.sin(phi) + phi;
+			return d/sqrt(c)*sin(phi) + phi;
 		}
 		
 		private double df1dphi(double phi, double lam) {
 			final double d = D(phi,lam);
 			final double c = C(phi,lam);
-			return Math.sin(lam)*Math.sin(2*phi)/(4*c) - d/Math.pow(c,1.5)*Math.sin(phi)*Math.sin(lam/2);
+			return sin(lam)*sin(2*phi)/(4*c) - d/pow(c,1.5)*sin(phi)*sin(lam/2);
 		}
 		
 		private double df1dlam(double phi, double lam) {
 			final double d = D(phi,lam);
 			final double c = C(phi,lam);
-			return Math.pow(Math.cos(phi)*Math.sin(lam/2), 2)/c + d/Math.pow(c,1.5)*Math.cos(phi)*Math.cos(lam/2)*Math.pow(Math.sin(phi),2) + Math.cos(stdParallel);
+			return pow(cos(phi)*sin(lam/2), 2)/c + d/pow(c,1.5)*cos(phi)*cos(lam/2)*pow(sin(phi),2) + cos(stdParallel);
 		}
 		
 		private double df2dphi(double phi, double lam) {
 			final double d = D(phi,lam);
 			final double c = C(phi,lam);
-			return Math.pow(Math.sin(phi),2)*Math.cos(lam/2)/c + d/Math.pow(c,1.5)*(1-Math.pow(Math.cos(lam/2),2))*Math.cos(phi) + 1;
+			return pow(sin(phi),2)*cos(lam/2)/c + d/pow(c,1.5)*(1-pow(cos(lam/2),2))*cos(phi) + 1;
 		}
 		
 		private double df2dlam(double phi, double lam) {
 			final double d = D(phi,lam);
 			final double c = C(phi,lam);
-			return (Math.sin(2*phi)*Math.sin(lam/2)/c - d/Math.pow(c,1.5)*Math.sin(phi)*Math.pow(Math.cos(phi),2)*Math.sin(lam))/4.0;
+			return (sin(2*phi)*sin(lam/2)/c - d/pow(c,1.5)*sin(phi)*pow(cos(phi),2)*sin(lam))/4.0;
 		}
 		
 		private double D(double phi, double lam) {
-			return Math.acos(Math.cos(phi)*Math.cos(lam/2));
+			return acos(cos(phi)*cos(lam/2));
 		}
 		
 		private double C(double phi, double lam) {
 			if (phi == 0 && lam == 0) 	return 1; //there's a hole here
-			return 1 - Math.pow(Math.cos(phi)*Math.cos(lam/2), 2);
+			return 1 - pow(cos(phi)*cos(lam/2), 2);
 		}
 	};
 }

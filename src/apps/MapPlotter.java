@@ -61,6 +61,8 @@ import maps.Projection;
 import maps.Pseudocylindrical;
 import maps.WinkelTripel;
 
+import static java.lang.Math.log;
+
 /**
  * A simple script that creates an annotated ScatterPlot of map projections
  * 
@@ -68,7 +70,7 @@ import maps.WinkelTripel;
  */
 public class MapPlotter extends Application {
 
-	private static final double DECIBEL = Math.log(10)/10;
+	private static final double DECIBEL = log(10)/10;
 	
 	private static final double GLOBE_RES = .005;
 	

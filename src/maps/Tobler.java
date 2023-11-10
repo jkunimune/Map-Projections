@@ -23,13 +23,21 @@
  */
 package maps;
 
-import java.util.Arrays;
-
 import maps.Projection.Property;
 import maps.Projection.Type;
 import utils.BoundingBox;
-import utils.Math2;
 import utils.NumericalAnalysis;
+
+import java.util.Arrays;
+
+import static java.lang.Math.PI;
+import static java.lang.Math.abs;
+import static java.lang.Math.asin;
+import static java.lang.Math.pow;
+import static java.lang.Math.round;
+import static java.lang.Math.signum;
+import static java.lang.Math.sin;
+import static utils.Math2.linInterp;
 
 /**
  * A class of values and functions used to approximate the Tobler projection
@@ -41,7 +49,7 @@ public class Tobler {
 	public static final Projection TOBLER =
 			new Projection(
 					"Tobler hyperelliptical", "An equal-area projection shaped like a hyperellipse.",
-					new BoundingBox(2*Math.PI, Math.PI), 0b1001, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 4,
+					new BoundingBox(2*PI, PI), 0b1001, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 4,
 					new String[]{"alpha","K"},
 					new double[][] {{0,1,0.0}, {1,5,2.5}}) {
 		
@@ -59,7 +67,7 @@ public class Tobler {
 		}
 		
 		public double[] project(double lat, double lon) {
-			final double z0 = Math.abs(Math.sin(lat));
+			final double z0 = abs(sin(lat));
 			final int i = Arrays.binarySearch(Z, z0);
 			final double y;
 			if (i >= 0)
@@ -67,26 +75,26 @@ public class Tobler {
 			else if (-i-1 >= Z.length)
 				y = Z[Z.length-1];
 			else
-				y = Math2.linInterp(z0, Z[-i-2], Z[-i-1], -i-2, -i-1)/
+				y = linInterp(z0, Z[-i-2], Z[-i-1], -i-2, -i-1)/
 						(Z.length-1.);
 			return new double[] {
-					lon * Math.abs(alpha + (1-alpha)*hyperEllipse(y)),
-					y * Math.signum(lat)*Math.PI/2 };
+					lon * abs(alpha + (1-alpha)*hyperEllipse(y)),
+					y * signum(lat)*PI/2 };
 		}
 		
 		public double[] inverse(double x, double y) {
 			return new double[] {
-					Math.asin(Z[(int)Math.round(Math.abs(2*y/Math.PI)*(Z.length-1))])*Math.signum(y),
-					x / Math.abs(alpha + (1-alpha)*hyperEllipse(2*y/Math.PI)) };
+					asin(Z[(int)round(abs(2*y/PI)*(Z.length-1))])*signum(y),
+					x / abs(alpha + (1-alpha)*hyperEllipse(2*y/PI)) };
 		}
 		
 		public double dZdY(double y) {
-			return Math.abs((alpha + (1-alpha)*hyperEllipse(y))/
+			return abs((alpha + (1-alpha)*hyperEllipse(y))/
 					(alpha + (1-alpha)*epsilon));
 		}
 		
 		public double hyperEllipse(double y) {
-			return Math.pow(1 - Math.pow(Math.abs(y),kappa), 1/kappa);
+			return pow(1 - pow(abs(y),kappa), 1/kappa);
 		}
 	};
 }

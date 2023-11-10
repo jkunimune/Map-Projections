@@ -49,6 +49,12 @@ import maps.WinkelTripel;
 import utils.linalg.Matrix;
 import utils.linalg.Vector;
 
+import static java.lang.Double.POSITIVE_INFINITY;
+import static java.lang.Double.isFinite;
+import static java.lang.Math.floor;
+import static java.lang.Math.pow;
+import static java.lang.Math.signum;
+
 /**
  * An application to compare and optimize map projections
  * 
@@ -178,7 +184,7 @@ public class MapOptimizer extends Application {
 		final double[] params = new double[bounds.length];
 		for (int i = 0; i < params.length; i++)
 			params[i] = bounds[i][0]; // initialize params
-		double bestValue = Double.POSITIVE_INFINITY;
+		double bestValue = POSITIVE_INFINITY;
 		double[] bestParams = new double[params.length];
 		
 		while (true) { // run until you've exhausted the parameter space
@@ -199,7 +205,7 @@ public class MapOptimizer extends Application {
 				}
 				
 				final double step = (bounds[i][1] - bounds[i][0]) /
-						Math.floor(Math.pow(NUM_BRUTE_FORCE, 1./params.length));
+						floor(pow(NUM_BRUTE_FORCE, 1./params.length));
 				if (params[i] + step < bounds[i][1] + 1e-5) {
 					for (int j = 0; j < i; j ++)
 						params[j] = bounds[j][0];
@@ -231,11 +237,11 @@ public class MapOptimizer extends Application {
 		
 		for (int k = 0; k < NUM_BFGS_ITERATE; k ++) { //(I'm not sure how to test for convergence here, so I'm just running a set number of iterations)
 			Vector pk = Vector.fromMatrix(Binv.times(gradFxk)); //apply Newton's method for initial step direction
-			pk = pk.times(-Math.signum(pk.dot(gradFxk))); //but make sure it points downhill
+			pk = pk.times(-signum(pk.dot(gradFxk))); //but make sure it points downhill
 			
 			double alfk = BACKTRACK_ALF0; //perform a backtracking line search to find the best alpha
 			double fxkp1 = func.apply(xk.plus(pk.times(alfk)));
-			while ((!Double.isFinite(fxkp1) || fxkp1 > fxk + alfk*pk.dot(gradFxk)*GOLDSTEIN_C)) {
+			while ((!isFinite(fxkp1) || fxkp1 > fxk + alfk*pk.dot(gradFxk)*GOLDSTEIN_C)) {
 				if (alfk <= 1e-5)
 					return xk.asArray(); //a simple way to check for convergence: if xk gets ridiculously small, we're done here.
 				alfk *= BACKTRACK_TAU;
@@ -294,15 +300,15 @@ public class MapOptimizer extends Application {
 	private static Matrix hessian(Function<Vector, Double> f, Vector x, double fx) {
 		final int n = x.getLength();
 		
-		double[] values = new double[(int)Math.pow(3, n-1)*2+1]; //points in array placed with ternary coordinates
+		double[] values = new double[(int)pow(3, n-1)*2+1]; //points in array placed with ternary coordinates
 		values[0] = fx;
 		for (int i = 0; i < n; i ++) { //for each primary dimension
 			for (int j = i; j < n; j ++) { //for each secondary dimension (skip a few to prevent redundant calculations)
-				int k = (int)Math.pow(3, i) + (int)Math.pow(3, j); //calculate the ternary index
+				int k = (int)pow(3, i) + (int)pow(3, j); //calculate the ternary index
 				Vector dx = Vector.unit(i, n).plus(Vector.unit(j, n)).times(DEL_X); //go a bit in both directions
 				values[k] = f.apply(x.plus(dx)); //calculate and save
 			}
-			int k = (int)Math.pow(3, i); //do the same with just i, no j
+			int k = (int)pow(3, i); //do the same with just i, no j
 			Vector dx = Vector.unit(i, n).times(DEL_X);
 			values[k] = f.apply(x.plus(dx));
 		}
@@ -310,8 +316,8 @@ public class MapOptimizer extends Application {
 		Matrix h = new Matrix(n, n);
 		for (int i = 0; i < n; i ++) { //compute the derivatives and fill the matrix
 			for (int j = i; j < n; j ++) {
-				int dxi = (int)Math.pow(3, i);
-				int dxj = (int)Math.pow(3, j);
+				int dxi = (int)pow(3, i);
+				int dxj = (int)pow(3, j);
 				double dfdx0 = (values[dxi] - values[0])/DEL_X;
 				double dfdx1 = (values[dxi+dxj] - values[dxj])/DEL_X;
 				double d2fdx2 = (dfdx1 - dfdx0)/DEL_X;

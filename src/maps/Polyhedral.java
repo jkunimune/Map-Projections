@@ -27,8 +27,26 @@ import maps.Projection.Property;
 import maps.Projection.Type;
 import utils.BoundingBox;
 import utils.Dixon;
-import utils.Math2;
 import utils.NumericalAnalysis;
+
+import static java.lang.Double.NEGATIVE_INFINITY;
+import static java.lang.Double.POSITIVE_INFINITY;
+import static java.lang.Math.PI;
+import static java.lang.Math.abs;
+import static java.lang.Math.asin;
+import static java.lang.Math.atan;
+import static java.lang.Math.atan2;
+import static java.lang.Math.cos;
+import static java.lang.Math.floor;
+import static java.lang.Math.hypot;
+import static java.lang.Math.pow;
+import static java.lang.Math.signum;
+import static java.lang.Math.sin;
+import static java.lang.Math.sqrt;
+import static java.lang.Math.tan;
+import static java.lang.Math.toRadians;
+import static utils.Math2.coerceAngle;
+import static utils.Math2.floorMod;
 
 /**
  * Projections created by projecting onto and then unfolding some kind of polyhedron
@@ -37,17 +55,13 @@ import utils.NumericalAnalysis;
  */
 public class Polyhedral {
 	
-	private static final double ASIN_ONE_THD = Math.asin(1/3.); //the complement of the angular radius of a tetrahedron face
-	private static final double ATAN_ONE_HLF = Math.atan(1/2.); //the complement of the angular length of an icosahedron edge
-	
-	
 	public static final PolyhedralProjection LEE_TETRAHEDRAL_RECTANGULAR = new PolyhedralProjection(
 			"Lee Tetrahedral", 0b1001, Configuration.TETRAHEDRON_WIDE_FACE, Property.CONFORMAL,
 			4, null, "that really deserves more attention") {
 		
 		public double[] faceProject(double lat, double lon) {
 			final de.jtem.mfc.field.Complex z = de.jtem.mfc.field.Complex.fromPolar(
-					Math.pow(2, 5/6.)*Math.tan(Math.PI/4-lat/2), lon);
+					pow(2, 5/6.)*tan(PI/4-lat/2), lon);
 			final de.jtem.mfc.field.Complex w = Dixon.invFunc(z);
 			return new double[] { w.abs()*2/Dixon.PERIOD_THIRD, w.arg() }; //I don't understand Dixon functions well enough to say whence the 1.132 comes
 		}
@@ -55,9 +69,9 @@ public class Polyhedral {
 		public double[] faceInverse(double r, double tht) {
 			final de.jtem.mfc.field.Complex w = de.jtem.mfc.field.Complex.fromPolar(
 					r*Dixon.PERIOD_THIRD/2, tht);
-			final de.jtem.mfc.field.Complex ans = Dixon.leeFunc(w).times(Math.pow(2, -5/6.));
+			final de.jtem.mfc.field.Complex ans = Dixon.leeFunc(w).times(pow(2, -5/6.));
 			return new double[] {
-					Math.PI/2 - 2*Math.atan(ans.abs()),
+					PI/2 - 2*atan(ans.abs()),
 					ans.arg() };
 		}
 	};
@@ -84,13 +98,13 @@ public class Polyhedral {
 		
 		public double[] faceProject(double lat, double lon) {
 			return new double[] {
-					Math.atan(1/Math.tan(lat)*Math.cos(lon))/Math.cos(lon) /Math.atan(Math.sqrt(2)),
+					atan(1/tan(lat)*cos(lon))/cos(lon) /atan(sqrt(2)),
 					lon };
 		}
 		
 		public double[] faceInverse(double r, double tht) {
 			return new double[] {
-					Math.PI/2 - Math.atan(Math.tan(r*Math.cos(tht)*Math.atan(Math.sqrt(2)))/Math.cos(tht)),
+					PI/2 - atan(tan(r*cos(tht)*atan(sqrt(2)))/cos(tht)),
 					tht };
 		}
 	};
@@ -103,7 +117,7 @@ public class Polyhedral {
 			0b1011, Configuration.AUTHAGRAPH, Property.COMPROMISE, 3,
 			new String[] {"Power"}, new double[][] {{.5,1,.68}}) {
 		
-		private final double[] POLE = {Math.toRadians(77), Math.toRadians(143), Math.toRadians(17)};
+		private final double[] POLE = {toRadians(77), toRadians(143), toRadians(17)};
 		private double k;
 		
 		public void initialize(double... params) {
@@ -123,19 +137,19 @@ public class Polyhedral {
 		
 		
 		public double[] faceProject(double lat, double lon) {
-			final double tht = Math.atan((lon - Math.asin(Math.sin(lon)/Math.sqrt(3)))/Math.PI*Math.sqrt(12));
-			final double p = (Math.PI/2 - lat) / Math.atan(Math.sqrt(2)/Math.cos(lon));
-			return new double[] { Math.pow(p,k)*Math.sqrt(3)/Math.cos(tht), tht };
+			final double tht = atan((lon - asin(sin(lon)/sqrt(3)))/PI*sqrt(12));
+			final double p = (PI/2 - lat) / atan(sqrt(2)/cos(lon));
+			return new double[] { pow(p,k)*sqrt(3)/cos(tht), tht };
 		}
 		
 		protected double[] faceInverse(double r, double th) {
 			final double lon = NumericalAnalysis.newtonRaphsonApproximation(th, th*2,
-					(l) -> Math.atan((l - Math.asin(Math.sin(l)/Math.sqrt(3)))/Math.PI*Math.sqrt(12)),
-					(l) -> (1-1/Math.sqrt(1+2*Math.pow(Math.cos(l),-2)))/Math.sqrt(Math.pow(Math.PI,2)/12+Math.pow(l-Math.asin(Math.sin(l)/Math.sqrt(3)),2)),
+					(l) -> atan((l - asin(sin(l)/sqrt(3)))/PI*sqrt(12)),
+					(l) -> (1-1/sqrt(1+2*pow(cos(l),-2)))/sqrt(pow(PI,2)/12+pow(l-asin(sin(l)/sqrt(3)),2)),
 					.001);
-			final double R = r / (Math.sqrt(3)/Math.cos(th));
+			final double R = r / (sqrt(3)/cos(th));
 			return new double[] {
-					Math.PI/2 - Math.pow(R,1/k)*Math.atan(Math.sqrt(2)/Math.cos(lon)), lon };
+					PI/2 - pow(R,1/k)*atan(sqrt(2)/cos(lon)), lon };
 		}
 	};
 	
@@ -152,19 +166,19 @@ public class Polyhedral {
 		}
 		
 		public double[] faceProject(double lat, double lon) {
-			final double tht = Math.atan((lon - Math.asin(Math.sin(lon)/Math.sqrt(3)))/Math.PI*Math.sqrt(12));
-			final double p = (Math.PI/2 - lat) / Math.atan(Math.sqrt(2)/Math.cos(lon));
-			return new double[] { Math.pow(p,k)*Math.sqrt(3)/Math.cos(tht), tht };
+			final double tht = atan((lon - asin(sin(lon)/sqrt(3)))/PI*sqrt(12));
+			final double p = (PI/2 - lat) / atan(sqrt(2)/cos(lon));
+			return new double[] { pow(p,k)*sqrt(3)/cos(tht), tht };
 		}
 		
 		protected double[] faceInverse(double r, double th) {
 			final double lon = NumericalAnalysis.newtonRaphsonApproximation(th, th*2,
-					(l) -> Math.atan((l - Math.asin(Math.sin(l)/Math.sqrt(3)))/Math.PI*Math.sqrt(12)),
-					(l) -> (1-1/Math.sqrt(1+2*Math.pow(Math.cos(l),-2)))/Math.sqrt(Math.pow(Math.PI,2)/12+Math.pow(l-Math.asin(Math.sin(l)/Math.sqrt(3)),2)),
+					(l) -> atan((l - asin(sin(l)/sqrt(3)))/PI*sqrt(12)),
+					(l) -> (1-1/sqrt(1+2*pow(cos(l),-2)))/sqrt(pow(PI,2)/12+pow(l-asin(sin(l)/sqrt(3)),2)),
 					.001);
-			final double R = r / (Math.sqrt(3)/Math.cos(th));
+			final double R = r / (sqrt(3)/cos(th));
 			return new double[] {
-					Math.PI/2 - Math.pow(R,1/k)*Math.atan(Math.sqrt(2)/Math.cos(lon)), lon };
+					PI/2 - pow(R,1/k)*atan(sqrt(2)/cos(lon)), lon };
 		}
 	};
 	
@@ -179,19 +193,19 @@ public class Polyhedral {
 		public void initialize(double... params) {
 			this.sig = params[0]/60;
 			this.a0 = 3 - 1.5*sig*sig;
-			this.scale = Math.sqrt(3)*a0/Math.PI;
+			this.scale = sqrt(3)*a0/PI;
 		}
 		
 		public double[] faceProject(double lat, double lon) {
-			double bet = Math.atan((lon-Math.asin(Math.sin(lon)/Math.sqrt(3)))/(a0/2)*scale);
-			double f = (1-Math.sin(lat))/(1-1/Math.sqrt(1+2/Math2.cos2(lon)));
+			double bet = atan((lon-asin(sin(lon)/sqrt(3)))/(a0/2)*scale);
+			double f = (1-sin(lat))/(1-1/sqrt(1+2/pow(cos(lon), 2)));
 			if (f < (3*sig*sig)/(2*a0)) { //sinus zone
-				double alf = Math.atan(2*Math.tan(Math.abs(bet)) - 1/Math.sqrt(3));
-				double rA = Math.sqrt(2*f*a0/Math2.cos2(alf))/2;
-				return toPolar(rA, alf, Math.signum(lon));
+				double alf = atan(2*tan(abs(bet)) - 1/sqrt(3));
+				double rA = sqrt(2*f*a0/pow(cos(alf), 2))/2;
+				return toPolar(rA, alf, signum(lon));
 			}
 			else { //primary zone
-				double rB = Math.sqrt(a0*f - a0 + 3)/Math.cos(bet);
+				double rB = sqrt(a0*f - a0 + 3)/cos(bet);
 				return new double[] {rB, bet};
 			}
 		}
@@ -199,37 +213,37 @@ public class Polyhedral {
 		public double[] faceInverse(double r, double th) {
 			double bet;
 			double f;
-			if (r < sig*Math.sqrt(3)/2/Math.cos(Math.abs(th)-Math.PI/3)) //empty
+			if (r < sig*sqrt(3)/2/cos(abs(th)-PI/3)) //empty
 				return null;
-			else if (r*Math.cos(th) < sig*Math.sqrt(3)) { //sinus zone
+			else if (r*cos(th) < sig*sqrt(3)) { //sinus zone
 				double[] relCoords = fromPolar(r, th);
 				double rA = relCoords[0];
 				double alf = relCoords[1];
-				bet = Math.signum(th)*Math.atan(Math.tan(alf)/2+1/Math.sqrt(12));
-				f = Math.pow(rA, 2) * 2*Math2.cos2(alf)/a0;
+				bet = signum(th)*atan(tan(alf)/2+1/sqrt(12));
+				f = pow(rA, 2) * 2*pow(cos(alf), 2)/a0;
 			}
 			else { //primary zone
 				bet = th;
-				f = (r*r*Math2.cos2(bet) - 1.5*sig*sig)/a0;
+				f = (r*r*pow(cos(bet), 2) - 1.5*sig*sig)/a0;
 			}
 			double lon = NumericalAnalysis.newtonRaphsonApproximation(
-					a0/2*Math.tan(bet)/scale, bet*2,
-					(l) -> l - Math.asin(Math.sin(l)/Math.sqrt(3)),
-					(l) -> 1 - 1/Math.sqrt(1 + 2/Math2.cos2(l)), 1e-4);
-			double lat = Math.asin(1 - f*(1 - 1/Math.sqrt(1+2/Math2.cos2(lon))));
+					a0/2*tan(bet)/scale, bet*2,
+					(l) -> l - asin(sin(l)/sqrt(3)),
+					(l) -> 1 - 1/sqrt(1 + 2/pow(cos(l), 2)), 1e-4);
+			double lat = asin(1 - f*(1 - 1/sqrt(1+2/pow(cos(lon), 2))));
 			return new double[] {lat, lon};
 		}
 		
 		private double[] toPolar(double rA, double alf, double s) {
-			double x = rA*Math.cos(alf) + sig*Math.sqrt(3)/2;
-			double y = rA*Math.sin(alf) + sig/2;
-			return new double[] {Math.hypot(x, y), s*Math.atan2(y, x)};
+			double x = rA*cos(alf) + sig*sqrt(3)/2;
+			double y = rA*sin(alf) + sig/2;
+			return new double[] {hypot(x, y), s*atan2(y, x)};
 		}
 		
 		private double[] fromPolar(double rB, double bet) {
-			double x = rB*Math.cos(bet) - sig*Math.sqrt(3)/2;
-			double y = Math.abs(rB*Math.sin(bet)) - sig/2;
-			return new double[] {Math.hypot(x, y), Math.atan2(y, x)};
+			double x = rB*cos(bet) - sig*sqrt(3)/2;
+			double y = abs(rB*sin(bet)) - sig/2;
+			return new double[] {hypot(x, y), atan2(y, x)};
 		}
 	};
 	
@@ -256,10 +270,10 @@ public class Polyhedral {
 		
 		private final double[] POLE = {0.040158, -0.091549,-2.015269}; //I derived these numbers from [Robert Gray](http://www.rwgrayprojects.com/rbfnotes/maps/graymap4.html)
 		private final double X_0 = 0.75;
-		private final double Y_0 = -Math.sqrt(3)/4;
+		private final double Y_0 = -sqrt(3)/4;
 		
-		private final double sin36 = Math.sqrt(10-2*Math.sqrt(5))/4;
-		private final double cos36 = (1+Math.sqrt(5))/4;
+		private final double sin36 = sqrt(10-2*sqrt(5))/4;
+		private final double cos36 = (1+sqrt(5))/4;
 		
 		@Override
 		public double[] project(double lat, double lon) { //apply a pole shift and Cartesian shift to Dymaxion
@@ -276,25 +290,25 @@ public class Polyhedral {
 		}
 		
 		public double[] faceProject(double lat, double lon) {
-			double xG = Math.cos(lon)/Math.tan(lat)/cos36; //normalised gnomonic coordinates
-			double yG = Math.sin(lon)/Math.tan(lat)/sin36;
-			double a = Math.asin((xG+yG)/(2*Math.sqrt(1+xG*xG))) + Math.atan(xG); //angular distance up each side of the triangle
-			double b = Math.asin((xG-yG)/(2*Math.sqrt(1+xG*xG))) + Math.atan(xG);
-			double x = (a + b)/(2*Math.sqrt(3)); //final cartesian coordinates in radians
+			double xG = cos(lon)/tan(lat)/cos36; //normalised gnomonic coordinates
+			double yG = sin(lon)/tan(lat)/sin36;
+			double a = asin((xG+yG)/(2*sqrt(1+xG*xG))) + atan(xG); //angular distance up each side of the triangle
+			double b = asin((xG-yG)/(2*sqrt(1+xG*xG))) + atan(xG);
+			double x = (a + b)/(2*sqrt(3)); //final cartesian coordinates in radians
 			double y = (a - b)/2;
-			return new double[] {Math.hypot(x,y)/Math.atan(2), Math.atan2(y,x)}; //scale to fit to layout, where side length is 1
+			return new double[] {hypot(x,y)/atan(2), atan2(y,x)}; //scale to fit to layout, where side length is 1
 		}
 		
 		public double[] faceInverse(double r, double th) {
-			if (Math.abs(th) > Math.PI/6+1e-15) 	throw new IllegalArgumentException("Wait, what?"+th);
-			double x = r*Math.cos(th)*Math.atan(2); //cartesian coordinates in radians
-			double y = r*Math.sin(th)*Math.atan(2);
-			double a = Math.sqrt(3)*x + y; //angular distance up each side of the triangle
-			double b = Math.sqrt(3)*x - y;
-			double xG = cos36*(Math.sin(a) + Math.sin(b))/(1 + Math.cos(a) + Math.cos(b)); //unnormalised gnomonic coordinates
+			if (abs(th) > PI/6+1e-15) 	throw new IllegalArgumentException("Wait, what?"+th);
+			double x = r*cos(th)*atan(2); //cartesian coordinates in radians
+			double y = r*sin(th)*atan(2);
+			double a = sqrt(3)*x + y; //angular distance up each side of the triangle
+			double b = sqrt(3)*x - y;
+			double xG = cos36*(sin(a) + sin(b))/(1 + cos(a) + cos(b)); //unnormalised gnomonic coordinates
 			double yG = sin36*
-					(Math.sin(a) - Math.sin(b) + 2*Math.sin(a-b))/(1 + Math.cos(a) + Math.cos(b));
-			return new double[] {Math.atan(1/Math.hypot(xG, yG)), Math.atan2(yG, xG)}; //inverse gnomonic projection
+					(sin(a) - sin(b) + 2*sin(a-b))/(1 + cos(a) + cos(b));
+			return new double[] {atan(1/hypot(xG, yG)), atan2(yG, xG)}; //inverse gnomonic projection
 		}
 	};
 	
@@ -342,15 +356,15 @@ public class Polyhedral {
 		
 		public double[] project(double lat, double lon) {
 			final int numSym = configuration.sphereSym; //we're about to be using this variable a lot
-			double latR = Double.NEGATIVE_INFINITY;
-			double lonR = Double.NEGATIVE_INFINITY;
+			double latR = NEGATIVE_INFINITY;
+			double lonR = NEGATIVE_INFINITY;
 			double[] centrum = null;
 			for (double[] testCentrum: configuration.centrumSet) { //iterate through the centrums to see which goes here
 				final double[] relCoords = transformFromOblique(lat, lon, testCentrum);
 				if (testCentrum.length > 6) { //if the centrum is long, then it contains longitude bounds
-					double minL = testCentrum[6]*Math.PI/numSym;
-					double maxL = testCentrum[7]*Math.PI/numSym;
-					relCoords[1] = Math2.floorMod(relCoords[1]-minL, 2*Math.PI) + minL;
+					double minL = testCentrum[6]*PI/numSym;
+					double maxL = testCentrum[7]*PI/numSym;
+					relCoords[1] = floorMod(relCoords[1]-minL, 2*PI) + minL;
 					if (relCoords[1] < minL || relCoords[1] > maxL)
 						continue; //ignore any longitudes not in the bounds described in [6:7]
 				}
@@ -362,8 +376,8 @@ public class Polyhedral {
 				}
 			}
 			
-			final double lonR0 = Math.floor((lonR+Math.PI/numSym)/(2*Math.PI/numSym))
-					*(2*Math.PI/numSym); //because most face projections are periodic
+			final double lonR0 = floor((lonR+PI/numSym)/(2*PI/numSym))
+					*(2*PI/numSym); //because most face projections are periodic
 			
 			final double[] rth = faceProject(latR, lonR - lonR0); //apply the projection to the relative coordinates
 			final double r = rth[0];
@@ -371,7 +385,7 @@ public class Polyhedral {
 			final double x0 = centrum[4];
 			final double y0 = centrum[5];
 			
-			double[] output = { r*Math.cos(th) + x0, r*Math.sin(th) + y0 };
+			double[] output = { r*cos(th) + x0, r*sin(th) + y0 };
 			if (output[0] < bounds.xMin || output[0] > bounds.xMax || output[1] < bounds.yMin || output[1] > bounds.yMax) { //rotate OOB bits around nearest singularity
 				output = configuration.rotateOOB(output[0], output[1], x0, y0);
 			}
@@ -384,10 +398,10 @@ public class Polyhedral {
 			
 			final int numSym = configuration.planarSym; //we'll be using this variable a lot soon
 			
-			double rM = Double.POSITIVE_INFINITY;
+			double rM = POSITIVE_INFINITY;
 			double[] centrum = null; //iterate to see which centrum we get
 			for (double[] testCentrum: configuration.centrumSet) {
-				final double rR = Math.hypot(x-testCentrum[4], y-testCentrum[5]);
+				final double rR = hypot(x-testCentrum[4], y-testCentrum[5]);
 				if (rR < rM) { //pick the centrum that minimises r
 					rM = rR;
 					centrum = testCentrum;
@@ -397,16 +411,16 @@ public class Polyhedral {
 			final double th0 = centrum[3];
 			final double x0 = centrum[4];
 			final double y0 = centrum[5];
-			final double r = Math.hypot(x - x0, y - y0);
-			final double th = Math2.coerceAngle(Math.atan2(y - y0, x - x0) - th0);
+			final double r = hypot(x - x0, y - y0);
+			final double th = coerceAngle(atan2(y - y0, x - x0) - th0);
 			
 			if (centrum.length > 6) { //if the centrum has extra values, they are angle bounds
-				if (th < centrum[6]*Math.PI/numSym || th > centrum[7]*Math.PI/numSym)
+				if (th < centrum[6]*PI/numSym || th > centrum[7]*PI/numSym)
 					return null; //ignore any angles not in the bounds described in [6:7]
 			}
 			
-			final double thBase = Math.floor((th+Math.PI/numSym)/(2*Math.PI/numSym))
-					*(2*Math.PI/numSym); //because most face projections are periodic
+			final double thBase = floor((th+PI/numSym)/(2*PI/numSym))
+					*(2*PI/numSym); //because most face projections are periodic
 			
 			double[] relCoords = faceInverse(r, th - thBase);
 			
@@ -415,8 +429,8 @@ public class Polyhedral {
 			
 			relCoords[1] = thBase*numSym/configuration.sphereSym + relCoords[1];
 			double[] absCoords = transformToOblique(relCoords, centrum);
-			if (Math.abs(absCoords[1]) > Math.PI)
-				absCoords[1] = Math2.coerceAngle(absCoords[1]);
+			if (abs(absCoords[1]) > PI)
+				absCoords[1] = coerceAngle(absCoords[1]);
 			return absCoords;
 		}
 	}
@@ -428,78 +442,78 @@ public class Polyhedral {
 	 * 
 	 * @author jkunimune
 	 */
-	private static enum Configuration {
+	private enum Configuration {
 		
 		/*		  LATITUDE,		 LONGITUDE,		 CTR_MERID,		 PLANE_ROT,		 X,	 Y */
-		TETRAHEDRON_WIDE_FACE(3, 3, new BoundingBox(6., 2*Math.sqrt(3)), new double[][] { // [<|>] arrangement, face-centred
-				{ ASIN_ONE_THD,	 Math.PI,	-2*Math.PI/3,	-2*Math.PI/3,	 2,	 Math.sqrt(3),-1,2 },
-				{ ASIN_ONE_THD,	 Math.PI,	 2*Math.PI/3,	-Math.PI/3,		-2,	 Math.sqrt(3) },
-				{-Math.PI/2,	 0,			 2*Math.PI/3,	 2*Math.PI/3,	 2,	-Math.sqrt(3),-2,1 },
-				{-Math.PI/2,	 0,			-2*Math.PI/3,	 Math.PI/3,		-2,	-Math.sqrt(3) },
-				{ ASIN_ONE_THD,	 Math.PI/3,	-2*Math.PI/3,	 Math.PI,		 1,	 0 },
-				{ ASIN_ONE_THD,	-Math.PI/3,	 2*Math.PI/3,	 0,				-1,	 0 }}),
+		TETRAHEDRON_WIDE_FACE(3, 3, new BoundingBox(6., 2*sqrt(3)), new double[][] { // [<|>] arrangement, face-centred
+				{ asin(1/3.),	 PI,	-2*PI/3,	-2*PI/3,	 2,	 sqrt(3),-1,2 },
+				{ asin(1/3.),	 PI,	 2*PI/3,	-PI/3,		-2,	 sqrt(3) },
+				{-PI/2,	 0,			 2*PI/3,	 2*PI/3,	 2,	-sqrt(3),-2,1 },
+				{-PI/2,	 0,			-2*PI/3,	 PI/3,		-2,	-sqrt(3) },
+				{ asin(1/3.),	 PI/3,	-2*PI/3,	 PI,		 1,	 0 },
+				{ asin(1/3.),	-PI/3,	 2*PI/3,	 0,				-1,	 0 }}),
 		
-		TRIANGLE_FACE(3, 3, new BoundingBox(4*Math.sqrt(3), 6.), new double[][] { // \delta arrangement, like they are often published
-				{ ASIN_ONE_THD,	 Math.PI/3,	 0,				-5*Math.PI/6,	 Math.sqrt(3),	2 },
-				{ ASIN_ONE_THD,	-Math.PI/3,	 0,				-Math.PI/6,		-Math.sqrt(3),	2 },
-				{ ASIN_ONE_THD,	 Math.PI,	 0,				 Math.PI/2,		 0,			-1 },
-				{-Math.PI/2,	 0,			 0,				-Math.PI/2,		 0,			 1 }}) {
+		TRIANGLE_FACE(3, 3, new BoundingBox(4*sqrt(3), 6.), new double[][] { // \delta arrangement, like they are often published
+				{ asin(1/3.),  PI/3,	 0,				-5*PI/6,	 sqrt(3),	2 },
+				{ asin(1/3.), -PI/3,	 0,				-PI/6,		-sqrt(3),	2 },
+				{ asin(1/3.),  PI,	 0,				 PI/2,		 0,			-1 },
+				{-PI/2,  0,			 0,				-PI/2,		 0,			 1 }}) {
 			@Override public boolean inBounds(double x, double y) {
-				return y > Math.sqrt(3)*Math.abs(x) - 3;
+				return y > sqrt(3)*abs(x) - 3;
 			}
 		},
-		TETRAHEDRON_WIDE_VERTEX(3, 6, new BoundingBox(6., 2*Math.sqrt(3)), new double[][] { // [<|>] arrangement, vertex-centred
-				{ Math.PI/2,	 0,				 0,				-Math.PI/2,		 0,	 Math.sqrt(3) },
-				{-ASIN_ONE_THD,	 0,				 Math.PI,		 Math.PI/2,		 0,	-Math.sqrt(3) },
-				{-ASIN_ONE_THD,	 2*Math.PI/3,	 Math.PI,		 5*Math.PI/6,	 3,	 0 },
-				{-ASIN_ONE_THD,	-2*Math.PI/3,	 Math.PI,		 Math.PI/6,		-3,	 0 }}) {
+		TETRAHEDRON_WIDE_VERTEX(3, 6, new BoundingBox(6., 2*sqrt(3)), new double[][] { // [<|>] arrangement, vertex-centred
+				{ PI/2,	 0,				 0,				-PI/2,		 0,	 sqrt(3) },
+				{-asin(1/3.),	 0,				 PI,		 PI/2,		 0,	-sqrt(3) },
+				{-asin(1/3.),	 2*PI/3,	 PI,		 5*PI/6,	 3,	 0 },
+				{-asin(1/3.),	-2*PI/3,	 PI,		 PI/6,		-3,	 0 }}) {
 			@Override public double[] rotateOOB(double x, double y, double xCen, double yCen) {
 				if (x < bounds.xMin || x > bounds.xMax)
 					return new double[] {2*xCen - x, -y};
 				else
-					return new double[] {-x, 2*bounds.yMax*Math.signum(y) - y};
+					return new double[] {-x, 2*bounds.yMax*signum(y) - y};
 			}
 		},
-		AUTHAGRAPH(3, 6, new BoundingBox(4*Math.sqrt(3), 3), new double[][] { // |\/\/`| arrangement, vertex-centred
-				{-ASIN_ONE_THD,	 Math.PI,		 Math.PI,	 0,	-2*Math.sqrt(3)-.6096,	 1.5 },
-				{-ASIN_ONE_THD,	-Math.PI/3,		 Math.PI/3,	 0,	-Math.sqrt(3)-.6096,	-1.5 },
-				{ Math.PI/2,	 0,				 Math.PI,	 0,	 0-.6096,				 1.5 },
-				{-ASIN_ONE_THD,	 Math.PI/3,		-Math.PI/3,	 0,	 Math.sqrt(3)-.6096,	-1.5 },
-				{-ASIN_ONE_THD,	 Math.PI,		 Math.PI,	 0,	 2*Math.sqrt(3)-.6096,	 1.5 },
-				{-ASIN_ONE_THD,	-Math.PI/3,		 Math.PI/3,	 0,	 3*Math.sqrt(3)-.6096,	-1.5 }}) {
+		AUTHAGRAPH(3, 6, new BoundingBox(4*sqrt(3), 3), new double[][] { // |\/\/`| arrangement, vertex-centred
+				{-asin(1/3.),	 PI,		 PI,	 0,	-2*sqrt(3)-.6096,	 1.5 },
+				{-asin(1/3.),	-PI/3,		 PI/3,	 0,	-sqrt(3)-.6096,	-1.5 },
+				{ PI/2,	 0,				 PI,	 0,	 0-.6096,				 1.5 },
+				{-asin(1/3.),	 PI/3,		-PI/3,	 0,	 sqrt(3)-.6096,	-1.5 },
+				{-asin(1/3.),	 PI,		 PI,	 0,	 2*sqrt(3)-.6096,	 1.5 },
+				{-asin(1/3.),	-PI/3,		 PI/3,	 0,	 3*sqrt(3)-.6096,	-1.5 }}) {
 			@Override public double[] rotateOOB(double x, double y, double xCen, double yCen) {
 				if (y < bounds.yMin || y > bounds.yMax) {
 					x = 2*xCen - x;
 					y = 2*yCen - y;
 				}
 				if (x < bounds.xMin || x > bounds.xMax)
-					x = Math2.floorMod(x + bounds.xMax,2*bounds.xMax) - bounds.xMax;
+					x = floorMod(x + bounds.xMax,2*bounds.xMax) - bounds.xMax;
 				return new double[] {x, y};
 			}
 		},
-		DYMAXION(5, 6, new BoundingBox(5.5, 1.5*Math.sqrt(3)), new double[][] { // I can't draw this in ASCII. You know what "Dymaxion" means
-				{ Math.PI/2,    0.0,		-3*Math.PI/5,-Math.PI/2,  -1.5, Math.sqrt(3),  -3,3 }, //West Africa
-				{ Math.PI/2,    0.0,		 Math.PI/5,	 -Math.PI/2,   0.5, Math.sqrt(3),  -1,1 }, //Brazil
-				{ Math.PI/2,    0.0,		 3*Math.PI/5,-Math.PI/2,   1.5, Math.sqrt(3),  -1,1 }, //South Atlantic O.
-				{ ATAN_ONE_HLF,-4*Math.PI/5, 2*Math.PI/5,-Math.PI/6,  -2.0, Math.sqrt(3)/2,-5,5 }, //Arabia
-				{ ATAN_ONE_HLF,-2*Math.PI/5,-2*Math.PI/5,-5*Math.PI/6,-1.0, Math.sqrt(3)/2,-5,5 }, //Scandanavia
-				{ ATAN_ONE_HLF, 0.0,		 0.0,		 -Math.PI/2,   0.0, Math.sqrt(3)/2,-3,5 }, //Caribbean
-				{ ATAN_ONE_HLF, 0.0,		-4*Math.PI/5,-5*Math.PI/6,-0.5, Math.sqrt(3),  -1,1 }, //North Atlantic O.
-				{ ATAN_ONE_HLF, 2*Math.PI/5, 0.0,		 -Math.PI/2,   1.0, Math.sqrt(3)/2,-5,5 }, //Patagonia
-				{ ATAN_ONE_HLF, 4*Math.PI/5,-2*Math.PI/5,-5*Math.PI/6, 2.0, Math.sqrt(3)/2,-3,2 }, //East Antarctica
-				{ ATAN_ONE_HLF, 4*Math.PI/5, 0.0,		 -Math.PI/6,  -3.5, 0.0,		    0,1 }, //South Indian O.
-				{ ATAN_ONE_HLF, 4*Math.PI/5, 2*Math.PI/5,-Math.PI/6,  -3.0, Math.sqrt(3)/2,-1,1 }, //North Indian O.
-				{ ATAN_ONE_HLF, 4*Math.PI/5, 4*Math.PI/5,-Math.PI/6,  -2.5, Math.sqrt(3),  -1,1 }, //South Africa
-				{-ATAN_ONE_HLF,-Math.PI,	 Math.PI/5,  -Math.PI/6,  -2.5, 0.0,		   -5,5 }, //Australia
-				{-ATAN_ONE_HLF,-3*Math.PI/5, Math.PI,	  Math.PI/2,  -1.5, 0.0,		   -6,4 }, //China
-				{-ATAN_ONE_HLF,-Math.PI/5,	 Math.PI,	  Math.PI/2,  -0.5, 0.0,		   -5,5 }, //North America
-				{-ATAN_ONE_HLF, Math.PI/5,	-3*Math.PI/5, 5*Math.PI/6, 0.5, 0.0,		   -5,5 }, //East Pacific O.
-				{-ATAN_ONE_HLF, 3*Math.PI/5, Math.PI,	  Math.PI/2,   1.5, 0.0,		   -3,3 }, //West Antarctica
-				{-ATAN_ONE_HLF, 3*Math.PI/5,-Math.PI/5,   5*Math.PI/6, 1.0,-Math.sqrt(3)/2,-1,1 }, //South Pacific O.
-				{-ATAN_ONE_HLF, 3*Math.PI/5, Math.PI/5,   Math.PI/6,  -3.0,-Math.sqrt(3)/2,-1,1 }, //New Zealand
-				{-Math.PI/2,    0.0,		-Math.PI,	  Math.PI/2,   0.0,-Math.sqrt(3)/2,-3,1 }, //Hawai`i
-				{-Math.PI/2,    0.0,		-3*Math.PI/5, Math.PI/2,  -1.0,-Math.sqrt(3)/2,-1,2 }, //West Pacific O.
-				{-Math.PI/2,    0.0,		-Math.PI/5,	  Math.PI/2,  -2.0,-Math.sqrt(3)/2, 0,3 }}); //Melanesia
+		DYMAXION(5, 6, new BoundingBox(5.5, 1.5*sqrt(3)), new double[][] { // I can't draw this in ASCII. You know what "Dymaxion" means
+				{ PI/2,    0.0,		-3*PI/5,-PI/2,  -1.5, sqrt(3),  -3,3 }, //West Africa
+				{ PI/2,    0.0,		 PI/5,	 -PI/2,   0.5, sqrt(3),  -1,1 }, //Brazil
+				{ PI/2,    0.0,		 3*PI/5,-PI/2,   1.5, sqrt(3),  -1,1 }, //South Atlantic O.
+				{ atan(1/2.),-4*PI/5, 2*PI/5,-PI/6,  -2.0, sqrt(3)/2,-5,5 }, //Arabia
+				{ atan(1/2.),-2*PI/5,-2*PI/5,-5*PI/6,-1.0, sqrt(3)/2,-5,5 }, //Scandanavia
+				{ atan(1/2.), 0.0,		 0.0,		 -PI/2,   0.0, sqrt(3)/2,-3,5 }, //Caribbean
+				{ atan(1/2.), 0.0,		-4*PI/5,-5*PI/6,-0.5, sqrt(3),  -1,1 }, //North Atlantic O.
+				{ atan(1/2.), 2*PI/5, 0.0,		 -PI/2,   1.0, sqrt(3)/2,-5,5 }, //Patagonia
+				{ atan(1/2.), 4*PI/5,-2*PI/5,-5*PI/6, 2.0, sqrt(3)/2,-3,2 }, //East Antarctica
+				{ atan(1/2.), 4*PI/5, 0.0,		 -PI/6,  -3.5, 0.0,		    0,1 }, //South Indian O.
+				{ atan(1/2.), 4*PI/5, 2*PI/5,-PI/6,  -3.0, sqrt(3)/2,-1,1 }, //North Indian O.
+				{ atan(1/2.), 4*PI/5, 4*PI/5,-PI/6,  -2.5, sqrt(3),  -1,1 }, //South Africa
+				{-atan(1/2.),-PI,	 PI/5,  -PI/6,  -2.5, 0.0,		   -5,5 }, //Australia
+				{-atan(1/2.),-3*PI/5, PI,	  PI/2,  -1.5, 0.0,		   -6,4 }, //China
+				{-atan(1/2.),-PI/5,	 PI,	  PI/2,  -0.5, 0.0,		   -5,5 }, //North America
+				{-atan(1/2.), PI/5,	-3*PI/5, 5*PI/6, 0.5, 0.0,		   -5,5 }, //East Pacific O.
+				{-atan(1/2.), 3*PI/5, PI,	  PI/2,   1.5, 0.0,		   -3,3 }, //West Antarctica
+				{-atan(1/2.), 3*PI/5,-PI/5,   5*PI/6, 1.0,-sqrt(3)/2,-1,1 }, //South Pacific O.
+				{-atan(1/2.), 3*PI/5, PI/5,   PI/6,  -3.0,-sqrt(3)/2,-1,1 }, //New Zealand
+				{-PI/2,    0.0,		-PI,	  PI/2,   0.0,-sqrt(3)/2,-3,1 }, //Hawai`i
+				{-PI/2,    0.0,		-3*PI/5, PI/2,  -1.0,-sqrt(3)/2,-1,2 }, //West Pacific O.
+				{-PI/2,    0.0,		-PI/5,	  PI/2,  -2.0,-sqrt(3)/2, 0,3 }}); //Melanesia
 		/*		  LATITUDE,	    LONGITUDE,	 CTR_MERID,	  PLANE_ROT,   X,   Y               RANGE */
 		public final int sphereSym, planarSym; //the numbers of symmetries in the two coordinate systems
 		public final BoundingBox bounds; //the width and height of a map with this configuration

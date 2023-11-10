@@ -27,8 +27,26 @@ import de.jtem.mfc.field.Complex;
 import maps.Projection.Property;
 import maps.Projection.Type;
 import utils.BoundingBox;
-import utils.Math2;
 import utils.NumericalAnalysis;
+
+import static java.lang.Double.isNaN;
+import static java.lang.Math.PI;
+import static java.lang.Math.abs;
+import static java.lang.Math.acos;
+import static java.lang.Math.asin;
+import static java.lang.Math.atan;
+import static java.lang.Math.atan2;
+import static java.lang.Math.cos;
+import static java.lang.Math.hypot;
+import static java.lang.Math.log;
+import static java.lang.Math.pow;
+import static java.lang.Math.signum;
+import static java.lang.Math.sin;
+import static java.lang.Math.sinh;
+import static java.lang.Math.sqrt;
+import static java.lang.Math.tan;
+import static java.lang.Math.toRadians;
+import static utils.Math2.atan;
 
 /**
  * A class containing map projections with four-way symmetry and curved parallels.
@@ -39,14 +57,14 @@ public class Lenticular {
 	
 	public static final Projection AITOFF = new Projection(
 			"Aitoff", "A compromise projection shaped like an ellipse.",
-			new BoundingBox(2*Math.PI, Math.PI), 0b1111, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE, 2) {
+			new BoundingBox(2*PI, PI), 0b1111, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE, 2) {
 		
 		public double[] project(double lat, double lon) {
-			final double a = Math.acos(Math.cos(lat)*Math.cos(lon/2));
+			final double a = acos(cos(lat)*cos(lon/2));
 			if (a == 0) 	return new double[] {0, 0};
 			return new double[] {
-					2*Math.cos(lat)*Math.sin(lon/2)*a/Math.sin(a),
-					Math.sin(lat)*a/Math.sin(a)};
+					2*cos(lat)*sin(lon/2)*a/sin(a),
+					sin(lat)*a/sin(a)};
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -63,16 +81,16 @@ public class Lenticular {
 			new BoundingBox(4, 2), 0b1111, Type.PSEUDOAZIMUTHAL, Property.EQUAL_AREA, 1) {
 		
 		public double[] project(double lat, double lon) {
-			final double z = Math.sqrt(1+Math.cos(lat)*Math.cos(lon/2));
-			return new double[] {2*Math.cos(lat)*Math.sin(lon/2)/z, Math.sin(lat)/z};
+			final double z = sqrt(1+cos(lat)*cos(lon/2));
+			return new double[] {2*cos(lat)*sin(lon/2)/z, sin(lat)/z};
 		}
 		
 		public double[] inverse(double x, double y) {
-			final double z = Math.sqrt(1 - x*x/8 - y*y/2);
-			final double shift = (Math.hypot(x/2, y) > 1) ? 2*Math.PI*Math.signum(x) : 0;
+			final double z = sqrt(1 - x*x/8 - y*y/2);
+			final double shift = (hypot(x/2, y) > 1) ? 2*PI*signum(x) : 0;
 			return new double[] {
-					Math.asin(z*y*Math.sqrt(2)),
-					2*Math.atan(Math.sqrt(.5)*z*x / (2*z*z - 1)) + shift};
+					asin(z*y*sqrt(2)),
+					2*atan(sqrt(.5)*z*x / (2*z*z - 1)) + shift};
 		}
 	};
 	
@@ -83,36 +101,36 @@ public class Lenticular {
 		
 		public double[] project(double lat, double lon) {
 			if (lat == 0) //special case 1: equator
-				return new double[] {lon/Math.PI, 0};
-			if (lon == 0 || lat >= Math.PI/2 || lat <= -Math.PI/2) //special case 3: prime meridian
-				return new double[] {0, Math.tan(Math.asin(2*lat/Math.PI)/2)};
+				return new double[] {lon/PI, 0};
+			if (lon == 0 || lat >= PI/2 || lat <= -PI/2) //special case 3: prime meridian
+				return new double[] {0, tan(asin(2*lat/PI)/2)};
 			
-			final double t = Math.abs(Math.asin(2*lat/Math.PI));
-			final double A = Math.abs(Math.PI/lon - lon/Math.PI)/2;
-			final double G = Math.cos(t)/(Math.sin(t)+Math.cos(t)-1);
-			final double P = G*(2/Math.sin(t) - 1);
+			final double t = abs(asin(2*lat/PI));
+			final double A = abs(PI/lon - lon/PI)/2;
+			final double G = cos(t)/(sin(t)+cos(t)-1);
+			final double P = G*(2/sin(t) - 1);
 			final double Q = A*A + G;
 			return new double[] {
-					Math.signum(lon)*(A*(G-P*P)+Math.sqrt(A*A*(G-P*P)*(G-P*P)-(P*P+A*A)*(G*G-P*P)))/(P*P+A*A),
-					Math.signum(lat)*(P*Q-A*Math.sqrt((A*A+1)*(P*P+A*A)-Q*Q))/(P*P+A*A)};
+					signum(lon)*(A*(G-P*P)+sqrt(A*A*(G-P*P)*(G-P*P)-(P*P+A*A)*(G*G-P*P)))/(P*P+A*A),
+					signum(lat)*(P*Q-A*sqrt((A*A+1)*(P*P+A*A)-Q*Q))/(P*P+A*A)};
 		}
 		
 		public double[] inverse(double x, double y) {
 			if (y == 0) // special case 1: equator
-				return new double[] {0, x*Math.PI};
+				return new double[] {0, x*PI};
 			if (x == 0) // special case 3: prime meridian
-				return new double[] {Math.PI/2 * Math.sin(2*Math.atan(y)), 0};
+				return new double[] {PI/2 * sin(2*atan(y)), 0};
 			
-			double c1 = -Math.abs(y) * (1 + x*x + y*y);
+			double c1 = -abs(y) * (1 + x*x + y*y);
 			double c2 = c1 - 2*y*y + x*x;
-			double c3 = -2 * c1 + 1 + 2*y*y + Math.pow(x*x + y*y, 2);
-			double d = y*y / c3 + 1 / 27.0 * (2*Math.pow(c2 / c3, 3) - 9*c1*c2 / (c3*c3));
+			double c3 = -2 * c1 + 1 + 2*y*y + pow(x*x + y*y, 2);
+			double d = y*y / c3 + 1 / 27.0 * (2*pow(c2 / c3, 3) - 9*c1*c2 / (c3*c3));
 			double a1 = 1 / c3*(c1 - c2*c2 / (3*c3));
-			double m1 = 2 * Math.sqrt(-a1 / 3);
-			double t1 = Math.acos(3*d / (a1 * m1)) / 3;
+			double m1 = 2 * sqrt(-a1 / 3);
+			double t1 = acos(3*d / (a1 * m1)) / 3;
 			return new double[] {
-					Math.signum(y) * Math.PI * (-m1 * Math.cos(t1 + Math.PI/3) - c2 / (3*c3)),
-					Math.PI*(x*x + y*y - 1 + Math.sqrt(1 + 2*(x*x - y*y) + Math.pow(x*x + y*y, 2)))
+					signum(y) * PI * (-m1 * cos(t1 + PI/3) - c2 / (3*c3)),
+					PI*(x*x + y*y - 1 + sqrt(1 + 2*(x*x - y*y) + pow(x*x + y*y, 2)))
 							/ (2*x)};
 		}
 	};
@@ -122,7 +140,7 @@ public class Lenticular {
 			"Strebe 1995", "An equal-area map with curvy poles that pushes distortion to the edges.",
 			new BoundingBox(4, 4), 0b1100, Type.STREBE, Property.COMPROMISE, 2,
 			new String[] {"Scale Factor"},
-			new double[][] {{Math.sqrt(2*Math.PI/(4+Math.PI)), Math.sqrt((4+Math.PI)/Math.PI*2), 1.35}}) {
+			new double[][] {{sqrt(2*PI/(4+PI)), sqrt((4+PI)/PI*2), 1.35}}) {
 		
 		private final double[] HEIGHT_COEF =
 			{66.4957646058, -752.3272866971, 3676.4957505494, -10122.0239575686, 17147.3042517495,
@@ -131,8 +149,8 @@ public class Lenticular {
 		
 		public void initialize(double... params) {
 			factor = params[0];
-			double maxLon = factor*Math.PI*Math.sqrt(2*Math.PI/(4+Math.PI));
-			double width = 4*Math.sin(maxLon/2)/Math.sqrt(1+Math.cos(maxLon/2))/factor;
+			double maxLon = factor*PI*sqrt(2*PI/(4+PI));
+			double width = 4*sin(maxLon/2)/sqrt(1+cos(maxLon/2))/factor;
 			double height = 0;
 			for (double v : HEIGHT_COEF) //the equation for height actually ends up being crazy complicated,
 				height = height*factor + v; //so use this polynomial approximation MatLab gave me instead.
@@ -141,8 +159,8 @@ public class Lenticular {
 		
 		public double[] project(double lat, double lon) {
 			double[] xy1 = Pseudocylindrical.ECKERT_IV.project(lat, lon);
-			xy1[0] *= 2*Math.sqrt(Math.PI/(4+Math.PI))*factor/Math.sqrt(2);
-			xy1[1] *= 2*Math.sqrt(Math.PI/(4+Math.PI))/factor/Math.sqrt(2);
+			xy1[0] *= 2*sqrt(PI/(4+PI))*factor/sqrt(2);
+			xy1[1] *= 2*sqrt(PI/(4+PI))/factor/sqrt(2);
 			double[] ll2 = Pseudocylindrical.MOLLWEIDE.inverse(xy1);
 			double[] xy3 = Lenticular.HAMMER.project(ll2);
 			xy3[0] *= 1/factor;
@@ -153,11 +171,11 @@ public class Lenticular {
 		public double[] inverse(double x, double y) {
 			double[] ll2 = Lenticular.HAMMER.inverse(x*factor, y/factor);
 			double[] xy1 = Pseudocylindrical.MOLLWEIDE.project(ll2);
-			xy1[0] /= 2*Math.sqrt(Math.PI/(4+Math.PI))*factor/Math.sqrt(2);
-			xy1[1] /= 2*Math.sqrt(Math.PI/(4+Math.PI))/factor/Math.sqrt(2);
+			xy1[0] /= 2*sqrt(PI/(4+PI))*factor/sqrt(2);
+			xy1[1] /= 2*sqrt(PI/(4+PI))/factor/sqrt(2);
 			double[] ll0 = Pseudocylindrical.ECKERT_IV.inverse(xy1);
 			
-			if (Double.isNaN(ll0[0]))
+			if (isNaN(ll0[0]))
 				return null;
 			else
 				return ll0;
@@ -169,7 +187,7 @@ public class Lenticular {
 	public static final Projection BERTIN = new Projection(
 			"Bertin", "An artistically conceived oblique map projection", new BoundingBox(1.68*2, 2), 0b1011, Type.OTHER, Property.COMPROMISE, 3) {
 		
-		private final double[] POLE = {Math.toRadians(42), Math.toRadians(-163.5), Math.toRadians(180)};
+		private final double[] POLE = {toRadians(42), toRadians(-163.5), toRadians(180)};
 		
 		public double[] project(double lat, double lon) {
 			double[] oblique = transformFromOblique(lat, lon, POLE); // start with a slightly oblique globe
@@ -178,13 +196,13 @@ public class Lenticular {
 			if (lat + lon < -1.4) { // apply controlled smooshing to the resulting coordinates
 				double u = (lon - lat + 1.6)*(lat + lon + 1.4) / 8;
 				lon += u;
-				lat -= 0.8 * u * Math.cos(lat);
+				lat -= 0.8 * u * cos(lat);
 			}
 			
 			double[] coords = HAMMER.project(oblique); // apply a Hammer projection
 			double x = coords[0], y = coords[1];
 			x *= 1.68/2; // change the aspect ratio
-			double d = (1 - Math.cos(lat * lon)) / 12; // apply controlled smooshing to the resulting coordinates
+			double d = (1 - cos(lat * lon)) / 12; // apply controlled smooshing to the resulting coordinates
 			if (y < 0)
 				x *= 1 + d; // depending on whether it is in the top
 			else
@@ -205,11 +223,11 @@ public class Lenticular {
 			new BoundingBox(2, 2), 0b1111, Type.OTHER, Property.CONFORMAL, 2) {
 		
 		public double[] project(double lat, double lon) {
-			if (Math.abs(lat) == Math.PI/2)
-				return new double[] { 0, Math.signum(lat) };
-			double v = Math.pow((1 + Math.sin(lat))/(1 - Math.sin(lat)), .25);
-			double c = (v + 1/v)/2 + Math.cos(lon/2);
-			double x = Math.sin(lon/2)/c;
+			if (abs(lat) == PI/2)
+				return new double[] { 0, signum(lat) };
+			double v = pow((1 + sin(lat))/(1 - sin(lat)), .25);
+			double c = (v + 1/v)/2 + cos(lon/2);
+			double x = sin(lon/2)/c;
 			double y = (v - 1/v)/(2*c);
 			return new double[] {x, y};
 		}
@@ -219,9 +237,9 @@ public class Lenticular {
 			if (r2 > 1)
 				return null;
 			double th = 2*y/(1 + r2);
-			double t = Math.pow((1 + th)/(1 - th), 2);
-			double lat = Math.asin((t - 1)/(t + 1));
-			double lon = 2*Math.atan2(2*x, 1 - r2);
+			double t = pow((1 + th)/(1 - th), 2);
+			double lat = asin((t - 1)/(t + 1));
+			double lon = 2*atan2(2*x, 1 - r2);
 			return new double[] {lat, lon};
 		}
 	};
@@ -229,15 +247,15 @@ public class Lenticular {
 	
 	public static final Projection EISENLOHR = new Projection(
 			"Eisenlohr", "The optimal conventional conformal map.",
-			new BoundingBox(2*(Math.log(Math.sqrt(2)-1)+Math.sqrt(2)), Math.sqrt(1+Math.sqrt(.75))+Math.sqrt(1-Math.sqrt(.75))-Math.PI/3),
+			new BoundingBox(2*(log(sqrt(2)-1)+sqrt(2)), sqrt(1+sqrt(.75))+sqrt(1-sqrt(.75))-PI/3),
 			0b1011, Type.OTHER, Property.CONFORMAL, 2) {
 		
 		public double[] project(double lat, double lon) {
-			if (Math.abs(lat) == Math.PI/2)
-				return new double[] { 0, Math.signum(lat)*(1 - Math.PI/4) };
-			Complex w = new Complex(lon, Math.log(Math.tan(Math.PI/4+lat/2)));
-			Complex v = w.divide(4).minus(Math.PI/8).tan().minus(1).divide(-Math.sqrt(2));
-			Complex z = v.log().plus(v.invert().minus(v).divide(Math.sqrt(2)));
+			if (abs(lat) == PI/2)
+				return new double[] { 0, signum(lat)*(1 - PI/4) };
+			Complex w = new Complex(lon, log(tan(PI/4+lat/2)));
+			Complex v = w.divide(4).minus(PI/8).tan().minus(1).divide(-sqrt(2));
+			Complex z = v.log().plus(v.invert().minus(v).divide(sqrt(2)));
 			return new double[] { z.getRe(), z.getIm() };
 		}
 		
@@ -249,11 +267,11 @@ public class Lenticular {
 			
 			Complex z = new Complex(x, y);
 			Complex v = NumericalAnalysis.newtonRaphsonApproximation(z, z.exp(),
-					(t)->(t.log().plus(t.invert().minus(t).divide(Math.sqrt(2)))),
-					(t)->(t.invert().plus(t.pow(-2).neg().minus(1).divide(Math.sqrt(2)))),
+					(t)->(t.log().plus(t.invert().minus(t).divide(sqrt(2)))),
+					(t)->(t.invert().plus(t.pow(-2).neg().minus(1).divide(sqrt(2)))),
 					1e-4);
-			Complex w = Math2.atan(v.times(Math.sqrt(2)).minus(1)).minus(Math.PI/8).times(-4);
-			return new double[] { Math.atan(Math.sinh(w.getIm())), w.getRe() };
+			Complex w = atan(v.times(sqrt(2)).minus(1)).minus(PI/8).times(-4);
+			return new double[] { atan(sinh(w.getIm())), w.getRe() };
 		}
 	};
 	
@@ -266,23 +284,23 @@ public class Lenticular {
 				cX = 5.62290, cY = 2.61626;
 		
 		public double[] project(double lat, double lon) {
-			double psi = Math.asin(m1*Math.sin(m2*lat));
+			double psi = asin(m1*sin(m2*lat));
 			if (lon == 0)
-				return new double[] { 0, cY*Math.sin(psi/2) };
-			double del = Math.acos(Math.cos(lon/n)*Math.cos(psi));
-			double alp = Math.signum(lon)*Math.acos(Math.sin(psi)/Math.sin(del));
+				return new double[] { 0, cY*sin(psi/2) };
+			double del = acos(cos(lon/n)*cos(psi));
+			double alp = signum(lon)*acos(sin(psi)/sin(del));
 			return new double[] {
-					cX*Math.sin(del/2)*Math.sin(alp),
-					cY*Math.sin(del/2)*Math.cos(alp) };
+					cX*sin(del/2)*sin(alp),
+					cY*sin(del/2)*cos(alp) };
 		}
 		
 		public double[] inverse(double x, double y) {
-			double alp = Math.atan2(x/cX, y/cY);
-			double del = 2*Math.asin(Math.hypot(x/cX, y/cY));
-			double psi = Math.asin(Math.cos(alp)*Math.sin(del));
-			double lat = Math.asin(Math.sin(psi)/m1)/m2;
-			double lon = Math.signum(x)*Math.acos(Math.cos(del)/Math.cos(psi))*n;
-			if (Double.isNaN(lat) || Math.abs(lat) > Math.PI/2)
+			double alp = atan2(x/cX, y/cY);
+			double del = 2*asin(hypot(x/cX, y/cY));
+			double psi = asin(cos(alp)*sin(del));
+			double lat = asin(sin(psi)/m1)/m2;
+			double lon = signum(x)*acos(cos(del)/cos(psi))*n;
+			if (isNaN(lat) || abs(lat) > PI/2)
 				return null;
 			else
 				return new double[] {lat, lon};
@@ -292,13 +310,13 @@ public class Lenticular {
 	
 	public static final Projection POLYCONIC = new Projection(
 			"American polyconic", "A map made for narrow strips of longitude that was really popular with the USGS for a while.",
-			new BoundingBox(2*Math.PI, 4.81527), 0b1011, Type.OTHER, Property.EQUIDISTANT, 3) {
+			new BoundingBox(2*PI, 4.81527), 0b1011, Type.OTHER, Property.EQUIDISTANT, 3) {
 		
 		public double[] project(double lat, double lon) {
 			if (lat == 0)
 				return new double[] {lon, 0};
-			double E = lon*Math.sin(lat);
-			return new double[] { Math.sin(E)/Math.tan(lat), lat + (1 - Math.cos(E))/Math.tan(lat) };
+			double E = lon*sin(lat);
+			return new double[] { sin(E)/tan(lat), lat + (1 - cos(E))/tan(lat) };
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -310,11 +328,11 @@ public class Lenticular {
 				return new double[] {0, x};
 			
 			double lat = NumericalAnalysis.bisectionFind(
-					(ph)->(Math.pow(x, 2) + Math.pow(y - ph, 2) - 2*(y - ph)/Math.tan(ph)),
-					0, Math.PI/2, 1e-4);
-			if (Double.isNaN(lat))
+					(ph)->(pow(x, 2) + pow(y - ph, 2) - 2*(y - ph)/tan(ph)),
+					0, PI/2, 1e-4);
+			if (isNaN(lat))
 				return null;
-			return new double[] { lat, Math.atan2(x, -(y - lat - 1/Math.tan(lat)))/Math.sin(lat) };
+			return new double[] { lat, atan2(x, -(y - lat - 1/tan(lat)))/sin(lat) };
 		}
 	};
 

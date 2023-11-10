@@ -27,6 +27,21 @@ import maps.Projection.Property;
 import maps.Projection.Type;
 import utils.BoundingBox;
 
+import static java.lang.Double.isInfinite;
+import static java.lang.Math.PI;
+import static java.lang.Math.abs;
+import static java.lang.Math.acos;
+import static java.lang.Math.asin;
+import static java.lang.Math.atan;
+import static java.lang.Math.atan2;
+import static java.lang.Math.cos;
+import static java.lang.Math.hypot;
+import static java.lang.Math.pow;
+import static java.lang.Math.sin;
+import static java.lang.Math.sqrt;
+import static java.lang.Math.tan;
+import static java.lang.Math.toRadians;
+
 public class Azimuthal {
 	
 	public static final Projection STEREOGRAPHIC = new Projection(
@@ -35,29 +50,29 @@ public class Azimuthal {
 		
 		public double[] project(double lat, double lon) {
 			if (lat < -1.5) 	lat = -1.5;
-			final double r = 1/(Math.tan(lat/2 + Math.PI/4));
-			return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
+			final double r = 1/(tan(lat/2 + PI/4));
+			return new double[] {r*sin(lon), -r*cos(lon)};
 		}
 		
 		public double[] inverse(double x, double y) {
-			return new double[] { Math.PI/2 - 2*Math.atan(Math.hypot(x, y)), Math.atan2(x, -y) };
+			return new double[] { PI/2 - 2*atan(hypot(x, y)), atan2(x, -y) };
 		}
 	};
 	
 	
 	public static final Projection POLAR = new Projection(
-			"Azimuthal Equidistant", new BoundingBox(2*Math.PI, 2*Math.PI), 0b1111, Type.AZIMUTHAL,
+			"Azimuthal Equidistant", new BoundingBox(2*PI, 2*PI), 0b1111, Type.AZIMUTHAL,
 			Property.EQUIDISTANT, 2) {
 		
 		public double[] project(double lat, double lon) {
-			final double r = Math.PI/2 - lat;
-			return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
+			final double r = PI/2 - lat;
+			return new double[] {r*sin(lon), -r*cos(lon)};
 		}
 		
 		public double[] inverse(double x, double y) {
-			double phi = Math.PI/2 - Math.hypot(x, y);
-			if (phi > -Math.PI/2)
-				return new double[] {phi, Math.atan2(x, -y)};
+			double phi = PI/2 - hypot(x, y);
+			if (phi > -PI/2)
+				return new double[] {phi, atan2(x, -y)};
 			else
 				return null;
 		}
@@ -68,14 +83,14 @@ public class Azimuthal {
 			"Azimuthal Equal-Area", new BoundingBox(2, 2), 0b1111, Type.AZIMUTHAL, Property.EQUAL_AREA, 1) {
 		
 		public double[] project(double lat, double lon) {
-			final double r = Math.cos((Math.PI/2+lat)/2);
-			return new double[] {r*Math.sin(lon), -r*Math.cos(lon)};
+			final double r = cos((PI/2+lat)/2);
+			return new double[] {r*sin(lon), -r*cos(lon)};
 		}
 		
 		public double[] inverse(double x, double y) {
-			double r = Math.hypot(x, y);
+			double r = hypot(x, y);
 			if (r <= 1)
-				return new double[] { Math.asin(1-2*r*r), Math.atan2(x, -y) };
+				return new double[] { asin(1-2*r*r), atan2(x, -y) };
 			else
 				return null;
 		}
@@ -88,12 +103,12 @@ public class Azimuthal {
 		
 		public double[] project(double lat, double lon) {
 			if (lat < 0.2) 	lat = 0.2;
-			final double r = Math.tan(Math.PI/2 - lat);
-			return new double[] { r*Math.sin(lon), -r*Math.cos(lon)};
+			final double r = tan(PI/2 - lat);
+			return new double[] { r*sin(lon), -r*cos(lon)};
 		}
 		
 		public double[] inverse(double x, double y) {
-			return new double[] { Math.PI/2 - Math.atan(Math.hypot(x, y)), Math.atan2(x, -y) };
+			return new double[] { PI/2 - atan(hypot(x, y)), atan2(x, -y) };
 		}
 	};
 	
@@ -104,13 +119,13 @@ public class Azimuthal {
 		
 		public double[] project(double lat, double lon) {
 			if (lat < 0)	lat = 0;
-			return new double[] { Math.cos(lat)*Math.sin(lon), -Math.cos(lat)*Math.cos(lon) };
+			return new double[] { cos(lat)*sin(lon), -cos(lat)*cos(lon) };
 		}
 		
 		public double[] inverse(double x, double y) {
-			double R = Math.hypot(x, y);
+			double R = hypot(x, y);
 			if (R <= 1)
-				return new double[] { Math.acos(R), Math.atan2(x, -y) };
+				return new double[] { acos(R), atan2(x, -y) };
 			else
 				return null;
 		}
@@ -126,27 +141,27 @@ public class Azimuthal {
 		
 		public void initialize(double... params) {
 			this.d = 1/(1 - 2*params[0]/100);
-			double radius = (Double.isFinite(d)) ? 1/Math.sqrt(d*d-1) : ORTHOGRAPHIC.bounds.xMax;
+			double radius = (Double.isFinite(d)) ? 1/sqrt(d*d-1) : ORTHOGRAPHIC.bounds.xMax;
 			this.bounds = new BoundingBox(-radius, radius, -radius, radius);
 		}
 		
 		public double[] project(double lat, double lon) {
-			if (Double.isInfinite(d)) 	return ORTHOGRAPHIC.project(lat, lon);
-			if (lat < Math.asin(1/d)) 	lat = Math.asin(1/d);
-			final double r = Math.abs(Math.cos(lat)/(d - Math.sin(lat)));
-			return new double[] { r*Math.sin(lon), -r*Math.cos(lon) };
+			if (isInfinite(d)) 	return ORTHOGRAPHIC.project(lat, lon);
+			if (lat < asin(1/d)) 	lat = asin(1/d);
+			final double r = abs(cos(lat)/(d - sin(lat)));
+			return new double[] { r*sin(lon), -r*cos(lon) };
 		}
 		
 		public double[] inverse(double x, double y) {
-			if (Double.isInfinite(d)) 	return ORTHOGRAPHIC.inverse(x, y);
-			final double h = Math.hypot(x, y);
+			if (isInfinite(d)) 	return ORTHOGRAPHIC.inverse(x, y);
+			final double h = hypot(x, y);
 			if (h > bounds.xMax) 	return null;
-			final double theta = Math.atan(h);
-			final double phi = Math.acos(d*Math.sin(theta)) + theta;
-			if (phi < Math.PI/2)
-				return new double[] { phi, Math.atan2(x, -y) };
+			final double theta = atan(h);
+			final double phi = acos(d*sin(theta)) + theta;
+			if (phi < PI/2)
+				return new double[] { phi, atan2(x, -y) };
 			else
-				return new double[] { Math.PI - phi, Math.atan2(x, -y) };
+				return new double[] { PI - phi, atan2(x, -y) };
 		}
 	};
 	
@@ -160,31 +175,31 @@ public class Azimuthal {
 		private double p0, r0; // scale factor of magnified portion
 		
 		public void initialize(double... params) {
-			this.p0 = Math.toRadians(params[0]);
+			this.p0 = toRadians(params[0]);
 			this.r0 = params[1];
 		}
 		
 		public double[] project(double lat, double lon) {
-			double p = Math.PI/2 - lat;
+			double p = PI/2 - lat;
 			double r;
 			if (p < p0)
-				r = r0*Math.sin(p/2)/Math.sin(p0/2);
+				r = r0*sin(p/2)/sin(p0/2);
 			else
-				r = Math.sqrt(1 - (1 - r0*r0)*Math.pow(Math.cos(p/2)/Math.cos(p0/2), 2));
-			return new double[] { r*Math.sin(lon), -r*Math.cos(lon)};
+				r = sqrt(1 - (1 - r0*r0)*pow(cos(p/2)/cos(p0/2), 2));
+			return new double[] { r*sin(lon), -r*cos(lon)};
 		}
 		
 		public double[] inverse(double x, double y) {
-			double r = Math.hypot(x, y);
-			double th = Math.atan2(x, -y);
+			double r = hypot(x, y);
+			double th = atan2(x, -y);
 			double p;
 			if (r <= r0)
-				p = 2*Math.asin(Math.sin(p0/2)*r/r0);
+				p = 2*asin(sin(p0/2)*r/r0);
 			else if (r <= 1)
-				p = 2*Math.acos(Math.cos(p0/2)*Math.sqrt((1 - r*r)/(1 - r0*r0)));
+				p = 2*acos(cos(p0/2)*sqrt((1 - r*r)/(1 - r0*r0)));
 			else
 				return null;
-			return new double[] { Math.PI/2 - p, th};
+			return new double[] { PI/2 - p, th};
 		}
 	};
 }

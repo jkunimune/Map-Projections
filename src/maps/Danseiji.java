@@ -32,6 +32,17 @@ import maps.Projection.Property;
 import maps.Projection.Type;
 import utils.BoundingBox;
 
+import static java.lang.Double.parseDouble;
+import static java.lang.Integer.parseInt;
+import static java.lang.Math.PI;
+import static java.lang.Math.atan2;
+import static java.lang.Math.cos;
+import static java.lang.Math.hypot;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.lang.Math.sin;
+import static java.lang.String.format;
+
 /**
  * A class for completely arbitrary projections, where every square degree can be specified anywhere on the plane.
  * 
@@ -101,41 +112,41 @@ public class Danseiji {
 			
 			BufferedReader in = null;
 			try {
-				in = new BufferedReader(new FileReader(String.format("res/%s", filename))); // parsing the input mesh is pretty simple
+				in = new BufferedReader(new FileReader(format("res/%s", filename))); // parsing the input mesh is pretty simple
 				String[] row = in.readLine().split(","); // get the header
-				double[][] vertices = new double[Integer.parseInt(row[0])][2];
-				cells = new double[Integer.parseInt(row[1])][Integer.parseInt(row[2])][][];
+				double[][] vertices = new double[parseInt(row[0])][2];
+				cells = new double[parseInt(row[1])][parseInt(row[2])][][];
 				cellShapes = new int[cells.length][cells[0].length];
-				edge = new double[Integer.parseInt(row[3])][];
-				pixels = new double[Integer.parseInt(row[4])][Integer.parseInt(row[5])][2];
-				bounds = new BoundingBox(Double.parseDouble(row[6]), Double.parseDouble(row[7]));
+				edge = new double[parseInt(row[3])][];
+				pixels = new double[parseInt(row[4])][parseInt(row[5])][2];
+				bounds = new BoundingBox(parseDouble(row[6]), parseDouble(row[7]));
 				
 				for (int i = 0; i < vertices.length; i ++) { // do the vertex coordinates
 					row = in.readLine().split(",");
 					for (int j = 0; j < vertices[i].length; j ++)
-						vertices[i][j] = Double.parseDouble(row[j]);
+						vertices[i][j] = parseDouble(row[j]);
 				}
 				
 				for (int i = 0; i < cells.length; i ++) { // get the cell vertices
 					for (int j = 0; j < cells[i].length; j ++) {
 						row = in.readLine().split(",");
-						cellShapes[i][j] = Integer.parseInt(row[0]);
+						cellShapes[i][j] = parseInt(row[0]);
 						cells[i][j] = new double[row.length-1][];
 						for (int k = 1; k < row.length; k ++)
-							cells[i][j][k-1] = vertices[Integer.parseInt(row[k])];
+							cells[i][j][k-1] = vertices[parseInt(row[k])];
 					}
 				}
 				
 				for (int i = 0; i < edge.length; i ++) { // the edge
 					row = in.readLine().split(",");
-					edge[i] = vertices[Integer.parseInt(row[0])];
+					edge[i] = vertices[parseInt(row[0])];
 				}
 				
 				for (int i = 0; i < pixels.length; i ++) { // the pixels
 					for (int j = 0; j < pixels[i].length; j ++) {
 						row = in.readLine().split(",");
 						for (int k = 0; k < pixels[i][j].length; k ++)
-							pixels[i][j][k] = Double.parseDouble(row[k]);
+							pixels[i][j][k] = parseDouble(row[k]);
 					}
 				}
 			} catch (IOException | NullPointerException | ArrayIndexOutOfBoundsException e) {
@@ -157,19 +168,19 @@ public class Danseiji {
 		
 		
 		public double[] project(double lat, double lon) {
-			int i = (int)((Math.PI/2-lat)/Math.PI*cells.length); // map it to the array
-			i = Math.max(0, Math.min(cells.length-1, i)); // coerce it into bounds
-			int j = (int)((lon+Math.PI)/(2*Math.PI)*cells[i].length);
-			j = Math.max(0, Math.min(cells[i].length-1, j));
+			int i = (int)((PI/2-lat)/PI*cells.length); // map it to the array
+			i = max(0, min(cells.length-1, i)); // coerce it into bounds
+			int j = (int)((lon+PI)/(2*PI)*cells[i].length);
+			j = max(0, min(cells[i].length-1, j));
 			double[][] vP = cells[i][j]; // now we know the planar Vertices with which we're working
 			
-			double pN = Math.PI/2 - i*Math.PI/cells.length;
-			double pS = Math.PI/2 - (i+1)*Math.PI/cells.length;
-			double yS = i+1 - (Math.PI/2-lat)/Math.PI*cells.length; // do linear interpolation
-			double xS = (lon+Math.PI)/(2*Math.PI)*cells[i].length - (j+.5);
-			xS *= yS*Math.cos(pN) + (1-yS)*Math.cos(pS); // apply curvature (not strictly necessary, but helps near the poles)
-			double[] vSnw = {-.5*Math.cos(pN), 1}, vSne = {.5*Math.cos(pN), 1}; // compute the relative spherical vertex positions
-			double[] vSsw = {-.5*Math.cos(pS), 0}, vSse = {.5*Math.cos(pS), 0};
+			double pN = PI/2 - i*PI/cells.length;
+			double pS = PI/2 - (i+1)*PI/cells.length;
+			double yS = i+1 - (PI/2-lat)/PI*cells.length; // do linear interpolation
+			double xS = (lon+PI)/(2*PI)*cells[i].length - (j+.5);
+			xS *= yS*cos(pN) + (1-yS)*cos(pS); // apply curvature (not strictly necessary, but helps near the poles)
+			double[] vSnw = {-.5*cos(pN), 1}, vSne = {.5*cos(pN), 1}; // compute the relative spherical vertex positions
+			double[] vSsw = {-.5*cos(pS), 0}, vSse = {.5*cos(pS), 0};
 			
 			double[][][] triS; // the triangles from which we interpolate
 			double[][][] triP; // the triangles to which we interpolate
@@ -202,8 +213,8 @@ public class Danseiji {
 						c0*tP[0][X] + c1*tP[1][X] + c2*tP[2][X], // then interpolate into the plane!
 						c0*tP[0][Y] + c1*tP[1][Y] + c2*tP[2][Y]};
 			}
-			throw new IllegalArgumentException(String.format("[%f,%f] doesn't seem to be in {%s,%s,%s,%s}",
-					xS, yS, Arrays.toString(vSne), Arrays.toString(vSnw), Arrays.toString(vSsw), Arrays.toString(vSse)));
+			throw new IllegalArgumentException(format("[%f,%f] doesn't seem to be in {%s,%s,%s,%s}",
+			                                          xS, yS, Arrays.toString(vSne), Arrays.toString(vSnw), Arrays.toString(vSsw), Arrays.toString(vSse)));
 		}
 		
 		
@@ -218,10 +229,10 @@ public class Danseiji {
 			}
 			
 			double i = (bounds.yMax - y)/(bounds.yMax - bounds.yMin)*(pixels.length-1);
-			int i0 = Math.min((int)i, pixels.length-2);
+			int i0 = min((int)i, pixels.length-2);
 			double cy = i - i0;
 			double j = (x - bounds.xMin)/(bounds.xMax - bounds.xMin)*(pixels[i0].length-1);
-			int j0 = Math.min((int)j, pixels[i0].length-2);
+			int j0 = min((int)j, pixels[i0].length-2);
 			double cx = j - j0;
 			
 			double X = 0, Y = 0, Z = 0;
@@ -229,14 +240,14 @@ public class Danseiji {
 				for (int dj = 0; dj <= 1; dj ++) {
 					double weight = ((di == 0) ? 1-cy : cy)*((dj == 0) ? 1-cx : cx);
 					double phiV = pixels[i0+di][j0+dj][0], lamV = pixels[i0+di][j0+dj][1];
-					X += weight*Math.cos(phiV)*Math.cos(lamV);
-					Y += weight*Math.cos(phiV)*Math.sin(lamV);
-					Z += weight*Math.sin(phiV);
+					X += weight*cos(phiV)*cos(lamV);
+					Y += weight*cos(phiV)*sin(lamV);
+					Z += weight*sin(phiV);
 				}
 			}
-			double phi = Math.atan2(Z, Math.hypot(X, Y)), lam = Math.atan2(Y, X);
+			double phi = atan2(Z, hypot(X, Y)), lam = atan2(Y, X);
 			
-			if (!inside)	lam += 2*Math.PI; // signal that this point is outside the normal map, if necessary
+			if (!inside)	lam += 2*PI; // signal that this point is outside the normal map, if necessary
 			return new double[] {phi, lam};
 		}
 	}

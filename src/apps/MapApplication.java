@@ -23,17 +23,6 @@
  */
 package apps;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.BooleanSupplier;
-import java.util.function.DoubleUnaryOperator;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
 import dialogs.ProgressDialog;
 import dialogs.ProjectionSelectionDialog;
 import image.SavableImage;
@@ -75,11 +64,11 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.converter.DoubleStringConverter;
-import maps.Danseiji;
 import maps.ArbitraryPseudocylindrical;
 import maps.Azimuthal;
 import maps.Conic;
 import maps.Cylindrical;
+import maps.Danseiji;
 import maps.Elastic;
 import maps.EqualEarth;
 import maps.Gyorffy;
@@ -94,9 +83,25 @@ import maps.Snyder;
 import maps.Tobler;
 import maps.WinkelTripel;
 import utils.Flag;
-import utils.Math2;
 import utils.MutableDouble;
 import utils.Procedure;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleUnaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+import static java.lang.Math.asin;
+import static java.lang.Math.random;
+import static java.lang.Math.toDegrees;
+import static java.lang.Math.toRadians;
+import static utils.Math2.round;
 
 
 /**
@@ -321,7 +326,7 @@ public abstract class MapApplication extends Application {
 		spinners[2] = new Spinner<Double>(-180, 180, 0.);
 		
 		for (int i = 0; i < 3; i ++) {
-			aspectArr[i] = Math.toRadians(sliders[i].getValue());
+			aspectArr[i] = toRadians(sliders[i].getValue());
 			link(sliders[i], spinners[i], i, aspectArr, Math::toRadians,
 					aspectSetter, isChanging, suppressListeners);
 		}
@@ -333,7 +338,7 @@ public abstract class MapApplication extends Application {
 					setAspectByPreset(((MenuItem) event.getSource()).getText(),
 							sliders);
 					for (int i = 0; i < 3; i ++)
-						aspectArr[i] = Math.toRadians(sliders[i].getValue());
+						aspectArr[i] = toRadians(sliders[i].getValue());
 					if (!suppressListeners.isSet())
 						aspectSetter.execute();
 				});
@@ -609,9 +614,9 @@ public abstract class MapApplication extends Application {
 			sliders[2].setValue(-sliders[2].getValue());
 		}
 		else if (presetName.equals("Random")) {
-			sliders[0].setValue(Math.toDegrees(Math.asin(Math.random()*2-1)));
-			sliders[1].setValue(Math.random()*360-180);
-			sliders[2].setValue(Math.random()*360-180);
+			sliders[0].setValue(toDegrees(asin(random()*2-1)));
+			sliders[1].setValue(random()*360-180);
+			sliders[2].setValue(random()*360-180);
 		}
 		else {
 			for (int i = 0; i < ASPECT_NAMES.length; i ++) {
@@ -659,7 +664,7 @@ public abstract class MapApplication extends Application {
 				if (!now) {
 					if (spn.getValue() != sld.getValue())
 						spn.getValueFactory().setValue(sld.getValue());
-					doubles[i] = converter.applyAsDouble(Math2.round(sld.getValue(),3));
+					doubles[i] = converter.applyAsDouble(round(sld.getValue(),3));
 					if (!suppressListeners.isSet())
 						callback.execute();
 				}
@@ -667,7 +672,7 @@ public abstract class MapApplication extends Application {
 		sld.valueProperty().addListener((observable, prev, now) -> {
 				if (spn.getValue() != sld.getValue())
 					spn.getValueFactory().setValue(sld.getValue());
-				doubles[i] = converter.applyAsDouble(Math2.round(now.doubleValue(),3));
+				doubles[i] = converter.applyAsDouble(round(now.doubleValue(),3));
 				if (!suppressListeners.isSet())
 					callback.execute();
 			});

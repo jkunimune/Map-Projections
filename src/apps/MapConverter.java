@@ -36,6 +36,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
+import static java.lang.Math.sqrt;
+
 /**
  * a script that automatically converts a bunch of inputs into a particular projection.
  */
@@ -63,8 +65,8 @@ public class MapConverter {
 				// reduce the area by 2 to avoid pixelation
 				double area = inputImage.getWidth() * inputImage.getHeight() / 2.;
 				// and calculate the new dimensions according to Dymaxion's aspect ratio
-				int width = (int) Math.sqrt(area * projection.getAspectRatio());
-				int height = (int) Math.sqrt(area / projection.getAspectRatio());
+				int width = (int) sqrt(area * projection.getAspectRatio());
+				int height = (int) sqrt(area / projection.getAspectRatio());
 
 				// generate the new map
 				BufferedImage outputImage = MapDesignerRaster.calculate(

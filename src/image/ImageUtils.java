@@ -32,6 +32,8 @@ import java.awt.geom.Path2D;
 import image.SVGMap.Command;
 import image.SVGMap.Path;
 
+import static java.lang.Math.pow;
+
 /**
  * A collection of (currently just one) methods for dealing with images and coordinates
  * 
@@ -52,16 +54,16 @@ public class ImageUtils {
 		for (int argb: colors) {
 			int a = ((argb >> 24)&0xFF);
 			a_tot += a;
-			r_tot += a*(Math.pow((argb>>16)&0xFF, gamma));
-			g_tot += a*(Math.pow((argb>> 8)&0xFF, gamma));
-			b_tot += a*(Math.pow((argb>> 0)&0xFF, gamma));
+			r_tot += a*(pow((argb>>16)&0xFF, gamma));
+			g_tot += a*(pow((argb>> 8)&0xFF, gamma));
+			b_tot += a*(pow((argb>> 0)&0xFF, gamma));
 		}
 		if (a_tot == 0)	return 0;
 		else
 			return (a_tot/colors.length << 24) +
-					((int)Math.pow((double)r_tot/a_tot, 1/gamma) << 16) +
-					((int)Math.pow((double)g_tot/a_tot, 1/gamma) << 8) +
-					((int)Math.pow((double)b_tot/a_tot, 1/gamma) << 0);
+					((int)pow((double)r_tot/a_tot, 1/gamma) << 16) +
+					((int)pow((double)g_tot/a_tot, 1/gamma) << 8) +
+					((int)pow((double)b_tot/a_tot, 1/gamma) << 0);
 	}
 	
 	

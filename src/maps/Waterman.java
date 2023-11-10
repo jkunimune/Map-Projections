@@ -1,5 +1,11 @@
 package maps;
-import utils.Math2;
+
+import static java.lang.Double.NaN;
+import static java.lang.Math.PI;
+import static java.lang.Math.abs;
+import static java.lang.Math.hypot;
+import static java.lang.Math.sqrt;
+import static utils.Math2.linInterp;
 
 /**
  * MIT License
@@ -34,24 +40,24 @@ import utils.Math2;
 public class Waterman {
 	
 	private static final double[] xELD =
-		{(Math.sqrt(3)-1)/2, .5*Math.sqrt(3), 1.5*Math.sqrt(3), Double.NaN};
-	private static final double[] dYdL = {0, 2/Math.PI, 6/Math.PI, (4+Math.sqrt(8))/Math.PI};
+		{(sqrt(3)-1)/2, .5*sqrt(3), 1.5*sqrt(3), NaN};
+	private static final double[] dYdL = {0, 2/PI, 6/PI, (4+sqrt(8))/PI};
 	
-	private static final double lonDiag = Math.PI/(4+Math.sqrt(8));
-	private static final double sin15 = (Math.sqrt(3)-1)/Math.sqrt(8);
-	private static final double cos15 = (Math.sqrt(3)+1)/Math.sqrt(8);
+	private static final double lonDiag = PI/(4+sqrt(8));
+	private static final double sin15 = (sqrt(3)-1)/sqrt(8);
+	private static final double cos15 = (sqrt(3)+1)/sqrt(8);
 	
 	
 	public static double[] faceProject(double lat, double lon) {
 		double[] yELD = jointHeights(lon);
-		double desirLength = Math2.linInterp(lat, Math.PI/2, 0, 0, totalLength(xELD, yELD));
+		double desirLength = linInterp(lat, PI/2, 0, 0, totalLength(xELD, yELD));
 		
 		for (int i = 1; i < xELD.length; i ++) { //now that we've established the meridian, lets place our point on it
-			double l = Math.hypot(xELD[i]-xELD[i-1], yELD[i]-yELD[i-1]); //inch up the meridian
+			double l = hypot(xELD[i]-xELD[i-1], yELD[i]-yELD[i-1]); //inch up the meridian
 			if (l >= desirLength || i == xELD.length-1) //if it fits on this segment
 				return new double[] {
-						Math2.linInterp(desirLength, 0, l, xELD[i-1], xELD[i]),
-						Math2.linInterp(desirLength, 0, l, yELD[i-1], yELD[i]) }; //interpolate and return
+						linInterp(desirLength, 0, l, xELD[i-1], xELD[i]),
+						linInterp(desirLength, 0, l, yELD[i-1], yELD[i]) }; //interpolate and return
 			else //if we have further to go
 				desirLength -= l; //mark off this length and continue
 		}
@@ -59,8 +65,8 @@ public class Waterman {
 	}
 
 	public static double[] faceInverse(double x, double y) {
-		if (y > x-(Math.sqrt(3)-1)/2 || y > x/Math.sqrt(3) || y > (2-Math.sqrt(3))*(x+3) ||
-				y > (7+4*Math.sqrt(3))-(2+Math.sqrt(3))*x  || x > 2*Math.sqrt(3)) //this describes the footprint of the octant
+		if (y > x-(sqrt(3)-1)/2 || y > x/sqrt(3) || y > (2-sqrt(3))*(x+3) ||
+				y > (7+4*sqrt(3))-(2+sqrt(3))*x  || x > 2*sqrt(3)) //this describes the footprint of the octant
 			return null;
 		
 		double longitude;
@@ -68,24 +74,24 @@ public class Waterman {
 		while (i < xELD.length-1 && xELD[i] < x)
 			i ++; //figure out in which segment it is
 		if (i <= 2) { //well-behaved segments?
-			longitude = y/Math2.linInterp(x, xELD[i-1], xELD[i], dYdL[i-1], dYdL[i]);
+			longitude = y/linInterp(x, xELD[i-1], xELD[i], dYdL[i-1], dYdL[i]);
 		}
 		else { //the well-behaved part of the last segment?
-			longitude = y/Math2.linInterp(x, xELD[i-1], 2*Math.sqrt(3), dYdL[i-1], dYdL[i]);
+			longitude = y/linInterp(x, xELD[i-1], 2*sqrt(3), dYdL[i-1], dYdL[i]);
 			if (longitude > lonDiag) { //the diagonal part of the last segment?
 				double a = dYdL[2]*dYdL[3]*sin15; //surprisingly, the equation becomes quadratic here
-				double b = (dYdL[3]*cos15-dYdL[2])*(1.5*Math.sqrt(3)-x) - dYdL[3]*sin15*y - dYdL[2]*(Math.sqrt(3)/2+dYdL[3]*lonDiag*sin15);
-				double c = (Math.sqrt(3)/2+dYdL[3]*lonDiag*sin15)*y + (1-dYdL[3]*lonDiag*cos15)*(1.5*Math.sqrt(3)-x);
-				longitude = (-b - Math.sqrt(b*b - 4*a*c))/(2*a);
+				double b = (dYdL[3]*cos15-dYdL[2])*(1.5*sqrt(3)-x) - dYdL[3]*sin15*y - dYdL[2]*(sqrt(3)/2+dYdL[3]*lonDiag*sin15);
+				double c = (sqrt(3)/2+dYdL[3]*lonDiag*sin15)*y + (1-dYdL[3]*lonDiag*cos15)*(1.5*sqrt(3)-x);
+				longitude = (-b - sqrt(b*b - 4*a*c))/(2*a);
 			}
 		}
 		
 		double[] yELD = jointHeights(longitude);
 		double totalLength = totalLength(xELD, yELD);
-		double pointLength = Math.hypot(x-xELD[i-1], y-yELD[i-1]);
+		double pointLength = hypot(x-xELD[i-1], y-yELD[i-1]);
 		for (int j = 1; j < i; j ++) //add in the lengths of all previous segments
-			pointLength += Math.hypot(xELD[j]-xELD[j-1], yELD[j]-yELD[j-1]);
-		double latitude = Math2.linInterp(pointLength, 0, totalLength, Math.PI/2, 0);
+			pointLength += hypot(xELD[j]-xELD[j-1], yELD[j]-yELD[j-1]);
+		double latitude = linInterp(pointLength, 0, totalLength, PI/2, 0);
 		
 		return new double[] {latitude, longitude};
 	}
@@ -95,12 +101,12 @@ public class Waterman {
 		double[] yELD = new double[xELD.length]; //the height of the intersections of this meridian with the Equal Line Delineations
 		for (int i = 0; i < xELD.length; i ++)
 			yELD[i] = dYdL[i]*lon;
-		if (Math.abs(lon) <= lonDiag) { //if it hits the equatorial ELD on the vertical (hexagon) part
-			xELD[3] = 2*Math.sqrt(3);
+		if (abs(lon) <= lonDiag) { //if it hits the equatorial ELD on the vertical (hexagon) part
+			xELD[3] = 2*sqrt(3);
 		}
 		else { //if it hits it on the diagonal (square) part
-			xELD[3] = -(Math.abs(lon)-lonDiag)*dYdL[3]*sin15 + 2*Math.sqrt(3);
-			yELD[3] =  (Math.abs(lon)-lonDiag)*dYdL[3]*cos15 + 1;
+			xELD[3] = -(abs(lon)-lonDiag)*dYdL[3]*sin15 + 2*sqrt(3);
+			yELD[3] =  (abs(lon)-lonDiag)*dYdL[3]*cos15 + 1;
 		}
 		return yELD;
 	}
@@ -109,7 +115,7 @@ public class Waterman {
 	private static double totalLength(double[] xs, double[] ys) {
 		double totalLength = 0; //compute meridian length
 		for (int i = 1; i < xELD.length; i ++)
-			totalLength += Math.hypot(xs[i]-xs[i-1], ys[i]-ys[i-1]);
+			totalLength += hypot(xs[i]-xs[i-1], ys[i]-ys[i-1]);
 		return totalLength;
 	}
 	

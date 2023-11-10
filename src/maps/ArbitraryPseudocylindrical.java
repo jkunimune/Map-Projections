@@ -28,6 +28,12 @@ import java.util.Arrays;
 import utils.BoundingBox;
 import utils.NumericalAnalysis;
 
+import static java.lang.Math.PI;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.lang.Math.toDegrees;
+import static java.lang.Math.toRadians;
+
 /**
  * A class specifically for pseudocylindrical projections that use arbitrary tables of numbers.
  * 
@@ -73,21 +79,21 @@ public class ArbitraryPseudocylindrical {
 		
 		public double[] project(double lat, double lon) {
 			return new double[] {
-					lon/Math.PI*smartInterpolate(Math.toDegrees(lat), table[0], table[1]),
-					bounds.yMax*smartInterpolate(Math.toDegrees(lat), table[0], table[2]) };
+					lon/PI*smartInterpolate(toDegrees(lat), table[0], table[1]),
+					bounds.yMax*smartInterpolate(toDegrees(lat), table[0], table[2]) };
 		}
 		
 		public double[] inverse(double x, double y) {
 			return new double[] {
-					Math.toRadians(smartInterpolate(y/bounds.yMax, table[2], table[0])),
-					Math.PI*x/smartInterpolate(y/bounds.yMax, table[2], table[1]) };
+					toRadians(smartInterpolate(y/bounds.yMax, table[2], table[0])),
+					PI*x/smartInterpolate(y/bounds.yMax, table[2], table[1]) };
 		}
 		
 		private static double smartInterpolate(double x, double[] X, double[] f) {
 			int i = Arrays.binarySearch(X, x);
 			if (i < 0)	i = -i - 1; //if you couldn't find it, don't worry about it
 			return NumericalAnalysis.aitkenInterpolate(
-					x, X, f, Math.max(i - ORDER, 0), Math.min(i + ORDER, X.length)); //call aitken with the correct bounds
+					x, X, f, max(i - ORDER, 0), min(i + ORDER, X.length)); //call aitken with the correct bounds
 		}
 		
 	}

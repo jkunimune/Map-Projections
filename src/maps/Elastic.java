@@ -49,6 +49,7 @@ import static java.lang.Math.signum;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
 import static java.lang.Math.toRadians;
+import static java.lang.String.format;
 
 /**
  * A class for completely arbitrary projections, where every square degree can be specified anywhere on the plane.
@@ -103,6 +104,7 @@ public class Elastic {
 		 * @param λ the longitude, in radians
 		 * @return the x value and y value, in the same units as this.width and this.height
 		 */
+		@Override
 		public double[] project(double ф, double λ) {
 			for (int i = 0; i < sections.length; i ++) {
 				// find the section that contains this point
@@ -124,6 +126,7 @@ public class Elastic {
 		 * @param y the y value, in the same units as this.height
 		 * @return the latitude and longitude, in radians, or null if the point is not on the mesh
 		 */
+		@Override
 		public double[] inverse(double x, double y) {
 			// start by interpolating on the raster
 			double[] guess = inverse_by_interpolation(x, y);
@@ -332,7 +335,7 @@ public class Elastic {
 
 			BufferedReader in = null;
 			try {
-				in = new BufferedReader(new FileReader(String.format("res/%s", filename))); // parsing the input mesh is pretty simple
+				in = new BufferedReader(new FileReader(format("res/%s", filename))); // parsing the input mesh is pretty simple
 
 				// load the basic projection information
 				String line = in.readLine();  // read the header

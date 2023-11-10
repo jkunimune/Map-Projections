@@ -52,6 +52,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static java.lang.Double.NaN;
+import static java.lang.Double.isFinite;
+import static java.lang.Double.isNaN;
+import static java.lang.Double.parseDouble;
 import static java.lang.Math.PI;
 import static java.lang.Math.hypot;
 import static java.lang.Math.max;
@@ -153,8 +157,8 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 					formatStrings.add(currentFormatString.toString());
 					// represent it as a Path object with one vertex
 					paths.add(parsePoint(
-							Double.parseDouble(attributes.getValue("x")),
-							Double.parseDouble(attributes.getValue("y")),
+							parseDouble(attributes.getValue("x")),
+							parseDouble(attributes.getValue("y")),
 							'P'));
 					currentFormatString = new StringBuilder();
 				}
@@ -165,8 +169,8 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 					formatStrings.add(currentFormatString.toString()); //points are represented as single-point paths
 					// represent it as a Path object with one vertex
 					paths.add(parsePoint(
-							Double.parseDouble(attributes.getValue("cx")),
-							Double.parseDouble(attributes.getValue("cy")),
+							parseDouble(attributes.getValue("cx")),
+							parseDouble(attributes.getValue("cy")),
 							'O'));
 					currentFormatString = new StringBuilder();
 				}
@@ -211,27 +215,27 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 					String[] args = argString.split("[,\\s]+");
 					switch (type) {
 						case "matrix":
-							xScale = Double.parseDouble(args[0]);
-							yScale = Double.parseDouble(args[3]);
-							xTrans = Double.parseDouble(args[4]);
-							yTrans = Double.parseDouble(args[5]);
+							xScale = parseDouble(args[0]);
+							yScale = parseDouble(args[3]);
+							xTrans = parseDouble(args[4]);
+							yTrans = parseDouble(args[5]);
 							break;
 						case "translate":
 							if (args.length == 1) {
-								xTrans = yTrans = Double.parseDouble(args[0]);
+								xTrans = yTrans = parseDouble(args[0]);
 							}
 							else {
-								xTrans = Double.parseDouble(args[0]);
-								yTrans = Double.parseDouble(args[1]);
+								xTrans = parseDouble(args[0]);
+								yTrans = parseDouble(args[1]);
 							}
 							break;
 						case "scale":
 							if (args.length == 1) {
-								xScale = yScale = Double.parseDouble(args[0]);
+								xScale = yScale = parseDouble(args[0]);
 							}
 							else {
-								xScale = Double.parseDouble(args[0]);
-								yScale = Double.parseDouble(args[1]);
+								xScale = parseDouble(args[0]);
+								yScale = parseDouble(args[1]);
 							}
 							break;
 					} // I'm not worrying about shear and rotation because I don't want to
@@ -242,20 +246,20 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 
 			private void parseSVGHeader(Attributes attributes) {
 				if (attributes.getValue("width") != null)
-					svgWidth = Double.parseDouble(attributes.getValue("width"));
+					svgWidth = parseDouble(attributes.getValue("width"));
 				else
 					svgWidth = 360.;
 				if (attributes.getValue("height") != null)
-					svgHeight = Double.parseDouble(attributes.getValue("height"));
+					svgHeight = parseDouble(attributes.getValue("height"));
 				else
 					svgHeight = 180.;
 
 				if (attributes.getValue("viewBox") != null) {
 					String[] values = attributes.getValue("viewBox").split("\\s", 4);
-					vbMinX = Double.parseDouble(values[0]);
-					vbMinY = Double.parseDouble(values[1]);
-					vbWidth = Double.parseDouble(values[2]);
-					vbHeight = Double.parseDouble(values[3]);
+					vbMinX = parseDouble(values[0]);
+					vbMinY = parseDouble(values[1]);
+					vbWidth = parseDouble(values[2]);
+					vbHeight = parseDouble(values[3]);
 				}
 				else {
 					vbWidth = svgWidth;
@@ -398,19 +402,19 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 		if (continuous.size() <= 2) 	return continuous;
 		Path broken = new Path();
 		final double lengthThreshold = inSize*MAX_EDGE_LENGTH;
-		double[] lens = {Double.NaN, Double.NaN, Double.NaN}; //the revolving array of command lengths
+		double[] lens = {NaN, NaN, NaN}; //the revolving array of command lengths
 		for (int i = 0; i < continuous.size(); i ++) {
 			if (i < continuous.size()-1 && continuous.get(i+1).type != 'M')
 				lens[2] = hypot( //compute this next length
 						continuous.get(i+1).args[0] - continuous.get(i).args[0],
 						continuous.get(i+1).args[1] - continuous.get(i).args[1]);
 			else
-				lens[2] = Double.NaN;
+				lens[2] = NaN;
 			
 			char type = continuous.get(i).type;
 			if (lens[1] >= lengthThreshold && // check it against an absolute threshold
-					(Double.isNaN(lens[0]) || lens[1] > 20*lens[0]) && //and compare it to the last two lengths
-					(Double.isNaN(lens[2]) || lens[1] > 20*lens[2])) //if both sides are far longer or nonexistent
+					(isNaN(lens[0]) || lens[1] > 20*lens[0]) && //and compare it to the last two lengths
+					(isNaN(lens[2]) || lens[1] > 20*lens[2])) //if both sides are far longer or nonexistent
 				type = 'M'; //break this line
 			
 			broken.add(new Command(type, continuous.get(i).args.clone()));
@@ -525,8 +529,8 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 				if (type == 'h' || type == 'H' || type == 'v' || type == 'V') { //convert these to 'L'
 					final int direcIdx = (type%32 == 8) ? 0 : 1;
 					args = new double[] {last[0], last[1]};
-					if (type <= 'Z') 	args[direcIdx] = Double.parseDouble(argStrings[0]); //uppercase (absolute)
-					else 				args[direcIdx] += Double.parseDouble(argStrings[0]); //lowercase (relative)
+					if (type <= 'Z') 	args[direcIdx] = parseDouble(argStrings[0]); //uppercase (absolute)
+					else 				args[direcIdx] += parseDouble(argStrings[0]); //lowercase (relative)
 					last[direcIdx] = args[direcIdx];
 					type = 'L';
 				}
@@ -537,7 +541,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 				else {
 					args = new double[argStrings.length];
 					for (int j = 0; j < args.length; j ++) {
-						args[j] = Double.parseDouble(argStrings[j]); //parse the coordinate
+						args[j] = parseDouble(argStrings[j]); //parse the coordinate
 						
 						if (type >= 'a')
 							args[j] += last[j%2]; //account for relative commands
@@ -552,7 +556,7 @@ public class SVGMap implements Iterable<SVGMap.Path> {
 				}
 				
 				for (int j = 0; j < args.length; j ++) {
-					if (!Double.isFinite(args[j]))
+					if (!isFinite(args[j]))
 						throw new IllegalArgumentException("uhh... "+type+argString);
 					if (j%2 == 0) {
 						args[j] = args[j]*transform[0] + transform[2]; //apply the transformation

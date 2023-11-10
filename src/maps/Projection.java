@@ -33,8 +33,28 @@ import java.util.function.DoubleConsumer;
 
 import image.SVGMap.Command;
 import image.SVGMap.Path;
-import utils.Math2;
 import utils.BoundingBox;
+
+import static java.lang.Double.NaN;
+import static java.lang.Double.isNaN;
+import static java.lang.Math.PI;
+import static java.lang.Math.abs;
+import static java.lang.Math.acos;
+import static java.lang.Math.asin;
+import static java.lang.Math.cos;
+import static java.lang.Math.hypot;
+import static java.lang.Math.log;
+import static java.lang.Math.round;
+import static java.lang.Math.sin;
+import static java.lang.Math.tan;
+import static utils.Math2.coerceAngle;
+import static utils.Math2.hypot;
+import static utils.Math2.linInterp;
+import static utils.Math2.max;
+import static utils.Math2.mean;
+import static utils.Math2.outOfBoundsInSameDirection;
+import static utils.Math2.rms;
+import static utils.Math2.stdDev;
 
 /**
  * An object that transforms coordinates between spheres and planes.
@@ -43,7 +63,7 @@ import utils.BoundingBox;
  */
 public abstract class Projection {
 	
-	public static final double[] NORTH_POLE = {Math.PI/2, 0, 0};
+	public static final double[] NORTH_POLE = {PI/2, 0, 0};
 	
 	
 	private final String name; //typically the name of the dude credited for it
@@ -254,7 +274,7 @@ public abstract class Projection {
 	 */
 	public double[] inverse(double x, double y, double[] pole, boolean cropAtPi) {
 		final double[] relCoords = inverse(x, y);
-		if (relCoords == null || (cropAtPi && Math.abs(relCoords[1]) > Math.PI))
+		if (relCoords == null || (cropAtPi && abs(relCoords[1]) > PI))
 			return null; //cropAtPi removes all points with longitudes outside +- PI
 		else
 			return transformToOblique(relCoords, hasAspect ? pole : null);
@@ -297,9 +317,9 @@ public abstract class Projection {
 		double width = bounds.xMin - bounds.xMax;
 		double height = bounds.yMin - bounds.yMax;
 		if (width >= height)
-			return map(size, Math.max(Math.round(size*height/width),1), pole, cropAtPi, null);
+			return map(size, max(round(size*height/width),1), pole, cropAtPi, null);
 		else
-			return map(Math.max(Math.round(size*width/height),1), size, pole, cropAtPi, null);
+			return map(max(round(size*width/height),1), size, pole, cropAtPi, null);
 	}
 
 	/**
@@ -375,7 +395,7 @@ public abstract class Projection {
 		Path planar = new Path(); //the planar coordinates of the vertices
 		for (int i = 0; i < spherical.size(); i ++) {
 			double[] si = spherical.get(i); //populated with projections of spherical, in image coordinates
-			double[] pi = Math2.linInterp(this.project(si, pole), baseRange, imgRange);
+			double[] pi = linInterp(this.project(si, pole), baseRange, imgRange);
 			char type = (i == 0) ? 'M' : 'L';
 			planar.add(new Command(type, pi));
 		}
@@ -388,18 +408,18 @@ public abstract class Projection {
 			double[] sm = new double[] {(s0[0]+s1[0])/2, (s0[1]+s1[1])/2}; //spherical (loxodromic) midpoint
 			double[] p0 = planar.get(i).args; //first planar endpoint
 			double[] p1 = planar.get(i+1).args; //second planar endpoint
-			if (Math2.outOfBoundsInSameDirection(imgRange, p0, p1)) // if we're talking about things entirely off the map
+			if (outOfBoundsInSameDirection(imgRange, p0, p1)) // if we're talking about things entirely off the map
 				continue; // just forget about it
-			double[] pm = Math2.linInterp(this.project(sm, pole), baseRange, imgRange); //planar (loxodromic) midpoint
+			double[] pm = linInterp(this.project(sm, pole), baseRange, imgRange); //planar (loxodromic) midpoint
 			
-			double error = Math.hypot(pm[0] - (p0[0] + p1[0])/2, pm[1] - (p0[1] + p1[1])/2); // midpoint error
+			double error = hypot(pm[0] - (p0[0] + p1[0])/2, pm[1] - (p0[1] + p1[1])/2); // midpoint error
 			if (error > precision) { //if the calculated midpoint is too far from what we expect
-				if ((i-1 < 0 || Math2.hypot(planar.get(i-1).args, p0) <= precision) &&
-						(i+2 >= planar.size() || Math2.hypot(planar.get(i+2).args, p1) <= precision)) { // check if it's getting real close on each side
+				if ((i-1 < 0 || hypot(planar.get(i-1).args, p0) <= precision) &&
+						(i+2 >= planar.size() || hypot(planar.get(i+2).args, p1) <= precision)) { // check if it's getting real close on each side
 					planar.set(i+1, new Command('M', p1)); // if so, it's probably an interruption. Change the second one to 'M'.
 					continue;
 				}
-				else if (Math.hypot(s1[0] - s0[0], s1[1] - s0[1]) < 1e-4) { // alternatively, if we're getting to arcsecond scale,
+				else if (hypot(s1[0] - s0[0], s1[1] - s0[1]) < 1e-4) { // alternatively, if we're getting to arcsecond scale,
 					planar.set(i+1, new Command('M', p1)); // it's just not worth it
 					continue;
 				}
@@ -416,8 +436,8 @@ public abstract class Projection {
 	
 	public static double[][][] globe(double dt) { //generate a matrix of coordinates based on the sphere
 		List<double[]> points = new ArrayList<double[]>();
-		for (double phi = -Math.PI/2+dt/2; phi < Math.PI/2; phi += dt) { // make sure phi is never exactly +-tau/4
-			for (double lam = -Math.PI+dt/Math.cos(phi)/2; lam < Math.PI; lam += dt/Math.cos(phi)) {
+		for (double phi = -PI/2+dt/2; phi < PI/2; phi += dt) { // make sure phi is never exactly +-tau/4
+			for (double lam = -PI+dt/cos(phi)/2; lam < PI; lam += dt/cos(phi)) {
 				points.add(new double[] {phi, lam});
 			}
 		}
@@ -427,8 +447,8 @@ public abstract class Projection {
 	
 	public static double[][][] hemisphere(double dt) { //like globe(), but for the eastern hemisphere. Good for doing projections that are symmetrical in longitude (i.e. pretty much all of them)
 		List<double[]> points = new ArrayList<double[]>();
-		for (double phi = -Math.PI/2+dt/2; phi < Math.PI/2; phi += dt) { // make sure phi is never exactly +-tau/4
-			for (double lam = dt/Math.cos(phi)/2; lam < Math.PI; lam += dt/Math.cos(phi)) {
+		for (double phi = -PI/2+dt/2; phi < PI/2; phi += dt) { // make sure phi is never exactly +-tau/4
+			for (double lam = dt/cos(phi)/2; lam < PI; lam += dt/cos(phi)) {
 				points.add(new double[] {phi, lam});
 			}
 		}
@@ -443,7 +463,7 @@ public abstract class Projection {
 	
 	public double[] avgDistortion(double[][][] points) {
 		final double[][][] distDist = calculateDistortion(points);
-		return new double[] {Math2.stdDev(distDist[0]), Math2.rms(distDist[1])};
+		return new double[] {stdDev(distDist[0]), rms(distDist[1])};
 	}
 	
 	
@@ -465,13 +485,13 @@ public abstract class Projection {
 					output[1][y][x] = dists[1]; //area and angular distortion
 				}
 				else {
-					output[0][y][x] = Double.NaN;
-					output[1][y][x] = Double.NaN; //NaN means no map here
+					output[0][y][x] = NaN;
+					output[1][y][x] = NaN; //NaN means no map here
 				}
 			}
 		}
 		
-		final double avgArea = Math2.mean(output[0]); //don't forget to normalize output[0] so the average is zero
+		final double avgArea = mean(output[0]); //don't forget to normalize output[0] so the average is zero
 		for (int y = 0; y < output[0].length; y ++)
 			for (int x = 0; x < output[0][y].length; x ++)
 				output[0][y][x] -= avgArea;
@@ -485,7 +505,7 @@ public abstract class Projection {
 		final double dx = 1e-8;
 		
 		final double[] sC = { s0[0]+dx, s0[1] }; //first, step to the side a bit to help us avoid interruptions
-		final double[] sE = { sC[0], sC[1]+dx/Math.cos(sC[0]) }; //consider a point slightly to the east
+		final double[] sE = { sC[0], sC[1]+dx/cos(sC[0]) }; //consider a point slightly to the east
 		final double[] sN = { sC[0]+dx, sC[1] }; //and slightly to the north
 		final double[] pC = project(sC);
 		final double[] pE = project(sE);
@@ -493,15 +513,15 @@ public abstract class Projection {
 		
 		final double dA = 
 				(pE[0]-pC[0])*(pN[1]-pC[1]) - (pE[1]-pC[1])*(pN[0]-pC[0]);
-		output[0] = Math.log(Math.abs(dA/(dx*dx))); //the zeroth output is the size (area) distortion
-		if (Math.abs(output[0]) > 25)
-			output[0] = Double.NaN; //discard outliers
+		output[0] = log(abs(dA/(dx*dx))); //the zeroth output is the size (area) distortion
+		if (abs(output[0]) > 25)
+			output[0] = NaN; //discard outliers
 		
-		final double s1ps2 = Math.hypot((pE[0]-pC[0])+(pN[1]-pC[1]), (pE[1]-pC[1])-(pN[0]-pC[0]));
-		final double s1ms2 = Math.hypot((pE[0]-pC[0])-(pN[1]-pC[1]), (pE[1]-pC[1])+(pN[0]-pC[0]));
-		output[1] = Math.abs(Math.log(Math.abs((s1ps2-s1ms2)/(s1ps2+s1ms2)))); //the first output is the shape (angle) distortion
+		final double s1ps2 = hypot((pE[0]-pC[0])+(pN[1]-pC[1]), (pE[1]-pC[1])-(pN[0]-pC[0]));
+		final double s1ms2 = hypot((pE[0]-pC[0])-(pN[1]-pC[1]), (pE[1]-pC[1])+(pN[0]-pC[0]));
+		output[1] = abs(log(abs((s1ps2-s1ms2)/(s1ps2+s1ms2)))); //the first output is the shape (angle) distortion
 		if (output[1] > 25)
-			output[1] = Double.NaN; //discard outliers
+			output[1] = NaN; //discard outliers
 		
 		return output;
 	}
@@ -523,32 +543,32 @@ public abstract class Projection {
 		final double tht0 = pole[2];
 		
 		double lat1;
-		if (lat0 == Math.PI/2)
+		if (lat0 == PI/2)
 			lat1 = latF;
 		else
-			lat1 = Math.asin(Math.sin(lat0)*Math.sin(latF) + Math.cos(lat0)*Math.cos(latF)*Math.cos(lon0-lonF)); // relative latitude
+			lat1 = asin(sin(lat0)*sin(latF) + cos(lat0)*cos(latF)*cos(lon0-lonF)); // relative latitude
 		
 		double lon1;
-		if (lat0 == Math.PI/2) // accounts for all the 0/0 errors at the poles
+		if (lat0 == PI/2) // accounts for all the 0/0 errors at the poles
 			lon1 = lonF - lon0;
-		else if (lat0 == -Math.PI/2)
-			lon1 = lon0 - lonF - Math.PI;
+		else if (lat0 == -PI/2)
+			lon1 = lon0 - lonF - PI;
 		else {
-			lon1 = Math.acos((Math.cos(lat0)*Math.sin(latF) - Math.sin(lat0)*Math.cos(latF)*Math.cos(lon0-lonF))/Math.cos(lat1))-Math.PI; // relative longitude
-			if (Double.isNaN(lon1)) {
-				if ((Math.cos(lon0-lonF) >= 0 && latF < lat0) || (Math.cos(lon0-lonF) < 0 && latF < -lat0))
+			lon1 = acos((cos(lat0)*sin(latF) - sin(lat0)*cos(latF)*cos(lon0-lonF))/cos(lat1))-PI; // relative longitude
+			if (isNaN(lon1)) {
+				if ((cos(lon0-lonF) >= 0 && latF < lat0) || (cos(lon0-lonF) < 0 && latF < -lat0))
 					lon1 = 0;
 				else
-					lon1 = -Math.PI;
+					lon1 = -PI;
 			}
-			else if (Math.sin(lonF - lon0) > 0) // it's a plus-or-minus arccos.
+			else if (sin(lonF - lon0) > 0) // it's a plus-or-minus arccos.
 				lon1 = -lon1;
 		}
 		lon1 = lon1-tht0;
-		if (Math.abs(lon1) > Math.PI) //put all longitudes in [-pi,pi], for convenience
-			lon1 = Math2.coerceAngle(lon1);
-		if (lon1 >= Math.PI - 1e-7) // finally, kill any roundoff error on the edge
-			lon1 = -Math.PI;
+		if (abs(lon1) > PI) //put all longitudes in [-pi,pi], for convenience
+			lon1 = coerceAngle(lon1);
+		if (lon1 >= PI - 1e-7) // finally, kill any roundoff error on the edge
+			lon1 = -PI;
 		
 		return new double[] {lat1, lon1};
 	}
@@ -568,26 +588,26 @@ public abstract class Projection {
 		final double lat0 = pole[0], lon0 = pole[1], tht0 = pole[2];
 		
 		lon1 += tht0;
-		double latf = Math.asin(Math.sin(lat0)*Math.sin(lat1) - Math.cos(lat0)*Math.cos(lon1)*Math.cos(lat1));
+		double latf = asin(sin(lat0)*sin(lat1) - cos(lat0)*cos(lon1)*cos(lat1));
 		double lonf;
-		double innerFunc = Math.sin(lat1)/Math.cos(lat0)/Math.cos(latf) - Math.tan(lat0)*Math.tan(latf);
-		if (lat0 == Math.PI/2) // accounts for special case when lat0 = pi/2
+		double innerFunc = sin(lat1)/cos(lat0)/cos(latf) - tan(lat0)*tan(latf);
+		if (lat0 == PI/2) // accounts for special case when lat0 = pi/2
 			lonf = lon1+lon0;
-		else if (lat0 == -Math.PI/2) // accounts for special case when lat0 = -pi/2
-			lonf = -lon1+lon0 + Math.PI;
-		else if (Math.abs(innerFunc) > 1) { // accounts for special case when cos(lat1) -> 0
+		else if (lat0 == -PI/2) // accounts for special case when lat0 = -pi/2
+			lonf = -lon1+lon0 + PI;
+		else if (abs(innerFunc) > 1) { // accounts for special case when cos(lat1) -> 0
 			if ((lon1 == 0 && lat1 < -lat0) || (lon1 != 0 && lat1 < lat0))
-				lonf = lon0 + Math.PI;
+				lonf = lon0 + PI;
 			else
 				lonf = lon0;
 		}
-		else if (Math.sin(lon1) > 0)
-			lonf = lon0 + Math.acos(innerFunc);
+		else if (sin(lon1) > 0)
+			lonf = lon0 + acos(innerFunc);
 		else
-			lonf = lon0 - Math.acos(innerFunc);
+			lonf = lon0 - acos(innerFunc);
 		
-		if (Math.abs(lonf) > Math.PI)
-			lonf = Math2.coerceAngle(lonf);
+		if (abs(lonf) > PI)
+			lonf = coerceAngle(lonf);
 		
 		double thtf = pole[2];
 		
