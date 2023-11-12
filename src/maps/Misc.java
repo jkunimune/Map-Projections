@@ -24,13 +24,15 @@
 package maps;
 
 import de.jtem.ellipticFunctions.Jacobi;
-import image.SVGMap.Path;
+import image.SVGMap.Command;
 import maps.Projection.Property;
 import maps.Projection.Type;
 import org.apache.commons.math3.complex.Complex;
 import utils.BoundingBox;
 import utils.Elliptic;
 import utils.NumericalAnalysis;
+
+import java.util.List;
 
 import static java.lang.Double.NaN;
 import static java.lang.Double.POSITIVE_INFINITY;
@@ -466,8 +468,8 @@ public class Misc {
 		}
 		
 		@Override
-		public Path drawGraticule(double spacing, double precision, double outW, double outH,
-			double maxLat, double maxLon, double[] pole) {
+		public List<Command> drawGraticule(double spacing, double precision, double outW, double outH,
+		                                          double maxLat, double maxLon, double[] pole) {
 			return Azimuthal.POLAR.drawGraticule(spacing, precision, outW, outH, maxLat, maxLon, null);
 		}
 	};

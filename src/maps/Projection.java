@@ -23,6 +23,9 @@
  */
 package maps;
 
+import image.SVGMap.Command;
+import utils.BoundingBox;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -30,10 +33,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleConsumer;
-
-import image.SVGMap.Command;
-import image.SVGMap.Path;
-import utils.BoundingBox;
 
 import static java.lang.Double.NaN;
 import static java.lang.Double.isNaN;
@@ -314,12 +313,10 @@ public abstract class Projection {
 	 *         elements corresponding to points not on the map will be set to zero.
 	 */
 	public double[][][] map(int size, double[] pole, boolean cropAtPi) {
-		double width = bounds.xMin - bounds.xMax;
-		double height = bounds.yMin - bounds.yMax;
-		if (width >= height)
-			return map(size, max(round(size*height/width),1), pole, cropAtPi, null);
+		if (bounds.width >= bounds.height)
+			return map(size, max(round(size*bounds.height/bounds.width),1), pole, cropAtPi, null);
 		else
-			return map(max(round(size*width/height),1), size, pole, cropAtPi, null);
+			return map(max(round(size*bounds.width/bounds.height),1), size, pole, cropAtPi, null);
 	}
 
 	/**
@@ -358,9 +355,9 @@ public abstract class Projection {
 	 * @param pole The aspect of this graticule
 	 * @return list of curves where each curve is a list of {x,y} arrays
 	 */
-	public Path drawGraticule(double spacing, double precision, double outW, double outH,
+	public List<Command> drawGraticule(double spacing, double precision, double outW, double outH,
 			double maxLat, double maxLon, double[] pole) {
-		Path output = new Path();
+		List<Command> output = new LinkedList<>();
 		
 		for (int y = 0; y < (int)(maxLat/spacing); y ++) {
 			output.addAll(drawLoxodrome( //northern parallel
@@ -382,7 +379,7 @@ public abstract class Projection {
 	}
 	
 	
-	private Path drawLoxodrome(double lat0, double lon0, double lat1, double lon1,
+	private List<Command> drawLoxodrome(double lat0, double lon0, double lat1, double lon1,
 			double precision, double outW, double outH, double[] pole) {
 		final double[][] baseRange = {{bounds.xMin, bounds.yMax}, {bounds.xMax, bounds.yMin}};
 		final double[][] imgRange = {{0, 0}, {outW, outH}}; //define some constants for changing coordinates
@@ -392,7 +389,7 @@ public abstract class Projection {
 		List<double[]> spherical = new ArrayList<double[]>(); //the spherical coordinates of the vertices
 		for (double a = 0; a <= 1; a += 1/32.) //populated with vertices along the loxodrome
 			spherical.add(new double[] {endPt0[0]*a+endPt1[0]*(1-a), endPt0[1]*a+endPt1[1]*(1-a)});
-		Path planar = new Path(); //the planar coordinates of the vertices
+		List<Command> planar = new ArrayList<>(); //the planar coordinates of the vertices
 		for (int i = 0; i < spherical.size(); i ++) {
 			double[] si = spherical.get(i); //populated with projections of spherical, in image coordinates
 			double[] pi = linInterp(this.project(si, pole), baseRange, imgRange);
@@ -710,7 +707,7 @@ public abstract class Projection {
 	}
 	
 	public final double getAspectRatio() {
-		return (bounds.xMax - bounds.xMin)/(bounds.yMax - bounds.yMin);
+		return bounds.width/bounds.height;
 	}
 
 	public static final Projection NULL_PROJECTION = //this exists solely for the purpose of a "More..." option at the end of menus
