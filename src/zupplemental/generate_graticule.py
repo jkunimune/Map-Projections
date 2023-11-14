@@ -17,13 +17,12 @@ def plot_parallel(phid, granularity, cut=0, clazz=None) -> str:
 	return tag
 
 
-def generate_graticule(spacing, granularity, include_tropics=False, adjust_poles=False, double_dateline=False) -> str:
+def generate_graticule(spacing, granularity, include_tropics=False, adjust_poles=False) -> str:
 	""" Generate a mesh of latitude and longitude lines
 	    :param spacing: the number of degrees between adjacent lines
 	    :param granularity: the number of degrees between vertices on a line
 	    :param include_tropics: whether to also include the tropic lines and polar circles
 	    :param adjust_poles: whether to make most meridians stop short of the poles to reduce clutter
-	    :param double_dateline: whether to draw the 180°E meridian in addition to the 180°W one
 	"""
 	result = ""
 	NUM_BASE = 90//spacing
@@ -46,7 +45,7 @@ def generate_graticule(spacing, granularity, include_tropics=False, adjust_poles
 	for y in range(spacing, 90, spacing):
 		result += plot_parallel(-y, granularity)
 		result += plot_parallel(y, granularity)
-	for x in [-180, 0, 180] if double_dateline else [-180, 0]:
+	for x in [-180, 0]:
 		result += plot_meridian(x, granularity, clazz="prime-m")
 	result += plot_parallel(0, granularity, clazz="equator")
 	if include_tropics:
@@ -56,14 +55,3 @@ def generate_graticule(spacing, granularity, include_tropics=False, adjust_poles
 		result += plot_parallel(ANTI_TILT, granularity, clazz="circles")
 
 	return result
-
-
-def generate_backdrop(resolution, ctr_meridian=0):
-	"""generate a backdrop type thing that will only work in standard aspect"""
-	left_side = (ctr_meridian+.001)%360 - 180
-	middle = (ctr_meridian+180)%360 - 180
-	right_side = (ctr_meridian-.001)%360 - 180
-	tag = '\t\t\t<path d="M{:.3f},-90'.format(left_side) + 'v{}'.format(resolution)*int(180//resolution) +\
-			'L{:.3f},90L{:.3f},90'.format(middle, right_side) + 'v-{}'.format(resolution)*int(180//resolution) +\
-			'L{:.3f},-90 Z" />\n'.format(middle)
-	return tag

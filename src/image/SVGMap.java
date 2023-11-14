@@ -28,6 +28,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
+import utils.BoundingBox;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -117,6 +118,14 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 				// pull out the d from <path>
 				else if (tagName.equals("path"))
 					elements.add(parsePath(attributes));
+				// convert certain rectangles to Boundary objects
+				else if (tagName.equals("rect")) {
+					Background parsedBackground = parseBackground(attributes);
+					if (parsedBackground != null)
+						elements.add(parsedBackground);
+					else
+						elements.add(parsePoint("rect", attributes, "x", "y"));
+				}
 				// pull out the x and y from <text>
 				else if (attributes.getIndex("x") >= 0 && attributes.getIndex("y") >= 0)
 					elements.add(parsePoint(tagName, attributes, "x", "y"));
@@ -210,6 +219,50 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 				return header;
 			}
 
+			private Background parseBackground(AttributesImpl attributes) {
+				if (attributes.getValue("x") == null || attributes.getValue("y") == null ||
+				    attributes.getValue("width") == null || attributes.getValue("height") == null)
+					return null;
+				double x = parseDouble(attributes.getValue("x"));
+				double y = parseDouble(attributes.getValue("y"));
+				double width = parseDouble(attributes.getValue("width"));
+				double height = parseDouble(attributes.getValue("height"));
+				// apply the coordinate transformation
+				double[] transform = transformStack.peek();
+				if (transform == null)
+					throw new IllegalArgumentException("there will always be a nonnull transform to peek at");
+				x = x*transform[0] + transform[2];
+				y = y*transform[1] + transform[3];
+				width = width*transform[0];
+				height = height*transform[1];
+				// check if it exactly covers the viewbox (it's okay if it's vertically inverted)
+				if ((x == header.vbMinX && y == header.vbMinY && width == header.vbWidth && height == header.vbHeight) ||
+				    (x == header.vbMinX && y == header.vbMinY + header.vbHeight && width == header.vbWidth && height == -header.vbHeight))
+					return new Background(attributes, new BoundingBox(x, x + width, y, y + height));
+				else
+					return null;
+			}
+
+			private Point parsePoint(String tagName, AttributesImpl attributes, String xName, String yName) {
+				if (attributes.getValue(xName) == null || attributes.getValue(yName) == null)
+					throw new IllegalArgumentException(format("this <%s> seems to be missing some important parameters; where's %s and %s?", tagName, xName, yName));
+				// parse the coordinates
+				double x = parseDouble(attributes.getValue(xName));
+				attributes.setValue(attributes.getIndex(xName), "%1$.6g");
+				double y = parseDouble(attributes.getValue(yName));
+				attributes.setValue(attributes.getIndex(yName), "%2$.6g");
+				String formatSpecifier = formatAttributes(tagName, attributes);
+				// apply the coordinate transformations
+				double[] transform = transformStack.peek();
+				if (transform == null)
+					throw new IllegalArgumentException("there will always be a nonnull transform to peek at");
+				x = x*transform[0] + transform[2]; //apply the transformation
+				y = y*transform[1] + transform[3];
+				x = linInterp(x, header.vbMinX, header.vbMinX + header.vbWidth, -PI, PI); //scale to radians
+				y = linInterp(y, header.vbMinY + header.vbHeight, header.vbMinY, -PI/2, PI/2);
+				// put it all together and return it
+				return new Point(formatSpecifier, x, y);
+			}
 
 			private Path parsePath(AttributesImpl attributes) {
 				// start by extracting the "d" attribute
@@ -301,25 +354,6 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 				}
 
 				return new Path(formatSpecifier, commands);
-			}
-
-
-			private Point parsePoint(String tagName, AttributesImpl attributes, String xName, String yName) {
-				double x = parseDouble(attributes.getValue(xName));
-				attributes.setValue(attributes.getIndex(xName), "%1$.6g");
-				double y = parseDouble(attributes.getValue(yName));
-				attributes.setValue(attributes.getIndex(yName), "%2$.6g");
-				String formatSpecifier = formatAttributes(tagName, attributes);
-				// apply the coordinate transformations
-				double[] transform = transformStack.peek();
-				if (transform == null)
-					throw new IllegalArgumentException("there will always be a nonnull transform to peek at");
-				x = x*transform[0] + transform[2]; //apply the transformation
-				y = y*transform[1] + transform[3];
-				x = linInterp(x, header.vbMinX, header.vbMinX + header.vbWidth, -PI, PI); //scale to radians
-				y = linInterp(y, header.vbMinY + header.vbHeight, header.vbMinY, -PI/2, PI/2);
-				// put it all together and return it
-				return new Point(formatSpecifier, x, y);
 			}
 		};
 
@@ -579,6 +613,28 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 
 		public String toString() {
 			return format(formatSpecifier, width, height, vbMinX, vbMinY, vbWidth, vbHeight);
+		}
+	}
+
+	/**
+	 * a shape that represents not a particular geographic feature but the outline of the full world map
+	 */
+	public static class Background implements SVGElement {
+		public final BoundingBox bounds;
+		public final AttributesImpl attributes;
+
+		public Background(AttributesImpl attributes, BoundingBox bounds) {
+			this.bounds = bounds;
+			this.attributes = attributes;
+		}
+
+		public String toString() {
+			AttributesImpl fullAttributes = new AttributesImpl(attributes);
+			fullAttributes.setValue(fullAttributes.getIndex("x"), Double.toString(bounds.xMin));
+			fullAttributes.setValue(fullAttributes.getIndex("y"), Double.toString(bounds.yMin));
+			fullAttributes.setValue(fullAttributes.getIndex("width"), Double.toString(bounds.width));
+			fullAttributes.setValue(fullAttributes.getIndex("height"), Double.toString(bounds.height));
+			return formatAttributes("rect", fullAttributes);
 		}
 	}
 

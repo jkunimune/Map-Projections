@@ -24,6 +24,7 @@
 package apps;
 
 import image.SVGMap;
+import image.SVGMap.Background;
 import image.SVGMap.Command;
 import image.SVGMap.Content;
 import image.SVGMap.Path;
@@ -45,6 +46,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import maps.Projection;
 import org.xml.sax.SAXException;
+import utils.BoundingBox;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
@@ -147,8 +149,10 @@ public class MapDesignerVector extends MapApplication {
 				else if (getException() instanceof ParserConfigurationException)
 					showError("Parser Configuration Error!",
 							"My parser configured incorrectly. I blame you.");
-				else
+				else {
+					getException().printStackTrace();
 					showError("Unexpected error!", getException().getMessage());
+				}
 			}
 			
 			protected void succeeded() {
@@ -296,6 +300,15 @@ public class MapDesignerVector extends MapApplication {
 				                         -scale*(proj.getBounds().yMin + proj.getBounds().height),
 				                         scale*proj.getBounds().width,
 				                         scale*proj.getBounds().height);
+			}
+			// for a background, set it to the outline of the projection
+			else if (elementS instanceof Background) {
+				Background backgroundS = (Background) elementS;
+				elementP = new Background(
+						backgroundS.attributes,
+						new BoundingBox(
+								scale*proj.getBounds().xMin, scale*proj.getBounds().xMax,
+								-scale*proj.getBounds().yMax, -scale*proj.getBounds().xMin));
 			}
 			// for a point, just project its one pair of coordinates
 			else if (elementS instanceof Point) {
