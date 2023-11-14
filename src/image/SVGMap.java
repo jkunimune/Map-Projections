@@ -309,8 +309,6 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 				attributes.setValue(attributes.getIndex(xName), "%1$.6g");
 				double y = parseDouble(attributes.getValue(yName));
 				attributes.setValue(attributes.getIndex(yName), "%2$.6g");
-				attributes.setValue(attributes.getIndex("height"), "%2$.6g");
-				attributes.setValue(attributes.getIndex("viewBox"), "%3$.6g %4$.6g %5$.6g %6$.6g");
 				String formatSpecifier = formatAttributes(tagName, attributes);
 				return new Point(formatSpecifier, x, y);
 			}
