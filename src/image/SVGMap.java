@@ -310,6 +310,15 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 				double y = parseDouble(attributes.getValue(yName));
 				attributes.setValue(attributes.getIndex(yName), "%2$.6g");
 				String formatSpecifier = formatAttributes(tagName, attributes);
+				// apply the coordinate transformations
+				double[] transform = transformStack.peek();
+				if (transform == null)
+					throw new IllegalArgumentException("there will always be a nonnull transform to peek at");
+				x = x*transform[0] + transform[2]; //apply the transformation
+				y = y*transform[1] + transform[3];
+				x = linInterp(x, header.vbMinX, header.vbMinX + header.vbWidth, -PI, PI); //scale to radians
+				y = linInterp(y, header.vbMinY + header.vbHeight, header.vbMinY, -PI/2, PI/2);
+				// put it all together and return it
 				return new Point(formatSpecifier, x, y);
 			}
 		};
