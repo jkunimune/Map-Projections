@@ -512,10 +512,9 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 
 
 	private static String formatAttributes(String tagName, Attributes attributes) {
-		StringBuilder string = new StringBuilder("<").append(tagName).append(" ");
+		StringBuilder string = new StringBuilder("<").append(tagName);
 		for (int i = 0; i < attributes.getLength(); i++)
 			string.append(" ").append(attributes.getQName(i)).append("=\"").append(attributes.getValue(i)).append("\"");
-		string.deleteCharAt(string.length() - 1);  // delete this one unnecessary space
 		string.append(">");
 		return string.toString();
 	}
