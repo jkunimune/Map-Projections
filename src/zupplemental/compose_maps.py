@@ -54,6 +54,7 @@ def main():
 		'		<g class="graticule">\n'
 		+ generate_graticule(15, 1, include_tropics=True, adjust_poles=True) +
 		'		</g>\n'
+		'		<rect class="graticule prime-m" x="-180" y="-90" width="360" height="180" />\n'
 		'	</g>\n'
 	)
 
