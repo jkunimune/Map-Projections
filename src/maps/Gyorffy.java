@@ -40,10 +40,10 @@ import static java.lang.Math.signum;
 public class Gyorffy {
 	
 	private static final double PI2M2 = pow(PI/2, -2);
-	
-	public static final Projection C = new PolynomialProjection(
-			"C", "The optimal pseudocylindrical projection.", 2,
-			new double[] {0.76158, 1.67084, 5.17538, 0.00272, 1, 0, 0});
+
+	public static final Projection B = new PolynomialProjection(
+			"B", "The optimal pseudocylindrical projection.", 2,
+			new double[] {0.75762, 2.00000, 4.63375, 0.00264, 1, 0, 0});
 
 	public static final Projection D = new PolynomialProjection(
 			"D", "An optimal pointed-polar projection, with an emphasis on polar regions.", 3,

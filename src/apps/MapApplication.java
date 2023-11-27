@@ -150,7 +150,7 @@ public abstract class MapApplication extends Application {
 			  Octohedral.WATERMAN },
 			{ Pseudocylindrical.ECKERT_IV, EqualEarth.EQUAL_EARTH,
 			  Pseudocylindrical.HOMOLOSINE_INTERRUPTED, Pseudocylindrical.HOMOLOSINE,
-			  Gyorffy.C, Gyorffy.D, Pseudocylindrical.KAVRAYSKIY_VII, Pseudocylindrical.MOLLWEIDE,
+			  Gyorffy.B, Gyorffy.D, Pseudocylindrical.KAVRAYSKIY_VII, Pseudocylindrical.MOLLWEIDE,
 			  ArbitraryPseudocylindrical.ROBINSON, Pseudocylindrical.SINUSOIDAL,
 			  Tobler.TOBLER, Pseudocylindrical.WAGNER_II, Pseudocylindrical.WAGNER_V },
 			{ Lenticular.AITOFF, Lenticular.POLYCONIC, Lenticular.EISENLOHR, Gyorffy.E, Gyorffy.F,
