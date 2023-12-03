@@ -56,7 +56,9 @@ public class MapConverter {
 		for (Path inputPath: pathIterable) {
 			// look for images that are not dymaxion projections
 			if (inputPath.toString().endsWith(".jpg") ||
+			    inputPath.toString().endsWith(".jpeg") ||
 			    inputPath.toString().endsWith(".tif") ||
+			    inputPath.toString().endsWith(".tiff") ||
 			    inputPath.toString().endsWith(".png") &&
 			    !inputPath.toString().endsWith(".dymaxion.png")) {
 				System.out.println(inputPath);
@@ -77,7 +79,9 @@ public class MapConverter {
 				// update the filename and save to disk
 				String outputPath = inputPath.toString();
 				outputPath = outputPath.replace(".jpg", ".png");
+				outputPath = outputPath.replace(".jpeg", ".png");
 				outputPath = outputPath.replace(".tif", ".png");
+				outputPath = outputPath.replace(".tiff", ".png");
 				outputPath = outputPath.replace(".png", ".dymaxion.png");
 				SavableImage.savable(outputImage).save(new File(outputPath));
 			}
