@@ -1,12 +1,3 @@
-package maps;
-
-import static java.lang.Double.NaN;
-import static java.lang.Math.PI;
-import static java.lang.Math.abs;
-import static java.lang.Math.hypot;
-import static java.lang.Math.sqrt;
-import static utils.Math2.linInterp;
-
 /**
  * MIT License
  * 
@@ -30,6 +21,14 @@ import static utils.Math2.linInterp;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+package maps;
+
+import static java.lang.Double.NaN;
+import static java.lang.Math.PI;
+import static java.lang.Math.abs;
+import static java.lang.Math.hypot;
+import static java.lang.Math.sqrt;
+import static utils.Math2.linInterp;
 
 /**
  * A class of methods pertaining to the Waterman projection.
@@ -40,8 +39,8 @@ import static utils.Math2.linInterp;
 public class Waterman {
 	
 	private static final double[] xELD =
-		{(sqrt(3)-1)/2, .5*sqrt(3), 1.5*sqrt(3), NaN};
-	private static final double[] dYdL = {0, 2/PI, 6/PI, (4+sqrt(8))/PI};
+		{(sqrt(3)-1)/8, sqrt(3)/8, 3*sqrt(3)/8, NaN};
+	private static final double[] dYdL = {0, 1/(2*PI), 3/(2*PI), (2+sqrt(2))/(2*PI)};
 	
 	private static final double lonDiag = PI/(4+sqrt(8));
 	private static final double sin15 = (sqrt(3)-1)/sqrt(8);
@@ -65,8 +64,8 @@ public class Waterman {
 	}
 
 	public static double[] faceInverse(double x, double y) {
-		if (y > x-(sqrt(3)-1)/2 || y > x/sqrt(3) || y > (2-sqrt(3))*(x+3) ||
-				y > (7+4*sqrt(3))-(2+sqrt(3))*x  || x > 2*sqrt(3)) //this describes the footprint of the octant
+		if (y > x-(sqrt(3)-1)/8 || y > x/sqrt(3) || y > (2-sqrt(3))*(x+3/4.) ||
+				y > (7/4.+sqrt(3))-(2+sqrt(3))*x  || x > sqrt(3)/2) //this describes the footprint of the octant
 			return null;
 		
 		double longitude;
@@ -80,8 +79,8 @@ public class Waterman {
 			longitude = y/linInterp(x, xELD[i-1], 2*sqrt(3), dYdL[i-1], dYdL[i]);
 			if (longitude > lonDiag) { //the diagonal part of the last segment?
 				double a = dYdL[2]*dYdL[3]*sin15; //surprisingly, the equation becomes quadratic here
-				double b = (dYdL[3]*cos15-dYdL[2])*(1.5*sqrt(3)-x) - dYdL[3]*sin15*y - dYdL[2]*(sqrt(3)/2+dYdL[3]*lonDiag*sin15);
-				double c = (sqrt(3)/2+dYdL[3]*lonDiag*sin15)*y + (1-dYdL[3]*lonDiag*cos15)*(1.5*sqrt(3)-x);
+				double b = (dYdL[3]*cos15-dYdL[2])*(3*sqrt(3)/8-x) - dYdL[3]*sin15*y - dYdL[2]*(sqrt(3)/8+dYdL[3]*lonDiag*sin15);
+				double c = (sqrt(3)/8+dYdL[3]*lonDiag*sin15)*y + (1-dYdL[3]*lonDiag*cos15)*(3*sqrt(3)/8-x);
 				longitude = (-b - sqrt(b*b - 4*a*c))/(2*a);
 			}
 		}
@@ -102,11 +101,11 @@ public class Waterman {
 		for (int i = 0; i < xELD.length; i ++)
 			yELD[i] = dYdL[i]*lon;
 		if (abs(lon) <= lonDiag) { //if it hits the equatorial ELD on the vertical (hexagon) part
-			xELD[3] = 2*sqrt(3);
+			xELD[3] = sqrt(3)/2.;
 		}
 		else { //if it hits it on the diagonal (square) part
-			xELD[3] = -(abs(lon)-lonDiag)*dYdL[3]*sin15 + 2*sqrt(3);
-			yELD[3] =  (abs(lon)-lonDiag)*dYdL[3]*cos15 + 1;
+			xELD[3] = -(abs(lon)-lonDiag)*dYdL[3]*sin15 + sqrt(3)/2.;
+			yELD[3] =  (abs(lon)-lonDiag)*dYdL[3]*cos15 + 1/4.;
 		}
 		return yELD;
 	}

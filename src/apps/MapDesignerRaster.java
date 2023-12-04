@@ -52,10 +52,10 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import maps.Projection;
-import utils.BoundingBox;
 import utils.Flag;
 import utils.MutableDouble;
 import utils.Procedure;
+import utils.Shape;
 
 import static java.lang.Double.isNaN;
 import static java.lang.Integer.parseInt;
@@ -180,7 +180,7 @@ public class MapDesignerRaster extends MapApplication {
 	
 	private boolean collectFinalSettings() {
 		loadParameters();
-		final double ratio = getProjection().getAspectRatio();
+		final double ratio = getProjection().getShape().aspectRatio;
 		this.configDialog = new MapConfigurationDialog(ratio);
 		this.configDialog.showAndWait();
 		return this.configDialog.getResult();
@@ -189,12 +189,12 @@ public class MapDesignerRaster extends MapApplication {
 	
 	private Task<SavableImage> calculateTaskForUpdate() {
 		loadParameters();
-		if (getProjection().getAspectRatio() >= 1) //fit it to an IMG_SIZE x IMG_SIZE box
+		if (getProjection().getShape().aspectRatio >= 1) //fit it to an IMG_SIZE x IMG_SIZE box
 			return calculateTask(
-					IMG_SIZE, (int)max(1,IMG_SIZE/getProjection().getAspectRatio()), 1);
+					IMG_SIZE, (int)max(1,IMG_SIZE/getProjection().getShape().aspectRatio), 1);
 		else
 			return calculateTask(
-					(int)max(1,IMG_SIZE*getProjection().getAspectRatio()), IMG_SIZE, 1);
+					(int)max(1,IMG_SIZE*getProjection().getShape().aspectRatio), IMG_SIZE, 1);
 	}
 	
 	private Task<SavableImage> calculateTaskForSaving() {
@@ -279,7 +279,7 @@ public class MapDesignerRaster extends MapApplication {
 		updateProgress.accept(-1, 1);
 		updateMessage.accept("Generating map\u2026");
 
-		BoundingBox domain = proj.getBounds();
+		Shape domain = proj.getShape();
 		BufferedImage theMap = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB); //why is this a BufferedImage when the rest of this program uses JavaFX? Because the only JavaFX alternatives are WritableImage, which doesn't do anything but single-pixel-editing, and Canvas, which doesn't properly support transparency.
 		for (int y = 0; y < theMap.getHeight(); y ++) { //iterate through the map, filling in pixels
 			if (isCancelled.get()) 	return null;

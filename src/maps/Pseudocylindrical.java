@@ -23,10 +23,14 @@
  */
 package maps;
 
+import image.Path;
 import maps.Projection.Property;
 import maps.Projection.Type;
-import utils.BoundingBox;
 import utils.NumericalAnalysis;
+import utils.Shape;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static java.lang.Double.isNaN;
 import static java.lang.Math.PI;
@@ -49,8 +53,11 @@ public class Pseudocylindrical {
 	
 	public static final Projection SINUSOIDAL = new Projection(
 			"Sinusoidal", "An equal-area map shaped like a sine-wave.",
-			new BoundingBox(2*PI, PI), 0b1111, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 1) {
-		
+			null, 0b1111, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 1) {
+		public void initialize(double... params) {
+			this.shape = Shape.meridianEnvelope(this);
+		}
+
 		public double[] project(double lat, double lon) {
 			return new double[] { cos(lat)*lon, lat };
 		}
@@ -59,12 +66,12 @@ public class Pseudocylindrical {
 			return new double[] { y, x/cos(y) };
 		}
 	};
-	
-	
+
+
 	public static final Projection MOLLWEIDE = new Projection(
 			"Mollweide", "An equal-area projection shaped like an ellipse.",
-			new BoundingBox(4, 2), 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
-		
+			Shape.ellipse(2, 1), 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
+
 		public double[] project(double lat, double lon) {
 			double tht = NumericalAnalysis.newtonRaphsonApproximation(
 					PI*sin(lat), lat,
@@ -86,12 +93,16 @@ public class Pseudocylindrical {
 	
 	public static final Projection HOMOLOSINE = new Projection(
 			"Homolosine (uninterrupted)", "A combination of the sinusoidal and Mollweide projections.",
-			new BoundingBox(2*PI, 2.72282), 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
+			null, 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
 		
 		private final double phiH = 0.71098;
 		private final double scale = sqrt(2);
 		private final double yH = MOLLWEIDE.project(phiH, 0)[1]*scale;
-		
+
+		public void initialize(double... params) {
+			this.shape = Shape.meridianEnvelope(this);
+		}
+
 		public double[] project(double lat, double lon) {
 			if (abs(lat) <= phiH) {
 				return SINUSOIDAL.project(lat, lon);
@@ -117,8 +128,8 @@ public class Pseudocylindrical {
 	
 	
 	public static final Projection HOMOLOSINE_INTERRUPTED = new Projection(
-			"Good Homolosine", "An interrupted combination of the sinusoidal and Mollweide projections.",
-			new BoundingBox(2*PI, 2.72282), 0b1100, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
+			"Goode Homolosine", "An interrupted combination of the sinusoidal and Mollweide projections.",
+			null, 0b1100, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
 		
 		private final double[][] edges = {
 				{toRadians(-40), toRadians(180)},
@@ -126,7 +137,35 @@ public class Pseudocylindrical {
 		private final double[][] centers = {
 				{toRadians(-100), toRadians(30)},
 				{toRadians(-160), toRadians(-60), toRadians(20), toRadians(140)}};
-		
+
+		public void initialize(double... params) {
+			// to calculate the shape, start by getting the shape of a generic meridian
+			List<Path.Command> polewardSegment = HOMOLOSINE.drawLoxodrome(0, 1, PI/2, 1, .1);
+			// make an equator-to-pole version and a pole-to-equator version
+			List<Path.Command> tropicwardSegment = Path.reversed(polewardSegment);
+			// remove one endpoint from each so there are no duplicate vertices
+			polewardSegment = polewardSegment.subList(0, polewardSegment.size() - 1);
+			tropicwardSegment = tropicwardSegment.subList(0, tropicwardSegment.size() - 1);
+			// then build up the full shape by transforming the generic segments
+			List<Path.Command> envelope = new ArrayList<>((edges[0].length + edges[1].length + 2)*polewardSegment.size());
+			// go east to west in the north hemisphere
+			for (int i = edges[0].length - 1; i >= 0; i --) {
+				double westEdge = (i > 0) ? edges[0][i - 1] : -PI;
+				double eastEdge = edges[0][i];
+				envelope.addAll(Path.transformed(eastEdge - centers[0][i], 1, centers[0][i], 0, polewardSegment));
+				envelope.addAll(Path.transformed(westEdge - centers[0][i], 1, centers[0][i], 0, tropicwardSegment));
+			}
+			// go west to east in the south hemisphere
+			for (int i = 0; i < edges[1].length; i ++) {
+				double westEdge = (i > 0) ? edges[1][i - 1] : -PI;
+				double eastEdge = edges[1][i];
+				envelope.addAll(Path.transformed(westEdge - centers[1][i], -1, centers[1][i], 0, polewardSegment));
+				envelope.addAll(Path.transformed(eastEdge - centers[1][i], -1, centers[1][i], 0, tropicwardSegment));
+			}
+			// finally, convert it all to a Shape
+			this.shape = Shape.polygon(Path.asArray(envelope));
+		}
+
 		public double[] project(double lat, double lon) {
 			int i = (lat > 0) ? 0 : 1;
 			for (int j = 0; j < edges[i].length; j ++) {
@@ -157,7 +196,13 @@ public class Pseudocylindrical {
 	
 	public static final Projection ECKERT_IV = new Projection(
 			"Eckert IV", "An equal-area projection released in a set of six (I'm only giving you the one because the others are not good).",
-			new BoundingBox(4, 2), 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
+			new Shape(-2, 2, -1, 1, List.of(
+					new Path.Command('M', -1, 1),
+					new Path.Command('A', 1, 1, 0, 0, 1, -1, -1),
+					new Path.Command('L', 1, -1),
+					new Path.Command('A', 1, 1, 0, 0, 1, 1, 1),
+					new Path.Command('Z'))),
+			0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
 		
 		public double[] project(double lat, double lon) {
 			double tht = NumericalAnalysis.newtonRaphsonApproximation(
@@ -179,8 +224,11 @@ public class Pseudocylindrical {
 	
 	public static final Projection WAGNER_II = new Projection(
 			"Wagner II", "A compromise projection with sinusoidal meridians.",
-			new BoundingBox(2*2.9054, 2*1.4527), 0b1111, Type.OTHER, Property.COMPROMISE, 2) {
-		
+			null, 0b1111, Type.OTHER, Property.COMPROMISE, 2) {
+		public void initialize(double... params) {
+			this.shape = Shape.meridianEnvelope(this);
+		}
+
 		private final double c0 = 0.92483, c1 = 1.38725,
 				c2 = 0.88022, c3 = 0.8855;
 		
@@ -198,8 +246,11 @@ public class Pseudocylindrical {
 	
 	public static final Projection WAGNER_V = new Projection(
 			"Wagner V", "A compromise projection with elliptical meridians.",
-			new BoundingBox(2*2.8581, 2*1.4291), 0b1111, Type.OTHER, Property.COMPROMISE, 3) {
-		
+			null, 0b1111, Type.OTHER, Property.COMPROMISE, 3) {
+		public void initialize(double... params) {
+			this.shape = Shape.meridianEnvelope(this);
+		}
+
 		private final double c0 = 0.909771, c1 = 1.650142,
 				c2 = 3.008957, c3 = 0.8855;
 		
@@ -218,9 +269,12 @@ public class Pseudocylindrical {
 	
 	
 	public static final Projection KAVRAYSKIY_VII = new Projection(
-			"Kavrayskiy VII", new BoundingBox(PI*sqrt(3), PI), 0b1111, Type.PSEUDOCYLINDRICAL,
+			"Kavrayskiy VII", null, 0b1111, Type.PSEUDOCYLINDRICAL,
 			Property.COMPROMISE, 2, null, "mostly popular in the former Soviet Union") {
-		
+		public void initialize(double... params) {
+			this.shape = Shape.meridianEnvelope(this);
+		}
+
 		public double[] project(double lat, double lon) {
 			return new double[] { 1.5*lon*sqrt(1/3.-pow(lat/PI, 2)), lat };
 		}
@@ -233,18 +287,53 @@ public class Pseudocylindrical {
 	
 	
 	public static final Projection LEMONS = new Projection(
-			"Lemons", "BURN LIFE'S HOUSE DOWN!!!", new BoundingBox(2*PI, PI), 0b1110,
+			"Lemons", "BURN LIFE'S HOUSE DOWN!!!", null, 0b1110,
 			Type.CYLINDRICAL, Property.COMPROMISE, 2) {
 		
 		private static final int NUM_LEMONS = 12; //number of lemons
 		private static final double LEM_WIDTH = 2*PI/NUM_LEMONS; //longitude span of 1 lemon
-		
+
+		public void initialize(double... params) {
+			// we need to calculate the shape
+			final int numSteps = 45;
+			// start by getting the shape of a generic meridian
+			double[][] segment = new double[numSteps + 1][];
+			for (int i = 0; i <= numSteps; i ++) {
+				double ф = PI/2/numSteps*i;
+				double x = asin(cos(ф)*sin(LEM_WIDTH/2));
+				double y = asin(sin(ф)/sqrt(1-pow(cos(ф)*sin(LEM_WIDTH/2), 2)));
+				segment[i] = new double[] {x, y};
+			}
+			// then build up the full shape by transforming the generic segments
+			double[][] envelope = new double[4*NUM_LEMONS*numSteps][];
+			// go west to east in the north hemisphere
+			for (int i = 0; i < NUM_LEMONS; i ++) {
+				for (int j = 0; j < numSteps; j ++)
+					envelope[2*i*numSteps + j] = new double[]
+							{((NUM_LEMONS - 1)/2. - i)*LEM_WIDTH + segment[j][0], segment[j][1]};
+				for (int j = 0; j < numSteps; j ++)
+					envelope[(2*i + 1)*numSteps + j] = new double[]
+							{((NUM_LEMONS - 1)/2. - i)*LEM_WIDTH - segment[numSteps - j][0], segment[numSteps - j][1]};
+			}
+			// go east to west in the south hemisphere
+			for (int i = 0; i < NUM_LEMONS; i ++) {
+				for (int j = 0; j < numSteps; j ++)
+					envelope[envelope.length/2 + 2*i*numSteps + j] = new double[]
+							{(i - (NUM_LEMONS - 1)/2.)*LEM_WIDTH - segment[j][0], -segment[j][1]};
+				for (int j = 0; j < numSteps; j ++)
+					envelope[envelope.length/2 + (2*i + 1)*numSteps + j] = new double[]
+							{(i - (NUM_LEMONS - 1)/2.)*LEM_WIDTH + segment[numSteps - j][0], -segment[numSteps - j][1]};
+			}
+			// finally, convert it to a Shape
+			this.shape = Shape.polygon(envelope);
+		}
+
 		public double[] project(double lat, double lon) {
 			final int lemNum = (int)floor(lon/LEM_WIDTH);
 			final double dl = (lon+2*PI) % LEM_WIDTH - LEM_WIDTH/2;
 			return new double[] {
 					asin(cos(lat)*sin(dl)) + (lemNum+.5)*LEM_WIDTH,
-					asin(sin(lat)/sqrt(1-pow(cos(lat)*sin(dl), 2)))};
+					asin(sin(lat)/sqrt(1-pow(cos(lat)*sin(dl), 2)))}; // TODO: have a CASSINI projection off which this can be bilt
 		}
 		
 		public double[] inverse(double x, double y) {

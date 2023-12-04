@@ -24,13 +24,13 @@
 package maps;
 
 import de.jtem.ellipticFunctions.Jacobi;
-import image.SVGMap.Command;
+import image.Path;
 import maps.Projection.Property;
 import maps.Projection.Type;
 import org.apache.commons.math3.complex.Complex;
-import utils.BoundingBox;
 import utils.Elliptic;
 import utils.NumericalAnalysis;
+import utils.Shape;
 
 import java.util.List;
 
@@ -55,7 +55,6 @@ import static java.lang.Math.tan;
 import static java.lang.Math.toRadians;
 import static utils.Math2.coerceAngle;
 import static utils.Math2.floorMod;
-import static utils.Math2.max;
 import static utils.Math2.sigone;
 
 /**
@@ -68,8 +67,8 @@ public class Misc {
 	public static final Projection PEIRCE_QUINCUNCIAL =
 			new Projection(
 					"Peirce Quincuncial", "A conformal projection that uses complex elliptic functions.",
-					new BoundingBox(2, 2), 0b1001, Type.OTHER, Property.CONFORMAL, 3) {
-		
+					Shape.rectangle(2, 2), 0b1001, Type.OTHER, Property.CONFORMAL, 3) {
+
 		private static final double K_RT_HALF = 1.854074677; //this is approx K(sqrt(1/2))
 		
 		public double[] project(double lat, double lon) {
@@ -103,7 +102,7 @@ public class Misc {
 	public static final Projection GUYOU =
 			new Projection(
 					"Guyou", "Peirce Quincuncial, rearranged a bit.",
-					new BoundingBox(2, 1), 0b1001,
+					Shape.rectangle(2, 1), 0b1001,
 					Type.OTHER, Property.CONFORMAL, 3) {
 		
 		private static final double K_RT_HALF = 1.854074677; //this is approx K(sqrt(1/2))
@@ -140,7 +139,7 @@ public class Misc {
 	public static final Projection HAMMER_RETROAZIMUTHAL =
 			new Projection(
 					"Hammer Retroazimuthal", "The full version of a map where bearing and distance to a reference point is preserved.",
-					new BoundingBox(2*PI, 2*PI), 0b1110, Type.PSEUDOCONIC, Property.RETROAZIMUTHAL, 2,
+					Shape.circle(Math.PI), 0b1110, Type.PSEUDOCONIC, Property.RETROAZIMUTHAL, 2,
 					new String[] {"Latitude","Longitude"},
 					new double[][] {{-89,89,21.4}, {-180,180,39.8}}, false) {
 		
@@ -210,7 +209,7 @@ public class Misc {
 			this.a = PI - D/2; //semimajor axis
 			this.c = D/2; //focal distance
 			double b = sqrt(pow(a, 2) - pow(c, 2)); //semiminor axis
-			this.bounds = new BoundingBox(2*a, 2*b);
+			this.shape = Shape.ellipse(a, b);
 		}
 		
 		public double[] project(double lat0, double lon0) {
@@ -261,7 +260,7 @@ public class Misc {
 	public static final Projection BRAUN_CONIC =
 			new Projection(
 					"Braun conic", "A particular perspective conic that is tangent at 30\u00B0.",
-					new BoundingBox(-2*sqrt(3), 2*sqrt(3), -2*sqrt(3), 0), 0b1111,
+					Shape.annularSector(0, 2*sqrt(3), PI, false), 0b1111,
 					Type.CONIC, Property.PERSPECTIVE, 3) {
 		
 		public double[] project(double lat, double lon) {
@@ -275,7 +274,7 @@ public class Misc {
 		public double[] inverse(double x, double y) {
 			double r = hypot(x, y);
 			double th = atan2(x, -y);
-			if (r > bounds.xMax)
+			if (r > shape.xMax)
 				return null;
 			double lat = 2*atan(sqrt(3) - 2/3.*r) - PI/6;
 			double lon = th*2;
@@ -299,28 +298,7 @@ public class Misc {
 			if (reversed)
 				lat0 = -lat0;
 			this.r0 = 1/tan(lat0) + lat0;
-			if (isInfinite(r0)) {
-				this.bounds = Pseudocylindrical.SINUSOIDAL.bounds;
-			}
-			else { // for such a simple map projection...
-				double argmaxX = NumericalAnalysis.bisectionFind(
-						(p) -> (PI*(1/(r0-p)*cos(p) - sin(p))*cos(PI/(r0-p)*cos(p)) - sin(PI/(r0-p)*cos(p))),
-						-PI/2, 0, 1e-3); // it sure is complicated to find its dimensions!
-				double maxX = (r0 - argmaxX)*sin(PI/(r0 - argmaxX)*cos(argmaxX));
-				double argmaxY;
-				try {
-					argmaxY = NumericalAnalysis.bisectionFind(
-							(p) -> (PI*(1/(r0-p)*cos(p) - sin(p))*sin(PI/(r0-p)*cos(p)) + cos(PI/(r0-p)*cos(p))),
-							0, PI/4, 1e-3);
-				} catch (IllegalArgumentException e) {
-					argmaxY = PI/2;
-				}
-				double maxY = max(-r0 + PI/2,
-						-(r0 - argmaxY)*cos(PI/(r0 - argmaxY)*cos(argmaxY)));
-				this.bounds = new BoundingBox(-maxX, maxX, -r0 - PI/2, maxY);
-				if (reversed)
-					this.bounds = new BoundingBox(-bounds.xMax, -bounds.xMin, -bounds.yMax, -bounds.yMin);
-			}
+			this.shape = Shape.meridianEnvelope(this);
 		}
 		
 		public double[] project(double lat, double lon) {
@@ -332,9 +310,16 @@ public class Misc {
 			}
 			
 			double r = r0 - lat;
-			double th = lon*cos(lat)/r;
-			double x = r*sin(th);
-			double y = -r*cos(th);
+			double th, x, y;
+			if (r > 0) {
+				th = lon*cos(lat)/r;
+				x = r*sin(th);
+				y = -r*cos(th);
+			}
+			else {
+				x = 0;
+				y = 0;
+			}
 			
 			if (reversed)
 				return new double[] {-x,-y};
@@ -368,7 +353,29 @@ public class Misc {
 	public static final Projection T_SHIRT =
 			new Projection(
 					"T-Shirt", "A conformal projection onto a torso.",
-					new BoundingBox(10, 6), 0b1001, Type.OTHER, Property.CONFORMAL, 3) {
+					Shape.polygon(new double[][] {
+							{ 0.000, 1.784},
+							{-1.17, 2.38},
+							{-2.500, 2.651},
+							{-3.83, 2.38},
+							{-5.000, 1.784},
+							{-5.000, 0.933},
+							{-4.071, 0.933},
+							{-4.071, -2.500},
+							{-0.929, -2.500},
+							{-0.929, 0.933},
+							{ 0.000, 0.933},
+							{ 0.929, 0.933},
+							{ 0.929, -2.500},
+							{ 4.071, -2.500},
+							{ 4.071, 0.933},
+							{ 5.000, 0.933},
+							{ 5.000, 1.784},
+							{ 3.83, 2.38},
+							{ 2.500, 2.651},
+							{ 1.17, 2.38},
+					}),
+					0b1001, Type.OTHER, Property.CONFORMAL, 3) {
 
 		private final double[] X = {0, .507, .753, 1};
 		private final double[] A = {.128, .084, .852, -.500};
@@ -404,7 +411,7 @@ public class Misc {
 	
 	public static final Projection FLAT_EARTH =
 			new Projection(
-					"Flat Earth", "The one true map.", new BoundingBox(2, 2), 0b1111,
+					"Flat Earth", "The one true map.", Shape.circle(1), 0b1111,
 					Type.PLANAR, Property.TRUE, 5, new String[0], new double[0][], false) {
 		
 		private final double[] CORE_LONGITUDES = {
@@ -468,8 +475,8 @@ public class Misc {
 		}
 		
 		@Override
-		public List<Command> drawGraticule(double spacing, double precision, double outW, double outH,
-		                                          double maxLat, double maxLon, double[] pole) {
+		public List<Path.Command> drawGraticule(double spacing, double precision, double outW, double outH,
+		                                        double maxLat, double maxLon, double[] pole) {
 			return Azimuthal.POLAR.drawGraticule(spacing, precision, outW, outH, maxLat, maxLon, null);
 		}
 	};

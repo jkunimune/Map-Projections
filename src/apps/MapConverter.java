@@ -67,8 +67,8 @@ public class MapConverter {
 				// reduce the area by 2 to avoid pixelation
 				double area = inputImage.getWidth() * inputImage.getHeight() / 2.;
 				// and calculate the new dimensions according to Dymaxion's aspect ratio
-				int width = (int) sqrt(area * projection.getAspectRatio());
-				int height = (int) sqrt(area / projection.getAspectRatio());
+				int width = (int) sqrt(area * projection.getShape().aspectRatio);
+				int height = (int) sqrt(area / projection.getShape().aspectRatio);
 
 				// generate the new map
 				BufferedImage outputImage = MapDesignerRaster.calculate(

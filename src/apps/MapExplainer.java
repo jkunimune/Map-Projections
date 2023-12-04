@@ -117,7 +117,7 @@ public class MapExplainer extends Application {
 					input = inputNone;
 				
 				Task<SavableImage> task = MapDesignerRaster.calculateTask(
-						IMG_WIDTH, (int)(IMG_WIDTH/proj.getAspectRatio()), SMOOTHING, input, proj, null,
+						IMG_WIDTH, (int)(IMG_WIDTH/proj.getShape().aspectRatio), SMOOTHING, input, proj, null,
 						false, 0, null);
 				task.setOnSucceeded((event) -> {
 					try {

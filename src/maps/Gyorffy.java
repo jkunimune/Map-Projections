@@ -23,8 +23,8 @@
  */
 package maps;
 
-import utils.BoundingBox;
 import utils.NumericalAnalysis;
+import utils.Shape;
 
 import static java.lang.Double.isNaN;
 import static java.lang.Math.PI;
@@ -66,10 +66,13 @@ public class Gyorffy {
 				String letter, String description,
 				int rating, double[] coefs) {
 			super("Gy\u00F6rffy "+letter, description,
-			      new BoundingBox(2*coefs[0]*(PI + coefs[3]*pow(PI, 3)), PI),
-					0b1011, (coefs[4]==1 && coefs[5]==0 && coefs[6]==0) ? Type.PSEUDOCYLINDRICAL : Type.OTHER,
-					Property.COMPROMISE, rating);
+			      null, 0b1011, (coefs[4]==1 && coefs[5]==0 && coefs[6]==0) ? Type.PSEUDOCYLINDRICAL : Type.OTHER,
+			      Property.COMPROMISE, rating);
 			this.coefs = coefs;
+		}
+
+		public void initialize(double... params) {
+			this.shape = Shape.meridianEnvelope(this);
 		}
 
 		public double[] project(double lat, double lon) {
@@ -95,15 +98,12 @@ public class Gyorffy {
 	}
 	
 	private static double x(double phi, double lam, double[] c) {
-		double lam3 = pow(lam, 3);
-		return c[0]*pow(1 - pow(2*abs(y(phi, lam, c))/PI, c[1]), 1/c[2])*(lam + c[3]*lam3);
+		return c[0]*pow(1 - pow(2*abs(y(phi, lam, c))/PI, c[1]), 1/c[2])*(lam + c[3]*pow(lam, 3));
 	}
 	
 	private static double y(double phi, double lam, double[] c) {
 		double phi3 = pow(phi, 3);
-		double lam2 = pow(lam, 2);
-		double lam4 = pow(lam, 4);
-		return c[4]*phi + (1-c[4])*PI2M2*phi3 + (c[5]*lam2 + c[6]*lam4)*(phi - PI2M2*phi3);
+		return c[4]*phi + (1-c[4])*PI2M2*phi3 + (c[5]*pow(lam, 2) + c[6]*pow(lam, 4))*(phi - PI2M2*phi3);
 	}
 	
 	private static double dxdp(double phi, double lam, double[] c) {

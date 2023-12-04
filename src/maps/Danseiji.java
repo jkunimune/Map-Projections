@@ -30,7 +30,7 @@ import java.util.Arrays;
 
 import maps.Projection.Property;
 import maps.Projection.Type;
-import utils.BoundingBox;
+import utils.Shape;
 
 import static java.lang.Double.parseDouble;
 import static java.lang.Integer.parseInt;
@@ -103,6 +103,7 @@ public class Danseiji {
 			super(title, description, null, interrupted ? 0b1010 : 0b1011, type, property, 3,
 					new String[0], new double[0][], !basedOnLand);
 			this.filename = filename;
+			this.shape = null;
 		}
 		
 		
@@ -115,12 +116,11 @@ public class Danseiji {
 				in = new BufferedReader(new FileReader(format("res/%s", filename))); // parsing the input mesh is pretty simple
 				String[] row = in.readLine().split(","); // get the header
 				double[][] vertices = new double[parseInt(row[0])][2];
+				double[][] edge = new double[parseInt(row[3])][];
 				cells = new double[parseInt(row[1])][parseInt(row[2])][][];
 				cellShapes = new int[cells.length][cells[0].length];
-				edge = new double[parseInt(row[3])][];
 				pixels = new double[parseInt(row[4])][parseInt(row[5])][2];
-				bounds = new BoundingBox(parseDouble(row[6]), parseDouble(row[7]));
-				
+
 				for (int i = 0; i < vertices.length; i ++) { // do the vertex coordinates
 					row = in.readLine().split(",");
 					for (int j = 0; j < vertices[i].length; j ++)
@@ -149,12 +149,14 @@ public class Danseiji {
 							pixels[i][j][k] = parseDouble(row[k]);
 					}
 				}
+
+				this.shape = Shape.polygon(edge);
 			} catch (IOException | NullPointerException | ArrayIndexOutOfBoundsException e) {
 				cells = new double[][][][] {{{{0,0},{0,0},{0,0},{0,0}}}};
 				cellShapes = new int[][] {{0}};
 				edge = new double[][] {{0,0}};
 				pixels = new double[][][] {{{0,0}}};
-				bounds = new BoundingBox(0, 0);
+				shape = Shape.rectangle(0, 0);
 				e.printStackTrace();
 				throw new IllegalArgumentException("Missing or corrupt data file for "+this.getName());
 			} finally {
@@ -228,10 +230,10 @@ public class Danseiji {
 						inside = !inside; // toggle the boolean
 			}
 			
-			double i = (bounds.yMax - y)/(bounds.yMax - bounds.yMin)*(pixels.length-1);
+			double i = (shape.yMax - y)/(shape.yMax - shape.yMin)*(pixels.length-1);
 			int i0 = min((int)i, pixels.length-2);
 			double cy = i - i0;
-			double j = (x - bounds.xMin)/(bounds.xMax - bounds.xMin)*(pixels[i0].length-1);
+			double j = (x - shape.xMin)/(shape.xMax - shape.xMin)*(pixels[i0].length-1);
 			int j0 = min((int)j, pixels[i0].length-2);
 			double cx = j - j0;
 			

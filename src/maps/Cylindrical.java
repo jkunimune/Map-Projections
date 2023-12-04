@@ -25,7 +25,7 @@ package maps;
 
 import maps.Projection.Property;
 import maps.Projection.Type;
-import utils.BoundingBox;
+import utils.Shape;
 
 import static java.lang.Math.PI;
 import static java.lang.Math.asin;
@@ -47,7 +47,7 @@ import static java.lang.Math.toRadians;
 public class Cylindrical {
 	
 	public static final Projection MERCATOR = new Projection(
-			"Mercator", new BoundingBox(2*PI, 2*PI), 0b0111, Type.CYLINDRICAL, Property.CONFORMAL, 1,
+			"Mercator", Shape.rectangle(2*PI, 2*PI), 0b0111, Type.CYLINDRICAL, Property.CONFORMAL, 1,
 			"very popular") {
 		
 		public double[] project(double lat, double lon) {
@@ -61,7 +61,7 @@ public class Cylindrical {
 	
 	
 	public static final Projection PLATE_CARREE = new Projection(
-			"Plate Carr\u00E9e", new BoundingBox(2*PI, PI), 0b1111, Type.CYLINDRICAL,
+			"Plate Carr\u00E9e", Shape.rectangle(2*Math.PI, Math.PI), 0b1111, Type.CYLINDRICAL,
 			Property.EQUIDISTANT, 2, null, "focused on the equator"){
 		
 		public double[] project(double lat, double lon) {
@@ -83,7 +83,7 @@ public class Cylindrical {
 		
 		public void initialize(double... params) {
 			this.stdParallel = toRadians(params[0]);
-			this.bounds = new BoundingBox(2*PI, PI/cos(stdParallel));
+			this.shape = Shape.rectangle(2*Math.PI, Math.PI/Math.cos(stdParallel));
 		}
 		
 		public double[] project(double lat, double lon) {
@@ -97,57 +97,57 @@ public class Cylindrical {
 	
 	
 	public static final Projection GALL_ORTHOGRAPHIC = new Projection(
-			"Gall-Peters", new BoundingBox(2*PI, 4), 0b1111, Type.CYLINDRICAL, Property.EQUAL_AREA, 0,
+			"Gall-Peters", Shape.rectangle(2*Math.PI, 4), 0b1111, Type.CYLINDRICAL, Property.EQUAL_AREA, 0,
 			"somewhat controversial", "with least distortion at 45\u00B0") {
 		
 		public double[] project(double lat, double lon) {
-			return new double[] {lon, sin(lat)*bounds.yMax};
+			return new double[] {lon, sin(lat)*shape.yMax};
 		}
 		
 		public double[] inverse(double x, double y) {
-			return new double[] { asin(y/bounds.yMax), x};
+			return new double[] { asin(y/shape.yMax), x};
 		}
 	};
 	
 	
 	public static final Projection HOBO_DYER = new Projection(
-			"Hobo-Dyer", new BoundingBox(2*PI, 3.178), 0b1111, Type.CYLINDRICAL, Property.EQUAL_AREA, 2,
+			"Hobo-Dyer", Shape.rectangle(2*PI, 3.178), 0b1111, Type.CYLINDRICAL, Property.EQUAL_AREA, 2,
 			null, "with least distortion at 37.5\u00B0") {
 		
 		public double[] project(double lat, double lon) {
-			return new double[] {lon, sin(lat)*bounds.yMax};
+			return new double[] {lon, sin(lat)*shape.yMax};
 		}
 		
 		public double[] inverse(double x, double y) {
-			return new double[] { asin(y/bounds.yMax), x };
+			return new double[] { asin(y/shape.yMax), x };
 		}
 	};
 	
 	
 	public static final Projection BEHRMANN = new Projection(
-			"Behrmann", new BoundingBox(2*PI, 8/3.), 0b1111, Type.CYLINDRICAL, Property.EQUAL_AREA, 3,
+			"Behrmann", Shape.rectangle(2*PI, 8/3.), 0b1111, Type.CYLINDRICAL, Property.EQUAL_AREA, 3,
 			null, "with least distortion at 30\u00B0") {
 		
 		public double[] project(double lat, double lon) {
-			return new double[] {lon, sin(lat)*bounds.yMax};
+			return new double[] {lon, sin(lat)*shape.yMax};
 		}
 		
 		public double[] inverse(double x, double y) {
-			return new double[] { asin(y/bounds.yMax), x };
+			return new double[] { asin(y/shape.yMax), x };
 		}
 	};
 	
 	
 	public static final Projection LAMBERT = new Projection(
-			"Lambert cylindrical", new BoundingBox(2*PI, 2), 0b1111, Type.CYLINDRICAL, Property.EQUAL_AREA, 2,
+			"Lambert cylindrical", Shape.rectangle(2*PI, 2), 0b1111, Type.CYLINDRICAL, Property.EQUAL_AREA, 2,
 			null, "with least distortion along the equator") {
 		
 		public double[] project(double lat, double lon) {
-			return new double[] {lon, sin(lat)*bounds.yMax};
+			return new double[] {lon, sin(lat)*shape.yMax};
 		}
 		
 		public double[] inverse(double x, double y) {
-			return new double[] { asin(y*bounds.yMax), x };
+			return new double[] { asin(y*shape.yMax), x };
 		}
 	};
 	
@@ -158,21 +158,21 @@ public class Cylindrical {
 			new String[]{"Std. parallel"}, new double[][]{{0, 89, 30}}) {
 		
 		public void initialize(double... params) {
-			this.bounds = new BoundingBox(2*PI, 2/pow(cos(toRadians(params[0])), 2));
+			this.shape = Shape.rectangle(2*PI, 2/pow(cos(toRadians(params[0])), 2));
 		}
 		
 		public double[] project(double lat, double lon) {
-			return new double[] {lon, sin(lat)*bounds.yMax};
+			return new double[] {lon, sin(lat)*shape.yMax};
 		}
 		
 		public double[] inverse(double x, double y) {
-			return new double[] { asin(y/bounds.yMax), x };
+			return new double[] { asin(y/shape.yMax), x };
 		}
 	};
 	
 	
 	public static final Projection GALL_STEREOGRAPHIC = new Projection(
-			"Gall Stereographic", new BoundingBox(2*PI, 1.5*PI), 0b1111, Type.CYLINDRICAL,
+			"Gall Stereographic", Shape.rectangle(2*PI, 1.5*PI), 0b1111, Type.CYLINDRICAL,
 			Property.COMPROMISE, 2) {
 		
 		public double[] project(double lat, double lon) {
@@ -186,7 +186,7 @@ public class Cylindrical {
 	
 	
 	public static final Projection MILLER = new Projection(
-			"Miller", new BoundingBox(2*PI, 2.5*log(tan(9*PI/20))), 0b1111, Type.CYLINDRICAL,
+			"Miller", Shape.rectangle(2*PI, 2.5*log(tan(9*PI/20))), 0b1111, Type.CYLINDRICAL,
 			Property.COMPROMISE, 2) {
 		
 		public double[] project(double lat, double lon) {
@@ -200,7 +200,7 @@ public class Cylindrical {
 	
 	
 	public static final Projection CENTRAL = new Projection(
-			"Central Cylindrical", new BoundingBox(2*PI, 2*PI), 0b0111, Type.CYLINDRICAL,
+			"Central Cylindrical", Shape.rectangle(2*PI, 2*PI), 0b0111, Type.CYLINDRICAL,
 			Property.PERSPECTIVE, 2) {
 		
 		public double[] project(double lat, double lon) {

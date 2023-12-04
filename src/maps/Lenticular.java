@@ -26,8 +26,8 @@ package maps;
 import de.jtem.mfc.field.Complex;
 import maps.Projection.Property;
 import maps.Projection.Type;
-import utils.BoundingBox;
 import utils.NumericalAnalysis;
+import utils.Shape;
 
 import static java.lang.Double.isNaN;
 import static java.lang.Math.PI;
@@ -57,8 +57,8 @@ public class Lenticular {
 	
 	public static final Projection AITOFF = new Projection(
 			"Aitoff", "A compromise projection shaped like an ellipse.",
-			new BoundingBox(2*PI, PI), 0b1111, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE, 2) {
-		
+			Shape.ellipse(Math.PI, Math.PI/2), 0b1111, Type.PSEUDOAZIMUTHAL, Property.COMPROMISE, 2) {
+
 		public double[] project(double lat, double lon) {
 			final double a = acos(cos(lat)*cos(lon/2));
 			if (a == 0) 	return new double[] {0, 0};
@@ -78,8 +78,8 @@ public class Lenticular {
 	
 	public static final Projection HAMMER = new Projection(
 			"Hammer", "An equal-area projection shaped like an ellipse.",
-			new BoundingBox(4, 2), 0b1111, Type.PSEUDOAZIMUTHAL, Property.EQUAL_AREA, 1) {
-		
+			Shape.ellipse(2, 1), 0b1111, Type.PSEUDOAZIMUTHAL, Property.EQUAL_AREA, 1) {
+
 		public double[] project(double lat, double lon) {
 			final double z = sqrt(1+cos(lat)*cos(lon/2));
 			return new double[] {2*cos(lat)*sin(lon/2)/z, sin(lat)/z};
@@ -97,8 +97,8 @@ public class Lenticular {
 	
 	public static final Projection VAN_DER_GRINTEN = new Projection(
 			"Van der Grinten", "A circular compromise map that is popular for some reason.",
-			new BoundingBox(2, 2), 0b1111, Type.OTHER, Property.COMPROMISE, 0) {
-		
+			Shape.circle(1), 0b1111, Type.OTHER, Property.COMPROMISE, 0) {
+
 		public double[] project(double lat, double lon) {
 			if (lat == 0) //special case 1: equator
 				return new double[] {lon/PI, 0};
@@ -120,17 +120,18 @@ public class Lenticular {
 				return new double[] {0, x*PI};
 			if (x == 0) // special case 3: prime meridian
 				return new double[] {PI/2 * sin(2*atan(y)), 0};
-			
+
+			double r4 = pow(x*x + y*y, 2);
 			double c1 = -abs(y) * (1 + x*x + y*y);
 			double c2 = c1 - 2*y*y + x*x;
-			double c3 = -2 * c1 + 1 + 2*y*y + pow(x*x + y*y, 2);
+			double c3 = -2 * c1 + 1 + 2*y*y + r4;
 			double d = y*y / c3 + 1 / 27.0 * (2*pow(c2 / c3, 3) - 9*c1*c2 / (c3*c3));
 			double a1 = 1 / c3*(c1 - c2*c2 / (3*c3));
 			double m1 = 2 * sqrt(-a1 / 3);
 			double t1 = acos(3*d / (a1 * m1)) / 3;
 			return new double[] {
 					signum(y) * PI * (-m1 * cos(t1 + PI/3) - c2 / (3*c3)),
-					PI*(x*x + y*y - 1 + sqrt(1 + 2*(x*x - y*y) + pow(x*x + y*y, 2)))
+					PI*(x*x + y*y - 1 + sqrt(1 + 2*(x*x - y*y) + r4))
 							/ (2*x)};
 		}
 	};
@@ -138,23 +139,15 @@ public class Lenticular {
 	
 	public static final Projection STREBE_95 = new Projection(
 			"Strebe 1995", "An equal-area map with curvy poles that pushes distortion to the edges.",
-			new BoundingBox(4, 4), 0b1100, Type.STREBE, Property.COMPROMISE, 2,
+			null, 0b1100, Type.STREBE, Property.COMPROMISE, 2,
 			new String[] {"Scale Factor"},
 			new double[][] {{sqrt(2*PI/(4+PI)), sqrt((4+PI)/PI*2), 1.35}}) {
 		
-		private final double[] HEIGHT_COEF =
-			{66.4957646058, -752.3272866971, 3676.4957505494, -10122.0239575686, 17147.3042517495,
-					-18272.5905481794, 11938.4486562530, -4362.2950601929, 682.5870175013};
 		private double factor;
 		
 		public void initialize(double... params) {
 			factor = params[0];
-			double maxLon = factor*PI*sqrt(2*PI/(4+PI));
-			double width = 4*sin(maxLon/2)/sqrt(1+cos(maxLon/2))/factor;
-			double height = 0;
-			for (double v : HEIGHT_COEF) //the equation for height actually ends up being crazy complicated,
-				height = height*factor + v; //so use this polynomial approximation MatLab gave me instead.
-			bounds = new BoundingBox(width, height);
+			shape = Shape.meridianEnvelope(this);
 		}
 		
 		public double[] project(double lat, double lon) {
@@ -185,10 +178,10 @@ public class Lenticular {
 	
 	
 	public static final Projection BERTIN = new Projection(
-			"Bertin", "An artistically conceived oblique map projection", new BoundingBox(1.68*2, 2), 0b1011, Type.OTHER, Property.COMPROMISE, 3) {
+			"Bertin", "An artistically conceived oblique map projection", Shape.ellipse(1.68, 1), 0b1011, Type.OTHER, Property.COMPROMISE, 3) {
 		
 		private final double[] POLE = {toRadians(42), toRadians(-163.5), toRadians(180)};
-		
+
 		public double[] project(double lat, double lon) {
 			double[] oblique = transformFromOblique(lat, lon, POLE); // start with a slightly oblique globe
 			lat = oblique[0];
@@ -220,8 +213,8 @@ public class Lenticular {
 	
 	public static final Projection LAGRANGE = new Projection(
 			"Lagrange", "A circular conformal map.",
-			new BoundingBox(2, 2), 0b1111, Type.OTHER, Property.CONFORMAL, 2) {
-		
+			Shape.circle(1), 0b1111, Type.OTHER, Property.CONFORMAL, 2) {
+
 		public double[] project(double lat, double lon) {
 			if (abs(lat) == PI/2)
 				return new double[] { 0, signum(lat) };
@@ -247,8 +240,7 @@ public class Lenticular {
 	
 	public static final Projection EISENLOHR = new Projection(
 			"Eisenlohr", "The optimal conventional conformal map.",
-			new BoundingBox(2*(log(sqrt(2)-1)+sqrt(2)), sqrt(1+sqrt(.75))+sqrt(1-sqrt(.75))-PI/3),
-			0b1011, Type.OTHER, Property.CONFORMAL, 2) {
+			null, 0b1011, Type.OTHER, Property.CONFORMAL, 2) {
 		
 		public double[] project(double lat, double lon) {
 			if (abs(lat) == PI/2)
@@ -273,13 +265,17 @@ public class Lenticular {
 			Complex w = atan(v.times(sqrt(2)).minus(1)).minus(PI/8).times(-4);
 			return new double[] { atan(sinh(w.getIm())), w.getRe() };
 		}
+
+		public void initialize(double... params) throws IllegalArgumentException {
+			this.shape = Shape.meridianEnvelope(this);
+		}
 	};
 	
 	
 	public static final Projection WAGNER_VIII = new Projection(
 			"Wagner VIII", "A compromise projection with pseudoazimuthal energy.",
-			new BoundingBox(2*2.81152, 2*1.52342), 0b1111, Type.OTHER, Property.COMPROMISE, 3) {
-		
+			null, 0b1111, Type.OTHER, Property.COMPROMISE, 3) {
+
 		private final double m1 = 0.92118, m2 = 0.8855, n = 3.,
 				cX = 5.62290, cY = 2.61626;
 		
@@ -305,13 +301,16 @@ public class Lenticular {
 			else
 				return new double[] {lat, lon};
 		}
+
+		public void initialize(double... params) throws IllegalArgumentException {
+			this.shape = Shape.meridianEnvelope(this);
+		}
 	};
 	
 	
 	public static final Projection POLYCONIC = new Projection(
 			"American polyconic", "A map made for narrow strips of longitude that was really popular with the USGS for a while.",
-			new BoundingBox(2*PI, 4.81527), 0b1011, Type.OTHER, Property.EQUIDISTANT, 3) {
-		
+			null, 0b1011, Type.OTHER, Property.EQUIDISTANT, 3) {
 		public double[] project(double lat, double lon) {
 			if (lat == 0)
 				return new double[] {lon, 0};
@@ -322,7 +321,10 @@ public class Lenticular {
 		public double[] inverse(double x, double y) {
 			if (y < 0) { // the math gets inconvenient in the Southern Hemisphere
 				double[] refl = inverse(x, -y);
-				return new double[] {-refl[0], refl[1]};
+				if (refl == null)
+					return null;
+				else
+					return new double[] {-refl[0], refl[1]};
 			}
 			else if (y == 0)
 				return new double[] {0, x};
@@ -333,6 +335,10 @@ public class Lenticular {
 			if (isNaN(lat))
 				return null;
 			return new double[] { lat, atan2(x, -(y - lat - 1/tan(lat)))/sin(lat) };
+		}
+
+		public void initialize(double... params) throws IllegalArgumentException {
+			this.shape = Shape.meridianEnvelope(this);
 		}
 	};
 

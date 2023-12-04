@@ -25,8 +25,8 @@ package maps;
 
 import maps.Projection.Property;
 import maps.Projection.Type;
-import utils.BoundingBox;
 import utils.NumericalAnalysis;
+import utils.Shape;
 
 import java.util.Arrays;
 
@@ -49,7 +49,7 @@ public class Tobler {
 	public static final Projection TOBLER =
 			new Projection(
 					"Tobler hyperelliptical", "An equal-area projection shaped like a hyperellipse.",
-					new BoundingBox(2*PI, PI), 0b1001, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 4,
+					null, 0b1001, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 4,
 					new String[]{"alpha","K"},
 					new double[][] {{0,1,0.0}, {1,5,2.5}}) {
 		
@@ -64,6 +64,7 @@ public class Tobler {
 					0, 1, this::hyperEllipse, 1./N);
 			this.Z = NumericalAnalysis.simpsonODESolve(
 					1, N, this::dZdY, 1./N);
+			this.shape = Shape.meridianEnvelope(TOBLER);
 		}
 		
 		public double[] project(double lat, double lon) {

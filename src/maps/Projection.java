@@ -23,8 +23,8 @@
  */
 package maps;
 
-import image.SVGMap.Command;
-import utils.BoundingBox;
+import image.Path;
+import utils.Shape;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,15 +43,11 @@ import static java.lang.Math.asin;
 import static java.lang.Math.cos;
 import static java.lang.Math.hypot;
 import static java.lang.Math.log;
-import static java.lang.Math.round;
 import static java.lang.Math.sin;
 import static java.lang.Math.tan;
 import static utils.Math2.coerceAngle;
 import static utils.Math2.hypot;
-import static utils.Math2.linInterp;
-import static utils.Math2.max;
 import static utils.Math2.mean;
-import static utils.Math2.outOfBoundsInSameDirection;
 import static utils.Math2.rms;
 import static utils.Math2.stdDev;
 
@@ -79,55 +75,55 @@ public abstract class Projection {
 	private final Type type; //the geometry of the projection
 	private final Property property; //what it is good for
 	private final int rating; //how good I think it is
-	protected BoundingBox bounds; //bounding box of the full map
-	
+	protected Shape shape; //bounding shape
+
 	
 	
 	protected Projection(
-			String name, BoundingBox bounds, int fisc, Type type, Property property, int rating) {
+			String name, Shape shape, int fisc, Type type, Property property, int rating) {
 		this(name, buildDescription(type,property,null,null),
-		     bounds, fisc, type, property, rating, new String[0], new double[0][]);
+		     shape, fisc, type, property, rating, new String[0], new double[0][]);
 	}
 	
 	protected Projection(
-			String name, BoundingBox bounds, int fisc, Type type, Property property,
+			String name, Shape shape, int fisc, Type type, Property property,
 			int rating, String adjective) {
-		this(name, buildDescription(type,property,adjective,null), bounds,
-		     fisc, type, property, rating, new String[0], new double[0][]);
+		this(name, buildDescription(type,property,adjective,null), shape,
+		     fisc, type, property, rating, new String[0], new double[0][]); // TODO: I hate these constructors. I don't need so many of them.
 	}
 	
 	protected Projection(
-			String name, BoundingBox bounds, int fisc, Type type, Property property,
+			String name, Shape shape, int fisc, Type type, Property property,
 			int rating, String adjective, String addendum) {
-		this(name, buildDescription(type,property,adjective,addendum), bounds,
+		this(name, buildDescription(type,property,adjective,addendum), shape,
 		     fisc, type, property, rating, new String[0], new double[0][]);
 	}
 	
 	protected Projection(
-			String name, String description, BoundingBox bounds, int fisc,
+			String name, String description, Shape shape, int fisc,
 			Type type, Property property, int rating) {
-		this(name, description, bounds, fisc, type, property, rating,
+		this(name, description, shape, fisc, type, property, rating,
 		     new String[0], new double[0][]);
 	}
 	
 	protected Projection(
-			String name, String description, BoundingBox bounds, int fisc, Type type,
+			String name, String description, Shape shape, int fisc, Type type,
 			Property property, int rating, String[] paramNames, double[][] paramValues) {
-		this(name, description, bounds, fisc, type, property, rating,
+		this(name, description, shape, fisc, type, property, rating,
 		     paramNames, paramValues, true);
 	}
 	
 	protected Projection(
-			String name, String description, BoundingBox bounds, int fisc, Type type,
+			String name, String description, Shape shape, int fisc, Type type,
 			Property property, int rating, String[] paramNames, double[][] paramValues,
 			boolean hasAspect) {
-		this(name, description, bounds,
+		this(name, description, shape,
 		     (fisc&0b1000) > 0, (fisc&0b0100) > 0, (fisc&0b0010) > 0, (fisc&0b0001) > 0,
 		     type, property, rating, paramNames, paramValues, hasAspect);
 	}
 	
 	protected Projection (
-			String name, String description, BoundingBox bounds,
+			String name, String description, Shape shape,
 			boolean finite, boolean invertable, boolean solveable, boolean continuous, Type type, Property property, int rating,
 			String[] paramNames, double[][] paramValues, boolean hasAspect) {
 		this.name = name;
@@ -135,7 +131,7 @@ public abstract class Projection {
 		this.paramNames = paramNames;
 		this.paramValues = paramValues;
 		this.hasAspect = hasAspect;
-		this.bounds = bounds;
+		this.shape = shape;
 		this.finite = finite;
 		this.invertable = invertable;
 		this.solveable = solveable;
@@ -146,7 +142,7 @@ public abstract class Projection {
 	}
 	
 	protected Projection(String name, Projection base) {
-		this(name, base.description, base.bounds, base.finite, base.invertable,
+		this(name, base.description, base.shape, base.finite, base.invertable,
 		     base.solveable, base.continuous, base.type, base.property, base.rating,
 		     base.paramNames, base.paramValues, base.hasAspect);
 	}
@@ -313,10 +309,12 @@ public abstract class Projection {
 	 *         elements corresponding to points not on the map will be set to zero.
 	 */
 	public double[][][] map(int size, double[] pole, boolean cropAtPi) {
-		if (bounds.width >= bounds.height)
-			return map(size, max(round(size*bounds.height/bounds.width),1), pole, cropAtPi, null);
+		if (shape.width >= shape.width)
+			return map(size, Math.max(Math.round(size*shape.width/shape.width),1),
+			           pole, cropAtPi, null);
 		else
-			return map(max(round(size*bounds.width/bounds.height),1), size, pole, cropAtPi, null);
+			return map(Math.max(Math.round(size*shape.width/shape.width),1), size,
+			           pole, cropAtPi, null);
 	}
 
 	/**
@@ -335,8 +333,8 @@ public abstract class Projection {
 		for (int y = 0; y < h; y ++) {
 			for (int x = 0; x < w; x ++)
 				output[y][x] = inverse(
-						bounds.xMin + (x + 0.5)/w*(bounds.xMax - bounds.xMin),
-						bounds.yMax - (y + 0.5)/h*(bounds.yMax - bounds.yMin), pole, cropAtPi);
+						((x+0.5)/w-1/2.)*shape.width,
+						(1/2.-(y+0.5)/h)*shape.height, pole, cropAtPi);
 			if (tracker != null)
 				tracker.accept((double)y / (int)h);
 		}
@@ -345,7 +343,7 @@ public abstract class Projection {
 	
 	
 	/**
-	 * Create a series of paths that draw a graticule mesh
+	 * Create a series of paths that draw a graticule mesh, scaled into a rectangle so x in [0, outW] and y in [0, outH]
 	 * @param spacing The number of radians between each parallel or meridian
 	 * @param precision The maximum allowable distance from the true path
 	 * @param maxLat The maximum absolute value of latitude for any graticule curve
@@ -355,46 +353,53 @@ public abstract class Projection {
 	 * @param pole The aspect of this graticule
 	 * @return list of curves where each curve is a list of {x,y} arrays
 	 */
-	public List<Command> drawGraticule(double spacing, double precision, double outW, double outH,
+	public List<Path.Command> drawGraticule(double spacing, double precision, double outW, double outH,
 			double maxLat, double maxLon, double[] pole) {
-		List<Command> output = new LinkedList<>();
+		List<Path.Command> output = new LinkedList<>();
 		
 		for (int y = 0; y < (int)(maxLat/spacing); y ++) {
 			output.addAll(drawLoxodrome( //northern parallel
-					 y*spacing,-maxLon, y*spacing, maxLon, precision, outW, outH, pole));
+					 y*spacing,-maxLon, y*spacing, maxLon, precision, pole));
 			if (y == 0) 	continue;
 			output.addAll(drawLoxodrome( //southern parallel
-					-y*spacing,-maxLon,-y*spacing, maxLon, precision, outW, outH, pole));
+					-y*spacing,-maxLon,-y*spacing, maxLon, precision, pole));
 		}
 		maxLat -= .0001; //don't draw on the poles; it makes things easier
 		for (int x = 0; x <= (int)(maxLon/spacing); x ++) {
 			output.addAll(drawLoxodrome( //western meridian
-					-maxLat,-x*spacing, maxLat,-x*spacing, precision, outW, outH, pole));
+					-maxLat,-x*spacing, maxLat,-x*spacing, precision, pole));
 			if (x == 0 || x == (int)(maxLon/spacing)) 	continue;
 			output.addAll(drawLoxodrome( //eastern meridian
-					-maxLat, x*spacing, maxLat, x*spacing, precision, outW, outH, pole));
+					-maxLat, x*spacing, maxLat, x*spacing, precision, pole));
 		}
-		
+
+		// rescale it to the desired bounding box
+		output = Path.translated(-this.shape.xMin, -this.shape.yMax, output);
+		output = Path.scaled(outW/this.shape.width, -outH/this.shape.height, output);
+
 		return output;
+	}
+
+
+	public List<Path.Command> drawLoxodrome(
+			double lat0, double lon0, double lat1, double lon1, double precision) {
+		return drawLoxodrome(lat0, lon0, lat1, lon1, precision, null);
 	}
 	
 	
-	private List<Command> drawLoxodrome(double lat0, double lon0, double lat1, double lon1,
-			double precision, double outW, double outH, double[] pole) {
-		final double[][] baseRange = {{bounds.xMin, bounds.yMax}, {bounds.xMax, bounds.yMin}};
-		final double[][] imgRange = {{0, 0}, {outW, outH}}; //define some constants for changing coordinates
-		
+	public List<Path.Command> drawLoxodrome(
+			double lat0, double lon0, double lat1, double lon1, double precision, double[] pole) {
 		double[] endPt0 = new double[] {lat0, lon0};
 		double[] endPt1 = new double[] {lat1, lon1};
 		List<double[]> spherical = new ArrayList<double[]>(); //the spherical coordinates of the vertices
 		for (double a = 0; a <= 1; a += 1/32.) //populated with vertices along the loxodrome
-			spherical.add(new double[] {endPt0[0]*a+endPt1[0]*(1-a), endPt0[1]*a+endPt1[1]*(1-a)});
-		List<Command> planar = new ArrayList<>(); //the planar coordinates of the vertices
+			spherical.add(new double[] {endPt0[0]*(1-a)+endPt1[0]*a, endPt0[1]*(1-a)+endPt1[1]*a});
+		List<Path.Command> planar = new ArrayList<>(); //the planar coordinates of the vertices
 		for (int i = 0; i < spherical.size(); i ++) {
 			double[] si = spherical.get(i); //populated with projections of spherical, in image coordinates
-			double[] pi = linInterp(this.project(si, pole), baseRange, imgRange);
+			double[] pi = this.project(si, pole);
 			char type = (i == 0) ? 'M' : 'L';
-			planar.add(new Command(type, pi));
+			planar.add(new Path.Command(type, pi));
 		}
 		
 		Queue<double[]> queue = new LinkedList<double[]>(spherical.subList(0, spherical.size()-1));
@@ -405,23 +410,21 @@ public abstract class Projection {
 			double[] sm = new double[] {(s0[0]+s1[0])/2, (s0[1]+s1[1])/2}; //spherical (loxodromic) midpoint
 			double[] p0 = planar.get(i).args; //first planar endpoint
 			double[] p1 = planar.get(i+1).args; //second planar endpoint
-			if (outOfBoundsInSameDirection(imgRange, p0, p1)) // if we're talking about things entirely off the map
-				continue; // just forget about it
-			double[] pm = linInterp(this.project(sm, pole), baseRange, imgRange); //planar (loxodromic) midpoint
+			double[] pm = this.project(sm, pole); //planar (loxodromic) midpoint
 			
 			double error = hypot(pm[0] - (p0[0] + p1[0])/2, pm[1] - (p0[1] + p1[1])/2); // midpoint error
 			if (error > precision) { //if the calculated midpoint is too far from what we expect
 				if ((i-1 < 0 || hypot(planar.get(i-1).args, p0) <= precision) &&
 						(i+2 >= planar.size() || hypot(planar.get(i+2).args, p1) <= precision)) { // check if it's getting real close on each side
-					planar.set(i+1, new Command('M', p1)); // if so, it's probably an interruption. Change the second one to 'M'.
+					planar.set(i+1, new Path.Command('M', p1)); // if so, it's probably an interruption. Change the second one to 'M'.
 					continue;
 				}
 				else if (hypot(s1[0] - s0[0], s1[1] - s0[1]) < 1e-4) { // alternatively, if we're getting to arcsecond scale,
-					planar.set(i+1, new Command('M', p1)); // it's just not worth it
+					planar.set(i+1, new Path.Command('M', p1)); // it's just not worth it
 					continue;
 				}
 				spherical.add(i+1, sm); //if there's still work to do, add the midpoint to the curve
-				planar.add(i+1, new Command('L', pm));
+				planar.add(i+1, new Path.Command('L', pm));
 				queue.add(s0); //and see if you need to recurse this at all
 				queue.add(sm);
 			}
@@ -702,15 +705,11 @@ public abstract class Projection {
 		return this.rating;
 	}
 
-	public final BoundingBox getBounds() {
-		return this.bounds;
-	}
-	
-	public final double getAspectRatio() {
-		return bounds.width/bounds.height;
+	public final Shape getShape() {
+		return this.shape;
 	}
 
-	public static final Projection NULL_PROJECTION = //this exists solely for the purpose of a "More..." option at the end of menus
+	public static final Projection NULL_PROJECTION = //this exists solely for the purpose of a "More..." option at the end of menus.  ah, if only enums were as powerful in Java as they are in Rust.
 			new Projection("More...", null, null, 0, null, null, 0) {
 		
 		public double[] project(double lat, double lon) {

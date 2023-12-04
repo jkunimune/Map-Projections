@@ -25,9 +25,9 @@ package maps;
 
 import maps.Projection.Property;
 import maps.Projection.Type;
-import utils.BoundingBox;
 import utils.Dixon;
 import utils.NumericalAnalysis;
+import utils.Shape;
 
 import static java.lang.Double.NEGATIVE_INFINITY;
 import static java.lang.Double.NaN;
@@ -271,22 +271,19 @@ public class Polyhedral {
 			0b1110, Polyhedron.DYMAXION, Property.COMPROMISE, 3) {
 		
 		private final double[] POLE = {0.040158, -0.091549,-2.015269}; //I derived these numbers from [Robert Gray](http://www.rwgrayprojects.com/rbfnotes/maps/graymap4.html)
-		private final double X_0 = 0.75;
-		private final double Y_0 = -sqrt(3)/4;
-		
+
 		private final double sin36 = sqrt(10-2*sqrt(5))/4;
 		private final double cos36 = (1+sqrt(5))/4;
 		
 		@Override
-		public double[] project(double lat, double lon) { //apply a pole shift and Cartesian shift to Dymaxion
+		public double[] project(double lat, double lon) { //apply a pole shift to Dymaxion
 			double[] coords = transformFromOblique(lat, lon, POLE);
-			coords = super.project(coords[0], coords[1]);
-			return new double[] {coords[0] + X_0, coords[1] + Y_0};
+			return super.project(coords[0], coords[1]);
 		}
 		
 		@Override
 		public double[] inverse(double x, double y) { //because Dymaxion needs its obliquity, and I didn't want to program that into the Polyhedron
-			double[] coords = super.inverse(x - X_0, y - Y_0);
+			double[] coords = super.inverse(x, y);
 			if (coords == null)
 				return null;
 			return transformToOblique(coords, POLE);
@@ -331,7 +328,7 @@ public class Polyhedral {
 		public PolyhedralProjection(
 				String name, int fisc, Polyhedron config, Property property, int rating,
 				String adjective, String addendum) {
-			super(name, config.bounds, fisc, config.type, property, rating,
+			super(name, config.shape, fisc, config.type, property, rating,
 					adjective, addendum);
 			this.configuration = config;
 		}
@@ -339,7 +336,7 @@ public class Polyhedral {
 		public PolyhedralProjection(
 				String name, String description, int fisc, Polyhedron config, Property property,
 				int rating) {
-			super(name, description, config.bounds, fisc, config.type, property,
+			super(name, description, config.shape, fisc, config.type, property,
 					rating);
 			this.configuration = config;
 		}
@@ -347,7 +344,7 @@ public class Polyhedral {
 		public PolyhedralProjection(
 				String name, String description, int fisc, Polyhedron config, Property property,
 				int rating, String[] paramNames, double[][] paramValues) {
-			super(name, description, config.bounds, fisc, config.type, property,
+			super(name, description, config.shape, fisc, config.type, property,
 					rating, paramNames, paramValues);
 			this.configuration = config;
 		}
@@ -389,7 +386,7 @@ public class Polyhedral {
 			final double y0 = facet.y;
 			
 			double[] output = { r*cos(th) + x0, r*sin(th) + y0 };
-			if (output[0] < bounds.xMin || output[0] > bounds.xMax || output[1] < bounds.yMin || output[1] > bounds.yMax) { //rotate OOB bits around nearest singularity
+			if (output[0] < shape.xMin || output[0] > shape.xMax || output[1] < shape.yMin || output[1] > shape.yMax) { //rotate OOB bits around nearest singularity
 				output = configuration.rotateOOB(output[0], output[1], x0, y0);
 			}
 			return output;
@@ -449,7 +446,7 @@ public class Polyhedral {
 	private enum Polyhedron {
 		
 		/** [<|>] arrangement, face-centerd */
-		TETRAHEDRON_WIDE_FACE(3, 3, new BoundingBox(6., 2*sqrt(3)), new Facet[] {
+		TETRAHEDRON_WIDE_FACE(3, 3, Shape.rectangle(6., 2*sqrt(3)), new Facet[] {
 				new Facet( 2,  sqrt(3), -2*PI/3, asin(1/3.),  PI  , -2*PI/3,   -PI/3, 2*PI/3),
 				new Facet(-2,  sqrt(3),   -PI/3, asin(1/3.),  PI  ,  2*PI/3),
 				new Facet( 2, -sqrt(3),  2*PI/3,      -PI/2,   0  ,  2*PI/3, -2*PI/3,   PI/3),
@@ -458,33 +455,35 @@ public class Polyhedral {
 				new Facet( 1,        0,    PI  , asin(1/3.),  PI/3, -2*PI/3),
 				new Facet(-1,        0,     0  , asin(1/3.), -PI/3,  2*PI/3),
 				}),
-		/** \delta arrangement, like they are often published */
-		TRIANGLE_FACE(3, 3, new BoundingBox(4*sqrt(3), 6.), new Facet[] {
-				new Facet( sqrt(3),  2, -5*PI/6, asin(1/3.),  PI/3, 0),
-				new Facet(-sqrt(3),  2,   -PI/6, asin(1/3.), -PI/3, 0),
-				new Facet(       0, -1,    PI/2, asin(1/3.),  PI  , 0),
-				new Facet(       0,  1,   -PI/2,      -PI/2,   0  , 0),
-				}) {
+		/** \nabla arrangement, like they are often published */
+		TRIANGLE_FACE(3, 3, Shape.polygon(new double[][] {
+				{0, -4}, {2*sqrt(3), 2.}, {-2*sqrt(3), 2.}
+		}), new Facet[] {
+				new Facet( sqrt(3),  1, -5*PI/6, asin(1/3.),  PI/3, 0),
+				new Facet(-sqrt(3),  1,   -PI/6, asin(1/3.), -PI/3, 0),
+				new Facet(       0, -2,    PI/2, asin(1/3.),  PI  , 0),
+				new Facet(       0,  0,   -PI/2,      -PI/2,   0  , 0),
+		}) {
 			@Override public boolean inBounds(double x, double y) {
 				return y > sqrt(3)*abs(x) - 3;
 			}
 		},
 		/** [<|>] arrangement, vertex-centred */
-		TETRAHEDRON_WIDE_VERTEX(3, 6, new BoundingBox(6., 2*sqrt(3)), new Facet[] {
+		TETRAHEDRON_WIDE_VERTEX(3, 6, Shape.rectangle(6., 2*sqrt(3)), new Facet[] {
 				new Facet( 0,  sqrt(3),  -PI/2,        PI/2,     0  ,  0),
 				new Facet( 0, -sqrt(3),   PI/2, -asin(1/3.),     0  , PI),
 				new Facet( 3,        0, 5*PI/6, -asin(1/3.),  2*PI/3, PI),
 				new Facet(-3,        0,   PI/6, -asin(1/3.), -2*PI/3, PI),
 				}) {
 			@Override public double[] rotateOOB(double x, double y, double xCen, double yCen) {
-				if (x < bounds.xMin || x > bounds.xMax)
+				if (x < shape.xMin || x > shape.xMax)
 					return new double[] {2*xCen - x, -y};
 				else
-					return new double[] {-x, 2*bounds.yMax*signum(y) - y};
+					return new double[] {-x, 2*shape.yMax*signum(y) - y};
 			}
 		},
 		/** |\/\/`| arrangement, vertex-centred */
-		AUTHAGRAPH(3, 6, new BoundingBox(4*sqrt(3), 3), new Facet[] {
+		AUTHAGRAPH(3, 6, Shape.rectangle(4*sqrt(3), 3), new Facet[] {
 				new Facet(-2*sqrt(3)-.6096,  1.5, 0, -asin(1/3.),  PI  ,  PI  ),
 				new Facet(  -sqrt(3)-.6096, -1.5, 0, -asin(1/3.), -PI/3,  PI/3),
 				new Facet(          -.6096,  1.5, 0,        PI/2,   0  ,  PI  ),
@@ -493,53 +492,60 @@ public class Polyhedral {
 				new Facet( 3*sqrt(3)-.6096, -1.5, 0, -asin(1/3.), -PI/3,  PI/3),
 				}) {
 			@Override public double[] rotateOOB(double x, double y, double xCen, double yCen) {
-				if (y < bounds.yMin || y > bounds.yMax) {
+				if (y < shape.yMin || y > shape.yMax) {
 					x = 2*xCen - x;
 					y = 2*yCen - y;
 				}
-				if (x < bounds.xMin || x > bounds.xMax)
-					x = floorMod(x + bounds.xMax,2*bounds.xMax) - bounds.xMax;
+				if (x < shape.xMin || x > shape.xMax)
+					x = floorMod(x + shape.xMax,2*shape.xMax) - shape.xMax;
 				return new double[] {x, y};
 			}
 		},
 		/** I can't draw this in ASCII. You know what "Dymaxion" means */
-		DYMAXION(5, 6, new BoundingBox(5.5, 1.5*sqrt(3)), new Facet[] {
-				new Facet(-1.5,  sqrt(3)  ,   -PI/2,        PI/2,     0  , -3*PI/5, -3*PI/5, 3*PI/5), //West Africa
-				new Facet( 0.5,  sqrt(3)  ,   -PI/2,        PI/2,     0  ,    PI/5,   -PI/5,   PI/5), //Brazil
-				new Facet( 1.5,  sqrt(3)  ,   -PI/2,        PI/2,     0  ,  3*PI/5,   -PI/5,   PI/5), //South Atlantic O.
-				new Facet(-2.0,  sqrt(3)/2,   -PI/6,  atan(1/2.), -4*PI/5,  2*PI/5,   -PI  ,   PI  ), //Arabia
-				new Facet(-1.0,  sqrt(3)/2, -5*PI/6,  atan(1/2.), -2*PI/5, -2*PI/5,   -PI  ,   PI  ), //Scandanavia
-				new Facet( 0.0,  sqrt(3)/2,   -PI/2,  atan(1/2.),     0  ,     0  , -3*PI/5,   PI  ), //Caribbean
-				new Facet(-0.5,  sqrt(3)  , -5*PI/6,  atan(1/2.),     0  , -4*PI/5,   -PI/5,   PI/5), //North Atlantic O.
-				new Facet( 1.0,  sqrt(3)/2,   -PI/2,  atan(1/2.),  2*PI/5,     0  ,   -PI  ,   PI  ), //Patagonia
-				new Facet( 2.0,  sqrt(3)/2, -5*PI/6,  atan(1/2.),  4*PI/5, -2*PI/5, -3*PI/5, 2*PI/5), //East Antarctica
-				new Facet(-3.5,        0  ,   -PI/6,  atan(1/2.),  4*PI/5,     0  ,     0  ,   PI/5), //South Indian O.
-				new Facet(-3.0,  sqrt(3)/2,   -PI/6,  atan(1/2.),  4*PI/5,  2*PI/5,   -PI/5,   PI/5), //North Indian O.
-				new Facet(-2.5,  sqrt(3)  ,   -PI/6,  atan(1/2.),  4*PI/5,  4*PI/5,   -PI/5,   PI/5), //South Africa
-				new Facet(-2.5,        0  ,   -PI/6, -atan(1/2.),   -PI  ,    PI/5,   -PI  ,   PI  ), //Australia
-				new Facet(-1.5,        0  ,    PI/2, -atan(1/2.), -3*PI/5,    PI  , -6*PI/5, 4*PI/5), //China
-				new Facet(-0.5,        0  ,    PI/2, -atan(1/2.),   -PI/5,    PI  ,   -PI  ,   PI  ), //North America
-				new Facet( 0.5,        0  ,  5*PI/6, -atan(1/2.),    PI/5, -3*PI/5,   -PI  ,   PI  ), //East Pacific O.
-				new Facet( 1.5,        0  ,    PI/2, -atan(1/2.),  3*PI/5,    PI  , -3*PI/5, 3*PI/5), //West Antarctica
-				new Facet( 1.0, -sqrt(3)/2,  5*PI/6, -atan(1/2.),  3*PI/5,   -PI/5,   -PI/5,   PI/5), //South Pacific O.
-				new Facet(-3.0, -sqrt(3)/2,    PI/6, -atan(1/2.),  3*PI/5,    PI/5,   -PI/5,   PI/5), //New Zealand
-				new Facet( 0.0, -sqrt(3)/2,    PI/2,       -PI/2,     0  ,   -PI  , -3*PI/5,   PI/5), //Hawai`i
-				new Facet(-1.0, -sqrt(3)/2,    PI/2,       -PI/2,     0  , -3*PI/5,   -PI/5, 2*PI/5), //West Pacific O.
-				new Facet(-2.0, -sqrt(3)/2,    PI/2,       -PI/2,     0  ,   -PI/5,     0  , 3*PI/5), //Melanesia
-				});
+		DYMAXION(5, 6, Shape.polygon(new double[][] {
+				{ 0.0,  0.0        }, { 0.5, -0.5*sqrt(3)}, { 1.5, -0.5*sqrt(3)}, { 1.0,  0.0        },
+				{ 2.5,  0.0        }, { 2.5,  0.5*sqrt(3)}, { 2.0,  1.0*sqrt(3)}, { 1.5,  0.5*sqrt(3)},
+				{ 1.0,  1.0*sqrt(3)}, { 0.5,  0.5*sqrt(3)}, {-0.5,  0.5*sqrt(3)}, { 0.0,  1.0*sqrt(3)},
+				{-2.0,  1.0*sqrt(3)}, {-1.5,  0.5*sqrt(3)}, {-2.5,  0.5*sqrt(3)}, {-2.0,  0.0        },
+				{-3.0,  0.0        }, {-2.25,-.25*sqrt(3)}, {-2.5, -0.5*sqrt(3)}, {-1.5, -0.5*sqrt(3)},
+				{-1.5,-1/6.*sqrt(3)}, {-1.0,  0.0        }, {-1.0,-1/3.*sqrt(3)}, {-0.5, -0.5*sqrt(3)},
+		}), new Facet[] {
+				new Facet(-1.0,  1.0*sqrt(3),   -PI/2,        PI/2,     0  , -3*PI/5, -3*PI/5, 3*PI/5), //West Africa
+				new Facet( 1.0,  1.0*sqrt(3),   -PI/2,        PI/2,     0  ,    PI/5,   -PI/5,   PI/5), //Brazil
+				new Facet( 2.0,  1.0*sqrt(3),   -PI/2,        PI/2,     0  ,  3*PI/5,   -PI/5,   PI/5), //South Atlantic O.
+				new Facet(-1.5,  0.5*sqrt(3),   -PI/6,  atan(1/2.), -4*PI/5,  2*PI/5,   -PI  ,   PI  ), //Arabia
+				new Facet(-0.5,  0.5*sqrt(3), -5*PI/6,  atan(1/2.), -2*PI/5, -2*PI/5,   -PI  ,   PI  ), //Scandanavia
+				new Facet( 0.5,  0.5*sqrt(3),   -PI/2,  atan(1/2.),     0  ,     0  , -3*PI/5,   PI  ), //Caribbean
+				new Facet( 0.0,  1.0*sqrt(3), -5*PI/6,  atan(1/2.),     0  , -4*PI/5,   -PI/5,   PI/5), //North Atlantic O.
+				new Facet( 1.5,  0.5*sqrt(3),   -PI/2,  atan(1/2.),  2*PI/5,     0  ,   -PI  ,   PI  ), //Patagonia
+				new Facet( 2.5,  0.5*sqrt(3), -5*PI/6,  atan(1/2.),  4*PI/5, -2*PI/5, -3*PI/5, 2*PI/5), //East Antarctica
+				new Facet(-3.0,  0.0        ,   -PI/6,  atan(1/2.),  4*PI/5,     0  ,     0  ,   PI/5), //South Indian O.
+				new Facet(-2.5,  0.5*sqrt(3),   -PI/6,  atan(1/2.),  4*PI/5,  2*PI/5,   -PI/5,   PI/5), //North Indian O.
+				new Facet(-2.0,  1.0*sqrt(3),   -PI/6,  atan(1/2.),  4*PI/5,  4*PI/5,   -PI/5,   PI/5), //South Africa
+				new Facet(-2.0,  0.0        ,   -PI/6, -atan(1/2.),   -PI  ,    PI/5,   -PI  ,   PI  ), //Australia
+				new Facet(-1.0,  0.0        ,    PI/2, -atan(1/2.), -3*PI/5,    PI  , -6*PI/5, 4*PI/5), //China
+				new Facet( 0.0,  0.0        ,    PI/2, -atan(1/2.),   -PI/5,    PI  ,   -PI  ,   PI  ), //North America
+				new Facet( 1.0,  0.0        ,  5*PI/6, -atan(1/2.),    PI/5, -3*PI/5,   -PI  ,   PI  ), //East Pacific O.
+				new Facet( 2.0,  0.0        ,    PI/2, -atan(1/2.),  3*PI/5,    PI  , -3*PI/5, 3*PI/5), //West Antarctica
+				new Facet( 1.5, -0.5*sqrt(3),  5*PI/6, -atan(1/2.),  3*PI/5,   -PI/5,   -PI/5,   PI/5), //South Pacific O.
+				new Facet(-2.5, -0.5*sqrt(3),    PI/6, -atan(1/2.),  3*PI/5,    PI/5,   -PI/5,   PI/5), //New Zealand
+				new Facet( 0.5, -0.5*sqrt(3),    PI/2,       -PI/2,     0  ,   -PI  , -3*PI/5,   PI/5), //Hawai`i
+				new Facet(-0.5, -0.5*sqrt(3),    PI/2,       -PI/2,     0  , -3*PI/5,   -PI/5, 2*PI/5), //West Pacific O.
+				new Facet(-1.5, -0.5*sqrt(3),    PI/2,       -PI/2,     0  ,   -PI/5,     0  , 3*PI/5), //Melanesia
+		});
 		/** the number of the rotational spmmetry in the spherical coordinate system */
 		public final int sphereSym;
 		/** the number of the rotational symmetry in the planar coordinate system */
 		public final int planarSym;
 		/** the bounding shape of the planar map */
-		public final BoundingBox bounds;
+		public final Shape shape;
 		/** the location and orientation of each facet in both coordinate systems */
 		public final Facet[] facets;
 		/** the number of faces */
 		public final Type type;
 
-		Polyhedron(int sphereSym, int planarSym, BoundingBox bounds, Facet[] facets) {
-			this.bounds = bounds;
+		Polyhedron(int sphereSym, int planarSym, Shape shape, Facet[] facets) {
+			this.shape = shape;
 			this.sphereSym = sphereSym;
 			this.planarSym = planarSym;
 			this.facets = facets;

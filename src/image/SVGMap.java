@@ -28,7 +28,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
-import utils.BoundingBox;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -40,24 +39,21 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Files;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 import static java.lang.Double.NaN;
-import static java.lang.Double.isFinite;
-import static java.lang.Double.isNaN;
 import static java.lang.Double.parseDouble;
 import static java.lang.Math.PI;
 import static java.lang.Math.hypot;
-import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static java.lang.String.format;
 import static utils.Math2.linInterp;
+import static utils.Math2.max;
 
 /**
  * An input equirectangular map based on an SVG file
@@ -67,8 +63,6 @@ import static utils.Math2.linInterp;
 public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 	
 	public static final double[] NULL_TRANSFORM = {1, 1, 0, 0};
-	
-	private static final double MAX_EDGE_LENGTH = 1/20.; // cut lines that are more than this far across the map
 
 	private SVGHeader header; // the initial element, which contains dimension information
 	private final List<SVGElement> elements; //all of the parsed file contents
@@ -89,8 +83,13 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 		final SAXParser parser = SAXParserFactory.newInstance().newSAXParser();
 		
 		final DefaultHandler handler = new DefaultHandler() {
-			private final Deque<double[]> transformStack =
-					new ArrayDeque<double[]>(Collections.singleton(NULL_TRANSFORM));
+			private final Stack<String> tagStack = new Stack<String>();
+			private final Stack<double[]> transformStack = new Stack<double[]>();
+
+			@Override
+			public void startDocument() {
+				transformStack.push(NULL_TRANSFORM);
+			}
 
 			@Override
 			public InputSource resolveEntity(String publicId, String systemId) {
@@ -112,35 +111,39 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 					transformStack.push(transformStack.peek());
 				}
 
+				SVGElement element;
 				// pull out width, height, and viewBox from <svg>
 				if (tagName.equals("svg"))
-					elements.add(parseSVGHeader(attributes));
+					element = parseSVGHeader(attributes);
 				// pull out the d from <path>
 				else if (tagName.equals("path"))
-					elements.add(parsePath(attributes));
+					element = parsePath(attributes);
 				// convert certain rectangles to Boundary objects
 				else if (tagName.equals("rect")) {
-					Background parsedBackground = parseBackground(attributes);
-					if (parsedBackground != null)
-						elements.add(parsedBackground);
+					element = parseBackground(attributes);
+					if (element != null)
+						tagName = "path";
 					else
-						elements.add(parsePoint("rect", attributes, "x", "y"));
+						element = parsePoint("rect", attributes, "x", "y");
 				}
 				// pull out the x and y from <text>
 				else if (attributes.getIndex("x") >= 0 && attributes.getIndex("y") >= 0)
-					elements.add(parsePoint(tagName, attributes, "x", "y"));
+					element = parsePoint(tagName, attributes, "x", "y");
 				// pull out the cx and cy from <circle>
 				else if (attributes.getIndex("cx") >= 0 && attributes.getIndex("cy") >= 0)
-					elements.add(parsePoint(tagName, attributes, "cx", "cy"));
+					element = parsePoint(tagName, attributes, "cx", "cy");
 				// for everything else, just treat it as an invariant String
 				else
-					elements.add(new Content(formatAttributes(tagName, attributes)));
+					element = new Content(formatAttributes(tagName, attributes));
+
+				elements.add(element);
+				tagStack.add(tagName);
 			}
 
 			@Override
 			public void endElement(String uri, String localName, String qName) {
 				// save the </> tag as an invariant string
-				elements.add(new Content(format("</%s>", qName)));
+				elements.add(new Content(format("</%s>", tagStack.pop())));
 				// and drop any transform that may have been been on that element
 				transformStack.pop();
 			}
@@ -237,13 +240,20 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 				height = height*transform[1];
 				// check if it exactly covers the viewbox (it's okay if it's vertically inverted)
 				if ((x == header.vbMinX && y == header.vbMinY && width == header.vbWidth && height == header.vbHeight) ||
-				    (x == header.vbMinX && y == header.vbMinY + header.vbHeight && width == header.vbWidth && height == -header.vbHeight))
-					return new Background(attributes, new BoundingBox(x, x + width, y, y + height));
+				    (x == header.vbMinX && y == header.vbMinY + header.vbHeight && width == header.vbWidth && height == -header.vbHeight)) {
+					// if so, remove the dimensions and stick the remainder in a Background Object
+					attributes = new AttributesImpl(attributes);
+					attributes.removeAttribute(attributes.getIndex("x"));
+					attributes.removeAttribute(attributes.getIndex("y"));
+					attributes.removeAttribute(attributes.getIndex("width"));
+					attributes.removeAttribute(attributes.getIndex("height"));
+					return new Background(attributes, null);
+				}
 				else
 					return null;
 			}
 
-			private Point parsePoint(String tagName, AttributesImpl attributes, String xName, String yName) {
+			private GeographicPoint parsePoint(String tagName, AttributesImpl attributes, String xName, String yName) {
 				if (attributes.getValue(xName) == null || attributes.getValue(yName) == null)
 					throw new IllegalArgumentException(format("this <%s> seems to be missing some important parameters; where's %s and %s?", tagName, xName, yName));
 				// parse the coordinates
@@ -261,10 +271,10 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 				x = linInterp(x, header.vbMinX, header.vbMinX + header.vbWidth, -PI, PI); //scale to radians
 				y = linInterp(y, header.vbMinY + header.vbHeight, header.vbMinY, -PI/2, PI/2);
 				// put it all together and return it
-				return new Point(formatSpecifier, x, y);
+				return new GeographicPoint(formatSpecifier, x, y);
 			}
 
-			private Path parsePath(AttributesImpl attributes) {
+			private GeographicPath parsePath(AttributesImpl attributes) {
 				// start by extracting the "d" attribute
 				String d;
 				if (attributes.getValue("d") != null) {
@@ -277,50 +287,37 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 				// form the format specifier from the other attributes
 				String formatSpecifier = formatAttributes("path", attributes);
 
-				// then parse the d
-				List<Command> commands = new ArrayList<>();
-				int i = 0;
+				// then parse the d and simplify the result
+				List<Path.Command> path = Path.parse(d);
 				double[] lastMove = {0, 0}; //for closepaths
 				double[] last = {0, 0}; //for relative coordinates
-				while (i < d.length()) {
-					char type = d.charAt(i);
-					i ++;
-					int start = i;
-					while (i < d.length() && !isCommandTypeLetter(d.charAt(i)))
-						i ++;
-					String argString = d.substring(start, i);
-					argString = argString.replaceAll("([0-9.])-", "$1,-"); //this is necessary because some Adobe products leave out delimiters between negative numbers
-
-					String[] argStrings;
-					if (argString.trim().isEmpty()) 	argStrings = new String[0];
-					else 								argStrings = argString.trim().split("[\\s,]+");
-					final double[] args;
-
-					// replaceInText arcs with lines because I don't want to deal with those
+				for (int i = 0; i < path.size(); i ++) {
+					char type = path.get(i).type;
+					double[] args = path.get(i).args;
+					// replace arcs with lines because I don't want to deal with those
 					if (type == 'a' || type == 'A') {
-						type += (type == 'a') ? 'l' : 'L';
-						argStrings = new String[] {argStrings[3], argStrings[4]};
+						type = (type == 'a') ? 'l' : 'L';
+						args = new double[] {args[5], args[6]};
 					}
 					// convert horizontal and vertical lines to general lines to keep things simple
 					if (type == 'h' || type == 'H' || type == 'v' || type == 'V') {
 						final int direcIdx = (type%32 == 8) ? 0 : 1;
-						args = new double[] {last[0], last[1]};
-						if (type <= 'Z') 	args[direcIdx] = parseDouble(argStrings[0]); //uppercase (absolute)
-						else 				args[direcIdx] += parseDouble(argStrings[0]); //lowercase (relative)
+						double[] newArgs = new double[] {last[0], last[1]};
+						if (type <= 'Z')
+							newArgs[direcIdx] = args[0]; //uppercase (absolute)
+						else
+							newArgs[direcIdx] += args[0]; //lowercase (relative)
+						args = newArgs;
 						last[direcIdx] = args[direcIdx];
 						type = 'L';
 					}
-					// also replaceInText closepath with an explicit line to the last moveto
+					// also replace closepath with an explicit line to the last moveto
 					else if (type == 'z' || type == 'Z') {
 						args = new double[] {lastMove[0], lastMove[1]};
 						type = 'L';
 					}
-					// now that everything is a curve or a line, extract the coordinates
 					else {
-						args = new double[argStrings.length];
 						for (int j = 0; j < args.length; j ++) {
-							args[j] = parseDouble(argStrings[j]); //parse the coordinate
-
 							if (type >= 'a')
 								args[j] += last[j%2]; //account for relative commands
 							last[j%2] = args[j];
@@ -332,28 +329,18 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 						lastMove[0] = args[args.length-2];
 						lastMove[1] = args[args.length-1];
 					}
-
-					double[] transform = transformStack.peek();
-					if (transform == null)
-						throw new IllegalArgumentException("there will always be a nonnull transform to peek at");
-					for (int j = 0; j < args.length; j ++) {
-						if (!isFinite(args[j]))
-							throw new IllegalArgumentException("uhh... "+type+argString);
-						if (j%2 == 0) {
-							args[j] = args[j]*transform[0] + transform[2]; //apply the transformation
-							args[j] = linInterp(args[j], header.vbMinX, header.vbMinX+header.vbWidth,
-							                    -PI, PI); //scale to radians
-						}
-						else {
-							args[j] = args[j]*transform[1] + transform[3];
-							args[j] = linInterp(args[j], header.vbMinY+header.vbHeight, header.vbMinY, //keep in mind that these are paired longitude-latitude
-							                    -PI/2, PI/2); //not latitude-longitude, as they are elsewhere
-						}
-					}
-					commands.add(new Command(type, args));
+					path.set(i, new Path.Command(type, args));
 				}
 
-				return new Path(formatSpecifier, commands);
+				// apply the transform
+				double[] transform = transformStack.peek();
+				if (transform == null)
+					throw new IllegalArgumentException("there will always be a nonnull transform to peek at");
+				path = Path.transformed(transform[0], transform[1], transform[2], transform[3], path);
+				path = Path.translated(-header.vbMinX, -header.vbMinY, path);
+				path = Path.transformed(2*PI/header.vbWidth, -PI/header.vbHeight, -PI, PI/2, path);
+
+				return new GeographicPath(formatSpecifier, path);
 			}
 		};
 
@@ -364,8 +351,8 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 
 		int numVertices = 0;
 		for (SVGElement element: elements)
-			if (element instanceof Path)
-				numVertices += ((Path)element).commands.size();
+			if (element instanceof GeographicPath)
+				numVertices += ((GeographicPath)element).commands.size();
 		this.numVertices = numVertices;
 	}
 
@@ -469,11 +456,19 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 	}
 
 
-	public static Path breakWraps(Path continuous, double inSize) { //break excessively long commands, as they are likely wrapping over a discontinuity
+	/**
+	 * modify a path to heuristicly remove line erroneus line segments caused by the path crossing an interruption.
+	 * it looks for lines that are too long compared to the map size and compared to the adjacent segments.
+	 * @param continuous the path containing erroneus segments to be removed.
+	 * @param inSize the total length scale of the map
+	 * @param strict if strict is true, ony lines with a sufficient absolute length and relative length will be cut.
+	 *               if it is not, a really long relative or absolute length alone is sufficient for cutting.
+	 * @return the path containing breaks
+	 */
+	public static GeographicPath breakWraps(GeographicPath continuous, double inSize, boolean strict) { //break excessively long commands, as they are likely wrapping over a discontinuity
 		if (continuous.commands.size() <= 2) 	return continuous;
-		List<Command> broken = new LinkedList<>();
-		final double lengthThreshold = inSize*MAX_EDGE_LENGTH;
-		double[] lens = {NaN, NaN, NaN}; //the revolving array of command lengths
+		List<Path.Command> broken = new LinkedList<>();
+		double[] lens = {0, 0, 0}; //the revolving array of command lengths
 		for (int i = 0; i < continuous.commands.size(); i ++) {
 			if (i < continuous.commands.size()-1 && continuous.commands.get(i+1).type != 'M')
 				lens[2] = hypot( //compute this next length
@@ -483,29 +478,31 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 				lens[2] = NaN;
 			
 			char type = continuous.commands.get(i).type;
-			if (lens[1] >= lengthThreshold && // check it against an absolute threshold
-					(isNaN(lens[0]) || lens[1] > 20*lens[0]) && //and compare it to the last two lengths
-					(isNaN(lens[2]) || lens[1] > 20*lens[2])) //if both sides are far longer or nonexistent
+			// check it against both an absolute threshold and its two neighbor lengths
+			boolean tooLong = lens[1] >= inSize*0.05 && lens[1] >= max(lens[0], lens[2])*20;
+			if (!strict)
+				tooLong |= lens[1] >= inSize*0.25;
+			if (tooLong) //if it's suspiciusly long
 				type = 'M'; //break this line
 			
-			broken.add(new Command(type, continuous.commands.get(i).args.clone()));
+			broken.add(new Path.Command(type, continuous.commands.get(i).args.clone()));
 			lens[0] = lens[1];
 			lens[1] = lens[2];
 		}
-		
-		return new Path(continuous.formatSpecifier, broken);
+
+		return new GeographicPath(continuous.formatSpecifier, broken);
 	}
 	
 	
-	public static Path closePaths(Path open) { //replaceInText plain loops with 'Z's and combine connected parts
+	public static GeographicPath closePaths(GeographicPath open) { //replace plain loops with 'Z's and combine connected parts
 		if (open.commands.size() <= 1) 	return open;
-		List<List<Command>> parts = new ArrayList<>();
-		List<Command> currentPart = null;
-		for (Command cmd: open.commands) { //start by breaking the Path into parts,
+		List<List<Path.Command>> parts = new ArrayList<>();
+		List<Path.Command> currentPart = null;
+		for (Path.Command cmd: open.commands) { //start by breaking the Path into parts,
 			if (cmd.type == 'M') { //separated by movetos
 				if (currentPart != null)
 					parts.add(currentPart);
-				currentPart = new LinkedList<Command>();
+				currentPart = new LinkedList<Path.Command>();
 			}
 			else if (currentPart == null)
 				throw new RuntimeException(format(
@@ -514,16 +511,16 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 		}
 		parts.add(currentPart);
 		
-		List<Command> closed = new LinkedList<Command>();
+		List<Path.Command> closed = new LinkedList<Path.Command>();
 		for (int i = 0; i < parts.size(); i ++) { //now look through those parts
-			List<Command> partI = parts.get(i);
+			List<Path.Command> partI = parts.get(i);
 			if (partI.size() > 1
 					&& Arrays.equals(partI.get(0).args, partI.get(partI.size()-1).args)) { //if it is self-enclosing
-				partI.set(partI.size()-1, new Command('Z', new double[0])); //give it a closepath and send it on its way
+				partI.set(partI.size()-1, new Path.Command('Z')); //give it a closepath and send it on its way
 			}
 			else { //if it is open
 				for (int j = i+1; j < parts.size(); j ++) { //look to see if there is anything that completes it
-					List<Command> partJ = parts.get(j);
+					List<Path.Command> partJ = parts.get(j);
 					if (Arrays.equals(partI.get(0).args, partJ.get(partJ.size()-1).args)) { //if so,
 						partI.remove(0); //remove the useless moveto
 						partJ.addAll(partI); //combine them
@@ -535,25 +532,10 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 			}
 			closed.addAll(partI); //now turn in whatever you've got
 		}
-		return new Path(open.formatSpecifier, closed);
+		return new GeographicPath(open.formatSpecifier, closed);
 	}
 	
 	
-	private static boolean isCommandTypeLetter(char c) {
-		return (c >= 'A' && c <= 'Z' && c != 'E') || (c >= 'a' && c <= 'z' && c != 'e');
-	}
-
-
-	private static String formatDouble(double d) { //format a number with the minimum number of digits, but at most 3
-		String str = format("%.3f", d);
-		if (str.contains("."))
-			str = str.replaceFirst("0+$", "");
-		if (str.endsWith("."))
-			str = str.substring(0, str.length() - 1);
-		return str;
-	}
-
-
 	private static String formatAttributes(String tagName, Attributes attributes) {
 		StringBuilder string = new StringBuilder("<").append(tagName);
 		for (int i = 0; i < attributes.getLength(); i++)
@@ -620,39 +602,37 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 	 * a shape that represents not a particular geographic feature but the outline of the full world map
 	 */
 	public static class Background implements SVGElement {
-		public final BoundingBox bounds;
+		/** the shape under which the background should be added (null means this is an element in an unprojected SVGMap) */
+		public final List<Path.Command> shape;
 		public final AttributesImpl attributes;
 
-		public Background(AttributesImpl attributes, BoundingBox bounds) {
-			this.bounds = bounds;
+		public Background(AttributesImpl attributes, List<Path.Command> shape) {
+			this.shape = shape;
 			this.attributes = attributes;
 		}
 
 		public String toString() {
 			AttributesImpl fullAttributes = new AttributesImpl(attributes);
-			fullAttributes.setValue(fullAttributes.getIndex("x"), Double.toString(bounds.xMin));
-			fullAttributes.setValue(fullAttributes.getIndex("y"), Double.toString(bounds.yMin));
-			fullAttributes.setValue(fullAttributes.getIndex("width"), Double.toString(bounds.width));
-			fullAttributes.setValue(fullAttributes.getIndex("height"), Double.toString(bounds.height));
-			return formatAttributes("rect", fullAttributes);
+			fullAttributes.addAttribute("", "", "d", "", Path.toString(shape));
+			return formatAttributes("path", fullAttributes);
 		}
 	}
 
 	/**
 	 * an SVG tag containing a single pair of coordinates that can be projected
 	 */
-	public static class Point implements SVGElement {
+	public static class GeographicPoint implements SVGElement {
 		public final String formatSpecifier;
 		public final double x;
 		public final double y;
 
-		public Point(String formatSpecifier, double x, double y) {
+		public GeographicPoint(String formatSpecifier, double x, double y) {
 			this.formatSpecifier = formatSpecifier;
 			this.x = x;
 			this.y = y;
 		}
 
-		public Point projected() {
+		public GeographicPoint projected() {
 			return this;
 		}
 
@@ -665,43 +645,17 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 	/**
 	 * a &lt;path d=...&gt; tag, with the d String extracted and parsed into a modifiable form
 	 */
-	public static class Path implements SVGElement {
+	public static class GeographicPath implements SVGElement {
 		public final String formatSpecifier;
-		public final List<Command> commands;
+		public final List<Path.Command> commands;
 
-		public Path(String formatSpecifier, List<Command> commands) {
+		public GeographicPath(String formatSpecifier, List<Path.Command> commands) {
 			this.formatSpecifier = formatSpecifier;
 			this.commands = commands;
 		}
 		
 		public String toString() {
-			StringBuilder s = new StringBuilder();
-			for (Command c: commands)
-				s.append(c.toString()).append(" ");
-			return format(formatSpecifier, s.toString().trim());
+			return format(formatSpecifier, Path.toString(commands));
 		}
 	}
-	
-	
-	/**
-	 * An SVG path command, like line or bezier curve or whatever
-	 * @author jkunimune
-	 */
-	public static class Command {
-		final public char type; //M, L, C, etc.
-		final public double[] args; //the coordinates that go with it
-		
-		public Command(char type, double[] args) {
-			this.type = type;
-			this.args = args;
-		}
-
-		public String toString() {
-			StringBuilder s = new StringBuilder(Character.toString(type));
-			for (double arg : args)
-				s.append(formatDouble(arg)).append(",");
-			return s.substring(0, max(1, s.length()-1));
-		}
-	}
-	
 }

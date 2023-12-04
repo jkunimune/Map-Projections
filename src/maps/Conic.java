@@ -24,7 +24,7 @@
 package maps;
 
 import maps.Projection.Property;
-import utils.BoundingBox;
+import utils.Shape;
 
 import static java.lang.Double.isNaN;
 import static java.lang.Math.PI;
@@ -68,32 +68,43 @@ public class Conic {
 			// if the angle is greater than 180°
 			if (n > 0.5) {
 				// the upper bound is set by the outer radius
-				this.bounds = new BoundingBox(-R, R, -R, -R*cos(PI*n));
+				this.shape = Shape.polygon(new double[][] {
+						{0, 0},
+						{-R*sin(PI*n), -R*cos(PI*n)},
+						{-R, -R*cos(PI*n)},
+						{-R, -R},
+						{R, -R},
+						{R, -R*cos(PI*n)},
+						{R*sin(PI*n), -R*cos(PI*n)},
+				});
 			}
 			// if the angle is less than 180°
 			else if (n > 0) {
-				// the upper bound is set by the inner radius
+				// the upper bound is set by the inner or central radius
 				double yCenter = -(R+r)/2*cos(PI*n);
-				double xMax = R*sin(PI*n);
-				double yMax = -r*cos(PI*n);
-				this.bounds = new BoundingBox(
-						-xMax, xMax,
-						min(-R, yCenter - xMax),
-						min(max(yMax, yCenter + xMax), 0));
+				double width = 2*R*sin(PI*n);
+				double yMin = min(-R, yCenter - width/2);
+				double yMax = min(max(-r*cos(PI*n), yCenter + width/2), 0);
+				this.shape = Shape.polygon(new double[][] {
+						{yMax*tan(PI*n), yMax},
+						{-width/2, -R*cos(PI*n)},
+						{-width/2, yMin},
+						{width/2, yMin},
+						{width/2, -R*cos(PI*n)},
+						{-yMax*tan(PI*n), yMax},
+				});
 			}
 			// if the angle is 0°
 			else {
 				// this changes to a Mercator projection
 				double width = 2*PI;
 				double height = max(6*log(tan(PI/4+abs(lat1)/2)), width);
-				this.bounds = new BoundingBox(width, height);
+				this.shape = Shape.rectangle(width, height);
 			}
 
-			// reverse the bounds if this is inverted
+			// reverse the shape if this is inverted
 			if (reversed)
-				this.bounds = new BoundingBox(
-						-bounds.xMax, -bounds.xMin,
-						-bounds.yMax, -bounds.yMin);
+				this.shape = Shape.scaled(shape, 1, -1);
 		}
 		
 		public double[] project(double lat, double lon) {
@@ -144,30 +155,15 @@ public class Conic {
 			
 			this.n = m*cos(lat1)/((-lat1/PI-.5)*m+1)/PI;
 
-			// if the angle is greater than 180°
-			if (n > 0.5) {
-				// the upper bound is set by the outer radius
-				this.bounds = new BoundingBox(-1, 1, -1, -cos(PI*n));
+			// if this is well-formed, use the annular sector shape
+			if (n > 0) {
+				this.shape = Shape.annularSector(1 - m, 1, 2*PI*n, reversed);
 			}
-			// if the angle is less than 180°
-			else if (n > 0) {
-				// the upper bound is set by the inner radius
-				this.bounds = new BoundingBox(
-						-sin(PI*n), sin(PI*n),
-						-1, -(1-m)*cos(PI*n));
-			}
-			// if the angle is 0°
+			// if the angle is 0°, this changes to an equirectangular projection
 			else {
-				// this changes to an equirectangular projection
 				Cylindrical.EQUIRECTANGULAR.initialize(toDegrees(lat1));
-				this.bounds = Cylindrical.EQUIRECTANGULAR.bounds;
+				this.shape = Cylindrical.EQUIRECTANGULAR.shape;
 			}
-
-			// reverse the bounds if this is inverted
-			if (reversed)
-				this.bounds = new BoundingBox(
-						-bounds.xMax, -bounds.xMin,
-						-bounds.yMax, -bounds.yMin);
 		}
 		
 		public double[] project(double lat, double lon) {
@@ -211,35 +207,17 @@ public class Conic {
 				this.n = (sin(lat1) + sin(lat2))/2;
 			
 			this.C = pow(cos(lat1), 2) + 2*n*sin(lat1);
-			
-			final double r = sqrt(C - 2*n);
-			final double R = sqrt(C + 2*n);
-			// if the angle is greater than 180°
-			if (n > 0.5) {
-				// the upper bound is set by the outer radius
-				this.bounds = new BoundingBox(
-						-R, R,
-						-R, -R*cos(PI*n));
-			}
-			// if the angle is less than 180°
-			else if (n > 0) {
-				// the upper bound is set by the inner radius
-				this.bounds = new BoundingBox(
-						-R*sin(PI*n), R*sin(PI*n),
-						-R, -r*cos(PI*n));
-			}
-			// if the angle is zero
-			else {
-				// this becomes a cylindrical equal area projection
-				Cylindrical.EQUAL_AREA.initialize(toDegrees(lat1));
-				this.bounds = Cylindrical.EQUAL_AREA.bounds;
-			}
 
-			// reverse the bounds if this is inverted
-			if (reversed)
-				this.bounds = new BoundingBox(
-						-bounds.xMax, -bounds.xMin,
-						-bounds.yMax, -bounds.yMin);
+			// if this is well-formed, use the annular sector shape
+			if (n > 0) {
+				this.shape = Shape.annularSector(
+						sqrt(C - 2*n), sqrt(C + 2*n), 2*PI*n, reversed);
+			}
+			// if the angle is zero, this becomes a cylindrical equal area projection
+			else {
+				Cylindrical.EQUAL_AREA.initialize(toDegrees(lat1));
+				this.shape = Cylindrical.EQUAL_AREA.shape;
+			}
 		}
 		
 		public double[] project(double lat, double lon) {

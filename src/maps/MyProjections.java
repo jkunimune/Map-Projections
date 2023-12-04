@@ -25,7 +25,7 @@ package maps;
 
 import maps.Projection.Property;
 import maps.Projection.Type;
-import utils.BoundingBox;
+import utils.Shape;
 
 import static java.lang.Math.PI;
 import static java.lang.Math.acos;
@@ -57,13 +57,13 @@ public class MyProjections {
 		public void initialize(double... params) {
 			theta = toRadians(params[0])/2;
 			if (theta != 0)
-				this.bounds = new BoundingBox(
-						2*PI - 2*theta, //major axis
-				        2*sqrt(pow(PI-theta, 2) - pow(theta, 2)) *
-				        sqrt(tan(theta)/theta) //minor axis
+				this.shape = Shape.ellipse(
+						sqrt(pow(PI - theta, 2) - pow(theta, 2))*
+						sqrt(tan(theta)/theta), //minor axis
+						PI - theta //major axis
 				);
 			else
-				this.bounds = new BoundingBox(2*PI, 2*PI);
+				this.shape = Shape.circle(PI);
 		}
 		
 		public double[] project(double lat, double lon) {
@@ -82,7 +82,7 @@ public class MyProjections {
 			if (theta == 0) 	return Azimuthal.POLAR.inverse(x, y);
 			final double d1 = hypot(x/sqrt(tan(theta)/theta), y - theta);
 			final double d2 = hypot(x/sqrt(tan(theta)/theta), y + theta);
-			if (d1 + d2 > 2*bounds.yMax) 	return null;
+			if (d1 + d2 > 2*shape.yMax) 	return null;
 			final double phi = asin((cos(d1)+cos(d2))/(2*cos(theta)));
 			final double lam = signum(x)*acos(
 					(sin(phi)*cos(theta) - cos(d1))/(cos(phi)*sin(theta)));

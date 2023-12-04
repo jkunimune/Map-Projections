@@ -47,8 +47,8 @@ import static utils.Math2.tand;
  */
 public class CahillKeyes {
 	
-	public static final double lMA = 940; //the distance from triangle vertex M to octant vertex A (the red length)
-	public static final double lMG = 10000; //the altitude of the triangle
+	private static final double lMA = 940; //the distance from triangle vertex M to octant vertex A (the red length)
+	private static final double lMG = 10000; //the altitude of the triangle
 	private static final double lNG = lMG/sqrt(3); //the height of the triangle
 	private static final double lENy = lMA*sqrt(3)/2; //the height difference between the triangle and the octant
 	private static final double lMB = lMA*2/(sqrt(3)-1); //the distance from triangle vertex M to octant vertex B (the blue length)
@@ -66,8 +66,11 @@ public class CahillKeyes {
 	private static final double xC = 2786.8887; //the x coordinate of the centre of arc CDV
 	private static final double yU = rE/2;
 	private static final double yC = 1609.0110; //the y coordinate of the centre of arc CDV
-	
+	private static final double SCALE_FACTOR = sqrt(3)/2/lMG;
+
 	private static final double TOLERANCE = 5; //this is a reasonable tolerance when you recall that we're operating on the order of 10,000 units
+
+	public static final double POLE_OFFSET = lMA*SCALE_FACTOR; //lMA expressed in output coordinates
 
 
 	/**
@@ -75,34 +78,47 @@ public class CahillKeyes {
 	 */
 	public static double[] faceProjectD(double latD, double lonD) {
 		final double[][] mer = meridian(lonD);
+		final double[] output;
 		if (latD >= 75) { //zone c (frigid zone)
-			return new double[] { lMA + 104*(90-latD)*cosd(lonD),
+			output = new double[] {
+					lMA + 104*(90-latD)*cosd(lonD),
 					104*(90-latD)*sind(lonD) };
 		}
 		else if (latD >= 73 && lonD <= 30) { //zone e ()
-			return new double[] { lMA + (rC+100*(75-latD))*cosd(lonD),
+			output = new double[] {
+					lMA + (rC+100*(75-latD))*cosd(lonD),
 					(rC+100*(75-latD))*sind(lonD) };
 		}
 		else if (lonD <= 29) { //zone i (central zone)
-			return meridianPoint(mer, linInterp(latD, 73, 0, rE, meridianLength(mer)));
+			output = meridianPoint(mer, linInterp(latD, 73, 0, rE, meridianLength(mer)));
 		}
 		else if (latD >= 73) { //zone j (frigid supple zone)
 			final double distTU = meridianTUIntersect(lonD, mer);
-			return meridianPoint(mer, linInterp(latD, 75, 73, rC, distTU));
+			output = meridianPoint(mer, linInterp(latD, 75, 73, rC, distTU));
 		}
 		else if (latD <= 15) { //zone k (torrid supple zone)
 			final double distCDV = meridianCDVIntersect(mer);
-			return meridianPoint(mer, linInterp(latD, 15, 0, distCDV, meridianLength(mer)));
+			output = meridianPoint(mer, linInterp(latD, 15, 0, distCDV, meridianLength(mer)));
 		}
 		else { //zone l (middle supple zone)
 			final double distTU = meridianTUIntersect(lonD, mer);
 			final double distCDV = meridianCDVIntersect(mer);
-			return meridianPoint(mer, linInterp(latD, 73, 15, distTU, distCDV));
+			output = meridianPoint(mer, linInterp(latD, 73, 15, distTU, distCDV));
 		}
+
+		// scale whatever result you get so the major triangle side length as 1
+		if (output == null)
+			return null;
+		else
+			return new double[] {output[0]*SCALE_FACTOR, output[1]*SCALE_FACTOR};
 	}
 	
 	
 	public static double[] faceInverseD(double x, double y) { //convert Mary Jo's coordinates to relative lat and lon in degrees
+		// start by scaling it so a side length of 1 reads as the correct length
+		y /= SCALE_FACTOR;
+		x /= SCALE_FACTOR;
+
 		if (y > x-lMA || y > x/sqrt(3) || y > x*(2-sqrt(3))+bDE ||
 				y > (lMG-x)*(2+sqrt(3))+lGF || x > lMG) //this describes the footprint of the octant
 			return null;

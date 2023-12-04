@@ -25,8 +25,8 @@ package maps;
 
 import maps.Projection.Property;
 import maps.Projection.Type;
-import utils.BoundingBox;
 import utils.NumericalAnalysis;
+import utils.Shape;
 
 import static java.lang.Math.PI;
 import static java.lang.Math.asin;
@@ -49,9 +49,7 @@ public class EqualEarth {
 	
 	
 	public static final Projection EQUAL_EARTH = new Projection(
-			"Equal Earth",
-			new BoundingBox(2/B/poly8(0)*PI, 2*poly9(PI/3)),
-			0b1111, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3, null,
+			"Equal Earth", null, 0b1111, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3, null,
 			"specifically designed to woo Gall-Peters supporters away from that horrid projection") {
 		
 		public double[] project(double lat, double lon) {
@@ -63,6 +61,10 @@ public class EqualEarth {
 			double th = NumericalAnalysis.newtonRaphsonApproximation(
 					y, y/Y_SCALE, EqualEarth::poly9, EqualEarth::poly8, 1e-6);
 			return new double[] { asin(sin(th)/B), x*B/cos(th)*poly8(th) };
+		}
+
+		public void initialize(double... params) throws IllegalArgumentException {
+			this.shape = Shape.meridianEnvelope(this);
 		}
 	};
 	

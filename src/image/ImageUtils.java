@@ -30,9 +30,6 @@ import java.awt.RenderingHints;
 import java.awt.geom.Path2D;
 import java.util.List;
 
-import image.SVGMap.Command;
-import image.SVGMap.Path;
-
 import static java.lang.Math.pow;
 
 /**
@@ -68,17 +65,17 @@ public class ImageUtils {
 	}
 	
 	
-	public static void drawSVGPath(List<Command> path, Color stroke, float strokeWidth, boolean antialias, Graphics2D g) {
+	public static void drawSVGPath(List<Path.Command> path, Color stroke, float strokeWidth, boolean antialias, Graphics2D g) {
 		g.setStroke(new BasicStroke(strokeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
 		g.setColor(stroke);
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 				antialias ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
 		drawSVGPath(path, g);
 	}
-	
-	public static void drawSVGPath(List<Command> path, Graphics2D g) {
+
+	public static void drawSVGPath(List<Path.Command> path, Graphics2D g) {
 		Path2D awtPath = new Path2D.Double(Path2D.WIND_NON_ZERO, path.size());
-		for (Command svgCmd: path) {
+		for (Path.Command svgCmd: path) {
 			switch (svgCmd.type) {
 			case 'M':
 				awtPath.moveTo(svgCmd.args[0], svgCmd.args[1]);

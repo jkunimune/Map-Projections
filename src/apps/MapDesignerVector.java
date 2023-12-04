@@ -23,12 +23,11 @@
  */
 package apps;
 
+import image.Path;
 import image.SVGMap;
 import image.SVGMap.Background;
-import image.SVGMap.Command;
 import image.SVGMap.Content;
-import image.SVGMap.Path;
-import image.SVGMap.Point;
+import image.SVGMap.GeographicPath;
 import image.SVGMap.SVGElement;
 import image.SVGMap.SVGHeader;
 import image.SavableImage;
@@ -46,7 +45,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import maps.Projection;
 import org.xml.sax.SAXException;
-import utils.BoundingBox;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
@@ -58,7 +56,6 @@ import java.util.function.Consumer;
 
 import static java.lang.Double.isNaN;
 import static java.lang.Math.hypot;
-import static utils.Math2.linInterp;
 import static utils.Math2.max;
 import static utils.Math2.min;
 
@@ -215,12 +212,12 @@ public class MapDesignerVector extends MapApplication {
 					updateMessage("Rendering map\u2026"); //then render
 
 					int width, height;
-					if (proj.getAspectRatio() >= 1) { //fit it to an IMG_SIZE x IMG_SIZE box
+					if (proj.getShape().aspectRatio >= 1) { //fit it to an IMG_SIZE x IMG_SIZE box
 						width = IMG_SIZE;
-						height = (int)max(IMG_SIZE/proj.getAspectRatio(), 1);
+						height = (int)max(IMG_SIZE/proj.getShape().aspectRatio, 1);
 					}
 					else {
-						width = (int)max(IMG_SIZE/proj.getAspectRatio(), 1);
+						width = (int)max(IMG_SIZE/proj.getShape().aspectRatio, 1);
 						height = IMG_SIZE;
 					}
 					rendered = drawImage(output, width, height);
@@ -267,25 +264,25 @@ public class MapDesignerVector extends MapApplication {
 		// set the scale so that the viewBox is approximately the same size as it was before projection
 		double outDisplayWidth, outDisplayHeight;
 		double originalViewBoxSize = max(input.getVbWidth(), input.getVbHeight());
-		double projectionSize = max(proj.getBounds().width, proj.getBounds().height);
+		double projectionSize = max(proj.getShape().width, proj.getShape().height);
 		double scale = originalViewBoxSize/projectionSize;
 		double originalDisplaySize = max(input.getDisplayWidth(), input.getDisplayHeight());
-		if (proj.getAspectRatio() > 1) {
+		if (proj.getShape().aspectRatio > 1) {
 			outDisplayWidth = originalDisplaySize;
-			outDisplayHeight = outDisplayWidth/proj.getAspectRatio();
+			outDisplayHeight = outDisplayWidth/proj.getShape().aspectRatio;
 		}
 		else {
 			outDisplayHeight = originalDisplaySize;
-			outDisplayWidth = originalDisplaySize*proj.getAspectRatio();
+			outDisplayWidth = originalDisplaySize*proj.getShape().aspectRatio;
 		}
 
 		// set some bounds that are bigger than the map area but finite, so that we don't end up with absurdly SVG coordinates
-		double absoluteMinX = proj.getBounds().xMin - proj.getBounds().width;
-		double absoluteMaxX = proj.getBounds().xMax + proj.getBounds().width;
-		double absoluteMinY = proj.getBounds().yMin - proj.getBounds().height;
-		double absoluteMaxY = proj.getBounds().yMax + proj.getBounds().height;
+		double absoluteMinX = proj.getShape().xMin - proj.getShape().width;
+		double absoluteMaxX = proj.getShape().xMax + proj.getShape().width;
+		double absoluteMinY = proj.getShape().yMin - proj.getShape().height;
+		double absoluteMaxY = proj.getShape().yMax + proj.getShape().height;
 
-		double mapSize = scale*max(proj.getBounds().width, proj.getBounds().height);
+		double mapSize = scale*max(proj.getShape().width, proj.getShape().height);
 
 		List<SVGElement> output = new LinkedList<>();
 		int i = 0;
@@ -296,56 +293,55 @@ public class MapDesignerVector extends MapApplication {
 			if (elementS instanceof SVGHeader) {
 				SVGHeader headerS = (SVGHeader) elementS;
 				elementP = new SVGHeader(headerS.formatSpecifier, outDisplayWidth, outDisplayHeight,
-				                         scale*proj.getBounds().xMin,
-				                         -scale*(proj.getBounds().yMin + proj.getBounds().height),
-				                         scale*proj.getBounds().width,
-				                         scale*proj.getBounds().height);
+				                         scale*proj.getShape().xMin,
+				                         -scale*(proj.getShape().yMin + proj.getShape().height),
+				                         scale*proj.getShape().width,
+				                         scale*proj.getShape().height);
 			}
 			// for a background, set it to the outline of the projection
 			else if (elementS instanceof Background) {
 				Background backgroundS = (Background) elementS;
 				elementP = new Background(
-						backgroundS.attributes,
-						new BoundingBox(
-								scale*proj.getBounds().xMin, scale*proj.getBounds().xMax,
-								-scale*proj.getBounds().yMax, -scale*proj.getBounds().xMin));
+						backgroundS.attributes, Path.scaled(scale, -scale, proj.getShape().path));
 			}
 			// for a point, just project its one pair of coordinates
-			else if (elementS instanceof Point) {
-				Point pointS = (Point) elementS;
+			else if (elementS instanceof SVGMap.GeographicPoint) {
+				SVGMap.GeographicPoint pointS = (SVGMap.GeographicPoint) elementS;
 				double[] newCoords = proj.project(pointS.y, pointS.x);
 				newCoords[0] = scale*max(min(newCoords[0], absoluteMaxX), absoluteMinX);
 				newCoords[1] = -scale*max(min(newCoords[1], absoluteMaxY), absoluteMinY);
-				elementP = new Point(pointS.formatSpecifier, newCoords[0], newCoords[1]);
+				elementP = new SVGMap.GeographicPoint(pointS.formatSpecifier, newCoords[0], newCoords[1]);
 			}
 			// for paths, project a bunch of the vertices
-			else if (elementS instanceof Path) {
-				Path pathS = (Path) elementS;
-				List<Command> commandsS = ((Path)elementS).commands;
-				List<Command> commandsP = new LinkedList<>();
-				int j = 0;
-				while (j < commandsS.size()) {
-					Command cmdS = commandsS.get(j);
-					Command cmdP = new Command(cmdS.type, new double[cmdS.args.length]);
-					for (int k = 0; k < cmdS.args.length; k += 2) {
-						double[] coords = proj.project(cmdS.args[k + 1], cmdS.args[k], aspect);
-						if (isNaN(coords[k]) || isNaN(coords[k + 1]))
-							System.err.println(proj + " returns " + coords[0] + "," + coords[1] + " at " + cmdS.args[k + 1] + "," + cmdS.args[k] + "!");
-						cmdP.args[k]     = scale*max(min(coords[0], absoluteMaxX), absoluteMinX);
-						cmdP.args[k + 1] = -scale*max(min(coords[1], absoluteMaxY), absoluteMinY);
-					}
-					commandsP.add(cmdP); //TODO: if I was smart, I would divide landmasses that hit an interruption so that I didn't get those annoying lines that cross the map, and then run adaptive resampling to make sure the cuts look clean and not polygonal (e.g. so Antarctica extends all the way to the bottom), but that sounds really hard.
+			else if (elementS instanceof GeographicPath) {
+				GeographicPath pathS = (GeographicPath) elementS;
+				List<Path.Command> commandsS = pathS.commands;
+				List<Path.Command> commandsP = new LinkedList<>();
+				if (commandsS.size() > 2*max(1, step)) {
+					int j = 0;
+					while (j < commandsS.size()) {
+						Path.Command cmdS = commandsS.get(j);
+						Path.Command cmdP = new Path.Command(cmdS.type, new double[cmdS.args.length]);
+						for (int k = 0; k < cmdS.args.length; k += 2) {
+							double[] coords = proj.project(cmdS.args[k + 1], cmdS.args[k], aspect); // TODO: use Projection.drawLoxodrome for this; it would be so much better.
+							if (isNaN(coords[k]) || isNaN(coords[k + 1]))
+								System.err.println(proj + " returns " + coords[0] + "," + coords[1] + " at " + cmdS.args[k + 1] + "," + cmdS.args[k] + "!");
+							cmdP.args[k] = scale*max(min(coords[0], absoluteMaxX), absoluteMinX);
+							cmdP.args[k + 1] = -scale*max(min(coords[1], absoluteMaxY), absoluteMinY);
+						}
+						commandsP.add(cmdP); //TODO: if I was smart, I would divide landmasses that hit an interruption so that I didn't get those annoying lines that cross the map, and then run adaptive resampling to make sure the cuts look clean and not polygonal (e.g. so Antarctica extends all the way to the bottom), but that sounds really hard.
 
-					for (int k = 0; k < max(1, step); k ++) { //increment j by at least 1 and at most step
-						if (k != 0 && (j >= commandsS.size() - 1 || commandsS.get(j).type == 'M'
-						               || commandsS.get(j).type == 'Z'))
-							break; //but pause for every moveto and closepath, and for the last command in the path
-						else
-							j ++;
+						for (int k = 0; k < max(1, step); k++) { //increment j by at least 1 and at most step
+							if (k != 0 && (j >= commandsS.size() - 1 || commandsS.get(j).type == 'M'
+							               || commandsS.get(j).type == 'Z'))
+								break; //but pause for every moveto and closepath, and for the last command in the path
+							else
+								j++;
+						}
 					}
 				}
-				Path pathP = new Path(pathS.formatSpecifier, commandsP);
-				elementP = SVGMap.closePaths(SVGMap.breakWraps(pathP, mapSize));
+				GeographicPath pathP = new GeographicPath(pathS.formatSpecifier, commandsP);
+				elementP = SVGMap.closePaths(SVGMap.breakWraps(pathP, mapSize, step == 0)); //TODO: I really need to actually look for interruptions or something
 			}
 			// for non-data Strings, replace "Equirectangular" with the name of the projection
 			else if (elementS instanceof Content) {
@@ -375,54 +371,51 @@ public class MapDesignerVector extends MapApplication {
 		g.clearRect(0, 0, c.getWidth(), c.getHeight());
 		g.beginPath();
 		for (SVGElement element: image) {
-			// only draw Paths (don't worry about Points)
-			if (element instanceof Path) {
-				double startX = 0, startY = 0, lastX = 0, lastY = 0;
-				for (Command cmd: ((Path) element).commands) {
-					final double[] args = new double[cmd.args.length];
+			// only draw GeographicPaths (don't worry about GeographicPoints)
+			if (element instanceof GeographicPath) {
+				List<Path.Command> path = ((GeographicPath) element).commands;
+				if (path.size() >= 3) {  // and only Paths with multiple vertices
 					// first change from the SVG's viewBox coordinates to the Canvas coordinates
-					for (int i = 0; i < args.length; i ++)
-						if (i%2 == 0)
-							args[i] = linInterp(cmd.args[i], image.getVbMinX(), image.getVbMaxX(), 0, c.getWidth());
-						else
-							args[i] = linInterp(cmd.args[i], image.getVbMinY(), image.getVbMaxY(), 0, c.getHeight());
+					path = Path.translated(-image.getVbMinX(), -image.getVbMinY(), path);
+					path = Path.scaled(c.getWidth()/image.getVbWidth(), c.getHeight()/image.getVbHeight(), path);
+					double startX = 0, startY = 0, lastX = 0, lastY = 0;
+					for (Path.Command cmd : path) {
+						// then do something according to the type of command
+						switch (cmd.type) { // TODO: move this code to and call ImageUtils.drawSVGPath
+							case 'M':
+								startX = cmd.args[0];
+								startY = cmd.args[1];
+								g.moveTo(cmd.args[0], cmd.args[1]);
+								break;
+							case 'L':
+							case 'T':
+								for (int i = 0; i < cmd.args.length; i += 2)
+									g.lineTo(cmd.args[i + 0], cmd.args[i + 1]);
+								break;
+							case 'Q':
+							case 'S':
+								for (int i = 0; i < cmd.args.length; i += 4)
+									g.quadraticCurveTo(cmd.args[i + 0], cmd.args[i + 1],
+									                   cmd.args[i + 2], cmd.args[i + 3]);
+								break;
+							case 'C':
+								for (int i = 0; i < cmd.args.length; i += 6)
+									g.bezierCurveTo(
+											cmd.args[i + 0], cmd.args[i + 1], cmd.args[i + 2],
+											cmd.args[i + 3], cmd.args[i + 4], cmd.args[i + 5]);
+								break;
+							case 'Z':
+								if (hypot(startX - lastX, startY - lastY) < outWidth/4.)
+									g.lineTo(startX, startY);
+								break;
+							default:
+								System.err.println("Unsupported movement type: " + cmd.type); //I don't do arcs; they just don't work well with projection
+						}
 
-					// then do something according
-					switch (cmd.type) {
-						case 'M':
-							startX = args[0];
-							startY = args[1];
-							g.moveTo(args[0], args[1]);
-							break;
-						case 'L':
-						case 'T':
-							for (int i = 0; i < args.length; i += 2)
-								if (hypot(args[i+0] - lastX, args[i+1] - lastY) < outWidth/4.) // break lines that are too long
-									g.lineTo(args[i+0], args[i+1]); //TODO: I really need to actually look for interruptions or something
-								else
-									g.moveTo(args[i+0], args[i+1]);
-							break;
-						case 'Q':
-						case 'S':
-							for (int i = 0; i < args.length; i += 4)
-								g.quadraticCurveTo(args[i+0], args[i+1], args[i+2], args[i+3]);
-							break;
-						case 'C':
-							for (int i = 0; i < args.length; i += 6)
-								g.bezierCurveTo(
-										args[i+0], args[i+1], args[i+2], args[i+3], args[i+4], args[i+5]);
-							break;
-						case 'Z':
-							if (hypot(startX - lastX, startY - lastY) < outWidth/4.)
-								g.lineTo(startX, startY);
-							break;
-						default:
-							System.err.println("Unsupported movement type: " + cmd.type); //I don't do arcs; they just don't work well with projection
-					}
-
-					if (args.length > 0) {
-						lastX = args[0];
-						lastY = args[1];
+						if (cmd.args.length > 0) {
+							lastX = cmd.args[0];
+							lastY = cmd.args[1];
+						}
 					}
 				}
 			}

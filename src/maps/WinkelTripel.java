@@ -25,8 +25,8 @@ package maps;
 
 import maps.Projection.Property;
 import maps.Projection.Type;
-import utils.BoundingBox;
 import utils.NumericalAnalysis;
+import utils.Shape;
 
 import static java.lang.Math.PI;
 import static java.lang.Math.acos;
@@ -64,7 +64,7 @@ public final class WinkelTripel {
 		
 		public void initialize(double... params) {
 			this.stdParallel = toRadians(params[0]);
-			this.bounds = new BoundingBox(2*PI*(1 + cos(stdParallel)), 2*PI);
+			this.shape = Shape.meridianEnvelope(WINKEL_TRIPEL);
 		}
 		
 		public double[] project(double lat, double lon) {

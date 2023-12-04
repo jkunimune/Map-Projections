@@ -25,7 +25,7 @@ package maps;
 
 import maps.Projection.Property;
 import maps.Projection.Type;
-import utils.BoundingBox;
+import utils.Shape;
 
 import static java.lang.Double.isInfinite;
 import static java.lang.Math.PI;
@@ -45,7 +45,7 @@ import static java.lang.Math.toRadians;
 public class Azimuthal {
 	
 	public static final Projection STEREOGRAPHIC = new Projection(
-			"Stereographic", new BoundingBox(4, 4), 0b0111, Type.AZIMUTHAL, Property.CONFORMAL, 2,
+			"Stereographic", Shape.rectangle(4, 4), 0b0111, Type.AZIMUTHAL, Property.CONFORMAL, 2,
 			"mathematically important") {
 		
 		public double[] project(double lat, double lon) {
@@ -61,7 +61,7 @@ public class Azimuthal {
 	
 	
 	public static final Projection POLAR = new Projection(
-			"Azimuthal Equidistant", new BoundingBox(2*PI, 2*PI), 0b1111, Type.AZIMUTHAL,
+			"Azimuthal Equidistant", Shape.circle(PI), 0b1111, Type.AZIMUTHAL,
 			Property.EQUIDISTANT, 2) {
 		
 		public double[] project(double lat, double lon) {
@@ -80,8 +80,8 @@ public class Azimuthal {
 	
 	
 	public static final Projection EQUAL_AREA = new Projection(
-			"Azimuthal Equal-Area", new BoundingBox(2, 2), 0b1111, Type.AZIMUTHAL, Property.EQUAL_AREA, 1) {
-		
+			"Azimuthal Equal-Area", Shape.circle(1), 0b1111, Type.AZIMUTHAL, Property.EQUAL_AREA, 1) {
+
 		public double[] project(double lat, double lon) {
 			final double r = cos((PI/2+lat)/2);
 			return new double[] {r*sin(lon), -r*cos(lon)};
@@ -99,8 +99,8 @@ public class Azimuthal {
 	
 	public static final Projection GNOMONIC = new Projection(
 			"Gnomonic", "A projection that draws all great circles as straight lines.",
-			new BoundingBox(4, 4), 0b0111, Type.AZIMUTHAL, Property.GNOMONIC, 2) {
-		
+			Shape.rectangle(4, 4), 0b0111, Type.AZIMUTHAL, Property.GNOMONIC, 2) {
+
 		public double[] project(double lat, double lon) {
 			if (lat < 0.2) 	lat = 0.2;
 			final double r = tan(PI/2 - lat);
@@ -115,8 +115,8 @@ public class Azimuthal {
 	
 	public static final Projection ORTHOGRAPHIC = new Projection(
 			"Orthographic", "A projection that mimics the Earth viewed from a great distance.",
-			new BoundingBox(2, 2), 0b0111, Type.AZIMUTHAL, Property.PERSPECTIVE, 3) {
-		
+			Shape.circle(1), 0b0111, Type.AZIMUTHAL, Property.PERSPECTIVE, 3) {
+
 		public double[] project(double lat, double lon) {
 			if (lat < 0)	lat = 0;
 			return new double[] { cos(lat)*sin(lon), -cos(lat)*cos(lon) };
@@ -141,8 +141,7 @@ public class Azimuthal {
 		
 		public void initialize(double... params) {
 			this.d = 1/(1 - 2*params[0]/100);
-			double radius = (Double.isFinite(d)) ? 1/sqrt(d*d-1) : ORTHOGRAPHIC.bounds.xMax;
-			this.bounds = new BoundingBox(-radius, radius, -radius, radius);
+			this.shape = Shape.circle((Double.isFinite(d)) ? 1/Math.sqrt(d*d - 1) : 1);
 		}
 		
 		public double[] project(double lat, double lon) {
@@ -153,13 +152,13 @@ public class Azimuthal {
 		}
 		
 		public double[] inverse(double x, double y) {
-			if (isInfinite(d)) 	return ORTHOGRAPHIC.inverse(x, y);
-			final double h = hypot(x, y);
-			if (h > bounds.xMax) 	return null;
-			final double theta = atan(h);
-			final double phi = acos(d*sin(theta)) + theta;
-			if (phi < PI/2)
-				return new double[] { phi, atan2(x, -y) };
+			if (Double.isInfinite(d)) 	return ORTHOGRAPHIC.inverse(x, y);
+			final double h = Math.hypot(x, y);
+			if (h > this.shape.xMax) 	return null;
+			final double theta = Math.atan(h);
+			final double phi = Math.acos(d*Math.sin(theta)) + theta;
+			if (phi < Math.PI/2)
+				return new double[] { phi, Math.atan2(x, -y) };
 			else
 				return new double[] { PI - phi, atan2(x, -y) };
 		}
@@ -168,7 +167,7 @@ public class Azimuthal {
 	
 	public static final Projection MAGNIFIER = new Projection(
 			"Magnifying glass", "A projection that dilates its center to great scales.",
-			new BoundingBox(2, 2), 0b1111, Type.AZIMUTHAL, Property.POINTLESS, 2,
+			Shape.circle(1), 0b1111, Type.AZIMUTHAL, Property.POINTLESS, 2,
 			new String[] {"Actual size", "Apparent size"},
 			new double[][] {{1, 60, 20}, {0.5, 1.0, 0.5}}) {
 		
