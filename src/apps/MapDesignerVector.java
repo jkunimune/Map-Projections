@@ -217,7 +217,7 @@ public class MapDesignerVector extends MapApplication {
 						height = (int)max(IMG_SIZE/proj.getShape().aspectRatio, 1);
 					}
 					else {
-						width = (int)max(IMG_SIZE/proj.getShape().aspectRatio, 1);
+						width = (int)max(IMG_SIZE*proj.getShape().aspectRatio, 1);
 						height = IMG_SIZE;
 					}
 					rendered = drawImage(output, width, height);
