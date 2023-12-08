@@ -82,11 +82,13 @@ public class MapDesignerVector extends MapApplication {
 	private double[] aspect;
 	private SVGMap input;
 	private StackPane viewer;
+	private boolean currentlyCalculating;
 	
 	
 	
 	public MapDesignerVector() {
 		super("Map Designer");
+		this.currentlyCalculating = false;
 	}
 	
 	
@@ -167,7 +169,8 @@ public class MapDesignerVector extends MapApplication {
 	
 	
 	private void updateMap() { //execute a new calculation Task immediately
-		new Thread(calculateTaskForUpdate()).start();
+		if (!(currentlyCalculating && this.getParamsChanging())) // unless one is already executing
+			new Thread(calculateTaskForUpdate()).start();
 	}
 	
 	
@@ -180,10 +183,25 @@ public class MapDesignerVector extends MapApplication {
 	private Task<SavableImage> calculateTaskForSaving() {
 		return calculateTask(0, false);
 	}
-	
+
+	/**
+	 * Prepare a task based on the current GUI state that will take an input map, project it with the
+	 * given projection, and return it as a savable image, and perhaps render it to a StackPane.
+	 * the input, aspect, and projection will be read from the user's current selections, and the
+	 * currentlyCalculating attribute will be set to true as long as the calculation is ongoing.
+	 * @param step - The number of points to skip on the given input, if you're in a rush.
+	 * @param render - Whether to render the picture and put it in the viewer pane.
+	 * @return A Task upon which will produce and return the SavableImage when called.
+	 */
 	private Task<SavableImage> calculateTask(int step, boolean render) {
 		loadParameters();
-		return calculateTask(step, input, getProjection(), aspect.clone(), render ? viewer : null);
+		this.currentlyCalculating = true;
+		Task<SavableImage> task = calculateTask(
+				step, input, getProjection(), aspect.clone(), render ? viewer : null);
+		task.setOnSucceeded((event) -> this.currentlyCalculating = false);
+		task.setOnFailed((event) -> this.currentlyCalculating = false);
+		task.setOnCancelled((event) -> this.currentlyCalculating = false);
+		return task;
 	}
 
 	/**
