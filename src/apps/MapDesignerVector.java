@@ -307,7 +307,7 @@ public class MapDesignerVector extends MapApplication {
 			// for a point, just project its one pair of coordinates
 			else if (elementS instanceof SVGMap.GeographicPoint) {
 				SVGMap.GeographicPoint pointS = (SVGMap.GeographicPoint) elementS;
-				double[] newCoords = proj.project(pointS.y, pointS.x);
+				double[] newCoords = proj.project(pointS.y, pointS.x, aspect);
 				newCoords[0] = scale*max(min(newCoords[0], absoluteMaxX), absoluteMinX);
 				newCoords[1] = -scale*max(min(newCoords[1], absoluteMaxY), absoluteMinY);
 				elementP = new SVGMap.GeographicPoint(pointS.formatSpecifier, newCoords[0], newCoords[1]);
