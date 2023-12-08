@@ -3,7 +3,6 @@ package image;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
 import static java.lang.Double.isFinite;
@@ -69,7 +68,7 @@ public class Path {
 	 * shift a path by some amount in some direction
 	 */
 	public static List<Command> translated(double xShift, double yShift, List<Command> path) {
-		List<Command> newPath = new LinkedList<>();
+		List<Command> newPath = new ArrayList<>();
 		for (Command old: path) {
 			double[] newArgs = Arrays.copyOf(old.args, old.args.length);
 			switch (old.type) {
@@ -109,7 +108,7 @@ public class Path {
 	 * either or both may be negative.
 	 */
 	public static List<Command> scaled(double xScale, double yScale, List<Command> path) {
-		List<Command> newPath = new LinkedList<>();
+		List<Command> newPath = new ArrayList<>();
 		for (Command old: path) {
 			double[] newArgs = Arrays.copyOf(old.args, old.args.length);
 			switch (old.type) {
@@ -154,7 +153,7 @@ public class Path {
 	 *                 positive is widdershins and negative is clockwise.
 	 */
 	public static List<Command> rotated(double rotation, List<Command> path) {
-		List<Command> newPath = new LinkedList<>();
+		List<Command> newPath = new ArrayList<>();
 		for (Command old: path) {
 			char newType = old.type;
 			double[] newArgs = Arrays.copyOf(old.args, old.args.length);

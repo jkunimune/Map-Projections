@@ -355,7 +355,7 @@ public abstract class Projection {
 	 */
 	public List<Path.Command> drawGraticule(double spacing, double precision, double outW, double outH,
 			double maxLat, double maxLon, double[] pole) {
-		List<Path.Command> output = new LinkedList<>();
+		List<Path.Command> output = new ArrayList<>();
 		
 		for (int y = 0; y < (int)(maxLat/spacing); y ++) {
 			output.addAll(drawLoxodrome( //northern parallel

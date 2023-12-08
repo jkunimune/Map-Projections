@@ -49,6 +49,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -334,7 +335,7 @@ public class MapDesignerVector extends MapApplication {
 			else if (elementS instanceof GeographicPath) {
 				GeographicPath pathS = (GeographicPath) elementS;
 				List<Path.Command> commandsS = pathS.commands;
-				List<Path.Command> commandsP = new LinkedList<>();
+				List<Path.Command> commandsP = new ArrayList<>();
 				if (commandsS.size() > 2*max(1, step)) {
 					int j = 0;
 					while (j < commandsS.size()) {

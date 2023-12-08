@@ -42,7 +42,6 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
 
@@ -50,7 +49,6 @@ import static java.lang.Double.NaN;
 import static java.lang.Double.parseDouble;
 import static java.lang.Math.PI;
 import static java.lang.Math.hypot;
-import static java.lang.Math.min;
 import static java.lang.String.format;
 import static utils.Math2.linInterp;
 import static utils.Math2.max;
@@ -78,7 +76,7 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 	 * @throws ParserConfigurationException if the SAXParser object can't be constructed for some reason
 	 */
 	public SVGMap(File file) throws IOException, SAXException, ParserConfigurationException {
-		elements = new LinkedList<>(); // the list elements
+		elements = new ArrayList<>(); // the list elements
 
 		final SAXParser parser = SAXParserFactory.newInstance().newSAXParser();
 		
@@ -467,7 +465,7 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 	 */
 	public static GeographicPath breakWraps(GeographicPath continuous, double inSize, boolean strict) { //break excessively long commands, as they are likely wrapping over a discontinuity
 		if (continuous.commands.size() <= 2) 	return continuous;
-		List<Path.Command> broken = new LinkedList<>();
+		List<Path.Command> broken = new ArrayList<>();
 		double[] lens = {0, 0, 0}; //the revolving array of command lengths
 		for (int i = 0; i < continuous.commands.size(); i ++) {
 			if (i < continuous.commands.size()-1 && continuous.commands.get(i+1).type != 'M')
@@ -502,7 +500,7 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 			if (cmd.type == 'M') { //separated by movetos
 				if (currentPart != null)
 					parts.add(currentPart);
-				currentPart = new LinkedList<Path.Command>();
+				currentPart = new ArrayList<Path.Command>();
 			}
 			else if (currentPart == null)
 				throw new RuntimeException(format(
@@ -511,7 +509,7 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 		}
 		parts.add(currentPart);
 		
-		List<Path.Command> closed = new LinkedList<Path.Command>();
+		List<Path.Command> closed = new ArrayList<Path.Command>();
 		for (int i = 0; i < parts.size(); i ++) { //now look through those parts
 			List<Path.Command> partI = parts.get(i);
 			if (partI.size() > 1
