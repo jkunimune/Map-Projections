@@ -412,20 +412,6 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 	}
 
 	/**
-	 * @return the right boundary of the viewBox
-	 */
-	public double getVbMaxX() {
-		return this.header.vbMinX + this.header.vbWidth;
-	}
-
-	/**
-	 * @return the lower boundary of the viewBox
-	 */
-	public double getVbMaxY() {
-		return this.header.vbMinY + this.header.vbHeight;
-	}
-
-	/**
 	 * @return the viewBox width
 	 */
 	public double getVbWidth() {
