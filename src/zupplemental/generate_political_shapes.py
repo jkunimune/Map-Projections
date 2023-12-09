@@ -68,32 +68,32 @@ def plot_political_shapes(filename, mode="normal",
 		regions = load_shapes_from_one_place_and_records_from_another(filename, include_circles_from)
 	# go thru the records and sort them into a dictionary by ISO 3166 codes
 	hierarchially_arranged_regions: dict[tuple[tuple[str, ...], str], ShapeRecord] = {}
-	for region in regions:
+	for shape, record in regions:
 		# if it Antarctica, trim it
 		if trim_antarctica:
-			if region.record["sov_a3"] == 'ATA':
-				region.shape.points = trim_edges(region.shape.points, region.shape.parts)
-		sovereign_code = region.record["sov_a3"]
+			if record["sov_a3"] == 'ATA':
+				shape.points = trim_edges(shape.points, shape.parts)
+		sovereign_code = record["sov_a3"]
 		if sovereign_code in SOVEREIGN_CODES:
 			sovereign_code = SOVEREIGN_CODES[sovereign_code]  # convert US1 to USA
-		if "iso_3166_2" in region.record:  # either key them by sovereign, admin0, admin1
+		if "iso_3166_2" in record:  # either key them by sovereign, admin0, admin1
 			sovereign_code = ISO_A3_TO_A2[sovereign_code]
-			province_code = region.record["iso_3166_2"]
+			province_code = record["iso_3166_2"]
 			if province_code.startswith("-99"):
 				province_code = "__" + province_code[3:]
 			if province_code.endswith("~"):
 				province_code = province_code[:-1]
 			country_code = province_code[:province_code.index("-")]
 			hierarchial_identifier = (sovereign_code, country_code, province_code)
-			unique_identifier = region.record["adm1_code"]
+			unique_identifier = record["adm1_code"]
 		else:  # or by sovereign, admin0
-			country_code = region.record["adm0_a3"]
+			country_code = record["adm0_a3"]
 			hierarchial_identifier = (sovereign_code, country_code)
 			unique_identifier = country_code
 		if hierarchial_identifier[0] == hierarchial_identifier[1]:  # remove duplicate layers
 			hierarchial_identifier = hierarchial_identifier[1:]
 		key = (hierarchial_identifier, unique_identifier)
-		hierarchially_arranged_regions[key] = region
+		hierarchially_arranged_regions[key] = (shape, record)
 
 	# next, go thru and plot the borders
 	current_state = []
@@ -102,31 +102,31 @@ def plot_political_shapes(filename, mode="normal",
 	# for each item
 	for key in sorted(hierarchially_arranged_regions.keys()):
 		hierarchy, identifier = key
-		region = hierarchially_arranged_regions[key]
+		shape, record = hierarchially_arranged_regions[key]
 
 		# decide whether it's "small"
 		is_small = True
-		for i in range(len(region.shape.parts)):
-			if i + 1 < len(region.shape.parts):
-				part = region.shape.points[region.shape.parts[i]:region.shape.parts[i + 1]]
+		for i in range(len(shape.parts)):
+			if i + 1 < len(shape.parts):
+				part = shape.points[shape.parts[i]:shape.parts[i + 1]]
 			else:
-				part = region.shape.points[region.shape.parts[i]:]
+				part = shape.points[shape.parts[i]:]
 			area = Polygon(part).area*cos(radians(part[0][1]))
 			if area > pi*CIRCLE_RADIUS**2:
 				is_small = False
 
 		# make some other decisions
-		has_geometry = region.shape.shapeType != shapefile.NULL
+		has_geometry = shape.shapeType != shapefile.NULL
 		is_sovereign = len(hierarchy) == 1  # this won't work for admin-1-states-provinces but that's fine
-		is_inhabited = (region.record.get("pop_est", inf) > 500 and  # Vatican is inhabited but US Minor Outlying I. are not
-		                region.record["type"] != "Lease" and  # don't circle Baykonur or Guantanamo
-		                "Base" not in region.record["admin"])  # don't circle military bases
-		if not is_sovereign and 'note_adm0' in region.record:
-			label = f"{region.record['name_long']} ({region.record['note_adm0']})"  # indicate dependencies' sovereigns in parentheses
-		elif "name_long" in region.record:
-			label = region.record["name_long"]
+		is_inhabited = (record.get("pop_est", inf) > 500 and  # Vatican is inhabited but US Minor Outlying I. are not
+		                record["type"] != "Lease" and  # don't circle Baykonur or Guantanamo
+		                "Base" not in record["admin"])  # don't circle military bases
+		if not is_sovereign and 'note_adm0' in record:
+			label = f"{record['name_long']} ({record['note_adm0']})"  # indicate dependencies' sovereigns in parentheses
+		elif "name_long" in record:
+			label = record["name_long"]
 		else:
-			label = region.record["name"]
+			label = record["name"]
 
 		# exit any <g>s we're no longer in
 		while current_state and (len(current_state) > len(hierarchy) or current_state[-1] != hierarchy[len(current_state) - 1]):
@@ -143,7 +143,7 @@ def plot_political_shapes(filename, mode="normal",
 		# the normal polygon
 		if mode == "normal":
 			if has_geometry:
-				result += plot(region.shape.points, midx=region.shape.parts, close=False,
+				result += plot(shape.points, midx=shape.parts, close=False,
 				               fourmat='xd', tabs=3 + len(current_state), ident=identifier)
 				any_content = True
 		# or the clipped and copied thick border
@@ -159,7 +159,7 @@ def plot_political_shapes(filename, mode="normal",
 		# or just a circle
 		elif mode == "circle":
 			if is_small and is_inhabited:
-				x_center, y_center = float(region.record["label_x"]), float(region.record["label_y"])
+				x_center, y_center = float(record["label_x"]), float(record["label_y"])
 				if is_sovereign:
 					radius = CIRCLE_RADIUS
 				else:
@@ -201,16 +201,16 @@ def complete_sovereign_code_if_necessary(sovereignty_code: str, regions: list[Sh
 	    1 is.
 	"""
 	sovereign_code = None
-	for region in regions:
-		if region.record["adm0_a3"][:2] == sovereignty_code[:2]:
+	for shape, record in regions:
+		if record["adm0_a3"][:2] == sovereignty_code[:2]:
 			if sovereign_code is not None:
 				if sovereignty_code == "KA1":
 					return "KAZ"
 				else:
 					raise ValueError(f"there are two possible sovereign codes for {sovereignty_code} and I "
-					                 f"don't know which to use: {sovereign_code} and {region.record['adm0_a3']}")
+					                 f"don't know which to use: {sovereign_code} and {record['adm0_a3']}")
 			else:
-				sovereign_code = region.record['adm0_a3']
+				sovereign_code = record['adm0_a3']
 	if sovereign_code is None:
 		raise ValueError(f"there are no possible sovereign codes for {sovereignty_code}")
 	return sovereign_code

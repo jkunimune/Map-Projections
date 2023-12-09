@@ -7,40 +7,40 @@ def plot_texts(
 		filename, max_rank, label_type=None, circle_size=None,
 		regulate_case=False, secondary_attr=None, force_points=False) -> str:
 	result = ""
-	for region in load_shaperecords(filename):
+	for shape, record in load_shaperecords(filename):
 		if secondary_attr is not None:
-			secondary_attr_value = region.record[secondary_attr]
+			secondary_attr_value = record[secondary_attr]
 		else:
 			secondary_attr_value = None
-		if "labelrank" in region.record and "opulated" not in filename:
-			rank = region.record["labelrank"]
+		if "labelrank" in record and "opulated" not in filename:
+			rank = record["labelrank"]
 		else:
-			rank = region.record["scalerank"]  # (labelrank is broken for populated_places)
-		if region.record["name"] == 'EUROPE':
+			rank = record["scalerank"]  # (labelrank is broken for populated_places)
+		if record["name"] == 'EUROPE':
 			rank += 1  # You're not a continent! Get over it!
 		if rank is None or rank > max_rank:
 			continue  # skip anything too obscure to note
-		if not region.record["name"]:
+		if not record["name"]:
 			continue  # we can't waste our time worrying about features with no names
-		if "long_x" in region.record:
-			x, y = region.record["long_x"], region.record["lat_y"]
-		elif "longitude" in region.record:
-			x, y = region.record["longitude"], region.record["latitude"]
+		if "long_x" in record:
+			x, y = record["long_x"], record["lat_y"]
+		elif "longitude" in record:
+			x, y = record["longitude"], record["latitude"]
 		else:
-			x, y = get_centroid(region.shape.points, region.shape.parts)
-		if "type" in region.record:
-			tipe = region.record["type"].lower()
+			x, y = get_centroid(shape.points, shape.parts)
+		if "type" in record:
+			tipe = record["type"].lower()
 		else:
-			tipe = region.record["featurecla"].lower()
+			tipe = record["featurecla"].lower()
 		if tipe == "depression":
 			continue  # skip depressions because I don't like them
 
 		if secondary_attr is not None and tipe == 'dependency':
-			label = f"{region.record['name']} ({secondary_attr_value})"  # indicate dependencies' sovereigns in parentheses
+			label = f"{record['name']} ({secondary_attr_value})"  # indicate dependencies' sovereigns in parentheses
 		else:
-			label = region.record["name"]
+			label = record["name"]
 		if regulate_case:
-			label = region.record["name"].upper()
+			label = record["name"].upper()
 		label = label.replace("&", "&amp;")
 
 		# set an appropriate label class

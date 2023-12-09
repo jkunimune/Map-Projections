@@ -35,16 +35,15 @@ def load_shapes_from_one_place_and_records_from_another(shape_filename, record_f
 	shape_regions = load_shaperecords(shape_filename)
 	record_regions = load_shaperecords(record_filename)
 	new_regions = []
-	for region in record_regions:
-		record = region.record
+	for shape, record in record_regions:
 		shape = None
-		for other_region in shape_regions:
-			if region.record[identifier] == other_region.record[identifier]:
-				shape = other_region.shape
+		for other_shape, other_record in shape_regions:
+			if record[identifier] == other_record[identifier]:
+				shape = other_shape
 				break
 		if shape is None:
 			shape = shapefile.Shape(shapefile.NULL)
-		new_regions.append(ShapeRecord(shape, record))
+		new_regions.append((shape, record))
 	return new_regions
 
 
@@ -190,6 +189,7 @@ def get_centroid(points, parts=None):
 	latcr = math.atan2(zc, math.hypot(xc, yc))
 	return (math.degrees(loncr), math.degrees(latcr))
 
+
 def normalize_shaperecord(shaperecord: shapefile.ShapeRecord) -> ShapeRecord:
 	""" the Natural Earth dataset has a really horrible problem with inconsistent casing.  some of their
 	    records' field names are all-lowercase, some are all-uppercase, and some are camel-case.  which is
@@ -203,10 +203,8 @@ def normalize_shaperecord(shaperecord: shapefile.ShapeRecord) -> ShapeRecord:
 	for attr in vars(shaperecord.record)["_Record__field_positions"].keys():
 		if "__" not in attr:
 			record_fields[attr.lower()] = getattr(shaperecord.record, attr)
-	better_shaperecord = ShapeRecord(shaperecord.shape, record_fields)
+	better_shaperecord = (shaperecord.shape, record_fields)
 	return better_shaperecord
 
-class ShapeRecord:
-	def __init__(self, shape: shapefile.Shape, record: dict[str, Any]):
-		self.shape = shape
-		self.record = record
+
+ShapeRecord = tuple[shapefile.Shape, dict[str, Any]]
