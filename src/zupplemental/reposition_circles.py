@@ -26,7 +26,7 @@ def main():
 	# first ramp up a center-to-center repulsive force until no circles overlap
 	repulsion_strength = length_scale**2
 	while any_overlap(centers, radii):
-		repulsion_strength *= 2
+		repulsion_strength *= 1.5
 
 		def total_energy(x) -> float:
 			current_centers = x.reshape((-1, 2))
