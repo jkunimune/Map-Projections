@@ -534,8 +534,8 @@ public class Octohedral {
 			Octant[] out = new Octant[in.length];
 			for (int i = 0; i < in.length; i ++) {
 				out[i] = new Octant(
-						in[i].x*cos(th) + in[i].y*sin(th),
-						-in[i].x*sin(th) + in[i].y*cos(th),
+						in[i].x*cos(th) - in[i].y*sin(th),
+						in[i].x*sin(th) + in[i].y*cos(th),
 						in[i].planeRotation + th,
 						in[i].minLatitude, in[i].maxLatitude,
 						in[i].centralLongitude,
