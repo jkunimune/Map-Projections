@@ -131,7 +131,7 @@ public abstract class MapApplication extends Application {
 			Lenticular.VAN_DER_GRINTEN, ArbitraryPseudocylindrical.ROBINSON,
 			WinkelTripel.WINKEL_TRIPEL, EqualEarth.EQUAL_EARTH,
 			Octohedral.KEYES_BASIC_M, Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Misc.PEIRCE_QUINCUNCIAL,
-			Pseudocylindrical.LEMONS };
+			Misc.LEMONS };
 
 	public static final String[] PROJECTION_CATEGORIES = { "Cylindrical", "Azimuthal", "Conic",
 			"Tetrahedral", "Polyhedral", "Pseudocylindrical", "Lenticular", "Other", "Invented by Justin" }; //the overarching categories by which I organise my projections
@@ -156,22 +156,21 @@ public abstract class MapApplication extends Application {
 			{ Lenticular.AITOFF, Lenticular.POLYCONIC, Lenticular.EISENLOHR, Gyorffy.E, Gyorffy.F,
 			  Lenticular.HAMMER, Lenticular.LAGRANGE, Lenticular.STREBE_95,
 			  Lenticular.VAN_DER_GRINTEN, Lenticular.WAGNER_VIII, WinkelTripel.WINKEL_TRIPEL },
-			{ Misc.BONNE, Snyder.GS50, Misc.GUYOU, Misc.HAMMER_RETROAZIMUTHAL,
-			  Pseudocylindrical.LEMONS, Misc.PEIRCE_QUINCUNCIAL, Misc.T_SHIRT,
-			  Misc.TWO_POINT_EQUIDISTANT, Misc.FLAT_EARTH },
+			{ Misc.BONNE, Misc.CASSINI, Snyder.GS50, Misc.GUYOU, Misc.HAMMER_RETROAZIMUTHAL,
+			  Misc.LEMONS, Misc.PEIRCE_QUINCUNCIAL, Misc.T_SHIRT, Misc.TWO_POINT_EQUIDISTANT,
+			  Misc.FLAT_EARTH },
 			{ Elastic.ELASTIC_I, Elastic.ELASTIC_II, Elastic.ELASTIC_III,
 			  Danseiji.DANSEIJI_N, Danseiji.DANSEIJI_I, Danseiji.DANSEIJI_II, Danseiji.DANSEIJI_III,
 			  Danseiji.DANSEIJI_IV, Danseiji.DANSEIJI_V, Danseiji.DANSEIJI_VI,
-			  Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH, Polyhedral.TETRAGRAPH,
-			  MyProjections.TWO_POINT_EQUALIZED } };
+			  Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH, Polyhedral.TETRAGRAPH } };
 	
-	private static final String[] ASPECT_NAMES = { "Normal", "Transverse", "Cassini", "Atlantis",
-			"Jerusalem", "Point Nemo", "Longest Line", "Cylindrical", "Tetrahedral", "Antipode",
-			"Random" };
-	private static final double[][] ASPECT_VALS = { //the aspect presets (in degrees)
-			{ 90., 0.,  0.,  -4., 31.78, 48.88, -28.52,  35.,   57. },
-			{  0., 0., 90.,  65., 35.22, 56.61, 141.45, 166.5,-175.5 },
-			{  0., 0.,-90.,-147.,-35.,  -45.,    30.,  -145.,  154. } };
+	private static final String[] ASPECT_NAMES = {
+			"Normal", "Transverse", "Atlantis", "Jerusalem", "Point Nemo", "Longest Line",
+			"Cylindrical", "Tetrahedral", "Antipode", "Random" };
+	private static final double[][] ASPECT_VALUES = { //the aspect presets (in degrees)
+			{ 90.,  0.,  -4., 31.78, 48.88, -28.52,  35.,   57. },
+			{  0., 90.,  65., 35.22, 56.61, 141.45, 166.5,-175.5 },
+			{  0.,-90.,-147.,-35.,  -45.,    30.,  -145.,  154. } };
 	
 	
 	private final Map<ButtonType, Button> buttons = new HashMap<ButtonType, Button>();
@@ -622,7 +621,7 @@ public abstract class MapApplication extends Application {
 			for (int i = 0; i < ASPECT_NAMES.length; i ++) {
 				if (ASPECT_NAMES[i].equals(presetName)) {
 					for (int j = 0; j < 3; j ++)
-						sliders[j].setValue(ASPECT_VALS[j][i]);
+						sliders[j].setValue(ASPECT_VALUES[j][i]);
 					break;
 				}
 			}

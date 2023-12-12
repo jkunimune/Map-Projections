@@ -37,7 +37,6 @@ import static java.lang.Math.PI;
 import static java.lang.Math.abs;
 import static java.lang.Math.asin;
 import static java.lang.Math.cos;
-import static java.lang.Math.floor;
 import static java.lang.Math.pow;
 import static java.lang.Math.signum;
 import static java.lang.Math.sin;
@@ -285,67 +284,4 @@ public class Pseudocylindrical {
 		
 	};
 	
-	
-	public static final Projection LEMONS = new Projection(
-			"Lemons", "BURN LIFE'S HOUSE DOWN!!!", null, 0b1110,
-			Type.CYLINDRICAL, Property.COMPROMISE, 2) {
-		
-		private static final int NUM_LEMONS = 12; //number of lemons
-		private static final double LEM_WIDTH = 2*PI/NUM_LEMONS; //longitude span of 1 lemon
-
-		public void initialize(double... params) {
-			// we need to calculate the shape
-			final int numSteps = 45;
-			// start by getting the shape of a generic meridian
-			double[][] segment = new double[numSteps + 1][];
-			for (int i = 0; i <= numSteps; i ++) {
-				double ф = PI/2/numSteps*i;
-				double x = asin(cos(ф)*sin(LEM_WIDTH/2));
-				double y = asin(sin(ф)/sqrt(1-pow(cos(ф)*sin(LEM_WIDTH/2), 2)));
-				segment[i] = new double[] {x, y};
-			}
-			// then build up the full shape by transforming the generic segments
-			double[][] envelope = new double[4*NUM_LEMONS*numSteps][];
-			// go west to east in the north hemisphere
-			for (int i = 0; i < NUM_LEMONS; i ++) {
-				for (int j = 0; j < numSteps; j ++)
-					envelope[2*i*numSteps + j] = new double[]
-							{((NUM_LEMONS - 1)/2. - i)*LEM_WIDTH + segment[j][0], segment[j][1]};
-				for (int j = 0; j < numSteps; j ++)
-					envelope[(2*i + 1)*numSteps + j] = new double[]
-							{((NUM_LEMONS - 1)/2. - i)*LEM_WIDTH - segment[numSteps - j][0], segment[numSteps - j][1]};
-			}
-			// go east to west in the south hemisphere
-			for (int i = 0; i < NUM_LEMONS; i ++) {
-				for (int j = 0; j < numSteps; j ++)
-					envelope[envelope.length/2 + 2*i*numSteps + j] = new double[]
-							{(i - (NUM_LEMONS - 1)/2.)*LEM_WIDTH - segment[j][0], -segment[j][1]};
-				for (int j = 0; j < numSteps; j ++)
-					envelope[envelope.length/2 + (2*i + 1)*numSteps + j] = new double[]
-							{(i - (NUM_LEMONS - 1)/2.)*LEM_WIDTH + segment[numSteps - j][0], -segment[numSteps - j][1]};
-			}
-			// finally, convert it to a Shape
-			this.shape = Shape.polygon(envelope);
-		}
-
-		public double[] project(double lat, double lon) {
-			final int lemNum = (int)floor(lon/LEM_WIDTH);
-			final double dl = (lon+2*PI) % LEM_WIDTH - LEM_WIDTH/2;
-			return new double[] {
-					asin(cos(lat)*sin(dl)) + (lemNum+.5)*LEM_WIDTH,
-					asin(sin(lat)/sqrt(1-pow(cos(lat)*sin(dl), 2)))}; // TODO: have a CASSINI projection off which this can be bilt
-		}
-		
-		public double[] inverse(double x, double y) {
-			final int lemNum = (int)floor(x/LEM_WIDTH);
-			final double dx = (x+2*PI) % LEM_WIDTH - LEM_WIDTH/2;
-			final double dl = asin(
-					sin(dx)/sqrt(1-pow(cos(dx)*sin(y), 2)));
-			if (abs(dl) > LEM_WIDTH/2)
-				return null;
-			else
-				return new double[] {
-						asin(cos(dx)*sin(y)), dl + (lemNum+.5)*LEM_WIDTH };
-		}
-	};
 }

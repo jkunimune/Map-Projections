@@ -58,8 +58,7 @@ public class MapProducer extends Application {
 	
 	public static final Projection[][] ALL_PROJECTIONS = {
 			{ 
-					Cylindrical.PLATE_CARREE,
-					Cylindrical.PLATE_CARREE.withAspect("Cassini", 0, PI/2, -PI/2),
+					Cylindrical.PLATE_CARREE, Misc.CASSINI,
 					Cylindrical.MERCATOR,
 					Cylindrical.MERCATOR.withAspect("Transverse Mercator", 0, PI/2, -PI/2),
 					Cylindrical.GALL_STEREOGRAPHIC, Cylindrical.MILLER, Cylindrical.LAMBERT,
