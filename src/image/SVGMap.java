@@ -93,7 +93,7 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 			public InputSource resolveEntity(String publicId, String systemId) {
 				return new InputSource(new StringReader("")); //ignore all external references - we don't need to validate
 			}
-
+			
 			@Override
 			public void startElement(
 					String uri, String localName, String tagName, Attributes immutableAttributes
@@ -155,7 +155,14 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 				}
 				elements.add(new Content(characterString.toString()));
 			}
-
+			
+			@Override
+			public void declaration(String version, String encoding, String standalone) {
+				elements.add(new Content(String.format(
+						"<?xml version=\"%s\" encoding=\"%s\" standalone=\"%s\"?>\n",
+						version, encoding, standalone)));
+			}
+			
 			private double[] parseTransform(String transString) {
 				double xScale = 1, yScale = 1, xTrans = 0, yTrans = 0;
 				int i;
