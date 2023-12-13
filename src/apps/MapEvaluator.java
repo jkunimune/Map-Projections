@@ -40,6 +40,16 @@ import maps.Pseudocylindrical;
 import maps.Tobler;
 import maps.WinkelTripel;
 
+import static java.lang.Double.NEGATIVE_INFINITY;
+import static java.lang.Double.POSITIVE_INFINITY;
+import static java.lang.Math.PI;
+import static java.lang.Math.abs;
+import static java.lang.Math.cos;
+import static java.lang.Math.hypot;
+import static java.lang.Math.sin;
+import static java.lang.Math.sqrt;
+import static utils.Math2.min;
+
 /**
  * A script to get some distortion quantiles for my paper.
  * 
@@ -75,14 +85,14 @@ public class MapEvaluator {
 			List<Double> weights = new ArrayList<Double>();
 			
 			double ɸStep = STEP;
-			for (double ɸMin = -Math.PI/2; ɸMin < Math.PI/2; ɸMin += ɸStep) {
-				double ɸMax = Math.min(ɸMin + ɸStep, Math.PI/2);
-				int i = (int) ((-(ɸMin+ɸMax)/2 / Math.PI + .5) * land.length);
+			for (double ɸMin = -PI/2; ɸMin < PI/2; ɸMin += ɸStep) {
+				double ɸMax = min(ɸMin + ɸStep, PI/2);
+				int i = (int) ((-(ɸMin+ɸMax)/2 / PI + .5) * land.length);
 				
-				double λStep = STEP/Math.cos((ɸMax + ɸMin)/2);
-				for (double λMin = -Math.PI; λMin < Math.PI; λMin += λStep) {
-					double λMax = Math.min(λMin + λStep, Math.PI);
-					int j = (int) (((λMin+λMax)/2 / (2*Math.PI) + .5) * land[i].length);
+				double λStep = STEP/cos((ɸMax + ɸMin)/2);
+				for (double λMin = -PI; λMin < PI; λMin += λStep) {
+					double λMax = min(λMin + λStep, PI);
+					int j = (int) (((λMin+λMax)/2 / (2*PI) + .5) * land[i].length);
 					
 					if (ONLY_LAND && !land[i][j]) // if we only care about land and this isn't land
 						continue;
@@ -92,22 +102,22 @@ public class MapEvaluator {
 					double[] e = projection.project((ɸMin + ɸMax)/2, (λMin + 3*λMax)/4);
 					double[] w = projection.project((ɸMin + ɸMax)/2, (3*λMin + λMax)/4);
 					
-					double lengthScale = Math.sqrt(
+					double lengthScale = sqrt(
 							(e[0] - w[0])*(n[1] - s[1]) - (n[0] - s[0])*(e[1] - w[1]));
-					double nonlinearity = Math.hypot(
+					double nonlinearity = hypot(
 							n[0] + s[0] - e[0] - w[0], n[1] + s[1] - e[1] - w[1])/lengthScale;
 					if (nonlinearity < 2) { // only count distortion measurements where the map is smooth
-						double dA = (Math.sin(ɸMax) - Math.sin(ɸMin))*(λMax - λMin);
+						double dA = (sin(ɸMax) - sin(ɸMin))*(λMax - λMin);
 						
 						double dxdɸ = (n[0] - s[0])/((ɸMax - ɸMin)/2);
 						double dxdλ = (e[0] - w[0])/((λMax - λMin)/2);
 						double dydɸ = (n[1] - s[1])/((ɸMax - ɸMin)/2);
 						double dydλ = (e[1] - w[1])/((λMax - λMin)/2);
 						double dsdɸ = 1;
-						double dsdλ = Math.cos((ɸMin + ɸMax)/2);
+						double dsdλ = cos((ɸMin + ɸMax)/2);
 						
-						double s1ps2 = Math.hypot(dxdλ/dsdλ + dydɸ/dsdɸ, dydλ/dsdλ - dxdɸ/dsdɸ);
-						double s1ms2 = Math.hypot(dxdλ/dsdλ - dydɸ/dsdɸ, dydλ/dsdλ + dxdɸ/dsdɸ);
+						double s1ps2 = hypot(dxdλ/dsdλ + dydɸ/dsdɸ, dydλ/dsdλ - dxdɸ/dsdɸ);
+						double s1ms2 = hypot(dxdλ/dsdλ - dydɸ/dsdɸ, dydλ/dsdλ + dxdɸ/dsdɸ);
 						angularDistortion.add((s1ps2 - s1ms2)/(s1ps2 + s1ms2));
 						arealDistortion.add((dxdλ*dydɸ - dxdɸ*dydλ)/dsdɸ/dsdλ);
 						weights.add(dA);
@@ -115,7 +125,7 @@ public class MapEvaluator {
 				}
 			}
 			
-			double minScale = Double.POSITIVE_INFINITY, maxArea = Double.NEGATIVE_INFINITY;
+			double minScale = POSITIVE_INFINITY, maxArea = NEGATIVE_INFINITY;
 			for (int i = 0; i < weights.size(); i ++) {
 				if (arealDistortion.get(i) < minScale)
 					minScale = arealDistortion.get(i);
@@ -140,7 +150,7 @@ public class MapEvaluator {
 	}
 	
 	private static double absoluteQuality(double x) {
-		if (Math.abs(x) < 1)
+		if (abs(x) < 1)
 			return 1/x;
 		else
 			return x;

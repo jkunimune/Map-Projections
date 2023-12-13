@@ -12,6 +12,9 @@
 # Freakin PyC files
 *.pyc
 
+# IntelliJ configuration files
+.idea/*
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db

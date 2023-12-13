@@ -36,6 +36,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
+import static java.lang.Math.sqrt;
+
 /**
  * a script that automatically converts a bunch of inputs into a particular projection.
  */
@@ -54,7 +56,9 @@ public class MapConverter {
 		for (Path inputPath: pathIterable) {
 			// look for images that are not dymaxion projections
 			if (inputPath.toString().endsWith(".jpg") ||
+			    inputPath.toString().endsWith(".jpeg") ||
 			    inputPath.toString().endsWith(".tif") ||
+			    inputPath.toString().endsWith(".tiff") ||
 			    inputPath.toString().endsWith(".png") &&
 			    !inputPath.toString().endsWith(".dymaxion.png")) {
 				System.out.println(inputPath);
@@ -63,8 +67,8 @@ public class MapConverter {
 				// reduce the area by 2 to avoid pixelation
 				double area = inputImage.getWidth() * inputImage.getHeight() / 2.;
 				// and calculate the new dimensions according to Dymaxion's aspect ratio
-				int width = (int) Math.sqrt(area * projection.getAspectRatio());
-				int height = (int) Math.sqrt(area / projection.getAspectRatio());
+				int width = (int) sqrt(area * projection.getShape().aspectRatio);
+				int height = (int) sqrt(area / projection.getShape().aspectRatio);
 
 				// generate the new map
 				BufferedImage outputImage = MapDesignerRaster.calculate(
@@ -75,7 +79,9 @@ public class MapConverter {
 				// update the filename and save to disk
 				String outputPath = inputPath.toString();
 				outputPath = outputPath.replace(".jpg", ".png");
+				outputPath = outputPath.replace(".jpeg", ".png");
 				outputPath = outputPath.replace(".tif", ".png");
+				outputPath = outputPath.replace(".tiff", ".png");
 				outputPath = outputPath.replace(".png", ".dymaxion.png");
 				SavableImage.savable(outputImage).save(new File(outputPath));
 			}

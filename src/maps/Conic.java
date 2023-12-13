@@ -24,7 +24,25 @@
 package maps;
 
 import maps.Projection.Property;
-import utils.Math2;
+import utils.Shape;
+
+import static java.lang.Double.isNaN;
+import static java.lang.Math.PI;
+import static java.lang.Math.abs;
+import static java.lang.Math.asin;
+import static java.lang.Math.atan;
+import static java.lang.Math.atan2;
+import static java.lang.Math.cos;
+import static java.lang.Math.hypot;
+import static java.lang.Math.log;
+import static java.lang.Math.pow;
+import static java.lang.Math.sin;
+import static java.lang.Math.sqrt;
+import static java.lang.Math.tan;
+import static java.lang.Math.toDegrees;
+import static java.lang.Math.toRadians;
+import static utils.Math2.max;
+import static utils.Math2.min;
 
 public class Conic {
 	
@@ -32,39 +50,61 @@ public class Conic {
 			new ConicProjection("Conformal Conic", 0b0111, Property.CONFORMAL, 2) {
 		
 		private double n; //the scaling factor for angles
-		private double r0; //the primary radius based on the standard axes
-		
+
 		public void setSpecificParameters() {
 			if (lat1 == -lat2) //degenerates into Mercator; indicate with n=0
 				this.n = 0;
 			else if (lat1 == lat2) //equation becomes indeterminate; use limit
-				this.n = Math.sin(lat1);
+				this.n = sin(lat1);
 			else //normal conic
-				this.n = Math.log(Math.cos(lat1)/Math.cos(lat2))/Math.log(Math.tan(Math.PI/4+lat2/2)/Math.tan(Math.PI/4+lat1/2));
-			
-			final double r1 = Math.pow(Math.tan(Math.PI/4+Math2.max(lat1,lat2,0)/2), -n);
-			final double r2 = Math.pow(Math.tan(Math.PI/4+Math2.min(lat1,lat2,0)/2), -n);
-			final double r = Math.max(2*r1 - r2, 0);
+				this.n = log(cos(lat1)/cos(lat2))/log(tan(PI/4+lat2/2)/tan(PI/4+lat1/2));
+
+			// calculate the radii of the standard parallels
+			final double r1 = pow(tan(PI/4 + max(lat1, lat2, 0)/2), -n);
+			final double r2 = pow(tan(PI/4 + min(lat1, lat2, 0)/2), -n);
+			// and expand those to get a minor and major radius
+			final double r = max(2*r1 - r2, 0);
 			final double R = 2*r2 - r1;
+			// if the angle is greater than 180°
 			if (n > 0.5) {
-				this.width = 2*R;
-				this.height = R - R*Math.cos(Math.PI*n);
-				this.r0 = (R + R*Math.cos(Math.PI*n))/2;
+				// the upper bound is set by the outer radius
+				this.shape = Shape.polygon(new double[][] {
+						{0, 0},
+						{-R*sin(PI*n), -R*cos(PI*n)},
+						{-R, -R*cos(PI*n)},
+						{-R, -R},
+						{R, -R},
+						{R, -R*cos(PI*n)},
+						{R*sin(PI*n), -R*cos(PI*n)},
+				});
 			}
+			// if the angle is less than 180°
 			else if (n > 0) {
-				this.width = 2*R*Math.sin(Math.PI*n);
-				this.height = Math.max(R - r*Math.cos(Math.PI*n), width);
-				this.r0 = (R+r)/2*Math.cos(Math.PI*n);
-				if (height > 2*r0) {
-					final double err = height/2-r0;
-					this.height -= err;
-					this.r0 += err/2;
-				}
+				// the upper bound is set by the inner or central radius
+				double yCenter = -(R+r)/2*cos(PI*n);
+				double width = 2*R*sin(PI*n);
+				double yMin = min(-R, yCenter - width/2);
+				double yMax = min(max(-r*cos(PI*n), yCenter + width/2), 0);
+				this.shape = Shape.polygon(new double[][] {
+						{yMax*tan(PI*n), yMax},
+						{-width/2, -R*cos(PI*n)},
+						{-width/2, yMin},
+						{width/2, yMin},
+						{width/2, -R*cos(PI*n)},
+						{-yMax*tan(PI*n), yMax},
+				});
 			}
+			// if the angle is 0°
 			else {
-				this.width = 2*Math.PI;
-				this.height = Math.max(6*Math.log(Math.tan(Math.PI/4+Math.abs(lat1)/2)), width);
+				// this changes to a Mercator projection
+				double width = 2*PI;
+				double height = max(6*log(tan(PI/4+abs(lat1)/2)), width);
+				this.shape = Shape.rectangle(width, height);
 			}
+
+			// reverse the shape if this is inverted
+			if (reversed)
+				this.shape = Shape.scaled(shape, 1, -1);
 		}
 		
 		public double[] project(double lat, double lon) {
@@ -75,22 +115,26 @@ public class Conic {
 			}
 			if (lat < -1.5) 	lat = -1.5; //remove polar infinite values
 			final double s = reversed ? -1 : 1;
-			final double r = Math.pow(Math.tan(Math.PI/4+lat/2), -n);
-			return new double[] { s*r*Math.sin(n*lon), s*(r0 - r*Math.cos(n*lon)) };
+			final double r = pow(tan(PI/4+lat/2), -n);
+			return new double[] { s*r*sin(n*lon), -s*r*cos(n*lon) };
 		}
 		
 		public double[] inverse(double x, double y) {
-			if (n == 0) 	return Cylindrical.MERCATOR.inverse(x, y);
+			if (n == 0)
+				return Cylindrical.MERCATOR.inverse(x, y);
 			else if (reversed) {
 				x = -x;
 				y = -y;
 			}
-			final double r = Math.hypot(x, r0-y);
-			final double phi = 2*Math.atan(Math.pow(r, -1/n)) - Math.PI/2;
-			final double lam = Math.atan2(x, r0-y)/n;
-			if (Math.abs(lam) > Math.PI) 	return null;
-			else if (reversed) 				return new double[] {-phi, -lam};
-			else 							return new double[] {phi, lam};
+			final double r = hypot(x, -y);
+			final double phi = 2*atan(pow(r, -1/n)) - PI/2;
+			final double lam = atan2(x, -y)/n;
+			if (abs(lam) > PI)
+				return null;
+			else if (reversed)
+				return new double[] {-phi, -lam};
+			else
+				return new double[] {phi, lam};
 		}
 	};
 	
@@ -100,32 +144,25 @@ public class Conic {
 		
 		private double m; //the scaling factor for radii
 		private double n; //the scaling factor for angles
-		private double y0; //the centered position
-		
+
 		public void setSpecificParameters() {
 			if (lat1 == -lat2) //degenerates into Equirectangular; indicate with m=0
 				this.m = 0;
 			else if (lat1 == lat2) //equation becomes indeterminate; use limit
-				this.m = 1/(1/Math.tan(lat1)/Math.PI + lat1/Math.PI + .5);
+				this.m = 1/(1/tan(lat1)/PI + lat1/PI + .5);
 			else //normal conic
-				this.m = (1/Math.cos(lat2)-1/Math.cos(lat1))/((-lat1/Math.PI-.5)/Math.cos(lat1)-(-lat2/Math.PI-.5)/Math.cos(lat2));
+				this.m = (1/cos(lat2)-1/cos(lat1))/((-lat1/PI-.5)/cos(lat1)-(-lat2/PI-.5)/cos(lat2));
 			
-			this.n = m*Math.cos(lat1)/((-lat1/Math.PI-.5)*m+1)/Math.PI;
-			
-			if (n > 0.5) {
-				this.width = 2;
-				this.height = 1 - Math.cos(Math.PI*n);
-				this.y0 = (1 + Math.cos(Math.PI*n))/2;
+			this.n = m*cos(lat1)/((-lat1/PI-.5)*m+1)/PI;
+
+			// if this is well-formed, use the annular sector shape
+			if (n > 0) {
+				this.shape = Shape.annularSector(1 - m, 1, 2*PI*n, reversed);
 			}
-			else if (n > 0) {
-				this.width = 2*Math.sin(Math.PI*n);
-				this.height = 1 - (1-m)*Math.cos(Math.PI*n);
-				this.y0 = (1 + (1-m)*Math.cos(Math.PI*n))/2;
-			}
+			// if the angle is 0°, this changes to an equirectangular projection
 			else {
-				Cylindrical.EQUIRECTANGULAR.initialize(Math.toDegrees(lat1));
-				this.width = Cylindrical.EQUIRECTANGULAR.getWidth();
-				this.height = Cylindrical.EQUIRECTANGULAR.getHeight();
+				Cylindrical.EQUIRECTANGULAR.initialize(toDegrees(lat1));
+				this.shape = Cylindrical.EQUIRECTANGULAR.shape;
 			}
 		}
 		
@@ -136,8 +173,8 @@ public class Conic {
 				lon = -lon;
 			}
 			final double s = reversed ? -1 : 1;
-			final double r = 1 - m*lat/Math.PI - m/2;
-			return new double[] { s*r*Math.sin(n*lon), s*(y0 - r*Math.cos(n*lon)) };
+			final double r = 1 - m*lat/PI - m/2;
+			return new double[] { s*r*sin(n*lon), s*(-r*cos(n*lon)) };
 		}
 		
 		public double[] inverse(double x, double y) {
@@ -146,10 +183,10 @@ public class Conic {
 				x = -x;
 				y = -y;
 			}
-			final double r = Math.hypot(x, y-y0);
-			final double phi = (1 - m/2 - r)*Math.PI/m;
-			final double lam = Math.atan2(x, y0-y)/n;
-			if (Math.abs(lam) > Math.PI || Math.abs(phi) > Math.PI/2)
+			final double r = hypot(x, y);
+			final double phi = (1 - m/2 - r)*PI/m;
+			final double lam = atan2(x, -y)/n;
+			if (abs(lam) > PI || abs(phi) > PI/2)
 				return null;
 			else if (reversed) 	return new double[] {-phi, -lam};
 			else 				return new double[] {phi, lam};
@@ -162,32 +199,24 @@ public class Conic {
 		
 		private double n; //the scaling factor for angles
 		private double C; //a scaling factor for radii
-		private double y0; //the centering y-shift
-		
+
 		public void setSpecificParameters() {
 			if (lat1 == -lat2) //degenerates into Equirectangular; indicate with n=0
 				this.n = 0;
 			else //normal conic
-				this.n = (Math.sin(lat1) + Math.sin(lat2))/2;
+				this.n = (sin(lat1) + sin(lat2))/2;
 			
-			this.C = Math.pow(Math.cos(lat1), 2) + 2*n*Math.sin(lat1);
-			
-			final double r = Math.sqrt(C - 2*n);
-			final double R = Math.sqrt(C + 2*n);
-			if (n > 0.5) {
-				this.width = 2*R;
-				this.height = R - R*Math.cos(Math.PI*n);
-				this.y0 = (R + R*Math.cos(Math.PI*n))/2;
+			this.C = pow(cos(lat1), 2) + 2*n*sin(lat1);
+
+			// if this is well-formed, use the annular sector shape
+			if (n > 0) {
+				this.shape = Shape.annularSector(
+						sqrt(C - 2*n), sqrt(C + 2*n), 2*PI*n, reversed);
 			}
-			else if (n > 0) {
-				this.width = 2*R*Math.sin(Math.PI*n);
-				this.height = R - r*Math.cos(Math.PI*n);
-				this.y0 = (R + r*Math.cos(Math.PI*n))/2;
-			}
+			// if the angle is zero, this becomes a cylindrical equal area projection
 			else {
-				Cylindrical.EQUAL_AREA.initialize(Math.toDegrees(lat1));
-				this.width = Cylindrical.EQUAL_AREA.getWidth();
-				this.height = Cylindrical.EQUAL_AREA.getHeight();
+				Cylindrical.EQUAL_AREA.initialize(toDegrees(lat1));
+				this.shape = Cylindrical.EQUAL_AREA.shape;
 			}
 		}
 		
@@ -197,9 +226,9 @@ public class Conic {
 				lat = -lat;
 				lon = -lon;
 			}
-			final double r = Math.sqrt(C - 2*n*Math.sin(lat));
-			final double x = r*Math.sin(n*lon);
-			final double y = -r*Math.cos(n*lon) + y0;
+			final double r = sqrt(C - 2*n*sin(lat));
+			final double x = r*sin(n*lon);
+			final double y = -r*cos(n*lon);
 			if (reversed) 	return new double[] {-x,-y};
 			else 			return new double[] { x, y};
 		}
@@ -210,10 +239,10 @@ public class Conic {
 				x = -x;
 				y = -y;
 			}
-			final double r = Math.hypot(x, y-y0);
-			final double phi = Math.asin((C - Math.pow(r,2))/(2*n));
-			final double lam = Math.atan2(x, y0-y)/n;
-			if (Math.abs(lam) > Math.PI || Double.isNaN(phi))
+			final double r = hypot(x, y);
+			final double phi = asin((C - pow(r,2))/(2*n));
+			final double lam = atan2(x, -y)/n;
+			if (abs(lam) > PI || isNaN(phi))
 				return null;
 			else if (reversed) 	return new double[] {-phi, -lam};
 			else 				return new double[] {phi, lam};
@@ -231,14 +260,14 @@ public class Conic {
 		protected boolean reversed;
 		
 		ConicProjection(String name, int fisc, Property property, int rating) {
-			super(name, "The "+property+" conic projection.", 0,0, fisc, Type.CONIC, property,
+			super(name, "The "+property+" conic projection.", null, fisc, Type.CONIC, property,
 					rating, new String[] {"Std. Parallel 1", "Std. Parallel 2"},
 					new double[][] {{-89,89,15},{-89,89,45}});
 		}
 		
 		public final void initialize(double... params) {
-			this.lat1 = Math.toRadians(params[0]);
-			this.lat2 = Math.toRadians(params[1]);
+			this.lat1 = toRadians(params[0]);
+			this.lat2 = toRadians(params[1]);
 			this.reversed = lat1 + lat2 < 0;
 			if (reversed) {
 				lat1 = -lat1;

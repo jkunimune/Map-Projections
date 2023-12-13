@@ -23,9 +23,6 @@
  */
 package utils;
 
-import org.xml.sax.Attributes;
-import org.xml.sax.helpers.AttributesImpl;
-
 /**
  * A class for working with and manipulating XML stuff.
  * 

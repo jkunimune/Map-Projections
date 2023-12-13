@@ -31,6 +31,9 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import static java.lang.Math.PI;
+import static java.lang.Math.floor;
+
 /**
  * An input equirectangular map based on a raster image file
  * 
@@ -59,10 +62,10 @@ public class PixelMap {
 	
 	
 	public int getArgb(double lat, double lon) {
-		double x = 0.5 + lon/(2*Math.PI);
-		x = (x - Math.floor(x)) * pixels.getWidth();
+		double x = 0.5 + lon/(2*PI);
+		x = (x - floor(x)) * pixels.getWidth();
 		
-		double y = pixels.getHeight()*(.5 - lat/Math.PI);
+		double y = pixels.getHeight()*(.5 - lat/PI);
 		if (y < 0)
 			y = 0;
 		else if (y >= pixels.getHeight())

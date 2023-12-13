@@ -26,6 +26,13 @@ package maps;
 import java.util.Arrays;
 
 import utils.NumericalAnalysis;
+import utils.Shape;
+
+import static java.lang.Math.PI;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.lang.Math.toDegrees;
+import static java.lang.Math.toRadians;
 
 /**
  * A class specifically for pseudocylindrical projections that use arbitrary tables of numbers.
@@ -46,7 +53,7 @@ public class ArbitraryPseudocylindrical {
 				{ -1.0000,-0.9761,-0.9394,-0.8936,-0.8435,-0.7903,-0.7346,-0.6769,-0.6176,-0.5571,-0.4958,-0.4340,-0.3720,-0.3100,-0.2480,-0.1860,-0.1240,-0.0620, 0.0000,
 					0.0620, 0.1240, 0.1860, 0.2480, 0.3100, 0.3720, 0.4340, 0.4958, 0.5571, 0.6176, 0.6769, 0.7346, 0.7903, 0.8435, 0.8936, 0.9394, 0.9761, 1.0000 } //PDFE
 			});
-	
+
 	
 	public static final Projection NATURAL_EARTH = new ArbitraryProjection(
 			"Natural Earth", "Tom Patterson", 0.520, new double[][] {
@@ -62,33 +69,34 @@ public class ArbitraryPseudocylindrical {
 	
 	private static class ArbitraryProjection extends Projection {
 		
-		private final double yMax;
 		private final double[][] table;
+		private final double yScale;
 		
-		public ArbitraryProjection(String title, String inventor, double aspectRatio, double[][] table) {
-			super(title, 2, 2*aspectRatio, 0b1111, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE, 3,
-					null, "designed by "+inventor);
-			this.yMax = aspectRatio;
+		public ArbitraryProjection(String title, String inventor, double yScale, double[][] table) {
+			super(title, null, 0b1111, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE, 3,
+			      null, "designed by "+inventor);
 			this.table = table;
+			this.yScale = yScale;
+			this.shape = Shape.meridianEnvelope(this);
 		}
-		
+
 		public double[] project(double lat, double lon) {
 			return new double[] {
-					lon/Math.PI*smartInterpolate(Math.toDegrees(lat), table[0], table[1]),
-					yMax*smartInterpolate(Math.toDegrees(lat), table[0], table[2]) };
+					lon/PI*smartInterpolate(toDegrees(lat), table[0], table[1]),
+					yScale*smartInterpolate(toDegrees(lat), table[0], table[2]) };
 		}
 		
 		public double[] inverse(double x, double y) {
 			return new double[] {
-					Math.toRadians(smartInterpolate(y/yMax, table[2], table[0])),
-					Math.PI*x/smartInterpolate(y/yMax, table[2], table[1]) };
+					toRadians(smartInterpolate(y/yScale, table[2], table[0])),
+					PI*x/smartInterpolate(y/yScale, table[2], table[1]) };
 		}
 		
 		private static double smartInterpolate(double x, double[] X, double[] f) {
 			int i = Arrays.binarySearch(X, x);
 			if (i < 0)	i = -i - 1; //if you couldn't find it, don't worry about it
 			return NumericalAnalysis.aitkenInterpolate(
-					x, X, f, Math.max(i - ORDER, 0), Math.min(i + ORDER, X.length)); //call aitken with the correct bounds
+					x, X, f, max(i - ORDER, 0), min(i + ORDER, X.length)); //call aitken with the correct bounds
 		}
 		
 	}

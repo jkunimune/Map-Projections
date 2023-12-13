@@ -23,6 +23,9 @@
  */
 package maps;
 
+import image.Path;
+import utils.Shape;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -31,9 +34,22 @@ import java.util.Queue;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleConsumer;
 
-import image.SVGMap.Command;
-import image.SVGMap.Path;
-import utils.Math2;
+import static java.lang.Double.NaN;
+import static java.lang.Double.isNaN;
+import static java.lang.Math.PI;
+import static java.lang.Math.abs;
+import static java.lang.Math.acos;
+import static java.lang.Math.asin;
+import static java.lang.Math.cos;
+import static java.lang.Math.hypot;
+import static java.lang.Math.log;
+import static java.lang.Math.sin;
+import static java.lang.Math.tan;
+import static utils.Math2.coerceAngle;
+import static utils.Math2.hypot;
+import static utils.Math2.mean;
+import static utils.Math2.rms;
+import static utils.Math2.stdDev;
 
 /**
  * An object that transforms coordinates between spheres and planes.
@@ -42,7 +58,7 @@ import utils.Math2;
  */
 public abstract class Projection {
 	
-	public static final double[] NORTH_POLE = {Math.PI/2, 0, 0};
+	public static final double[] NORTH_POLE = {PI/2, 0, 0};
 	
 	
 	private final String name; //typically the name of the dude credited for it
@@ -59,56 +75,55 @@ public abstract class Projection {
 	private final Type type; //the geometry of the projection
 	private final Property property; //what it is good for
 	private final int rating; //how good I think it is
-	protected double width, height; //max(x)-min(x) and max(y)-min(y)
-	
+	protected Shape shape; //bounding shape
+
 	
 	
 	protected Projection(
-			String name, double width, double height, int fisc, Type type, Property property,
-			int rating) {
-		this(name, buildDescription(type,property,null,null), width, height, fisc, type, property,
-				rating, new String[0], new double[0][]);
+			String name, Shape shape, int fisc, Type type, Property property, int rating) {
+		this(name, buildDescription(type,property,null,null),
+		     shape, fisc, type, property, rating, new String[0], new double[0][]);
 	}
 	
 	protected Projection(
-			String name, double width, double height, int fisc, Type type, Property property, 
+			String name, Shape shape, int fisc, Type type, Property property,
 			int rating, String adjective) {
-		this(name, buildDescription(type,property,adjective,null), width, height, fisc, type,
-				property, rating, new String[0], new double[0][]);
+		this(name, buildDescription(type,property,adjective,null), shape,
+		     fisc, type, property, rating, new String[0], new double[0][]); // TODO: I hate these constructors. I don't need so many of them.
 	}
 	
 	protected Projection(
-			String name, double width, double height, int fisc, Type type, Property property,
+			String name, Shape shape, int fisc, Type type, Property property,
 			int rating, String adjective, String addendum) {
-		this(name, buildDescription(type,property,adjective,addendum), width, height, fisc, type,
-				property, rating, new String[0], new double[0][]);
+		this(name, buildDescription(type,property,adjective,addendum), shape,
+		     fisc, type, property, rating, new String[0], new double[0][]);
 	}
 	
 	protected Projection(
-			String name, String description, double width, double height, int fisc,
+			String name, String description, Shape shape, int fisc,
 			Type type, Property property, int rating) {
-		this(name, description, width, height, fisc, type, property, rating, 
-				new String[0], new double[0][]);
+		this(name, description, shape, fisc, type, property, rating,
+		     new String[0], new double[0][]);
 	}
 	
 	protected Projection(
-			String name, String description, double width, double height, int fisc, Type type,
+			String name, String description, Shape shape, int fisc, Type type,
 			Property property, int rating, String[] paramNames, double[][] paramValues) {
-		this(name, description, width, height, fisc, type, property, rating,
-				paramNames, paramValues, true);
+		this(name, description, shape, fisc, type, property, rating,
+		     paramNames, paramValues, true);
 	}
 	
 	protected Projection(
-			String name, String description, double width, double height, int fisc, Type type,
+			String name, String description, Shape shape, int fisc, Type type,
 			Property property, int rating, String[] paramNames, double[][] paramValues,
 			boolean hasAspect) {
-		this(name, description, width, height,
-				(fisc&0b1000) > 0, (fisc&0b0100) > 0, (fisc&0b0010) > 0, (fisc&0b0001) > 0,
-				type, property, rating, paramNames, paramValues, hasAspect);
+		this(name, description, shape,
+		     (fisc&0b1000) > 0, (fisc&0b0100) > 0, (fisc&0b0010) > 0, (fisc&0b0001) > 0,
+		     type, property, rating, paramNames, paramValues, hasAspect);
 	}
 	
 	protected Projection (
-			String name, String description, double width, double height,
+			String name, String description, Shape shape,
 			boolean finite, boolean invertable, boolean solveable, boolean continuous, Type type, Property property, int rating,
 			String[] paramNames, double[][] paramValues, boolean hasAspect) {
 		this.name = name;
@@ -116,8 +131,7 @@ public abstract class Projection {
 		this.paramNames = paramNames;
 		this.paramValues = paramValues;
 		this.hasAspect = hasAspect;
-		this.width = width;
-		this.height = height;
+		this.shape = shape;
 		this.finite = finite;
 		this.invertable = invertable;
 		this.solveable = solveable;
@@ -128,9 +142,9 @@ public abstract class Projection {
 	}
 	
 	protected Projection(String name, Projection base) {
-		this(	name, base.description, base.width, base.height, base.finite, base.invertable,
-				base.solveable, base.continuous, base.type, base.property, base.rating,
-				base.paramNames, base.paramValues, base.hasAspect);
+		this(name, base.description, base.shape, base.finite, base.invertable,
+		     base.solveable, base.continuous, base.type, base.property, base.rating,
+		     base.paramNames, base.paramValues, base.hasAspect);
 	}
 	
 	private static String buildDescription(Type type, Property property, String adjective, String addendum) { //these should all be lowercase
@@ -150,14 +164,14 @@ public abstract class Projection {
 	 * convert a location on the globe to a location on the map plane
 	 * @param lat the latitude in radians
 	 * @param lon the longitude in radians
-	 * @return the x value and y value in the same units as this.width and this.height
+	 * @return the x value and y value in the same units as this.bounds
 	 */
 	public abstract double[] project(double lat, double lon);
 
 	/**
 	 * convert a location on the map plane to a location on the globe
-	 * @param x the x value in the same units as this.width
-	 * @param y the y value in the same units as this.height
+	 * @param x the x value in the same units as this.bounds
+	 * @param y the y value in the same units as this.bounds
 	 * @return the latitude and longitude in radians
 	 */
 	public abstract double[] inverse(double x, double y);
@@ -178,7 +192,7 @@ public abstract class Projection {
 	/**
 	 * convert a location on the globe to a location on the map plane
 	 * @param coords the latitude and longitude in radians
-	 * @return the x value and y value in the same units as this.width and this.height
+	 * @return the x value and y value in the same units as this.bounds
 	 */
 	public double[] project(double[] coords) {
 		return project(coords[0], coords[1]);
@@ -189,7 +203,7 @@ public abstract class Projection {
 	 * @param coords the absolute latitude and longitude in radians
 	 * @param pole the desired aspect: the latitude and longitude of the location that should appear as the North Pole
 	 *             and the angle to rotate the globe about its new axis
-	 * @return the x value and y value in the same units as this.width and this.height
+	 * @return the x value and y value in the same units as this.bounds
 	 */
 	public double[] project(double[] coords, double[] pole) {
 		return project(coords[0], coords[1], pole);
@@ -201,7 +215,7 @@ public abstract class Projection {
 	 * @param lon the absolute longitude in radians
 	 * @param pole the desired aspect: the latitude and longitude of the location that should appear as the North Pole
 	 *             and the angle to rotate the globe about its new axis
-	 * @return the x value and y value in the same units as this.width and this.height
+	 * @return the x value and y value in the same units as this.bounds
 	 */
 	public double[] project(double lat, double lon, double[] pole) {
 		return project(transformFromOblique(lat, lon, hasAspect ? pole : null));
@@ -209,7 +223,7 @@ public abstract class Projection {
 
 	/**
 	 * convert a location on the map plane to a location on the globe
-	 * @param coords the x and y value, in the same units as this.width and this.height
+	 * @param coords the x and y value, in the same units as this.bounds
 	 * @return the latitude and longitude in radians
 	 */
 	public double[] inverse(double[] coords) {
@@ -218,7 +232,7 @@ public abstract class Projection {
 
 	/**
 	 * convert a location on the map plane to a location on the rotated globe
-	 * @param coords the x and y value, in the same units as this.width and this.height
+	 * @param coords the x and y value, in the same units as this.bounds
 	 * @param pole the desired aspect: the latitude and longitude of the location that should appear as the North Pole
 	 *             and the angle to rotate the globe about its new axis
 	 * @return the latitude and longitude in radians
@@ -229,8 +243,8 @@ public abstract class Projection {
 
 	/**
 	 * convert a location on the map plane to a location on the rotated globe
-	 * @param x the x value in the same units as this.width
-	 * @param y the y value in the same units as this.height
+	 * @param x the x value in the same units as this.bounds
+	 * @param y the y value in the same units as this.bounds
 	 * @param pole the desired aspect: the latitude and longitude of the location that should appear as the North Pole
 	 *             and the angle to rotate the globe about its new axis
 	 * @return the latitude and longitude in radians
@@ -241,8 +255,8 @@ public abstract class Projection {
 
 	/**
 	 * convert a location on the map plane to a location on the rotated globe
-	 * @param x the x value in the same units as this.width
-	 * @param y the y value in the same units as this.height
+	 * @param x the x value in the same units as this.bounds
+	 * @param y the y value in the same units as this.bounds
 	 * @param pole the desired aspect: the latitude and longitude of the location that should appear as the North Pole
 	 *             and the angle to rotate the globe about its new axis
 	 * @param cropAtPi whether to forbid longitudes outside of [-π, π], returning NaN for any points that can only be
@@ -255,35 +269,72 @@ public abstract class Projection {
 	 */
 	public double[] inverse(double x, double y, double[] pole, boolean cropAtPi) {
 		final double[] relCoords = inverse(x, y);
-		if (relCoords == null || (cropAtPi && Math.abs(relCoords[1]) > Math.PI))
+		if (relCoords == null || (cropAtPi && abs(relCoords[1]) > PI))
 			return null; //cropAtPi removes all points with longitudes outside +- PI
 		else
 			return transformToOblique(relCoords, hasAspect ? pole : null);
 	}
-	
-	
+
+
+	/**
+	 * perform the inverse projection on a 2D array of points
+	 * @param size the maximum linear dimension of the 2D array
+	 * @return an array of latitude-longitude pairs, where each row is at a particular x value,
+	 *         and each column is at a particular y value.  y decreases with increasing row index.
+	 *         elements corresponding to points not on the map will be set to zero.
+	 */
 	public double[][][] map(int size) {
 		return map(size, false);
 	}
-	
+
+	/**
+	 * perform the inverse projection on a 2D array of points
+	 * @param size the maximum linear dimension of the 2D array
+	 * @param cropAtPi whether to insist that each point on the globe is included exactly once
+	 * @return an array of latitude-longitude pairs, where each row is at a particular x value,
+	 *         and each column is at a particular y value.  y decreases with increasing row index.
+	 *         elements corresponding to points not on the map will be set to zero.
+	 */
 	public double[][][] map(int size, boolean cropAtPi) {
 		return map(size, null, cropAtPi);
 	}
-	
+
+	/**
+	 * perform the inverse projection on a 2D array of points
+	 * @param size the maximum linear dimension of the 2D array
+	 * @param pole the aspect to use for the projection
+	 * @param cropAtPi whether to insist that each point on the globe is included exactly once
+	 * @return an array of latitude-longitude pairs, where each row is at a particular x value,
+	 *         and each column is at a particular y value.  y decreases with increasing row index.
+	 *         elements corresponding to points not on the map will be set to zero.
+	 */
 	public double[][][] map(int size, double[] pole, boolean cropAtPi) {
-		if (width >= height)
-			return map(size, Math.max(Math.round(size*height/width),1), pole, cropAtPi, null);
+		if (shape.width >= shape.width)
+			return map(size, Math.max(Math.round(size*shape.width/shape.width),1),
+			           pole, cropAtPi, null);
 		else
-			return map(Math.max(Math.round(size*width/height),1), size, pole, cropAtPi, null);
+			return map(Math.max(Math.round(size*shape.width/shape.width),1), size,
+			           pole, cropAtPi, null);
 	}
-	
+
+	/**
+	 * perform the inverse projection on a 2D array of points
+	 * @param w the number of columns in the 2D array
+	 * @param h the number of rows in the 2D array
+	 * @param pole the aspect to use for the projection
+	 * @param cropAtPi whether to insist that each point on the globe is included exactly once
+	 * @return an array of latitude-longitude pairs, where each row is at a particular x value,
+	 *         and each column is at a particular y value.  y decreases with increasing row index.
+	 *         elements corresponding to points not on the map will be set to zero.
+	 */
 	public double[][][] map(double w, double h, double[] pole, boolean cropAtPi,
 			DoubleConsumer tracker) { //generate a matrix of coordinates based on a map projection
 		final double[][][] output = new double[(int) h][(int) w][2];
 		for (int y = 0; y < h; y ++) {
 			for (int x = 0; x < w; x ++)
 				output[y][x] = inverse(
-						((x+0.5)/w-1/2.)*width, (1/2.-(y+0.5)/h)*height, pole, cropAtPi);
+						((x+0.5)/w-1/2.)*shape.width,
+						(1/2.-(y+0.5)/h)*shape.height, pole, cropAtPi);
 			if (tracker != null)
 				tracker.accept((double)y / (int)h);
 		}
@@ -292,7 +343,7 @@ public abstract class Projection {
 	
 	
 	/**
-	 * Create a series of paths that draw a graticule mesh
+	 * Create a series of paths that draw a graticule mesh, scaled into a rectangle so x in [0, outW] and y in [0, outH]
 	 * @param spacing The number of radians between each parallel or meridian
 	 * @param precision The maximum allowable distance from the true path
 	 * @param maxLat The maximum absolute value of latitude for any graticule curve
@@ -302,46 +353,53 @@ public abstract class Projection {
 	 * @param pole The aspect of this graticule
 	 * @return list of curves where each curve is a list of {x,y} arrays
 	 */
-	public Path drawGraticule(double spacing, double precision, double outW, double outH,
+	public List<Path.Command> drawGraticule(double spacing, double precision, double outW, double outH,
 			double maxLat, double maxLon, double[] pole) {
-		Path output = new Path();
+		List<Path.Command> output = new ArrayList<>();
 		
 		for (int y = 0; y < (int)(maxLat/spacing); y ++) {
 			output.addAll(drawLoxodrome( //northern parallel
-					 y*spacing,-maxLon, y*spacing, maxLon, precision, outW, outH, pole));
+					 y*spacing,-maxLon, y*spacing, maxLon, precision, pole));
 			if (y == 0) 	continue;
 			output.addAll(drawLoxodrome( //southern parallel
-					-y*spacing,-maxLon,-y*spacing, maxLon, precision, outW, outH, pole));
+					-y*spacing,-maxLon,-y*spacing, maxLon, precision, pole));
 		}
 		maxLat -= .0001; //don't draw on the poles; it makes things easier
 		for (int x = 0; x <= (int)(maxLon/spacing); x ++) {
 			output.addAll(drawLoxodrome( //western meridian
-					-maxLat,-x*spacing, maxLat,-x*spacing, precision, outW, outH, pole));
+					-maxLat,-x*spacing, maxLat,-x*spacing, precision, pole));
 			if (x == 0 || x == (int)(maxLon/spacing)) 	continue;
 			output.addAll(drawLoxodrome( //eastern meridian
-					-maxLat, x*spacing, maxLat, x*spacing, precision, outW, outH, pole));
+					-maxLat, x*spacing, maxLat, x*spacing, precision, pole));
 		}
-		
+
+		// rescale it to the desired bounding box
+		output = Path.translated(-this.shape.xMin, -this.shape.yMax, output);
+		output = Path.scaled(outW/this.shape.width, -outH/this.shape.height, output);
+
 		return output;
+	}
+
+
+	public List<Path.Command> drawLoxodrome(
+			double lat0, double lon0, double lat1, double lon1, double precision) {
+		return drawLoxodrome(lat0, lon0, lat1, lon1, precision, null);
 	}
 	
 	
-	private Path drawLoxodrome(double lat0, double lon0, double lat1, double lon1,
-			double precision, double outW, double outH, double[] pole) {
-		final double[][] baseRange = {{-width/2, height/2}, {width/2, -height/2}};
-		final double[][] imgRange = {{0, 0}, {outW, outH}}; //define some constants for changing coordinates
-		
+	public List<Path.Command> drawLoxodrome(
+			double lat0, double lon0, double lat1, double lon1, double precision, double[] pole) {
 		double[] endPt0 = new double[] {lat0, lon0};
 		double[] endPt1 = new double[] {lat1, lon1};
 		List<double[]> spherical = new ArrayList<double[]>(); //the spherical coordinates of the vertices
 		for (double a = 0; a <= 1; a += 1/32.) //populated with vertices along the loxodrome
-			spherical.add(new double[] {endPt0[0]*a+endPt1[0]*(1-a), endPt0[1]*a+endPt1[1]*(1-a)});
-		Path planar = new Path(); //the planar coordinates of the vertices
+			spherical.add(new double[] {endPt0[0]*(1-a)+endPt1[0]*a, endPt0[1]*(1-a)+endPt1[1]*a});
+		List<Path.Command> planar = new ArrayList<>(); //the planar coordinates of the vertices
 		for (int i = 0; i < spherical.size(); i ++) {
 			double[] si = spherical.get(i); //populated with projections of spherical, in image coordinates
-			double[] pi = Math2.linInterp(this.project(si, pole), baseRange, imgRange);
+			double[] pi = this.project(si, pole);
 			char type = (i == 0) ? 'M' : 'L';
-			planar.add(new Command(type, pi));
+			planar.add(new Path.Command(type, pi));
 		}
 		
 		Queue<double[]> queue = new LinkedList<double[]>(spherical.subList(0, spherical.size()-1));
@@ -352,23 +410,21 @@ public abstract class Projection {
 			double[] sm = new double[] {(s0[0]+s1[0])/2, (s0[1]+s1[1])/2}; //spherical (loxodromic) midpoint
 			double[] p0 = planar.get(i).args; //first planar endpoint
 			double[] p1 = planar.get(i+1).args; //second planar endpoint
-			if (Math2.outOfBoundsInSameDirection(imgRange, p0, p1)) // if we're talking about things entirely off the map
-				continue; // just forget about it
-			double[] pm = Math2.linInterp(this.project(sm, pole), baseRange, imgRange); //planar (loxodromic) midpoint
+			double[] pm = this.project(sm, pole); //planar (loxodromic) midpoint
 			
-			double error = Math.hypot(pm[0] - (p0[0] + p1[0])/2, pm[1] - (p0[1] + p1[1])/2); // midpoint error
+			double error = hypot(pm[0] - (p0[0] + p1[0])/2, pm[1] - (p0[1] + p1[1])/2); // midpoint error
 			if (error > precision) { //if the calculated midpoint is too far from what we expect
-				if ((i-1 < 0 || Math2.hypot(planar.get(i-1).args, p0) <= precision) &&
-						(i+2 >= planar.size() || Math2.hypot(planar.get(i+2).args, p1) <= precision)) { // check if it's getting real close on each side
-					planar.set(i+1, new Command('M', p1)); // if so, it's probably an interruption. Change the second one to 'M'.
+				if ((i-1 < 0 || hypot(planar.get(i-1).args, p0) <= precision) &&
+						(i+2 >= planar.size() || hypot(planar.get(i+2).args, p1) <= precision)) { // check if it's getting real close on each side
+					planar.set(i+1, new Path.Command('M', p1)); // if so, it's probably an interruption. Change the second one to 'M'.
 					continue;
 				}
-				else if (Math.hypot(s1[0] - s0[0], s1[1] - s0[1]) < 1e-4) { // alternatively, if we're getting to arcsecond scale,
-					planar.set(i+1, new Command('M', p1)); // it's just not worth it
+				else if (hypot(s1[0] - s0[0], s1[1] - s0[1]) < 1e-4) { // alternatively, if we're getting to arcsecond scale,
+					planar.set(i+1, new Path.Command('M', p1)); // it's just not worth it
 					continue;
 				}
 				spherical.add(i+1, sm); //if there's still work to do, add the midpoint to the curve
-				planar.add(i+1, new Command('L', pm));
+				planar.add(i+1, new Path.Command('L', pm));
 				queue.add(s0); //and see if you need to recurse this at all
 				queue.add(sm);
 			}
@@ -380,8 +436,8 @@ public abstract class Projection {
 	
 	public static double[][][] globe(double dt) { //generate a matrix of coordinates based on the sphere
 		List<double[]> points = new ArrayList<double[]>();
-		for (double phi = -Math.PI/2+dt/2; phi < Math.PI/2; phi += dt) { // make sure phi is never exactly +-tau/4
-			for (double lam = -Math.PI+dt/Math.cos(phi)/2; lam < Math.PI; lam += dt/Math.cos(phi)) {
+		for (double phi = -PI/2+dt/2; phi < PI/2; phi += dt) { // make sure phi is never exactly +-tau/4
+			for (double lam = -PI+dt/cos(phi)/2; lam < PI; lam += dt/cos(phi)) {
 				points.add(new double[] {phi, lam});
 			}
 		}
@@ -391,8 +447,8 @@ public abstract class Projection {
 	
 	public static double[][][] hemisphere(double dt) { //like globe(), but for the eastern hemisphere. Good for doing projections that are symmetrical in longitude (i.e. pretty much all of them)
 		List<double[]> points = new ArrayList<double[]>();
-		for (double phi = -Math.PI/2+dt/2; phi < Math.PI/2; phi += dt) { // make sure phi is never exactly +-tau/4
-			for (double lam = dt/Math.cos(phi)/2; lam < Math.PI; lam += dt/Math.cos(phi)) {
+		for (double phi = -PI/2+dt/2; phi < PI/2; phi += dt) { // make sure phi is never exactly +-tau/4
+			for (double lam = dt/cos(phi)/2; lam < PI; lam += dt/cos(phi)) {
 				points.add(new double[] {phi, lam});
 			}
 		}
@@ -407,7 +463,7 @@ public abstract class Projection {
 	
 	public double[] avgDistortion(double[][][] points) {
 		final double[][][] distDist = calculateDistortion(points);
-		return new double[] {Math2.stdDev(distDist[0]), Math2.rms(distDist[1])};
+		return new double[] {stdDev(distDist[0]), rms(distDist[1])};
 	}
 	
 	
@@ -429,13 +485,13 @@ public abstract class Projection {
 					output[1][y][x] = dists[1]; //area and angular distortion
 				}
 				else {
-					output[0][y][x] = Double.NaN;
-					output[1][y][x] = Double.NaN; //NaN means no map here
+					output[0][y][x] = NaN;
+					output[1][y][x] = NaN; //NaN means no map here
 				}
 			}
 		}
 		
-		final double avgArea = Math2.mean(output[0]); //don't forget to normalize output[0] so the average is zero
+		final double avgArea = mean(output[0]); //don't forget to normalize output[0] so the average is zero
 		for (int y = 0; y < output[0].length; y ++)
 			for (int x = 0; x < output[0][y].length; x ++)
 				output[0][y][x] -= avgArea;
@@ -449,7 +505,7 @@ public abstract class Projection {
 		final double dx = 1e-8;
 		
 		final double[] sC = { s0[0]+dx, s0[1] }; //first, step to the side a bit to help us avoid interruptions
-		final double[] sE = { sC[0], sC[1]+dx/Math.cos(sC[0]) }; //consider a point slightly to the east
+		final double[] sE = { sC[0], sC[1]+dx/cos(sC[0]) }; //consider a point slightly to the east
 		final double[] sN = { sC[0]+dx, sC[1] }; //and slightly to the north
 		final double[] pC = project(sC);
 		final double[] pE = project(sE);
@@ -457,15 +513,15 @@ public abstract class Projection {
 		
 		final double dA = 
 				(pE[0]-pC[0])*(pN[1]-pC[1]) - (pE[1]-pC[1])*(pN[0]-pC[0]);
-		output[0] = Math.log(Math.abs(dA/(dx*dx))); //the zeroth output is the size (area) distortion
-		if (Math.abs(output[0]) > 25)
-			output[0] = Double.NaN; //discard outliers
+		output[0] = log(abs(dA/(dx*dx))); //the zeroth output is the size (area) distortion
+		if (abs(output[0]) > 25)
+			output[0] = NaN; //discard outliers
 		
-		final double s1ps2 = Math.hypot((pE[0]-pC[0])+(pN[1]-pC[1]), (pE[1]-pC[1])-(pN[0]-pC[0]));
-		final double s1ms2 = Math.hypot((pE[0]-pC[0])-(pN[1]-pC[1]), (pE[1]-pC[1])+(pN[0]-pC[0]));
-		output[1] = Math.abs(Math.log(Math.abs((s1ps2-s1ms2)/(s1ps2+s1ms2)))); //the first output is the shape (angle) distortion
+		final double s1ps2 = hypot((pE[0]-pC[0])+(pN[1]-pC[1]), (pE[1]-pC[1])-(pN[0]-pC[0]));
+		final double s1ms2 = hypot((pE[0]-pC[0])-(pN[1]-pC[1]), (pE[1]-pC[1])+(pN[0]-pC[0]));
+		output[1] = abs(log(abs((s1ps2-s1ms2)/(s1ps2+s1ms2)))); //the first output is the shape (angle) distortion
 		if (output[1] > 25)
-			output[1] = Double.NaN; //discard outliers
+			output[1] = NaN; //discard outliers
 		
 		return output;
 	}
@@ -487,32 +543,32 @@ public abstract class Projection {
 		final double tht0 = pole[2];
 		
 		double lat1;
-		if (lat0 == Math.PI/2)
+		if (lat0 == PI/2)
 			lat1 = latF;
 		else
-			lat1 = Math.asin(Math.sin(lat0)*Math.sin(latF) + Math.cos(lat0)*Math.cos(latF)*Math.cos(lon0-lonF)); // relative latitude
+			lat1 = asin(sin(lat0)*sin(latF) + cos(lat0)*cos(latF)*cos(lon0-lonF)); // relative latitude
 		
 		double lon1;
-		if (lat0 == Math.PI/2) // accounts for all the 0/0 errors at the poles
+		if (lat0 == PI/2) // accounts for all the 0/0 errors at the poles
 			lon1 = lonF - lon0;
-		else if (lat0 == -Math.PI/2)
-			lon1 = lon0 - lonF - Math.PI;
+		else if (lat0 == -PI/2)
+			lon1 = lon0 - lonF - PI;
 		else {
-			lon1 = Math.acos((Math.cos(lat0)*Math.sin(latF) - Math.sin(lat0)*Math.cos(latF)*Math.cos(lon0-lonF))/Math.cos(lat1))-Math.PI; // relative longitude
-			if (Double.isNaN(lon1)) {
-				if ((Math.cos(lon0-lonF) >= 0 && latF < lat0) || (Math.cos(lon0-lonF) < 0 && latF < -lat0))
+			lon1 = acos((cos(lat0)*sin(latF) - sin(lat0)*cos(latF)*cos(lon0-lonF))/cos(lat1))-PI; // relative longitude
+			if (isNaN(lon1)) {
+				if ((cos(lon0-lonF) >= 0 && latF < lat0) || (cos(lon0-lonF) < 0 && latF < -lat0))
 					lon1 = 0;
 				else
-					lon1 = -Math.PI;
+					lon1 = -PI;
 			}
-			else if (Math.sin(lonF - lon0) > 0) // it's a plus-or-minus arccos.
+			else if (sin(lonF - lon0) > 0) // it's a plus-or-minus arccos.
 				lon1 = -lon1;
 		}
 		lon1 = lon1-tht0;
-		if (Math.abs(lon1) > Math.PI) //put all longitudes in [-pi,pi], for convenience
-			lon1 = Math2.coerceAngle(lon1);
-		if (lon1 >= Math.PI - 1e-7) // finally, kill any roundoff error on the edge
-			lon1 = -Math.PI;
+		if (abs(lon1) > PI) //put all longitudes in [-pi,pi], for convenience
+			lon1 = coerceAngle(lon1);
+		if (lon1 >= PI - 1e-7) // finally, kill any roundoff error on the edge
+			lon1 = -PI;
 		
 		return new double[] {lat1, lon1};
 	}
@@ -532,26 +588,26 @@ public abstract class Projection {
 		final double lat0 = pole[0], lon0 = pole[1], tht0 = pole[2];
 		
 		lon1 += tht0;
-		double latf = Math.asin(Math.sin(lat0)*Math.sin(lat1) - Math.cos(lat0)*Math.cos(lon1)*Math.cos(lat1));
+		double latf = asin(sin(lat0)*sin(lat1) - cos(lat0)*cos(lon1)*cos(lat1));
 		double lonf;
-		double innerFunc = Math.sin(lat1)/Math.cos(lat0)/Math.cos(latf) - Math.tan(lat0)*Math.tan(latf);
-		if (lat0 == Math.PI/2) // accounts for special case when lat0 = pi/2
+		double innerFunc = sin(lat1)/cos(lat0)/cos(latf) - tan(lat0)*tan(latf);
+		if (lat0 == PI/2) // accounts for special case when lat0 = pi/2
 			lonf = lon1+lon0;
-		else if (lat0 == -Math.PI/2) // accounts for special case when lat0 = -pi/2
-			lonf = -lon1+lon0 + Math.PI;
-		else if (Math.abs(innerFunc) > 1) { // accounts for special case when cos(lat1) -> 0
+		else if (lat0 == -PI/2) // accounts for special case when lat0 = -pi/2
+			lonf = -lon1+lon0 + PI;
+		else if (abs(innerFunc) > 1) { // accounts for special case when cos(lat1) -> 0
 			if ((lon1 == 0 && lat1 < -lat0) || (lon1 != 0 && lat1 < lat0))
-				lonf = lon0 + Math.PI;
+				lonf = lon0 + PI;
 			else
 				lonf = lon0;
 		}
-		else if (Math.sin(lon1) > 0)
-			lonf = lon0 + Math.acos(innerFunc);
+		else if (sin(lon1) > 0)
+			lonf = lon0 + acos(innerFunc);
 		else
-			lonf = lon0 - Math.acos(innerFunc);
+			lonf = lon0 - acos(innerFunc);
 		
-		if (Math.abs(lonf) > Math.PI)
-			lonf = Math2.coerceAngle(lonf);
+		if (abs(lonf) > PI)
+			lonf = coerceAngle(lonf);
 		
 		double thtf = pole[2];
 		
@@ -640,7 +696,7 @@ public abstract class Projection {
 	/**
 	 * @return the rating:
 	 * 0 if I hate it with a burning passion;
-	 * 1 if it is bad and you shouldn't use it;;
+	 * 1 if it is bad and you shouldn't use it;
 	 * 2 if it has its use cases but isn't very good outside of them;
 	 * 3 if it is a solid, defensible choice; and
 	 * 4 if I love it with a burning passion.
@@ -648,30 +704,13 @@ public abstract class Projection {
 	public final int getRating() {
 		return this.rating;
 	}
-	
-	public final double getWidth() {
-		return this.width;
-	}
-	
-	public final double getHeight() {
-		return this.height;
-	}
-	
-	public final double getAspectRatio() {
-		return this.width/this.height;
-	}
-	
-	public final double getSize() {
-		return Math.max(this.width, this.height);
-	}
-	
-	public final boolean isLandscape() {
-		return this.width > this.height;
+
+	public final Shape getShape() {
+		return this.shape;
 	}
 
-
-	public static final Projection NULL_PROJECTION = //this exists solely for the purpose of a "More..." option at the end of menus
-			new Projection("More...", null, 0, 0, 0, null, null, 0) {
+	public static final Projection NULL_PROJECTION = //this exists solely for the purpose of a "More..." option at the end of menus.  ah, if only enums were as powerful in Java as they are in Rust.
+			new Projection("More...", null, null, 0, null, null, 0) {
 		
 		public double[] project(double lat, double lon) {
 			return null;

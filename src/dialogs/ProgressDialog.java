@@ -35,6 +35,8 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 
+import static java.lang.Math.round;
+
 public class ProgressDialog<V> extends Dialog<V> {
 	
 	private static final double BAR_WIDTH = 250;
@@ -66,7 +68,7 @@ public class ProgressDialog<V> extends Dialog<V> {
 		this.bar.setPrefWidth(BAR_WIDTH);
 		this.bar.progressProperty().addListener((old, now, observable) -> { //update the percentage text whenever the progress changes{
 			if (now.doubleValue() >= 0) {
-				String percentage = (Math.round(1000*now.doubleValue())/10.0)+"%";
+				String percentage = (round(1000*now.doubleValue())/10.0)+"%";
 				this.words.setText(percentage);
 				this.setTitle("Please wait - "+percentage);
 			}

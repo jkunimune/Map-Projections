@@ -25,6 +25,19 @@ package maps;
 
 import maps.Projection.Property;
 import maps.Projection.Type;
+import utils.Shape;
+
+import static java.lang.Math.PI;
+import static java.lang.Math.acos;
+import static java.lang.Math.asin;
+import static java.lang.Math.cos;
+import static java.lang.Math.hypot;
+import static java.lang.Math.pow;
+import static java.lang.Math.signum;
+import static java.lang.Math.sin;
+import static java.lang.Math.sqrt;
+import static java.lang.Math.tan;
+import static java.lang.Math.toRadians;
 
 /**
  * All of the projections I invented, save the tetrahedral ones, because
@@ -36,40 +49,43 @@ public class MyProjections {
 
 	public static final Projection TWO_POINT_EQUALIZED = new Projection("Two-Point Equalised",
 			"A projection I invented specifically for viewing small elliptical regions of the Earth.",
-			0, 0, 0b1111, Type.OTHER, Property.EQUIDISTANT, 2,
+			null, 0b1111, Type.OTHER, Property.EQUIDISTANT, 2,
 			new String[] {"Width"}, new double[][] { {0, 180, 120} }) {
 		
 		private double theta;
 		
 		public void initialize(double... params) {
-			theta = Math.toRadians(params[0])/2;
-			this.height = 2*Math.PI - 2*theta; //major axis
-			this.width = 2*Math.sqrt(Math.pow(Math.PI-theta, 2) - Math.pow(theta, 2)) *
-					Math.sqrt(Math.tan(theta)/theta); //minor axis
-			if (theta == 0)
-				this.width = this.height = 2*Math.PI;
+			theta = toRadians(params[0])/2;
+			if (theta != 0)
+				this.shape = Shape.ellipse(
+						sqrt(pow(PI - theta, 2) - pow(theta, 2))*
+						sqrt(tan(theta)/theta), //minor axis
+						PI - theta //major axis
+				);
+			else
+				this.shape = Shape.circle(PI);
 		}
 		
 		public double[] project(double lat, double lon) {
 			if (theta == 0) 	return Azimuthal.POLAR.project(lat, lon);
-			final double d1 = Math.acos(
-					Math.sin(lat)*Math.cos(theta) - Math.cos(lat)*Math.sin(theta)*Math.cos(lon));
-			final double d2 = Math.acos(
-					Math.sin(lat)*Math.cos(theta) + Math.cos(lat)*Math.sin(theta)*Math.cos(lon));
-			final double k = Math.signum(lon)*Math.sqrt(Math.tan(theta)/theta);
+			final double d1 = acos(
+					sin(lat)*cos(theta) - cos(lat)*sin(theta)*cos(lon));
+			final double d2 = acos(
+					sin(lat)*cos(theta) + cos(lat)*sin(theta)*cos(lon));
+			final double k = signum(lon)*sqrt(tan(theta)/theta);
 			return new double[] {
-					k*Math.sqrt(d1*d1 - Math.pow((d1*d1-d2*d2+4*theta*theta)/(4*theta), 2)),
+					k*sqrt(d1*d1 - pow((d1*d1-d2*d2+4*theta*theta)/(4*theta), 2)),
 					(d2*d2-d1*d1)/(4*theta) };
 		}
 		
 		public double[] inverse(double x, double y) {
 			if (theta == 0) 	return Azimuthal.POLAR.inverse(x, y);
-			final double d1 = Math.hypot(x/Math.sqrt(Math.tan(theta)/theta), y - theta);
-			final double d2 = Math.hypot(x/Math.sqrt(Math.tan(theta)/theta), y + theta);
-			if (d1 + d2 > height) 	return null;
-			final double phi = Math.asin((Math.cos(d1)+Math.cos(d2))/(2*Math.cos(theta)));
-			final double lam = Math.signum(x)*Math.acos(
-					(Math.sin(phi)*Math.cos(theta) - Math.cos(d1))/(Math.cos(phi)*Math.sin(theta)));
+			final double d1 = hypot(x/sqrt(tan(theta)/theta), y - theta);
+			final double d2 = hypot(x/sqrt(tan(theta)/theta), y + theta);
+			if (d1 + d2 > 2*shape.yMax) 	return null;
+			final double phi = asin((cos(d1)+cos(d2))/(2*cos(theta)));
+			final double lam = signum(x)*acos(
+					(sin(phi)*cos(theta) - cos(d1))/(cos(phi)*sin(theta)));
 			return new double[] { phi, lam };
 		}
 	};

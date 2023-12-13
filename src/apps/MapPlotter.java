@@ -61,6 +61,8 @@ import maps.Projection;
 import maps.Pseudocylindrical;
 import maps.WinkelTripel;
 
+import static java.lang.Math.log;
+
 /**
  * A simple script that creates an annotated ScatterPlot of map projections
  * 
@@ -68,7 +70,7 @@ import maps.WinkelTripel;
  */
 public class MapPlotter extends Application {
 
-	private static final double DECIBEL = Math.log(10)/10;
+	private static final double DECIBEL = log(10)/10;
 	
 	private static final double GLOBE_RES = .005;
 	
@@ -80,11 +82,11 @@ public class MapPlotter extends Application {
 			ArbitraryPseudocylindrical.ROBINSON, ArbitraryPseudocylindrical.NATURAL_EARTH,
 			Pseudocylindrical.KAVRAYSKIY_VII, EqualEarth.EQUAL_EARTH };
 	private static final Projection[] LENTICULAR = {Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN,
-	                                                WinkelTripel.WINKEL_TRIPEL, Danseiji.DANSEIJI_N, Danseiji.DANSEIJI_I,
+	                                                WinkelTripel.WINKEL_TRIPEL, Danseiji.DANSEIJI_N, Danseiji.DANSEIJI_I, // TODO: ELASTIK
 	                                                Danseiji.DANSEIJI_II, Gyorffy.E, Gyorffy.F };
 	private static final Projection[] TETRAHEDRAL = { Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
 			Polyhedral.AUTHAGRAPH, Polyhedral.VAN_LEEUWEN };
-	private static final Projection[] CHEATY = {Pseudocylindrical.LEMONS, Octohedral.KEYES_STANDARD,
+	private static final Projection[] CHEATY = {Misc.LEMONS, Octohedral.KEYES_STANDARD,
 	                                            Polyhedral.DYMAXION, Octohedral.CAHILL_CONCIALDI, Danseiji.DANSEIJI_IV,
 	                                            Pseudocylindrical.HOMOLOSINE_INTERRUPTED };
 	private static final Projection[] OTHER = { Misc.PEIRCE_QUINCUNCIAL };

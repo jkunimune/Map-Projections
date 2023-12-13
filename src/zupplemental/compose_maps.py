@@ -5,7 +5,7 @@ import math
 import re
 
 from generate_political_shapes import plot_political_shapes
-from generate_graticule import generate_graticule, generate_backdrop
+from generate_graticule import generate_graticule
 from generate_indicatrices import generate_indicatrices
 from generate_orthodromes import generate_orthodromes
 from generate_shapes import plot_shapes
@@ -30,18 +30,9 @@ def main():
 	write_svg_code_to_file(
 		"../../input/Graticule.svg",
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
+		'		<rect class="border" x="-180" y="-90" width="360" height="180" />\n'
 		'		<g class="graticule">\n'
 		+ generate_graticule(5, 1, include_tropics=True, adjust_poles=True) +
-		'		</g>\n'
-		'	</g>\n'
-	)
-
-	# graticule2
-	write_svg_code_to_file(
-		"../../input/Graticule.svg",
-		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
-		'		<g class="graticule">\n'
-		+ generate_graticule(5, 1, include_tropics=True, adjust_poles=True, double_dateline=True) +
 		'		</g>\n'
 		'	</g>\n'
 	)
@@ -49,8 +40,8 @@ def main():
 	# compound
 	write_svg_code_to_file(
 		"../../input/Compound.svg",
-		'	<rect class="water" width="100%" height="100%" />\n'
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
+		'		<rect class="water" x="-180" y="-90" width="360" height="180" />\n'
 		'		<g class="land">\n'
 		+ plot_shapes('ne_50m_land', trim_antarctica=True, mark_antarctica=True) +
 		'		</g>\n'
@@ -63,21 +54,22 @@ def main():
 		'		<g class="graticule">\n'
 		+ generate_graticule(15, 1, include_tropics=True, adjust_poles=True) +
 		'		</g>\n'
+		'		<rect class="graticule prime-m" x="-180" y="-90" width="360" height="180" />\n'
 		'	</g>\n'
 	)
 
 	# indicatrices
 	write_svg_code_to_file(
 		"../../input/Tissot.svg",
-		'	<rect class="water" width="100%" height="100%" />\n'
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
+		'		<rect class="ocean" x="-180" y="-90" width="360" height="180" />\n'
 		'		<g class="land">\n'
 		+ plot_shapes('ne_50m_land', trim_antarctica=True) +
 		'		</g>\n'
 		'		<g class="lakes">\n'
 		+ plot_shapes('ne_50m_lakes', max_rank=4) +
 		'		</g>\n'
-		'		<g class="tissot">\n'
+		'		<g class="indicatrix">\n'
 		+ generate_indicatrices(15, math.radians(3.75), resolution=180, adjust_poles=True) +
 		'		</g>\n'
 		'	</g>\n'
@@ -88,9 +80,7 @@ def main():
 		write_svg_code_to_file(
 			f"../../input/Advanced/Tissot Wikipedia {ctr_meridian:+.0f}.svg",
 			'	<g transform="matrix(1,0,0,-1,180,90)">\n'
-			'		<g class="water">\n'
-			+ generate_backdrop(.5, ctr_meridian=ctr_meridian) +
-			'		</g>\n'
+			'		<rect class="ocean" x="-180" y="-90" width="360" height="180" />\n'
 			'		<g class="land">\n'
 			+ plot_shapes('ne_110m_land', flesh_out_antarctica=True) +
 			'		</g>\n'
@@ -98,9 +88,9 @@ def main():
 			+ plot_shapes('ne_110m_lakes') +
 			'		</g>\n'
 			'		<g class="graticule">\n'
-			+ generate_graticule(10, .5, double_dateline=(ctr_meridian == 0)) +
+			+ generate_graticule(10, .5) +
 			'		</g>\n'
-			'		<g class="tissot">\n'
+			'		<g class="indicatrix">\n'
 			+ generate_indicatrices(30, 500/6371, ctr_meridian=ctr_meridian,
 			                        adjust_poles=True, resolution=120, side_res=5, pole_res=120) +
 			'		</g>\n'
@@ -112,6 +102,7 @@ def main():
 		"../../input/Orthodromes.svg",
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
 		'		<g class="lines">\n'
+		'		<rect x="-180" y="-90" width="360" height="180" />\n'
 		+ generate_orthodromes() +
 		'		</g>\n'
 		'	</g>\n'
@@ -134,7 +125,6 @@ def main():
 	# political template (countries)
 	write_svg_code_to_file(
 		"../../input/Advanced/Template countries.svg",
-		'	<rect class="water" width="100%" height="100%" />\n'
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
 		'		<g class="country">\n'
 		+ plot_political_shapes('ne_110m_admin_0_countries', trim_antarctica=True, add_title=True,
@@ -154,7 +144,6 @@ def main():
 	# political template (provinces)
 	write_svg_code_to_file(
 		"../../input/Advanced/Template provinces.svg",
-		'	<rect class="water" width="100%" height="100%" />\n'
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
 		'		<g class="province">\n'
 		+ plot_political_shapes('ne_10m_admin_1_states_provinces', trim_antarctica=True, add_title=True) +
@@ -171,8 +160,8 @@ def main():
 	# everything
 	write_svg_code_to_file(
 		"../../input/Advanced/Supermap.svg",
-		'	<rect class="water" width="100%" height="100%" />\n'
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
+		'		<rect class="water" x="-180" y="-90" width="360" height="180" />\n'
 		'		<g class="country">\n'
 		+ plot_political_shapes('ne_10m_admin_0_countries', trim_antarctica=True, mode="normal") +
 		'		</g>\n'

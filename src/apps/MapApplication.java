@@ -23,17 +23,6 @@
  */
 package apps;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.BooleanSupplier;
-import java.util.function.DoubleUnaryOperator;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
 import dialogs.ProgressDialog;
 import dialogs.ProjectionSelectionDialog;
 import image.SavableImage;
@@ -75,11 +64,11 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.converter.DoubleStringConverter;
-import maps.Danseiji;
 import maps.ArbitraryPseudocylindrical;
 import maps.Azimuthal;
 import maps.Conic;
 import maps.Cylindrical;
+import maps.Danseiji;
 import maps.Elastic;
 import maps.EqualEarth;
 import maps.Gyorffy;
@@ -94,9 +83,25 @@ import maps.Snyder;
 import maps.Tobler;
 import maps.WinkelTripel;
 import utils.Flag;
-import utils.Math2;
 import utils.MutableDouble;
 import utils.Procedure;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleUnaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+import static java.lang.Math.asin;
+import static java.lang.Math.random;
+import static java.lang.Math.toDegrees;
+import static java.lang.Math.toRadians;
+import static utils.Math2.round;
 
 
 /**
@@ -126,7 +131,7 @@ public abstract class MapApplication extends Application {
 			Lenticular.VAN_DER_GRINTEN, ArbitraryPseudocylindrical.ROBINSON,
 			WinkelTripel.WINKEL_TRIPEL, EqualEarth.EQUAL_EARTH,
 			Octohedral.KEYES_BASIC_M, Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Misc.PEIRCE_QUINCUNCIAL,
-			Pseudocylindrical.LEMONS };
+			Misc.LEMONS };
 
 	public static final String[] PROJECTION_CATEGORIES = { "Cylindrical", "Azimuthal", "Conic",
 			"Tetrahedral", "Polyhedral", "Pseudocylindrical", "Lenticular", "Other", "Invented by Justin" }; //the overarching categories by which I organise my projections
@@ -140,33 +145,32 @@ public abstract class MapApplication extends Application {
 			{ Conic.ALBERS, Misc.BRAUN_CONIC, Conic.LAMBERT, Conic.EQUIDISTANT },
 			{ Polyhedral.AUTHAGRAPH, Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
 			  Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR, Polyhedral.VAN_LEEUWEN },
-			{ Octohedral.CONFORMAL_CAHILL, Octohedral.CAHILL_CONCIALDI, Octohedral.KEYES_STANDARD,
-			  Octohedral.KEYES_BASIC_M, Octohedral.KEYES_OCTANT, Polyhedral.DYMAXION,
-			  Octohedral.WATERMAN },
+			{ Octohedral.CONFORMAL_CAHILL_BUTTERFLY, Octohedral.CAHILL_CONCIALDI,
+			  Octohedral.KEYES_STANDARD, Octohedral.KEYES_BASIC_M, Octohedral.KEYES_OCTANT,
+			  Polyhedral.DYMAXION, Octohedral.WATERMAN },
 			{ Pseudocylindrical.ECKERT_IV, EqualEarth.EQUAL_EARTH,
 			  Pseudocylindrical.HOMOLOSINE_INTERRUPTED, Pseudocylindrical.HOMOLOSINE,
-			  Gyorffy.C, Gyorffy.D, Pseudocylindrical.KAVRAYSKIY_VII, Pseudocylindrical.MOLLWEIDE,
+			  Gyorffy.B, Gyorffy.D, Pseudocylindrical.KAVRAYSKIY_VII, Pseudocylindrical.MOLLWEIDE,
 			  ArbitraryPseudocylindrical.ROBINSON, Pseudocylindrical.SINUSOIDAL,
 			  Tobler.TOBLER, Pseudocylindrical.WAGNER_II, Pseudocylindrical.WAGNER_V },
 			{ Lenticular.AITOFF, Lenticular.POLYCONIC, Lenticular.EISENLOHR, Gyorffy.E, Gyorffy.F,
 			  Lenticular.HAMMER, Lenticular.LAGRANGE, Lenticular.STREBE_95,
 			  Lenticular.VAN_DER_GRINTEN, Lenticular.WAGNER_VIII, WinkelTripel.WINKEL_TRIPEL },
-			{ Misc.BONNE, Snyder.GS50, Misc.GUYOU, Misc.HAMMER_RETROAZIMUTHAL,
-			  Pseudocylindrical.LEMONS, Misc.PEIRCE_QUINCUNCIAL, Misc.T_SHIRT,
-			  Misc.TWO_POINT_EQUIDISTANT, Misc.FLAT_EARTH },
+			{ Misc.BONNE, Misc.CASSINI, Snyder.GS50, Misc.GUYOU, Misc.HAMMER_RETROAZIMUTHAL,
+			  Misc.LEMONS, Misc.PEIRCE_QUINCUNCIAL, Misc.T_SHIRT, Misc.TWO_POINT_EQUIDISTANT,
+			  Misc.FLAT_EARTH },
 			{ Elastic.ELASTIC_I, Elastic.ELASTIC_II, Elastic.ELASTIC_III,
 			  Danseiji.DANSEIJI_N, Danseiji.DANSEIJI_I, Danseiji.DANSEIJI_II, Danseiji.DANSEIJI_III,
 			  Danseiji.DANSEIJI_IV, Danseiji.DANSEIJI_V, Danseiji.DANSEIJI_VI,
-			  Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH, Polyhedral.TETRAGRAPH,
-			  MyProjections.TWO_POINT_EQUALIZED } };
+			  Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH, Polyhedral.TETRAGRAPH } };
 	
-	private static final String[] ASPECT_NAMES = { "Normal", "Transverse", "Cassini", "Atlantis",
-			"Jerusalem", "Point Nemo", "Longest Line", "Cylindrical", "Tetrahedral", "Antipode",
-			"Random" };
-	private static final double[][] ASPECT_VALS = { //the aspect presets (in degrees)
-			{ 90., 0.,  0.,  -4., 31.78, 48.88, -28.52,  35.,   57. },
-			{  0., 0., 90.,  65., 35.22, 56.61, 141.45, 166.5,-175.5 },
-			{  0., 0.,-90.,-147.,-35.,  -45.,    30.,  -145.,  154. } };
+	private static final String[] ASPECT_NAMES = {
+			"Normal", "Transverse", "Atlantis", "Jerusalem", "Point Nemo", "Longest Line",
+			"Cylindrical", "Tetrahedral", "Antipode", "Random" };
+	private static final double[][] ASPECT_VALUES = { //the aspect presets (in degrees)
+			{ 90.,  0.,  -4., 31.78, 48.88, -28.52,  35.,   57. },
+			{  0., 90.,  65., 35.22, 56.61, 141.45, 166.5,-175.5 },
+			{  0.,-90.,-147.,-35.,  -45.,    30.,  -145.,  154. } };
 	
 	
 	private final Map<ButtonType, Button> buttons = new HashMap<ButtonType, Button>();
@@ -321,7 +325,7 @@ public abstract class MapApplication extends Application {
 		spinners[2] = new Spinner<Double>(-180, 180, 0.);
 		
 		for (int i = 0; i < 3; i ++) {
-			aspectArr[i] = Math.toRadians(sliders[i].getValue());
+			aspectArr[i] = toRadians(sliders[i].getValue());
 			link(sliders[i], spinners[i], i, aspectArr, Math::toRadians,
 					aspectSetter, isChanging, suppressListeners);
 		}
@@ -333,7 +337,7 @@ public abstract class MapApplication extends Application {
 					setAspectByPreset(((MenuItem) event.getSource()).getText(),
 							sliders);
 					for (int i = 0; i < 3; i ++)
-						aspectArr[i] = Math.toRadians(sliders[i].getValue());
+						aspectArr[i] = toRadians(sliders[i].getValue());
 					if (!suppressListeners.isSet())
 						aspectSetter.execute();
 				});
@@ -417,7 +421,7 @@ public abstract class MapApplication extends Application {
 		final ObservableList<Double> factorsOf90 = FXCollections.observableArrayList();
 		for (double f = 1; f <= 90; f += 0.5)
 			if (90%f == 0)
-				factorsOf90.add((double)f);
+				factorsOf90.add(f);
 		final Spinner<Double> gratSpinner = new Spinner<Double>(factorsOf90); //spinner for the graticule value
 		gratSpinner.getValueFactory().setConverter(new DoubleStringConverter());
 		gratSpinner.getValueFactory().setValue(15.);
@@ -609,15 +613,15 @@ public abstract class MapApplication extends Application {
 			sliders[2].setValue(-sliders[2].getValue());
 		}
 		else if (presetName.equals("Random")) {
-			sliders[0].setValue(Math.toDegrees(Math.asin(Math.random()*2-1)));
-			sliders[1].setValue(Math.random()*360-180);
-			sliders[2].setValue(Math.random()*360-180);
+			sliders[0].setValue(toDegrees(asin(random()*2-1)));
+			sliders[1].setValue(random()*360-180);
+			sliders[2].setValue(random()*360-180);
 		}
 		else {
 			for (int i = 0; i < ASPECT_NAMES.length; i ++) {
 				if (ASPECT_NAMES[i].equals(presetName)) {
 					for (int j = 0; j < 3; j ++)
-						sliders[j].setValue(ASPECT_VALS[j][i]);
+						sliders[j].setValue(ASPECT_VALUES[j][i]);
 					break;
 				}
 			}
@@ -659,7 +663,7 @@ public abstract class MapApplication extends Application {
 				if (!now) {
 					if (spn.getValue() != sld.getValue())
 						spn.getValueFactory().setValue(sld.getValue());
-					doubles[i] = converter.applyAsDouble(Math2.round(sld.getValue(),3));
+					doubles[i] = converter.applyAsDouble(round(sld.getValue(),3));
 					if (!suppressListeners.isSet())
 						callback.execute();
 				}
@@ -667,7 +671,7 @@ public abstract class MapApplication extends Application {
 		sld.valueProperty().addListener((observable, prev, now) -> {
 				if (spn.getValue() != sld.getValue())
 					spn.getValueFactory().setValue(sld.getValue());
-				doubles[i] = converter.applyAsDouble(Math2.round(now.doubleValue(),3));
+				doubles[i] = converter.applyAsDouble(round(now.doubleValue(),3));
 				if (!suppressListeners.isSet())
 					callback.execute();
 			});

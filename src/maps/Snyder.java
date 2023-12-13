@@ -26,6 +26,14 @@ package maps;
 import de.jtem.mfc.field.Complex;
 import maps.Projection.Property;
 import maps.Projection.Type;
+import utils.Shape;
+
+import static java.lang.Math.PI;
+import static java.lang.Math.asin;
+import static java.lang.Math.atan;
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
+import static java.lang.Math.toRadians;
 
 /**
  * A map optimised specifically for the 50 united states of America.
@@ -37,7 +45,7 @@ import maps.Projection.Type;
  */
 public class Snyder {
 	
-	private static final double[] POLE = { Math.PI/4, -2*Math.PI/3, 0 };
+	private static final double[] POLE = { PI/4, -2*PI/3, 0 };
 	private static final double[] A = {
 			 0.05,  0.9842990,  0.0211642, -0.1036018, -0.0329095,  0.0499471,  0.0260460,
 			        0.0007388,  0.0075848, -0.0216473, -0.0225161 }; //the real components of the coefficients
@@ -47,23 +55,23 @@ public class Snyder {
 	
 	private static final double TOLERANCE = 1e-4;
 	private static final double[] LIMS = {
-			Math.toRadians(10), Math.toRadians(90), Math.toRadians(-195), Math.toRadians(-50) }; //trims the outside unsightly portions
+			toRadians(10), toRadians(90), toRadians(-195), toRadians(-50) }; //trims the outside unsightly portions
 	
 	
 	public static final Projection GS50 =
 			new Projection(
-					"GS50", "'MURKA!", 1.6, 1.1, 0b0011, Type.POLYNOMIAL, Property.CONFORMAL, 4,
+					"GS50", "'MURKA!", Shape.rectangle(1.6, 1.1), 0b0011, Type.POLYNOMIAL, Property.CONFORMAL, 4,
 					new String[] {}, new double[][] {}, false) {
 		
 		public double[] project(double lat, double lon) {
 			if (lat < LIMS[0]) 	lat = LIMS[0]; //cut out the farther more unsightly bits
 			if (lat > LIMS[1]) 	lat = LIMS[1];
-			if (lon > 0 && lon-2*Math.PI < LIMS[2]) 	lon = LIMS[2];
+			if (lon > 0 && lon-2*PI < LIMS[2]) 	lon = LIMS[2];
 			if (lon < 0 && lon > LIMS[3]) 	lon = LIMS[3];
 			
-			final double g = Math.sin(lat)*Math.sin(POLE[0]) + Math.cos(lat)*Math.cos(POLE[0])*Math.cos(lon-POLE[1]);
+			final double g = sin(lat)*sin(POLE[0]) + cos(lat)*cos(POLE[0])*cos(lon-POLE[1]);
 			final double s = 2/(1+g);
-			final Complex z = new Complex(s*Math.cos(lat)*Math.sin(lon-POLE[1]), s*(Math.sin(lat)*Math.cos(POLE[0]) - Math.cos(lat)*Math.sin(POLE[0])*Math.cos(lon-POLE[1])));
+			final Complex z = new Complex(s*cos(lat)*sin(lon-POLE[1]), s*(sin(lat)*cos(POLE[0]) - cos(lat)*sin(POLE[0])*cos(lon-POLE[1])));
 			final Complex p = f(z);
 			return new double[] { p.getRe(), p.getIm() };
 		}
@@ -79,12 +87,12 @@ public class Snyder {
 				error = f(z).minus(p);
 			}
 			double r = z.abs();
-			double phi = 2*Math.atan(r/2);
-			double lat = Math.asin(Math.cos(phi)*Math.sin(POLE[0]) + z.getIm()*Math.sin(phi)*Math.cos(POLE[0])/r);
-			double lon = POLE[1] + Math.atan(z.getRe()*Math.sin(phi)/(r*Math.cos(POLE[0])*Math.cos(phi)-z.getIm()*Math.sin(POLE[0]*Math.sin(phi))));
+			double phi = 2*atan(r/2);
+			double lat = asin(cos(phi)*sin(POLE[0]) + z.getIm()*sin(phi)*cos(POLE[0])/r);
+			double lon = POLE[1] + atan(z.getRe()*sin(phi)/(r*cos(POLE[0])*cos(phi)-z.getIm()*sin(POLE[0]*sin(phi))));
 			if (lat < LIMS[0] || lat > LIMS[1]) 	return null;
 			if (lon < LIMS[2] || lon > LIMS[3]) 	return null;
-			if (lon < -Math.PI) 	lon += 2*Math.PI;
+			if (lon < -PI) 	lon += 2*PI;
 			return new double[] {lat, lon};
 		}
 		

@@ -45,6 +45,9 @@ import maps.Snyder;
 import maps.Tobler;
 import maps.WinkelTripel;
 
+import static java.lang.Math.PI;
+import static java.lang.Math.toRadians;
+
 /**
  * A script that automatically converts one input into a bunch of different
  * projections, with multi-threading.
@@ -55,11 +58,9 @@ public class MapProducer extends Application {
 	
 	public static final Projection[][] ALL_PROJECTIONS = {
 			{ 
-					Cylindrical.PLATE_CARREE,
-					Cylindrical.PLATE_CARREE.withAspect("Cassini", 0, Math.PI / 2, -Math.PI / 2),
+					Cylindrical.PLATE_CARREE, Misc.CASSINI,
 					Cylindrical.MERCATOR,
-					Cylindrical.MERCATOR.withAspect("Transverse Mercator", 0, Math.PI / 2,
-							-Math.PI / 2),
+					Cylindrical.MERCATOR.withAspect("Transverse Mercator", 0, PI/2, -PI/2),
 					Cylindrical.GALL_STEREOGRAPHIC, Cylindrical.MILLER, Cylindrical.LAMBERT,
 					Cylindrical.BEHRMANN, Cylindrical.HOBO_DYER, Cylindrical.GALL_ORTHOGRAPHIC,
 					Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE,
@@ -80,8 +81,8 @@ public class MapProducer extends Application {
 					Lenticular.WAGNER_VIII, Pseudocylindrical.HOMOLOSINE_INTERRUPTED },
 			{
 					Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
-					Octohedral.CONFORMAL_CAHILL, Octohedral.WATERMAN } };
-	public static final double[] ctrMerids = {0, Math.toRadians(-20)};
+					Octohedral.CONFORMAL_CAHILL_BUTTERFLY, Octohedral.WATERMAN } };
+	public static final double[] ctrMerids = {0, toRadians(-20)};
 	
 	
 	public static void main(String[] args) {
@@ -95,7 +96,7 @@ public class MapProducer extends Application {
 		SVGMap[] inputs = { new SVGMap(new File("input/Advanced/Tissot Wikipedia +0.svg")),
 				new SVGMap(new File("input/Advanced/Tissot Wikipedia -20.svg")) };
 		for (int i = 0; i < 2; i ++) {
-			double[] pole = {Math.PI/2, 0, ctrMerids[i]};
+			double[] pole = {PI/2, 0, ctrMerids[i]};
 			for (Projection proj: ALL_PROJECTIONS[i]) {
 				System.out.println(proj);
 				

@@ -25,6 +25,7 @@ package maps;
 
 import maps.Projection.Property;
 import maps.Projection.Type;
+import utils.Shape;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -48,6 +49,7 @@ import static java.lang.Math.signum;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
 import static java.lang.Math.toRadians;
+import static java.lang.String.format;
 
 /**
  * A class for completely arbitrary projections, where every square degree can be specified anywhere on the plane.
@@ -78,7 +80,7 @@ public class Elastic {
 	private static class ElasticProjection extends Projection {
 
 		private final String filename; // the data filename
-		private Polygon[] section_borders; // the unprojected bounds of each section
+		private Region[] section_borders; // the unprojected bounds of each section
 		private SplineSurface[][] sections; // the x and y projection information for each section
 		private double[][][] inverse_raster; // the pixel values, for inverse mapping
 		private double raster_left, raster_lower; // the extreme coordinates of the inverse raster
@@ -88,7 +90,7 @@ public class Elastic {
 		public ElasticProjection(
 				String title, String description, boolean interrupted, Type type, Property property,
 				boolean based_on_land, String filename) {
-			super(title, description, 0, 0,
+			super(title, description, null,
 			      true, false, true, !interrupted,
 			      type, property, 4,
 			      new String[0], new double[0][], !based_on_land);
@@ -102,6 +104,7 @@ public class Elastic {
 		 * @param λ the longitude, in radians
 		 * @return the x value and y value, in the same units as this.width and this.height
 		 */
+		@Override
 		public double[] project(double ф, double λ) {
 			for (int i = 0; i < sections.length; i ++) {
 				// find the section that contains this point
@@ -123,6 +126,7 @@ public class Elastic {
 		 * @param y the y value, in the same units as this.height
 		 * @return the latitude and longitude, in radians, or null if the point is not on the mesh
 		 */
+		@Override
 		public double[] inverse(double x, double y) {
 			// start by interpolating on the raster
 			double[] guess = inverse_by_interpolation(x, y);
@@ -319,7 +323,7 @@ public class Elastic {
 
 		/**
 		 * load the data file. this is only called if and when the user tries to use this Projection, so the data file
-		 * won’t be loaded until they’re needed.
+		 * won’t be loaded until it's needed.
 		 * @param params an ignored parameter
 		 * @throws IllegalArgumentException if the data files can’t be found or are in the wrong format
 		 */
@@ -331,12 +335,12 @@ public class Elastic {
 
 			BufferedReader in = null;
 			try {
-				in = new BufferedReader(new FileReader(String.format("res/%s", filename))); // parsing the input mesh is pretty simple
+				in = new BufferedReader(new FileReader(format("res/%s", filename))); // parsing the input mesh is pretty simple
 
 				// load the basic projection information
 				String line = in.readLine();  // read the header
 				int num_sections = parseInt(line.substring(line.length() - 12, line.length() - 11));  // get the number of sections
-				section_borders = new Polygon[num_sections];
+				section_borders = new Region[num_sections];
 				sections = new SplineSurface[num_sections][2];
 
 				// load each section
@@ -350,7 +354,7 @@ public class Elastic {
 						border[0][j] = toRadians(parseDouble(row[0]));
 						border[1][j] = toRadians(parseDouble(row[1]));
 					}
-					section_borders[i] = new Polygon(border[0], border[1]);
+					section_borders[i] = new Region(border[0], border[1]);
 
 					line = in.readLine();  // read this section points header
 					String[] row = line.substring(18, line.length() - 9).split("x");  // get the size of the point grid
@@ -372,20 +376,14 @@ public class Elastic {
 				// load the projected border
 				line = in.readLine();  // read the projected border header
 				int num_vertices = parseInt(line.substring(20, line.length() - 11));  // get the length of the border
-				double left = 0, right = 0;
-				double lower = 0, upper = 0;
+				double[][] coordinates = new double[num_vertices][2];
 				for (int i = 0; i < num_vertices; i ++) {
 					line = in.readLine();  // read the border vertex coordinates
 					String[] row = line.split(",\\s*");
-					double x = parseDouble(row[0]);
-					double y = parseDouble(row[1]);
-					left = min(left, x); // use this to update the bounding box
-					right = max(right, x);
-					lower = min(lower, y);
-					upper = max(upper, y);
+					coordinates[i][0] = parseDouble(row[0]);
+					coordinates[i][1] = parseDouble(row[1]);
 				}
-				width = right - left;
-				height = upper - lower;
+				shape = Shape.polygon(coordinates);  // wrap the vertices in a Shape object
 
 				// load the inverse raster
 				line = in.readLine();  // read this section inverse points header
@@ -465,7 +463,7 @@ public class Elastic {
 	 * the points are assumed to go counterclockwise, so if a point sees the vertices going left,
 	 * that point is contained.
 	 */
-	private static class Polygon {
+	private static class Region {
 		private final double[] ф_vertices;
 		private final double[] λ_vertices;
 
@@ -474,7 +472,7 @@ public class Elastic {
 		 * @param λ_vertices the list of vertex longitudes. it should be the same length as ф_vertices, and the
 		 *                   last value should be the same as the first one.
 		 */
-		public Polygon(double[] ф_vertices, double[] λ_vertices) {
+		public Region(double[] ф_vertices, double[] λ_vertices) {
 			this.ф_vertices = ф_vertices;
 			this.λ_vertices = λ_vertices;
 		}

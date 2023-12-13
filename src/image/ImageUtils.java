@@ -28,9 +28,9 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.Path2D;
+import java.util.List;
 
-import image.SVGMap.Command;
-import image.SVGMap.Path;
+import static java.lang.Math.pow;
 
 /**
  * A collection of (currently just one) methods for dealing with images and coordinates
@@ -52,30 +52,30 @@ public class ImageUtils {
 		for (int argb: colors) {
 			int a = ((argb >> 24)&0xFF);
 			a_tot += a;
-			r_tot += a*(Math.pow((argb>>16)&0xFF, gamma));
-			g_tot += a*(Math.pow((argb>> 8)&0xFF, gamma));
-			b_tot += a*(Math.pow((argb>> 0)&0xFF, gamma));
+			r_tot += a*(pow((argb>>16)&0xFF, gamma));
+			g_tot += a*(pow((argb>> 8)&0xFF, gamma));
+			b_tot += a*(pow((argb>> 0)&0xFF, gamma));
 		}
 		if (a_tot == 0)	return 0;
 		else
 			return (a_tot/colors.length << 24) +
-					((int)Math.pow((double)r_tot/a_tot, 1/gamma) << 16) +
-					((int)Math.pow((double)g_tot/a_tot, 1/gamma) << 8) +
-					((int)Math.pow((double)b_tot/a_tot, 1/gamma) << 0);
+					((int)pow((double)r_tot/a_tot, 1/gamma) << 16) +
+					((int)pow((double)g_tot/a_tot, 1/gamma) << 8) +
+					((int)pow((double)b_tot/a_tot, 1/gamma) << 0);
 	}
 	
 	
-	public static void drawSVGPath(Path path, Color stroke, float strokeWidth, boolean antialias, Graphics2D g) {
+	public static void drawSVGPath(List<Path.Command> path, Color stroke, float strokeWidth, boolean antialias, Graphics2D g) {
 		g.setStroke(new BasicStroke(strokeWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
 		g.setColor(stroke);
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 				antialias ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
 		drawSVGPath(path, g);
 	}
-	
-	public static void drawSVGPath(Path path, Graphics2D g) {
+
+	public static void drawSVGPath(List<Path.Command> path, Graphics2D g) {
 		Path2D awtPath = new Path2D.Double(Path2D.WIND_NON_ZERO, path.size());
-		for (Command svgCmd: path) {
+		for (Path.Command svgCmd: path) {
 			switch (svgCmd.type) {
 			case 'M':
 				awtPath.moveTo(svgCmd.args[0], svgCmd.args[1]);
