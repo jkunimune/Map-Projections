@@ -73,8 +73,8 @@ public class ArbitraryPseudocylindrical {
 		private final double yScale;
 		
 		public ArbitraryProjection(String title, String inventor, double yScale, double[][] table) {
-			super(title, null, 0b1111, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE, 3,
-			      null, "designed by "+inventor);
+			super(title, "A compromise pseudocylindrical projection designed by " + inventor,
+			      null, true, true, true, true, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE, 3);
 			this.table = table;
 			this.yScale = yScale;
 			this.shape = Shape.meridianEnvelope(this);

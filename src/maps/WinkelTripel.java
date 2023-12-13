@@ -56,8 +56,8 @@ import static java.lang.Math.toRadians;
 public final class WinkelTripel {
 	
 	public static final Projection WINKEL_TRIPEL =
-			new Projection("Winkel Tripel", "National Geographic's compromise projection of choice.",
-					null, 0b1011, Type.OTHER, Property.COMPROMISE, 3,
+			new Projection("Winkel Tripel", "National Geographic's compromise projection of choice",
+					null, true, true, true, false, Type.OTHER, Property.COMPROMISE, 3,
 					new String[] {"Std. Parallel"}, new double[][] {{0, 90, toDegrees(acos(2/PI))}}) {
 		
 		private double stdParallel;

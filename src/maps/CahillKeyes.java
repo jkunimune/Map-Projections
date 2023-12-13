@@ -77,7 +77,7 @@ public class CahillKeyes {
 	public static Projection FACE = new Projection(
 			"Cahill–Keyes (face)", "A single face of Gene Keyes's octohedral projection",
 			Shape.polygon(new double[][] {{0., 0.}, {0., -sqrt(3)/2.}, {1/2., -sqrt(3)/2.}}),
-			0b1011, Projection.Type.OTHER, Projection.Property.COMPROMISE, 2) {
+			true, true, true, false, Projection.Type.OTHER, Projection.Property.COMPROMISE, 2) {
 		
 		public double[] project(double lat, double lon) {
 			// Mary-Jo's coordinates put the pole at the origin and everything else to the right

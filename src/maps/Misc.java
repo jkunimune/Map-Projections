@@ -69,8 +69,8 @@ public class Misc {
 	
 	public static final Projection PEIRCE_QUINCUNCIAL =
 			new Projection(
-					"Peirce Quincuncial", "A conformal projection that uses complex elliptic functions.",
-					Shape.rectangle(2, 2), 0b1001, Type.OTHER, Property.CONFORMAL, 3) {
+					"Peirce Quincuncial", "A conformal projection that uses complex elliptic functions",
+					Shape.rectangle(2, 2), false, true, false, false, Type.OTHER, Property.CONFORMAL, 3) {
 
 		private static final double K_RT_HALF = 1.854074677; //this is approx K(sqrt(1/2))
 		
@@ -104,8 +104,8 @@ public class Misc {
 	
 	public static final Projection GUYOU =
 			new Projection(
-					"Guyou", "Peirce Quincuncial, rearranged a bit.",
-					Shape.rectangle(2, 1), 0b1001,
+					"Guyou", "Peirce Quincuncial, rearranged a bit",
+					Shape.rectangle(2, 1), false, true, false, false,
 					Type.OTHER, Property.CONFORMAL, 3) {
 		
 		private static final double K_RT_HALF = 1.854074677; //this is approx K(sqrt(1/2))
@@ -141,8 +141,8 @@ public class Misc {
 	
 	public static final Projection HAMMER_RETROAZIMUTHAL =
 			new Projection(
-					"Hammer Retroazimuthal", "The full version of a map where bearing and distance to a reference point is preserved.",
-					Shape.circle(Math.PI), 0b1110, Type.PSEUDOCONIC, Property.RETROAZIMUTHAL, 2,
+					"Hammer Retroazimuthal", "The full version of a map where bearing and distance to a reference point is preserved",
+					Shape.circle(Math.PI), false, true, true, true, Type.PSEUDOCONIC, Property.RETROAZIMUTHAL, 2,
 					new String[] {"Latitude","Longitude"},
 					new double[][] {{-89,89,21.4}, {-180,180,39.8}}, false) {
 		
@@ -195,8 +195,8 @@ public class Misc {
 	
 	public static final Projection TWO_POINT_EQUIDISTANT =
 			new Projection(
-					"Two-point Equidistant", "A map that preserves distances, but not azimuths, to two arbitrary points.",
-					null, 0b1111, Type.OTHER, Property.EQUIDISTANT, 3,
+					"Two-point Equidistant", "A map that preserves distances, but not azimuths, to two arbitrary points",
+					null, true, true, true, true, Type.OTHER, Property.EQUIDISTANT, 3,
 					new String[] {"Latitude 1","Longitude 1","Latitude 2","Longitude 2"},
 					new double[][] {{-90,90,41.9},{-180,180,12.5},{-90,90,34.7},{-180,180,112.4}},
 					false) {
@@ -262,8 +262,8 @@ public class Misc {
 	
 	public static final Projection BRAUN_CONIC =
 			new Projection(
-					"Braun conic", "A particular perspective conic that is tangent at 30\u00B0.",
-					Shape.annularSector(0, 2*sqrt(3), PI, false), 0b1111,
+					"Braun conic", "A particular perspective conic that is tangent at 30\u00B0",
+					Shape.annularSector(0, 2*sqrt(3), PI, false), true, true, true, true,
 					Type.CONIC, Property.PERSPECTIVE, 3) {
 		
 		public double[] project(double lat, double lon) {
@@ -288,8 +288,8 @@ public class Misc {
 	
 	public static final Projection BONNE =
 			new Projection(
-					"Bonne", "A traditional pseudoconic projection, also known as the Sylvanus projection.",
-					null, 0b1111, Type.PSEUDOCONIC, Property.EQUAL_AREA, 1,
+					"Bonne", "A traditional pseudoconic projection, also known as the Sylvanus projection",
+					null, true, true, true, true, Type.PSEUDOCONIC, Property.EQUAL_AREA, 1,
 					new String[] {"Std. Parallel"}, new double[][] {{-90, 90, 45}}) {
 		
 		private double r0;
@@ -355,7 +355,7 @@ public class Misc {
 	
 	public static final Projection T_SHIRT =
 			new Projection(
-					"T-Shirt", "A conformal projection onto a torso.",
+					"T-Shirt", "A conformal projection onto a torso",
 					Shape.polygon(new double[][] {
 							{ 0.000, 1.784},
 							{-1.17, 2.38},
@@ -378,7 +378,7 @@ public class Misc {
 							{ 2.500, 2.651},
 							{ 1.17, 2.38},
 					}),
-					0b1001, Type.OTHER, Property.CONFORMAL, 3) {
+					false, true, true, false, Type.OTHER, Property.CONFORMAL, 3) {
 
 		private final double[] X = {0, .507, .753, 1};
 		private final double[] A = {.128, .084, .852, -.500};
@@ -414,7 +414,7 @@ public class Misc {
 	
 	public static final Projection CASSINI = new Projection(
 			"Cassini", "A transverse Plate–Carée projection",
-			Shape.rectangle(PI, 2*PI), 0b1111, Type.CYLINDRICAL, Property.EQUIDISTANT, 2) {
+			Shape.rectangle(PI, 2*PI), true, true, true, true, Type.CYLINDRICAL, Property.EQUIDISTANT, 2) {
 		
 		public double[] project(double lat, double lon) {
 			double x = asin(cos(lat)*sin(lon));  // I could use obliquifySph() and EQUIRECTANGULAR for this
@@ -431,8 +431,8 @@ public class Misc {
 	
 	
 	public static final Projection LEMONS = new Projection(
-			"Lemons", "BURN LIFE'S HOUSE DOWN!!!", null, 0b1110,
-			Type.CYLINDRICAL, Property.COMPROMISE, 2) {
+			"Gores", "A heavily interrupted projection that can be pasted onto a globe",
+			null, false, true, true, true, Type.CYLINDRICAL, Property.COMPROMISE, 2) {
 		
 		private static final int NUM_LEMONS = 12; //number of lemons
 		private static final double LEMON_WIDTH = 2*PI/NUM_LEMONS; //longitude span of 1 lemon
@@ -491,7 +491,7 @@ public class Misc {
 	
 	public static final Projection FLAT_EARTH =
 			new Projection(
-					"Flat Earth", "The one true map.", Shape.circle(1), 0b1111,
+					"Flat Earth", "The one true map", Shape.circle(1), true, true, true, true,
 					Type.PLANAR, Property.TRUE, 5, new String[0], new double[0][], false) {
 		
 		private final double[] CORE_LONGITUDES = {

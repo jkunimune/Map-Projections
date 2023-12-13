@@ -40,7 +40,7 @@ import static java.lang.Math.sin;
 import static utils.Math2.linInterp;
 
 /**
- * A class of values and functions used to approximate the Tobler projection
+ * A class of values and functions used to approximate the Tobler hyperelliptical projection
  * 
  * @author jkunimune
  */
@@ -48,8 +48,8 @@ public class Tobler {
 	
 	public static final Projection TOBLER =
 			new Projection(
-					"Tobler hyperelliptical", "An equal-area projection shaped like a hyperellipse.",
-					null, 0b1001, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 4,
+					"Tobler hyperelliptical", "An equal-area projection shaped like a hyperellipse",
+					null, true, true, false, false, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 4,
 					new String[]{"alpha","K"},
 					new double[][] {{0,1,0.0}, {1,5,2.5}}) {
 		

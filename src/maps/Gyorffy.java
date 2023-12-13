@@ -42,19 +42,19 @@ public class Gyorffy {
 	private static final double PI2M2 = pow(PI/2, -2);
 
 	public static final Projection B = new PolynomialProjection(
-			"B", "The optimal pseudocylindrical projection.", 2,
+			"B", "The optimal pseudocylindrical projection", 2,
 			new double[] {0.75762, 2.00000, 4.63375, 0.00264, 1, 0, 0});
 
 	public static final Projection D = new PolynomialProjection(
-			"D", "An optimal pointed-polar projection, with an emphasis on polar regions.", 3,
+			"D", "An optimal pointed-polar projection, with an emphasis on polar regions", 3,
 			new double[] {0.71416, 3.79209, 2, 0.00902, 0.87550, 0.01004, 0.00273});
 
 	public static final Projection E = new PolynomialProjection(
-			"E", "The optimal pointed-polar projection.", 3,
+			"E", "The optimal pointed-polar projection", 3,
 			new double[] {0.74532, 2, 4.04753, 0.00730, 0.93884, 0.00271, 0.00450});
 	
 	public static final Projection F = new PolynomialProjection(
-			"F", "The optimal pointed-polar projection, with a rounded outline.", 4,
+			"F", "The optimal pointed-polar projection, with a rounded outline", 4,
 			new double[] {0.77172, 2, 3.26655, 0.00649, 0.88525, 0.00950, 0.00305});
 	
 	
@@ -65,8 +65,8 @@ public class Gyorffy {
 		protected PolynomialProjection(
 				String letter, String description,
 				int rating, double[] coefs) {
-			super("Gy\u00F6rffy "+letter, description,
-			      null, 0b1011, (coefs[4]==1 && coefs[5]==0 && coefs[6]==0) ? Type.PSEUDOCYLINDRICAL : Type.OTHER,
+			super("Gy\u00F6rffy "+letter, description, null, true, true, true, false,
+			      (coefs[4]==1 && coefs[5]==0 && coefs[6]==0) ? Type.PSEUDOCYLINDRICAL : Type.OTHER,
 			      Property.COMPROMISE, rating);
 			this.coefs = coefs;
 		}

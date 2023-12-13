@@ -53,7 +53,7 @@ public class Waterman {
 	public static Projection FACE = new Projection(
 			"Waterman (face)", "A single face of Waterman's octohedral projection",
 			Shape.polygon(new double[][] {{0., 0.}, {0., -sqrt(3)/2.}, {1/2., -sqrt(3)/2.}}),
-			0b1011, Type.OTHER, Property.COMPROMISE, 2) {
+			true, true, true, false, Type.OTHER, Property.COMPROMISE, 2) {
 		
 		public double[] project(double lat, double lon) {
 			double[] xELD = jointPositions(lon);

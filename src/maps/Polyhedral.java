@@ -58,8 +58,8 @@ import static utils.Math2.floorMod;
 public class Polyhedral {
 	
 	public static final PolyhedralProjection LEE_TETRAHEDRAL_RECTANGULAR = new PolyhedralProjection(
-			"Lee Tetrahedral", 0b1001, Polyhedron.TETRAHEDRON_WIDE_FACE, Property.CONFORMAL,
-			4, null, "that really deserves more attention") {
+			"Lee Tetrahedral", "A conformal tetrahedral projection that really deserves more attention",
+			true, false, false, Polyhedron.TETRAHEDRON_WIDE_FACE, Property.CONFORMAL, 4) {
 		
 		public double[] faceProject(double lat, double lon) {
 			final de.jtem.mfc.field.Complex z = de.jtem.mfc.field.Complex.fromPolar(
@@ -80,9 +80,8 @@ public class Polyhedral {
 	
 	
 	public static final PolyhedralProjection LEE_TETRAHEDRAL_TRIANGULAR = new PolyhedralProjection(
-			"Lee Tetrahedral (triangular)", 0b1001, Polyhedron.TRIANGLE_FACE, Property.CONFORMAL,
-			2, null,
-			"in a triangle, because this is the form in which it was published, even though the rectangle is clearly better") {
+			"Lee Tetrahedral (triangular)", "A conformal tetrahedral projection in a triangle, because this is the form in which it was published, even though the rectangle is clearly better",
+			true, false, false, Polyhedron.TRIANGLE_FACE, Property.CONFORMAL, 2) {
 		
 		public double[] faceProject(double lat, double lon) {
 			return LEE_TETRAHEDRAL_RECTANGULAR.faceProject(lat, lon);
@@ -95,8 +94,8 @@ public class Polyhedral {
 	
 	
 	public static final PolyhedralProjection TETRAGRAPH = new PolyhedralProjection(
-			"TetraGraph", 0b1111, Polyhedron.TETRAHEDRON_WIDE_FACE, Property.EQUIDISTANT,
-			2, null, "that I invented") {
+			"TetraGraph", "An equidistant tetrahedral projection that I invented",
+			true, true, true, Polyhedron.TETRAHEDRON_WIDE_FACE, Property.EQUIDISTANT, 2) {
 		
 		public double[] faceProject(double lat, double lon) {
 			return new double[] {
@@ -113,10 +112,11 @@ public class Polyhedral {
 	
 	
 	public static final PolyhedralProjection AUTHAGRAPH = new PolyhedralProjection(
-			"IMAGO (AuthaGraph)", "Authagraph is a hip new Japanese map that would be super great if "
-					+ "they actually published their equations. This is technically just an approximation, also known as the Infinitessimal "
-					+ "Mutated AuthaGraph Offspring.",
-			0b1011, Polyhedron.AUTHAGRAPH, Property.COMPROMISE, 3,
+			"IMAGO (AuthaGraph)",
+			"Authagraph is a hip new Japanese map that would be super great if they actually " +
+			"published their equations. This is technically just an approximation, also known as " +
+			"the Infinitessimal Mutated AuthaGraph Offspring.",
+			true, true, false, Polyhedron.AUTHAGRAPH, Property.COMPROMISE, 3,
 			new String[] {"Power"}, new double[][] {{.5,1,.68}}) {
 		
 		private final double[] POLE = {toRadians(77), toRadians(143), toRadians(17)};
@@ -157,8 +157,8 @@ public class Polyhedral {
 	
 	
 	public static final PolyhedralProjection AUTHAPOWER = new PolyhedralProjection(
-			"TetraPower", "A parametrised, simplified version of my AuthaGraph approximation.",
-			0b1011, Polyhedron.TETRAHEDRON_WIDE_VERTEX, Property.COMPROMISE, 4,
+			"TetraPower", "A parametrised, simplified version of my AuthaGraph approximation",
+			true, true, false, Polyhedron.TETRAHEDRON_WIDE_VERTEX, Property.COMPROMISE, 4,
 			new String[] {"Power"}, new double[][] {{.5,1,.6}}) {
 		
 		private double k;
@@ -186,8 +186,8 @@ public class Polyhedral {
 	
 	
 	public static final PolyhedralProjection ACTUAUTHAGRAPH = new PolyhedralProjection(
-			"EquaHedral", "An interrupted authalic tetrahedral projection.",
-			0b1010, Polyhedron.TETRAHEDRON_WIDE_VERTEX, Property.EQUAL_AREA, 3,
+			"EquaHedral", "An interrupted authalic tetrahedral projection",
+			true, true, false, Polyhedron.TETRAHEDRON_WIDE_VERTEX, Property.EQUAL_AREA, 3,
 			new String[] {"Sinus length"}, new double[][] {{0, 60, 20}}) {
 		
 		private double sig, a0, scale;
@@ -251,8 +251,12 @@ public class Polyhedral {
 	
 	
 	public static final Projection VAN_LEEUWEN = new PolyhedralProjection(
-			"Van Leeuwen", "An uninterrupted equal-area tetrahedral projection. It's more accurately known as \"the Vertex-oriented great circle projection applied to a tetrahedron\", but the guy who copublished it with Leeuwen calls it \"the van Leeuwen projection\" on his website, so I think this is fine.",
-			0b1011, Polyhedron.TETRAHEDRON_WIDE_VERTEX, Property.EQUAL_AREA, 2) {
+			"Van Leeuwen",
+			"An uninterrupted equal-area tetrahedral projection. It's more accurately known as " +
+			"\"the Vertex-oriented great circle projection applied to a tetrahedron\", but the " +
+			"guy who copublished it with Leeuwen calls it \"the van Leeuwen projection\" on his " +
+			"website, so I think this is fine.",
+			true, true, false, Polyhedron.TETRAHEDRON_WIDE_VERTEX, Property.EQUAL_AREA, 2) {
 		
 		public double[] faceProject(double lat, double lon) {
 			ACTUAUTHAGRAPH.initialize(0);
@@ -267,8 +271,8 @@ public class Polyhedral {
 	
 	
 	public static final Projection DYMAXION = new PolyhedralProjection(
-			"Dymaxion", "A polyhedral projection that slices up the oceans as much as possible without slicing up any landmasses.",
-			0b1110, Polyhedron.DYMAXION, Property.COMPROMISE, 3) {
+			"Dymaxion", "A polyhedral projection that slices up the oceans as much as possible without slicing up any landmasses",
+			true, true, true, Polyhedron.DYMAXION, Property.COMPROMISE, 3) {
 		
 		private final double[] POLE = {0.040158, -0.091549,-2.015269}; //I derived these numbers from [Robert Gray](http://www.rwgrayprojects.com/rbfnotes/maps/graymap4.html)
 
@@ -326,26 +330,19 @@ public class Polyhedral {
 		
 		
 		public PolyhedralProjection(
-				String name, int fisc, Polyhedron config, Property property, int rating,
-				String adjective, String addendum) {
-			super(name, config.shape, fisc, config.type, property, rating,
-					adjective, addendum);
+				String name, String description, boolean finite, boolean solvable,
+				boolean invertible, Polyhedron config, Property property, int rating) {
+			super(name, description, config.shape, false, finite, solvable, invertible,
+			      config.type, property, rating);
 			this.configuration = config;
 		}
 		
 		public PolyhedralProjection(
-				String name, String description, int fisc, Polyhedron config, Property property,
-				int rating) {
-			super(name, description, config.shape, fisc, config.type, property,
-					rating);
-			this.configuration = config;
-		}
-		
-		public PolyhedralProjection(
-				String name, String description, int fisc, Polyhedron config, Property property,
+				String name, String description, boolean finite,
+				boolean solvable, boolean invertible, Polyhedron config, Property property,
 				int rating, String[] paramNames, double[][] paramValues) {
-			super(name, description, config.shape, fisc, config.type, property,
-					rating, paramNames, paramValues);
+			super(name, description, config.shape, false, finite, solvable, invertible,
+			      config.type, property, rating, paramNames, paramValues);
 			this.configuration = config;
 		}
 		

@@ -54,37 +54,37 @@ public class Danseiji {
 	
 	
 	public static final DanseijiProjection DANSEIJI_N = new DanseijiProjection(
-			"Danseiji N", "The optimal conventional lenticular map.",
+			"Danseiji N", "The optimal conventional lenticular map",
 			true, Type.OTHER, Property.COMPROMISE, false, "danseijiN.csv");
 	
 	
 	public static final DanseijiProjection DANSEIJI_I = new DanseijiProjection(
-			"Danseiji I", "The optimal conventional equal-area map.",
+			"Danseiji I", "The optimal conventional equal-area map",
 			true, Type.OTHER, Property.COMPROMISE, false, "danseijiI.csv");
 	
 	
 	public static final DanseijiProjection DANSEIJI_II = new DanseijiProjection(
-			"Danseiji II", "An optimised map that gives more weight to shapes rather than sizes.",
+			"Danseiji II", "An optimised map that gives more weight to shapes rather than sizes",
 			true, Type.OTHER, Property.COMPROMISE, false, "danseijiII.csv");
 	
 	
 	public static final DanseijiProjection DANSEIJI_III = new DanseijiProjection(
-			"Danseiji III", "A map optimised to move distortion from the continents into the oceans. I recommend using the newer Elastic III instead.",
+			"Danseiji III", "A map optimised to move distortion from the continents into the oceans. I recommend using the newer Elastic III instead",
 			true, Type.OTHER, Property.COMPROMISE, true, "danseijiIII.csv");
 	
 	
 	public static final DanseijiProjection DANSEIJI_IV = new DanseijiProjection(
-			"Danseiji IV", "A map optimised to display landmasses accurately and without interruption. I recommend using the newer Elastic I instead.",
+			"Danseiji IV", "A map optimised to display landmasses accurately and without interruption. I recommend using the newer Elastic I instead",
 			true, Type.OTHER, Property.COMPROMISE, true, "danseijiIV.csv");
 	
 	
 	public static final DanseijiProjection DANSEIJI_V = new DanseijiProjection(
-			"Danseiji V", "A map optimised to show off the continents by compressing the oceans. I recommend using the newer Elastic III instead.",
+			"Danseiji V", "A map optimised to show off the continents by compressing the oceans. I recommend using the newer Elastic III instead",
 			true, Type.OTHER, Property.COMPROMISE, true, "danseijiV.csv");
 	
 	
 	public static final DanseijiProjection DANSEIJI_VI = new DanseijiProjection(
-			"Danseiji VI", "A compromise conventional map, where both physical area and population affect size.",
+			"Danseiji VI", "A compromise conventional map, where both physical area and population affect size",
 			true, Type.OTHER, Property.COMPROMISE, true, "danseijiVI.csv");
 	
 	
@@ -100,8 +100,8 @@ public class Danseiji {
 		public DanseijiProjection(
 				String title, String description, boolean interrupted, Type type, Property property,
 				boolean basedOnLand, String filename) {
-			super(title, description, null, interrupted ? 0b1010 : 0b1011, type, property, 3,
-					new String[0], new double[0][], !basedOnLand);
+			super(title, description, null, !interrupted, true, true, false, type, property, 3,
+			      new String[0], new double[0][], !basedOnLand);
 			this.filename = filename;
 			this.shape = null;
 		}

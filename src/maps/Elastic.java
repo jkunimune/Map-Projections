@@ -59,19 +59,19 @@ import static java.lang.String.format;
 public class Elastic {
 
 	public static final ElasticProjection ELASTIC_I = new ElasticProjection(
-			"Elastic I", "A map optimised to display landmasses accurately and without interruption.",
+			"Elastic I", "A map optimised to display landmasses accurately and without interruption",
 			true, Type.OTHER, Property.COMPROMISE, true,
 			"elastic-I.txt");
 
 
 	public static final ElasticProjection ELASTIC_II = new ElasticProjection(
-			"Elastic II", "A map optimised to display oceans and their drainage basins accurately and without interruption.",
+			"Elastic II", "A map optimised to display oceans and their drainage basins accurately and without interruption",
 			true, Type.OTHER, Property.COMPROMISE, true,
 			"elastic-II.txt");
 
 
 	public static final ElasticProjection ELASTIC_III = new ElasticProjection(
-			"Elastic III", "A map optimised to show off the continents by compressing the oceans.",
+			"Elastic III", "A map optimised to show off the continents by compressing the oceans",
 			false, Type.OTHER, Property.COMPROMISE, true,
 			"elastic-III.txt");
 

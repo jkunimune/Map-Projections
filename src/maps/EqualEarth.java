@@ -49,8 +49,8 @@ public class EqualEarth {
 	
 	
 	public static final Projection EQUAL_EARTH = new Projection(
-			"Equal Earth", null, 0b1111, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3, null,
-			"specifically designed to woo Gall-Peters supporters away from that horrid projection") {
+			"Equal Earth", "An equal-area pseudocylindrical projection specifically designed to woo Gall-Peters supporters away from that horrid thing",
+			null, true, true, true, true, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
 		
 		public double[] project(double lat, double lon) {
 			double th = asin(B*sin(lat));
@@ -62,7 +62,7 @@ public class EqualEarth {
 					y, y/Y_SCALE, EqualEarth::poly9, EqualEarth::poly8, 1e-6);
 			return new double[] { asin(sin(th)/B), x*B/cos(th)*poly8(th) };
 		}
-
+		
 		public void initialize(double... params) throws IllegalArgumentException {
 			this.shape = Shape.meridianEnvelope(this);
 		}

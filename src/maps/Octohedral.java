@@ -59,7 +59,7 @@ public class Octohedral {
 	public static final Projection CONFORMAL_CAHILL_FACE = new Projection(
 			"Cahill Conformal (face)", "The conformal projection from an octant to an equilateral triangle",
 			Shape.polygon(new double[][] {{0., 0.}, {0., -sqrt(3)/2.}, {1/2., -sqrt(3)/2.}}),
-			0b1001, Projection.Type.OCTOHEDRAL, Property.CONFORMAL, 3) {
+			true, true, false, false, Projection.Type.OCTOHEDRAL, Property.CONFORMAL, 3) {
 		
 		private final double HEXAGON_SCALE = 1.112913; //this is 2^(2/3)/6*\int_0^\pi sin^(-1/3) x dx
 		private final double TOLERANCE = 1e-3;
@@ -121,36 +121,36 @@ public class Octohedral {
 	
 	
 	public static final OctohedralProjection CONFORMAL_CAHILL_BUTTERFLY = new OctohedralProjection(
-			"Cahill Conformal", "The conformal and only reproducible variant of Cahill's original map.",
-			0, 0b1000, Property.CONFORMAL, 3, CONFORMAL_CAHILL_FACE, Configuration.BUTTERFLY);
+			"Cahill Conformal", "The conformal and only reproducible variant of Cahill's original map",
+			0, Property.CONFORMAL, 3, CONFORMAL_CAHILL_FACE, Configuration.BUTTERFLY);
 	
 	
 	public static final Projection CAHILL_CONCIALDI = new OctohedralProjection(
-			"Cahill\u2013Concialdi", "A conformal octohedral projection with no extra cuts and a unique arrangement.",
-			0, 0b1000, Property.CONFORMAL, 4, CONFORMAL_CAHILL_FACE, Configuration.BAT_SHAPE);
+			"Cahill\u2013Concialdi", "A conformal octohedral projection with no extra cuts and a unique arrangement",
+			0, Property.CONFORMAL, 4, CONFORMAL_CAHILL_FACE, Configuration.BAT_SHAPE);
 	
 	
 	public static final Projection WATERMAN = new OctohedralProjection(
-			"Waterman Butterfly", "A simple Cahill-esque octohedral map arrangement, with Antarctica left on.",
-			(sqrt(3)-1)/8, 0b1010, Property.COMPROMISE, 3,
+			"Waterman Butterfly", "A simple Cahill-esque octohedral map arrangement, with Antarctica left on",
+			(sqrt(3)-1)/8, Property.COMPROMISE, 3,
 			Waterman.FACE, Configuration.BUTTERFLY);
 	
 	
 	public static final Projection KEYES_BASIC_M = new OctohedralProjection(
-			"Cahill\u2013Keyes (simplified)", "A simple M-shaped octohedral projection, with Antarctica broken into three pieces.",
-			CahillKeyes.POLE_OFFSET, 0b1010, Property.COMPROMISE, 3,
+			"Cahill\u2013Keyes (simplified)", "A simple M-shaped octohedral projection, with Antarctica broken into three pieces",
+			CahillKeyes.POLE_OFFSET, Property.COMPROMISE, 3,
 			CahillKeyes.FACE, Configuration.M_PROFILE);
 	
 	
 	public static final Projection KEYES_STANDARD = new OctohedralProjection(
-			"Cahill\u2013Keyes", "An M-shaped octohedral projection with Antarctica assembled in the center.",
-			CahillKeyes.POLE_OFFSET, 0b1010, Property.COMPROMISE, 4,
+			"Cahill\u2013Keyes", "An M-shaped octohedral projection with Antarctica assembled in the center",
+			CahillKeyes.POLE_OFFSET, Property.COMPROMISE, 4,
 			CahillKeyes.FACE, Configuration.M_W_S_POLE);
 	
 	
 	public static final Projection KEYES_OCTANT = new OctohedralProjection(
-			"Cahill\u2013Keyes (single octant)", "A single octant of the Cahill\u2013Keyes projection (for memory economization in the case of very large maps).",
-			CahillKeyes.POLE_OFFSET, 0b1010, Property.COMPROMISE, 3,
+			"Cahill\u2013Keyes (single octant)", "A single octant of the Cahill\u2013Keyes projection (for memory economization in the case of very large maps)",
+			CahillKeyes.POLE_OFFSET, Property.COMPROMISE, 3,
 			CahillKeyes.FACE, Configuration.SINGLE_OCTANT);
 	
 	
@@ -162,9 +162,9 @@ public class Octohedral {
 		
 		
 		public OctohedralProjection(String name, String desc, double tipOffset,
-		                            int fisc, Property property, int rating,
+		                            Property property, int rating,
 		                            Projection faceProj, Configuration config) {
-			super(name, desc, null, fisc,
+			super(name, desc, null, false, config.finite, faceProj.isSolveable(), faceProj.isInvertable(),
 			      (tipOffset == 0) ? Type.OCTOHEDRAL : Type.TETRADECAHEDRAL, property, rating,
 			      new String[] {}, new double[][] {}, config.hasAspect);
 			this.octants = config.placeOctants(tipOffset);
@@ -233,7 +233,7 @@ public class Octohedral {
 	private enum Configuration {
 
 		/** the classic four quadrants splayed out in a nice butterfly shape, with Antarctica divided and attached */
-		BUTTERFLY(true) {
+		BUTTERFLY(true, true) {
 			Octant[] placeOctants(double tipOffset) {
 				return new Octant[] {
 					new Octant(0, 0, -PI/2, -PI/2, PI/2, -3*PI/4),
@@ -259,7 +259,7 @@ public class Octohedral {
 		},
 
 		/** The more compact zigzag configuration with Antarctica divided and attached */
-		M_PROFILE(true) {
+		M_PROFILE(true, true) {
 			Octant[] placeOctants(double tipOffset) {
 				return new Octant[] {
 					new Octant(-sqrt(3)/2, 0, -PI/6, -PI/2, PI/2, -3*PI/4),
@@ -285,7 +285,7 @@ public class Octohedral {
 		},
 
 		/** Gene Keyes's current configuration, with Antarctica reassembled in the center */
-		M_W_S_POLE(false) {
+		M_W_S_POLE(true, false) {
 			Octant[] placeOctants(double tipOffset) {
 				double xSouthPole = -tipOffset/2.;
 				double ySouthPole = -1.5 + tipOffset*sqrt(3)/2.;
@@ -336,7 +336,7 @@ public class Octohedral {
 		},
 
 		/** Luca Concialdi's "Bat" arrangement */
-		BAT_SHAPE(false) {
+		BAT_SHAPE(true, false) {
 			Octant[] placeOctants(double tipOffset) {
 				return rotateOctants(toRadians(5), new Octant[]{
 					new Octant( 0.0,  0.0        , -2*PI/3,   0  ,  PI/2, toRadians(-160), toRadians(-9), 1), // Alaska
@@ -374,7 +374,7 @@ public class Octohedral {
 		},
 
 		/** an octohedron that actually only covers the positive octant, in case you want to do each octant separately */
-        SINGLE_OCTANT(true) {
+        SINGLE_OCTANT(false, true) {
 			Octant[] placeOctants(double tipOffset) {
 				return new Octant[]{
 						new Octant(0.0, 0.0, PI/6, 0, PI/2, PI/4),
@@ -396,12 +396,15 @@ public class Octohedral {
 			}
 		};
 		
+		public final boolean finite;
 		public final boolean hasAspect;
 
 		/**
+		 * @param finite whether there are enuff octants to project every part of the earth
 		 * @param hasAspect whether it would make any sense to change the aspect
 		 */
-		Configuration(boolean hasAspect) {
+		Configuration(boolean finite, boolean hasAspect) {
+			this.finite = finite;
 			this.hasAspect = hasAspect;
 		}
 

@@ -51,8 +51,8 @@ import static java.lang.Math.toRadians;
 public class Pseudocylindrical {
 	
 	public static final Projection SINUSOIDAL = new Projection(
-			"Sinusoidal", "An equal-area map shaped like a sine-wave.",
-			null, 0b1111, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 1) {
+			"Sinusoidal", "An equal-area map shaped like a sine-wave",
+			null, true, true, true, true, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 1) {
 		public void initialize(double... params) {
 			this.shape = Shape.meridianEnvelope(this);
 		}
@@ -68,8 +68,9 @@ public class Pseudocylindrical {
 
 
 	public static final Projection MOLLWEIDE = new Projection(
-			"Mollweide", "An equal-area projection shaped like an ellipse.",
-			Shape.ellipse(2, 1), 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
+			"Mollweide", "An equal-area projection shaped like an ellipse",
+			Shape.ellipse(2, 1), true, true, false, true,
+			Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
 
 		public double[] project(double lat, double lon) {
 			double tht = NumericalAnalysis.newtonRaphsonApproximation(
@@ -91,8 +92,8 @@ public class Pseudocylindrical {
 	
 	
 	public static final Projection HOMOLOSINE = new Projection(
-			"Homolosine (uninterrupted)", "A combination of the sinusoidal and Mollweide projections.",
-			null, 0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
+			"Homolosine (uninterrupted)", "A combination of the sinusoidal and Mollweide projections",
+			null, true, true, false, true, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
 		
 		private final double phiH = 0.71098;
 		private final double scale = sqrt(2);
@@ -127,8 +128,8 @@ public class Pseudocylindrical {
 	
 	
 	public static final Projection HOMOLOSINE_INTERRUPTED = new Projection(
-			"Goode Homolosine", "An interrupted combination of the sinusoidal and Mollweide projections.",
-			null, 0b1100, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
+			"Goode Homolosine", "An interrupted combination of the sinusoidal and Mollweide projections",
+			null, false, true, false, true, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
 		
 		private final double[][] edges = {
 				{toRadians(-40), toRadians(180)},
@@ -194,14 +195,14 @@ public class Pseudocylindrical {
 	
 	
 	public static final Projection ECKERT_IV = new Projection(
-			"Eckert IV", "An equal-area projection released in a set of six (I'm only giving you the one because the others are not good).",
+			"Eckert IV", "An equal-area projection released in a set of six (I'm only giving you the one because the others are not good)",
 			new Shape(-2, 2, -1, 1, List.of(
 					new Path.Command('M', -1, 1),
 					new Path.Command('A', 1, 1, 0, 0, 1, -1, -1),
 					new Path.Command('L', 1, -1),
 					new Path.Command('A', 1, 1, 0, 0, 1, 1, 1),
 					new Path.Command('Z'))),
-			0b1101, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
+			true, true, false, true, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
 		
 		public double[] project(double lat, double lon) {
 			double tht = NumericalAnalysis.newtonRaphsonApproximation(
@@ -222,8 +223,8 @@ public class Pseudocylindrical {
 	
 	
 	public static final Projection WAGNER_II = new Projection(
-			"Wagner II", "A compromise projection with sinusoidal meridians.",
-			null, 0b1111, Type.OTHER, Property.COMPROMISE, 2) {
+			"Wagner II", "A compromise projection with sinusoidal meridians",
+			null, true, true, true, true, Type.OTHER, Property.COMPROMISE, 2) {
 		public void initialize(double... params) {
 			this.shape = Shape.meridianEnvelope(this);
 		}
@@ -244,8 +245,8 @@ public class Pseudocylindrical {
 	
 	
 	public static final Projection WAGNER_V = new Projection(
-			"Wagner V", "A compromise projection with elliptical meridians.",
-			null, 0b1111, Type.OTHER, Property.COMPROMISE, 3) {
+			"Wagner V", "A compromise projection with elliptical meridians",
+			null, true, true, true, true, Type.OTHER, Property.COMPROMISE, 3) {
 		public void initialize(double... params) {
 			this.shape = Shape.meridianEnvelope(this);
 		}
@@ -268,8 +269,8 @@ public class Pseudocylindrical {
 	
 	
 	public static final Projection KAVRAYSKIY_VII = new Projection(
-			"Kavrayskiy VII", null, 0b1111, Type.PSEUDOCYLINDRICAL,
-			Property.COMPROMISE, 2, null, "mostly popular in the former Soviet Union") {
+			"Kavrayskiy VII", "A compromise pseudocylindrical projection mostly popular in the former Soviet Union",
+			null, true, true, true, true, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE, 2) {
 		public void initialize(double... params) {
 			this.shape = Shape.meridianEnvelope(this);
 		}

@@ -68,63 +68,34 @@ public abstract class Projection {
 	private final double[][] paramValues; //the bounds and default value of each parameter
 	private final boolean hasAspect; //is it spherically symmetrical?
 	
+	private final boolean continuous; //is the interruption kept to no more than one meridian's equivalent?
 	private final boolean finite; //does it display the entire world?
-	private final boolean invertable; //is the inverse solution closed-form?
 	private final boolean solveable; //is the solution closed-form?
-	private final boolean continuous; //does a random continuous path cross outside of the map?
+	private final boolean invertable; //is the inverse solution closed-form?
 	private final Type type; //the geometry of the projection
 	private final Property property; //what it is good for
 	private final int rating; //how good I think it is
 	protected Shape shape; //bounding shape
 
 	
-	
 	protected Projection(
-			String name, Shape shape, int fisc, Type type, Property property, int rating) {
-		this(name, buildDescription(type,property,null,null),
-		     shape, fisc, type, property, rating, new String[0], new double[0][]);
-	}
-	
-	protected Projection(
-			String name, Shape shape, int fisc, Type type, Property property,
-			int rating, String adjective) {
-		this(name, buildDescription(type,property,adjective,null), shape,
-		     fisc, type, property, rating, new String[0], new double[0][]); // TODO: I hate these constructors. I don't need so many of them.
-	}
-	
-	protected Projection(
-			String name, Shape shape, int fisc, Type type, Property property,
-			int rating, String adjective, String addendum) {
-		this(name, buildDescription(type,property,adjective,addendum), shape,
-		     fisc, type, property, rating, new String[0], new double[0][]);
-	}
-	
-	protected Projection(
-			String name, String description, Shape shape, int fisc,
-			Type type, Property property, int rating) {
-		this(name, description, shape, fisc, type, property, rating,
+			String name, String description, Shape shape, boolean continuous, boolean finite,
+			boolean solvable, boolean invertible, Type type, Property property, int rating) {
+		this(name, description, shape, continuous, finite, solvable, invertible, type, property, rating,
 		     new String[0], new double[0][]);
 	}
 	
 	protected Projection(
-			String name, String description, Shape shape, int fisc, Type type,
-			Property property, int rating, String[] paramNames, double[][] paramValues) {
-		this(name, description, shape, fisc, type, property, rating,
+			String name, String description, Shape shape, boolean continuous, boolean finite,
+			boolean solveable, boolean invertable, Type type, Property property, int rating,
+			String[] paramNames, double[][] paramValues) {
+		this(name, description, shape, continuous, finite, solveable, invertable, type, property, rating,
 		     paramNames, paramValues, true);
 	}
 	
-	protected Projection(
-			String name, String description, Shape shape, int fisc, Type type,
-			Property property, int rating, String[] paramNames, double[][] paramValues,
-			boolean hasAspect) {
-		this(name, description, shape,
-		     (fisc&0b1000) > 0, (fisc&0b0100) > 0, (fisc&0b0010) > 0, (fisc&0b0001) > 0,
-		     type, property, rating, paramNames, paramValues, hasAspect);
-	}
-	
 	protected Projection (
-			String name, String description, Shape shape,
-			boolean finite, boolean invertable, boolean solveable, boolean continuous, Type type, Property property, int rating,
+			String name, String description, Shape shape, boolean continuous, boolean finite,
+			boolean solveable, boolean invertable, Type type, Property property, int rating,
 			String[] paramNames, double[][] paramValues, boolean hasAspect) {
 		this.name = name;
 		this.description = description;
@@ -132,10 +103,10 @@ public abstract class Projection {
 		this.paramValues = paramValues;
 		this.hasAspect = hasAspect;
 		this.shape = shape;
-		this.finite = finite;
-		this.invertable = invertable;
-		this.solveable = solveable;
 		this.continuous = continuous;
+		this.finite = finite;
+		this.solveable = solveable;
+		this.invertable = invertable;
 		this.type = type;
 		this.property = property;
 		this.rating = rating;
@@ -145,18 +116,6 @@ public abstract class Projection {
 		this(name, base.description, base.shape, base.finite, base.invertable,
 		     base.solveable, base.continuous, base.type, base.property, base.rating,
 		     base.paramNames, base.paramValues, base.hasAspect);
-	}
-	
-	private static String buildDescription(Type type, Property property, String adjective, String addendum) { //these should all be lowercase
-		String description = property+" "+type+" projection";
-		if (adjective != null)
-			description = adjective+" "+description;
-		if (addendum != null)
-			description += " "+addendum;
-		if (description.charAt(0) == 'a' || description.charAt(0) == 'e' || description.charAt(0) == 'i' || description.charAt(0) == 'o' || description.charAt(0) == 'u')
-			return "An "+description+".";
-		else
-			return "A "+description+".";
 	}
 
 
@@ -710,7 +669,7 @@ public abstract class Projection {
 	}
 
 	public static final Projection NULL_PROJECTION = //this exists solely for the purpose of a "More..." option at the end of menus.  ah, if only enums were as powerful in Java as they are in Rust.
-			new Projection("More...", null, null, 0, null, null, 0) {
+			new Projection("More...", null, null, false, false, false, false, null, null, 0) {
 		
 		public double[] project(double lat, double lon) {
 			return null;

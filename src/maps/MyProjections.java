@@ -47,9 +47,9 @@ import static java.lang.Math.toRadians;
  */
 public class MyProjections {
 
-	public static final Projection TWO_POINT_EQUALIZED = new Projection("Two-Point Equalised",
-			"A projection I invented specifically for viewing small elliptical regions of the Earth.",
-			null, 0b1111, Type.OTHER, Property.EQUIDISTANT, 2,
+	public static final Projection TWO_POINT_EQUALIZED = new Projection("Two-Point Equalized",
+			"A projection I invented specifically for viewing small elliptical regions of the Earth",
+			null, true, true, true, true, Type.OTHER, Property.EQUIDISTANT, 2,
 			new String[] {"Width"}, new double[][] { {0, 180, 120} }) {
 		
 		private double theta;
