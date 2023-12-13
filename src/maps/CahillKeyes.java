@@ -24,6 +24,7 @@
 package maps;
 
 import utils.NumericalAnalysis;
+import utils.Shape;
 
 import static java.lang.Math.atan2;
 import static java.lang.Math.hypot;
@@ -71,12 +72,36 @@ public class CahillKeyes {
 	private static final double TOLERANCE = 5; //this is a reasonable tolerance when you recall that we're operating on the order of 10,000 units
 
 	public static final double POLE_OFFSET = lMA*SCALE_FACTOR; //lMA expressed in output coordinates
-
-
+	
+	
+	public static Projection FACE = new Projection(
+			"Cahill–Keyes (face)", "A single face of Gene Keyes's octohedral projection",
+			Shape.polygon(new double[][] {{0., 0.}, {0., -sqrt(3)/2.}, {1/2., -sqrt(3)/2.}}),
+			0b1011, Projection.Type.OTHER, Projection.Property.COMPROMISE, 2) {
+		
+		public double[] project(double lat, double lon) {
+			// Mary-Jo's coordinates put the pole at the origin and everything else to the right
+			double[] coordsMj = projectMj(toDegrees(lat), toDegrees(lon));
+			if (coordsMj == null)
+				return null;
+			// rotate so that the equator is below the pole instead
+			return new double[] {coordsMj[1], -coordsMj[0]};
+		}
+		
+		public double[] inverse(double x, double y) {
+			// the generic coordinates here use degrees, and assume the equator is to the right of the pole
+			double[] coordsD = inverseMj(-y, x);
+			if (coordsD == null)
+				return null;
+			return new double[] {toRadians(coordsD[0]), toRadians(coordsD[1])};
+		}
+	};
+	
+	
 	/**
 	 * convert adjusted lat and lon in degrees to Mary Jo's coordinates
 	 */
-	public static double[] faceProjectD(double latD, double lonD) {
+	public static double[] projectMj(double latD, double lonD) {
 		final double[][] mer = meridian(lonD);
 		final double[] output;
 		if (latD >= 75) { //zone c (frigid zone)
@@ -114,13 +139,13 @@ public class CahillKeyes {
 	}
 	
 	
-	public static double[] faceInverseD(double x, double y) { //convert Mary Jo's coordinates to relative lat and lon in degrees
+	public static double[] inverseMj(double x, double y) { //convert Mary Jo's coordinates to relative lat and lon in degrees
 		// start by scaling it so a side length of 1 reads as the correct length
 		y /= SCALE_FACTOR;
 		x /= SCALE_FACTOR;
 
 		if (y > x-lMA || y > x/sqrt(3) || y > x*(2-sqrt(3))+bDE ||
-				y > (lMG-x)*(2+sqrt(3))+lGF || x > lMG) //this describes the footprint of the octant
+		    y > (lMG-x)*(2+sqrt(3))+lGF || x > lMG) //this describes the footprint of the octant
 			return null;
 		
 		double lonD = longitudeD(x, y);

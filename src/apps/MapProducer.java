@@ -81,7 +81,7 @@ public class MapProducer extends Application {
 					Lenticular.WAGNER_VIII, Pseudocylindrical.HOMOLOSINE_INTERRUPTED },
 			{
 					Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
-					Octohedral.CONFORMAL_CAHILL, Octohedral.WATERMAN } };
+					Octohedral.CONFORMAL_CAHILL_BUTTERFLY, Octohedral.WATERMAN } };
 	public static final double[] ctrMerids = {0, toRadians(-20)};
 	
 	

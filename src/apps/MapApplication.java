@@ -145,9 +145,9 @@ public abstract class MapApplication extends Application {
 			{ Conic.ALBERS, Misc.BRAUN_CONIC, Conic.LAMBERT, Conic.EQUIDISTANT },
 			{ Polyhedral.AUTHAGRAPH, Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
 			  Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR, Polyhedral.VAN_LEEUWEN },
-			{ Octohedral.CONFORMAL_CAHILL, Octohedral.CAHILL_CONCIALDI, Octohedral.KEYES_STANDARD,
-			  Octohedral.KEYES_BASIC_M, Octohedral.KEYES_OCTANT, Polyhedral.DYMAXION,
-			  Octohedral.WATERMAN },
+			{ Octohedral.CONFORMAL_CAHILL_BUTTERFLY, Octohedral.CAHILL_CONCIALDI,
+			  Octohedral.KEYES_STANDARD, Octohedral.KEYES_BASIC_M, Octohedral.KEYES_OCTANT,
+			  Polyhedral.DYMAXION, Octohedral.WATERMAN },
 			{ Pseudocylindrical.ECKERT_IV, EqualEarth.EQUAL_EARTH,
 			  Pseudocylindrical.HOMOLOSINE_INTERRUPTED, Pseudocylindrical.HOMOLOSINE,
 			  Gyorffy.B, Gyorffy.D, Pseudocylindrical.KAVRAYSKIY_VII, Pseudocylindrical.MOLLWEIDE,
@@ -421,7 +421,7 @@ public abstract class MapApplication extends Application {
 		final ObservableList<Double> factorsOf90 = FXCollections.observableArrayList();
 		for (double f = 1; f <= 90; f += 0.5)
 			if (90%f == 0)
-				factorsOf90.add((double)f);
+				factorsOf90.add(f);
 		final Spinner<Double> gratSpinner = new Spinner<Double>(factorsOf90); //spinner for the graticule value
 		gratSpinner.getValueFactory().setConverter(new DoubleStringConverter());
 		gratSpinner.getValueFactory().setValue(15.);
