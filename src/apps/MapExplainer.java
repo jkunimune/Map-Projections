@@ -39,7 +39,7 @@ import maps.Conic;
 import maps.Cylindrical;
 import maps.Lenticular;
 import maps.Misc;
-import maps.Octohedral;
+import maps.Octahedral;
 import maps.Polyhedral;
 import maps.Projection;
 import maps.Pseudocylindrical;
@@ -67,8 +67,8 @@ public class MapExplainer extends Application {
 					Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Lenticular.AITOFF,
 					Lenticular.VAN_DER_GRINTEN, ArbitraryPseudocylindrical.ROBINSON,
 					WinkelTripel.WINKEL_TRIPEL, Polyhedral.AUTHAGRAPH,
-					Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Octohedral.KEYES_STANDARD,
-					Octohedral.CAHILL_CONCIALDI, Misc.PEIRCE_QUINCUNCIAL.transverse(), Snyder.GS50,
+					Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Octahedral.KEYES_STANDARD,
+					Octahedral.CAHILL_CONCIALDI, Misc.PEIRCE_QUINCUNCIAL.transverse(), Snyder.GS50,
 					Misc.TWO_POINT_EQUIDISTANT, Misc.HAMMER_RETROAZIMUTHAL, Misc.FLAT_EARTH },
 			{Danseiji.DANSEIJI_N, Danseiji.DANSEIJI_IV, Danseiji.DANSEIJI_V, Polyhedral.TETRAGRAPH,
 			 Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH } };
@@ -109,9 +109,9 @@ public class MapExplainer extends Application {
 				PixelMap input = inputSkew;
 				if (!proj.hasAspect() || proj == Polyhedral.AUTHAGRAPH)
 					input = inputPole;
-				if (proj == Octohedral.KEYES_STANDARD) //some projections only look good in standard aspect
+				if (proj == Octahedral.KEYES_STANDARD) //some projections only look good in standard aspect
 					input = inputWest;
-				if (proj == Octohedral.CAHILL_CONCIALDI)
+				if (proj == Octahedral.CAHILL_CONCIALDI)
 					input = inputEast;
 				if (proj == Misc.FLAT_EARTH) //or can't be seen with indicatrices
 					input = inputNone;

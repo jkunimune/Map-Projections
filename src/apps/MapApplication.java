@@ -75,7 +75,7 @@ import maps.Gyorffy;
 import maps.Lenticular;
 import maps.Misc;
 import maps.MyProjections;
-import maps.Octohedral;
+import maps.Octahedral;
 import maps.Polyhedral;
 import maps.Projection;
 import maps.Pseudocylindrical;
@@ -130,7 +130,7 @@ public abstract class MapApplication extends Application {
 			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER,
 			Lenticular.VAN_DER_GRINTEN, ArbitraryPseudocylindrical.ROBINSON,
 			WinkelTripel.WINKEL_TRIPEL, EqualEarth.EQUAL_EARTH,
-			Octohedral.KEYES_BASIC_M, Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Misc.PEIRCE_QUINCUNCIAL,
+			Octahedral.KEYES_BASIC_M, Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Misc.PEIRCE_QUINCUNCIAL,
 			Misc.LEMONS };
 
 	public static final String[] PROJECTION_CATEGORIES = { "Cylindrical", "Azimuthal", "Conic",
@@ -145,9 +145,9 @@ public abstract class MapApplication extends Application {
 			{ Conic.ALBERS, Misc.BRAUN_CONIC, Conic.LAMBERT, Conic.EQUIDISTANT },
 			{ Polyhedral.AUTHAGRAPH, Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
 			  Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR, Polyhedral.VAN_LEEUWEN },
-			{ Octohedral.CONFORMAL_CAHILL_BUTTERFLY, Octohedral.CAHILL_CONCIALDI,
-			  Octohedral.KEYES_STANDARD, Octohedral.KEYES_BASIC_M, Octohedral.KEYES_OCTANT,
-			  Polyhedral.DYMAXION, Octohedral.WATERMAN },
+			{ Octahedral.CONFORMAL_CAHILL_BUTTERFLY, Octahedral.CAHILL_CONCIALDI,
+			  Octahedral.KEYES_STANDARD, Octahedral.KEYES_BASIC_M, Octahedral.KEYES_OCTANT,
+			  Polyhedral.DYMAXION, Octahedral.WATERMAN },
 			{ Pseudocylindrical.ECKERT_IV, EqualEarth.EQUAL_EARTH,
 			  Pseudocylindrical.HOMOLOSINE_INTERRUPTED, Pseudocylindrical.HOMOLOSINE,
 			  Gyorffy.B, Gyorffy.D, Pseudocylindrical.KAVRAYSKIY_VII, Pseudocylindrical.MOLLWEIDE,

@@ -37,7 +37,7 @@ import maps.EqualEarth;
 import maps.Gyorffy;
 import maps.Lenticular;
 import maps.Misc;
-import maps.Octohedral;
+import maps.Octahedral;
 import maps.Polyhedral;
 import maps.Projection;
 import maps.Pseudocylindrical;
@@ -75,13 +75,13 @@ public class MapProducer extends Application {
 					Polyhedral.DYMAXION, Misc.HAMMER_RETROAZIMUTHAL, Snyder.GS50,
 					Azimuthal.STEREOGRAPHIC.withAspect("Oblique Stereographic", .5, 2.5, -2.5),
 					Cylindrical.MERCATOR.withAspect("Oblique Mercator", .5, 2.5, 2.5), Misc.BONNE,
-					Misc.BRAUN_CONIC, Octohedral.CAHILL_CONCIALDI, Octohedral.KEYES_STANDARD,
+					Misc.BRAUN_CONIC, Octahedral.CAHILL_CONCIALDI, Octahedral.KEYES_STANDARD,
 					Lenticular.EISENLOHR, Gyorffy.E, Lenticular.LAGRANGE, Lenticular.POLYCONIC,
 					Polyhedral.VAN_LEEUWEN, Pseudocylindrical.WAGNER_II, Pseudocylindrical.WAGNER_V,
 					Lenticular.WAGNER_VIII, Pseudocylindrical.HOMOLOSINE_INTERRUPTED },
 			{
 					Misc.PEIRCE_QUINCUNCIAL, Misc.GUYOU, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
-					Octohedral.CONFORMAL_CAHILL_BUTTERFLY, Octohedral.WATERMAN } };
+					Octahedral.CONFORMAL_CAHILL_BUTTERFLY, Octahedral.WATERMAN } };
 	public static final double[] ctrMerids = {0, toRadians(-20)};
 	
 	

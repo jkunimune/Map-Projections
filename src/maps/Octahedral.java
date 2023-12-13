@@ -49,17 +49,17 @@ import static utils.Math2.max;
 import static utils.Math2.sind;
 
 /**
- * A class of maps that use octohedral octants. Very similar to Polyhedral, but much faster since
+ * A class of maps that use octahedral octants. Very similar to Polyhedral, but much faster since
  * it takes advantage of the fact that everything is orthogonal.
  * 
  * @author jkunimune
  */
-public class Octohedral {
+public class Octahedral {
 	
 	public static final Projection CONFORMAL_CAHILL_FACE = new Projection(
 			"Cahill Conformal (face)", "The conformal projection from an octant to an equilateral triangle",
 			Shape.polygon(new double[][] {{0., 0.}, {0., -sqrt(3)/2.}, {1/2., -sqrt(3)/2.}}),
-			true, true, false, false, Projection.Type.OCTOHEDRAL, Property.CONFORMAL, 3) {
+			true, true, false, false, Projection.Type.OCTAHEDRAL, Property.CONFORMAL, 3) {
 		
 		private final double HEXAGON_SCALE = 1.112913; //this is 2^(2/3)/6*\int_0^\pi sin^(-1/3) x dx
 		private final double TOLERANCE = 1e-3;
@@ -120,52 +120,52 @@ public class Octohedral {
 	};
 	
 	
-	public static final OctohedralProjection CONFORMAL_CAHILL_BUTTERFLY = new OctohedralProjection(
+	public static final OctahedralProjection CONFORMAL_CAHILL_BUTTERFLY = new OctahedralProjection(
 			"Cahill Conformal", "The conformal and only reproducible variant of Cahill's original map",
 			0, Property.CONFORMAL, 3, CONFORMAL_CAHILL_FACE, Configuration.BUTTERFLY);
 	
 	
-	public static final Projection CAHILL_CONCIALDI = new OctohedralProjection(
-			"Cahill\u2013Concialdi", "A conformal octohedral projection with no extra cuts and a unique arrangement",
+	public static final Projection CAHILL_CONCIALDI = new OctahedralProjection(
+			"Cahill\u2013Concialdi", "A conformal octahedral projection with no extra cuts and a unique arrangement",
 			0, Property.CONFORMAL, 4, CONFORMAL_CAHILL_FACE, Configuration.BAT_SHAPE);
 	
 	
-	public static final Projection WATERMAN = new OctohedralProjection(
-			"Waterman Butterfly", "A simple Cahill-esque octohedral map arrangement, with Antarctica left on",
+	public static final Projection WATERMAN = new OctahedralProjection(
+			"Waterman Butterfly", "A simple Cahill-esque octahedral map arrangement, with Antarctica left on",
 			(sqrt(3)-1)/8, Property.COMPROMISE, 3,
 			Waterman.FACE, Configuration.BUTTERFLY);
 	
 	
-	public static final Projection KEYES_BASIC_M = new OctohedralProjection(
-			"Cahill\u2013Keyes (simplified)", "A simple M-shaped octohedral projection, with Antarctica broken into three pieces",
+	public static final Projection KEYES_BASIC_M = new OctahedralProjection(
+			"Cahill\u2013Keyes (simplified)", "A simple M-shaped octahedral projection, with Antarctica broken into three pieces",
 			CahillKeyes.POLE_OFFSET, Property.COMPROMISE, 3,
 			CahillKeyes.FACE, Configuration.M_PROFILE);
 	
 	
-	public static final Projection KEYES_STANDARD = new OctohedralProjection(
-			"Cahill\u2013Keyes", "An M-shaped octohedral projection with Antarctica assembled in the center",
+	public static final Projection KEYES_STANDARD = new OctahedralProjection(
+			"Cahill\u2013Keyes", "An M-shaped octahedral projection with Antarctica assembled in the center",
 			CahillKeyes.POLE_OFFSET, Property.COMPROMISE, 4,
 			CahillKeyes.FACE, Configuration.M_W_S_POLE);
 	
 	
-	public static final Projection KEYES_OCTANT = new OctohedralProjection(
+	public static final Projection KEYES_OCTANT = new OctahedralProjection(
 			"Cahill\u2013Keyes (single octant)", "A single octant of the Cahill\u2013Keyes projection (for memory economization in the case of very large maps)",
 			CahillKeyes.POLE_OFFSET, Property.COMPROMISE, 3,
 			CahillKeyes.FACE, Configuration.SINGLE_OCTANT);
 	
 	
 	
-	private static class OctohedralProjection extends Projection {
+	private static class OctahedralProjection extends Projection {
 		
 		private final Projection faceProj;
 		private final Octant[] octants;
 		
 		
-		public OctohedralProjection(String name, String desc, double tipOffset,
+		public OctahedralProjection(String name, String desc, double tipOffset,
 		                            Property property, int rating,
 		                            Projection faceProj, Configuration config) {
 			super(name, desc, null, false, config.finite, faceProj.isSolveable(), faceProj.isInvertable(),
-			      (tipOffset == 0) ? Type.OCTOHEDRAL : Type.TETRADECAHEDRAL, property, rating,
+			      (tipOffset == 0) ? Type.OCTAHEDRAL : Type.TETRADECAHEDRAL, property, rating,
 			      new String[] {}, new double[][] {}, config.hasAspect);
 			this.octants = config.placeOctants(tipOffset);
 			this.faceProj = faceProj;
@@ -373,7 +373,7 @@ public class Octohedral {
 			}
 		},
 
-		/** an octohedron that actually only covers the positive octant, in case you want to do each octant separately */
+		/** an octahedron that actually only covers the positive octant, in case you want to do each octant separately */
         SINGLE_OCTANT(false, true) {
 			Octant[] placeOctants(double tipOffset) {
 				return new Octant[]{
@@ -411,15 +411,15 @@ public class Octohedral {
 		/**
 		 * construct the array of octant specifications.  each octant must specify the x and y of the pole,
 		 * the central meridian, and bounding latitudes and longitudes of the face.
-		 * @param tipOffset if the projection is for a truncated octohedron, this is the distance from where the
-		 *                  tip of the octant would be for a true octohedron to where it actually is
+		 * @param tipOffset if the projection is for a truncated octahedron, this is the distance from where the
+		 *                  tip of the octant would be for a true octahedron to where it actually is
 		 */
 		abstract Octant[] placeOctants(double tipOffset);
 
 		/**
 		 * construct the bounding polygon of a projection using this configuration.
-		 * @param tipOffset if the projection is for a truncated octohedron, this is the distance from where the
-		 *                  tip of the octant would be for a true octohedron to where it actually is
+		 * @param tipOffset if the projection is for a truncated octahedron, this is the distance from where the
+		 *                  tip of the octant would be for a true octahedron to where it actually is
 		 * @param projection the projection to be used for each face, in case meridians and parallels are involved
 		 *                   in the shape TODO: right now I'm using the full projection but ideally this should be a projection for just one octant
 		 */

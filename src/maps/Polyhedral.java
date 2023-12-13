@@ -51,7 +51,7 @@ import static utils.Math2.floorMod;
 
 /**
  * Projections created by projecting onto and then unfolding some kind of polyhedron – specifically a tetrahedron or an
- * icosohedron (octohedrons are in a different file)
+ * icosohedron (octahedrons are in a different file)
  * 
  * @author jkunimune
  */
