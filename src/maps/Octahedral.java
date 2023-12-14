@@ -31,7 +31,9 @@ import utils.Shape;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.Double.NEGATIVE_INFINITY;
 import static java.lang.Double.NaN;
+import static java.lang.Double.POSITIVE_INFINITY;
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
 import static java.lang.Math.atan;
@@ -126,26 +128,49 @@ public class Octahedral {
 	
 	
 	public static final Projection CAHILL_CONCIALDI = new OctahedralProjection(
-			"Cahill\u2013Concialdi", "A conformal octahedral projection with no extra cuts and a unique arrangement",
+			"Cahill\u2013Concialdi", "A conformal octahedral projection with a unique arrangement",
 			0, Property.CONFORMAL, 4, CONFORMAL_CAHILL_FACE, Configuration.BAT_SHAPE);
 	
 	
-	public static final Projection WATERMAN = new OctahedralProjection(
-			"Waterman Butterfly", "A simple Cahill-esque octahedral map arrangement, with Antarctica left on",
+	public static final OctahedralProjection CONFORMAL_CAHILL_OCTANT = new OctahedralProjection(
+			"Cahill Conformal (single octant)", "A single octant of Cahill's conformal projection (for memory economization in the case of very large maps)",
+			0, Property.CONFORMAL, 3, CONFORMAL_CAHILL_FACE, Configuration.SINGLE_OCTANT);
+	
+	
+	public static final Projection WATERMAN_BUTTERFLY = new OctahedralProjection(
+			"Waterman Butterfly", "A Cahill-esque octahedral map arrangement, with Antarctica broken off and reassembled",
 			(sqrt(3)-1)/8, Property.COMPROMISE, 3,
+			Waterman.FACE, Configuration.BUTTERFLY_WITH_SOUTH_POLE);
+	
+	
+	public static final Projection WATERMAN_SIMPLIFIED = new OctahedralProjection(
+			"Waterman Butterfly (simplified)", "A simple Cahill-esque octahedral map arrangement, with Antarctica broken into four pieces",
+			(sqrt(3)-1)/8, Property.COMPROMISE, 3,  // TODO: stating compromise here is unnecessary
 			Waterman.FACE, Configuration.BUTTERFLY);
 	
 	
-	public static final Projection KEYES_BASIC_M = new OctahedralProjection(
-			"Cahill\u2013Keyes (simplified)", "A simple M-shaped octahedral projection, with Antarctica broken into three pieces",
-			CahillKeyes.POLE_OFFSET, Property.COMPROMISE, 3,
-			CahillKeyes.FACE, Configuration.M_PROFILE);
+	public static final Projection WATERMAN_OCTANT = new OctahedralProjection(
+			"Waterman (single octant)", "A single octant of Waterman's octahedral projection (for memory economization in the case of very large maps)",
+			(sqrt(3)-1)/8, Property.COMPROMISE, 3,
+			Waterman.FACE, Configuration.SINGLE_OCTANT);
 	
 	
 	public static final Projection KEYES_STANDARD = new OctahedralProjection(
 			"Cahill\u2013Keyes", "An M-shaped octahedral projection with Antarctica assembled in the center",
 			CahillKeyes.POLE_OFFSET, Property.COMPROMISE, 4,
-			CahillKeyes.FACE, Configuration.M_W_S_POLE);
+			CahillKeyes.FACE, Configuration.M_PROFILE_WITH_SOUTH_POLE);
+	
+	
+	public static final Projection KEYES_SIMPLIFIED = new OctahedralProjection(
+			"Cahill\u2013Keyes (simplified)", "A simple M-shaped octahedral projection, with Antarctica broken into three pieces",
+			CahillKeyes.POLE_OFFSET, Property.COMPROMISE, 3,
+			CahillKeyes.FACE, Configuration.M_PROFILE);
+	
+	
+	public static final Projection KEYES_BUTTERFLY = new OctahedralProjection(
+			"Cahill\u2013Keyes (butterfly)", "Keyes's octahedral projection with Cahill's original butterfly arrangement",
+			CahillKeyes.POLE_OFFSET, Property.COMPROMISE, 3,
+			CahillKeyes.FACE, Configuration.BUTTERFLY);
 	
 	
 	public static final Projection KEYES_OCTANT = new OctahedralProjection(
@@ -169,7 +194,7 @@ public class Octahedral {
 			      new String[] {}, new double[][] {}, config.hasAspect);
 			this.octants = config.placeOctants(tipOffset);
 			this.faceProj = faceProj;
-			this.shape = Shape.polygon(config.drawShape(tipOffset, faceProj));
+			this.shape = config.drawShape(tipOffset, faceProj);
 		}
 		
 		
@@ -231,18 +256,18 @@ public class Octahedral {
 	
 	
 	private enum Configuration {
-
+		
 		/** the classic four quadrants splayed out in a nice butterfly shape, with Antarctica divided and attached */
 		BUTTERFLY(true, true) {
 			Octant[] placeOctants(double tipOffset) {
 				return new Octant[] {
-					new Octant(0, 0, -PI/2, -PI/2, PI/2, -3*PI/4),
-					new Octant(0, 0, -PI/6, -PI/2, PI/2,   -PI/4),
-					new Octant(0, 0,  PI/6, -PI/2, PI/2,    PI/4),
-					new Octant(0, 0,  PI/2, -PI/2, PI/2,  3*PI/4),
-				};
+						new Octant(0, 0, -PI/2, -PI/2, PI/2, -3*PI/4),
+						new Octant(0, 0, -PI/6, -PI/2, PI/2,   -PI/4),
+						new Octant(0, 0,  PI/6, -PI/2, PI/2,    PI/4),
+						new Octant(0, 0,  PI/2, -PI/2, PI/2,  3*PI/4),
+						};
 			}
-			double[][] drawShape(double tipOffset, Projection projection) {
+			Shape drawShape(double tipOffset, Projection projection) {
 				List<Path.Command> shape = new ArrayList<>();
 				shape.addAll(starShape( 0.0        ,  0.0,  2*PI/3, -2*PI/3, 4, tipOffset));
 				shape.addAll(starShape(-0.5*sqrt(3),  0.5,    PI/3,   -PI/3, 2, tipOffset));
@@ -254,10 +279,83 @@ public class Octahedral {
 				shape.addAll(starShape( 0.5*sqrt(3), -0.5,     0  , -4*PI/3, 4, tipOffset));
 				shape.addAll(starShape( 1.0*sqrt(3),  0.0,   -PI/3, -2*PI/3, 1, tipOffset));
 				shape.addAll(starShape( 0.5*sqrt(3),  0.5,    PI/3,   -PI/3, 2, tipOffset));
-				return Path.asArray(shape);
+				return Shape.polygon(Path.asArray(shape));
 			}
 		},
-
+		
+		/** the classic four quadrants splayed out in a nice butterfly shape, with Antarctica divided and attached */
+		BUTTERFLY_WITH_SOUTH_POLE(true, false) {
+			private final double ySouthPole = -1.32;
+			Octant[] placeOctants(double tipOffset) {
+				double quadrantLength = sqrt(3) - tipOffset;
+				return new Octant[] {
+						new Octant(0, 0, -PI/2, toRadians(-63), toRadians( 90), toRadians(-155)),
+						new Octant(0, 0, -PI/6, toRadians(-63), toRadians( 90), toRadians( -65)),
+						new Octant(0, 0,  PI/6, toRadians(-63), toRadians( 90), toRadians(  25)),
+						new Octant(0, 0,  PI/2, toRadians(-63), toRadians( 90), toRadians( 115)),
+						new Octant(-quadrantLength/sqrt(2), ySouthPole - quadrantLength/sqrt(2),  3*PI/4,
+						           toRadians(-90), toRadians(-63), toRadians(-155)),
+						new Octant(-quadrantLength/sqrt(2), ySouthPole + quadrantLength/sqrt(2),    PI/4,
+						           toRadians(-90), toRadians(-63), toRadians( -65)),
+						new Octant( quadrantLength/sqrt(2), ySouthPole + quadrantLength/sqrt(2),   -PI/4,
+						           toRadians(-90), toRadians(-63), toRadians(  25)),
+						new Octant( quadrantLength/sqrt(2), ySouthPole - quadrantLength/sqrt(2), -3*PI/4,
+						           toRadians(-90), toRadians(-63), toRadians( 115)),
+						};
+			}
+			Shape drawShape(double tipOffset, Projection projection) {
+				double shortEdge = tipOffset/(2*sind(15));
+				List<Path.Command> parallelSegment = projection.drawLoxodrome(
+						toRadians(63), toRadians(45), toRadians(63), toRadians(0), .1);
+				parallelSegment.addAll(Path.scaled(-1, 1, Path.reversed(parallelSegment)));  // expand the parallel segment to cover 90°
+				// compose the shape of the main butterfly body
+				List<Path.Command> mainShape = new ArrayList<>();
+				mainShape.addAll(starShape( 0.0        ,  0.0,  2*PI/3, -2*PI/3, 4, tipOffset));
+				mainShape.addAll(starShape(-0.5*sqrt(3),  0.5,    PI/3,   -PI/3, 2, tipOffset));
+				mainShape.addAll(Path.rotated(PI/2, Path.translated(0, sqrt(3), parallelSegment)));
+				mainShape.addAll(starShape(-0.5*sqrt(3), -0.5,  4*PI/3,     0  , 4, tipOffset));
+				mainShape.addAll(Path.rotated(5*PI/6, Path.translated(0, sqrt(3), parallelSegment)));
+				mainShape.addAll(starShape( 0.0        , -1.0,  5*PI/3,    PI/3, 4, tipOffset));
+				mainShape.addAll(Path.rotated(-5*PI/6, Path.translated(0, sqrt(3), parallelSegment)));
+				mainShape.addAll(starShape( 0.5*sqrt(3), -0.5,     0  , -4*PI/3, 4, tipOffset));
+				mainShape.addAll(Path.rotated(-PI/2, Path.translated(0, sqrt(3), parallelSegment)));
+				mainShape.addAll(starShape( 0.5*sqrt(3),  0.5,    PI/3,   -PI/3, 2, tipOffset));
+				// compose the shape of the Antarctica island
+				List<Path.Command> sideShape = new ArrayList<>();
+				sideShape.add(new Path.Command('M', 0, ySouthPole + shortEdge));
+				sideShape.addAll(Path.translated(tipOffset/sqrt(2), -tipOffset/sqrt(2) + ySouthPole,
+				                                 Path.rotated(-3*PI/4, Path.reversed(parallelSegment))));
+				sideShape.add(new Path.Command('L', -shortEdge, ySouthPole));
+				sideShape.addAll(Path.translated(tipOffset/sqrt(2), tipOffset/sqrt(2) + ySouthPole,
+				                                 Path.rotated(-PI/4, Path.reversed(parallelSegment))));
+				sideShape.add(new Path.Command('L', 0, ySouthPole - shortEdge));
+				sideShape.addAll(Path.translated(-tipOffset/sqrt(2), tipOffset/sqrt(2) + ySouthPole,
+				                                 Path.rotated(PI/4, Path.reversed(parallelSegment))));
+				sideShape.add(new Path.Command('L', shortEdge, ySouthPole));
+				sideShape.addAll(Path.translated(-tipOffset/sqrt(2), -tipOffset/sqrt(2) + ySouthPole,
+				                                 Path.rotated(3*PI/4, Path.reversed(parallelSegment))));
+				// determine the bounds and set the path 'M's and 'L's correctly
+				double xMax = NEGATIVE_INFINITY, yMin = POSITIVE_INFINITY, yMax = NEGATIVE_INFINITY;
+				for (int i = 0; i < mainShape.size(); i ++) {
+					if (mainShape.get(i).args[0] > xMax)
+						xMax = mainShape.get(i).args[0];
+					if (mainShape.get(i).args[1] > yMax)
+						yMax = mainShape.get(i).args[1];
+					if (i > 0 && mainShape.get(i).type == 'M')
+						mainShape.set(i, new Path.Command('L', mainShape.get(i).args));
+				}
+				for (int i = 0; i < sideShape.size(); i ++) {
+					if (sideShape.get(i).args[1] < yMin)
+						yMin = sideShape.get(i).args[1];
+					if (i > 0 && sideShape.get(i).type == 'M')
+						sideShape.set(i, new Path.Command('L', sideShape.get(i).args));
+				}
+				// puth the paths together and construct the shape directly
+				mainShape.addAll(sideShape);
+				return new Shape(-xMax, xMax, yMin, yMax, mainShape);
+			}
+		},
+		
 		/** The more compact zigzag configuration with Antarctica divided and attached */
 		M_PROFILE(true, true) {
 			Octant[] placeOctants(double tipOffset) {
@@ -268,7 +366,7 @@ public class Octahedral {
 					new Octant( sqrt(3)/2, 0,  PI/6, -PI/2, PI/2,  3*PI/4),
 				};
 			}
-			double[][] drawShape(double tipOffset, Projection projection) {
+			Shape drawShape(double tipOffset, Projection projection) {
 				List<Path.Command> shape = new ArrayList<>();
 				shape.addAll(starShape( 0.0        , -0.5,  2*PI/3, -2*PI/3, 4, tipOffset));
 				shape.addAll(starShape(-0.5*sqrt(3),  0.0,    PI/3,   -PI/3, 2, tipOffset));
@@ -280,35 +378,35 @@ public class Octahedral {
 				shape.addAll(starShape( 1.0*sqrt(3), -1.5, -2*PI/3,   -PI  , 1, tipOffset));
 				shape.addAll(starShape( 1.0*sqrt(3), -0.5,     0  , -2*PI/3, 2, tipOffset));
 				shape.addAll(starShape( 0.5*sqrt(3),  0.0,    PI/3,   -PI/3, 2, tipOffset));
-				return Path.asArray(shape);
+				return Shape.polygon(Path.asArray(shape));
 			}
 		},
 
 		/** Gene Keyes's current configuration, with Antarctica reassembled in the center */
-		M_W_S_POLE(true, false) {
+		M_PROFILE_WITH_SOUTH_POLE(true, false) {
 			Octant[] placeOctants(double tipOffset) {
 				double xSouthPole = -tipOffset/2.;
 				double ySouthPole = -1.5 + tipOffset*sqrt(3)/2.;
 				double quadrantLength = sqrt(3) - tipOffset;
 				return new Octant[] {
-					new Octant(-sqrt(3)/2, 0., -PI/6, toRadians(-64), PI/2, toRadians(-155)),
+					new Octant(-sqrt(3)/2, 0., -PI/6, toRadians(-65), PI/2, toRadians(-155)),
 					new Octant(-sqrt(3)/2, 0.,  PI/6, toRadians(-90), PI/2, toRadians( -65)),
-					new Octant( sqrt(3)/2, 0., -PI/6, toRadians(-64), PI/2, toRadians(  25)),
-					new Octant( sqrt(3)/2, 0.,  PI/6, toRadians(-64), PI/2, toRadians( 115)),
+					new Octant( sqrt(3)/2, 0., -PI/6, toRadians(-65), PI/2, toRadians(  25)),
+					new Octant( sqrt(3)/2, 0.,  PI/6, toRadians(-65), PI/2, toRadians( 115)),
 					new Octant(xSouthPole - quadrantLength*sqrt(3)/2, ySouthPole - quadrantLength/2, 2*PI/3,
-					           toRadians(-90), toRadians(-64), toRadians(-155)),
+					           toRadians(-90), toRadians(-65), toRadians(-155)),
 					new Octant(xSouthPole + quadrantLength*sqrt(3)/2, ySouthPole + quadrantLength/2, -PI/3,
-					           toRadians(-90), toRadians(-64), toRadians(25)),
+					           toRadians(-90), toRadians(-65), toRadians(25)),
 					new Octant(xSouthPole + quadrantLength/2, ySouthPole - quadrantLength*sqrt(3)/2, -5*PI/6,
-					           toRadians(-90), toRadians(-64), toRadians(115)),
+					           toRadians(-90), toRadians(-65), toRadians(115)),
 				};
 			}
-			double[][] drawShape(double tipOffset, Projection projection) {
+			Shape drawShape(double tipOffset, Projection projection) {
 				double xSouthPole = -tipOffset/2.;
 				double ySouthPole = -1.5 + tipOffset*sqrt(3)/2.;
 				double shortEdge = tipOffset/(2*sind(15));
 				List<Path.Command> parallelSegment = projection.drawLoxodrome(
-						toRadians(64), toRadians(45), toRadians(64), toRadians(0), .1);
+						toRadians(65), toRadians(45), toRadians(65), toRadians(0), .1);
 				parallelSegment.addAll(Path.scaled(-1, 1, Path.reversed(parallelSegment)));  // expand the parallel segment to cover 90°
 				List<Path.Command> shape = new ArrayList<>();
 				shape.addAll(starShape( 0.0        , -0.5,  2*PI/3, -2*PI/3, 4, tipOffset));
@@ -331,7 +429,7 @@ public class Octahedral {
 				shape.addAll(Path.translated(sqrt(3), -1.5, Path.rotated(-5*PI/6, parallelSegment)));
 				shape.addAll(starShape( 1.0*sqrt(3), -0.5,     0  , -2*PI/3, 2, tipOffset));
 				shape.addAll(starShape( 0.5*sqrt(3),  0.0,    PI/3,   -PI/3, 2, tipOffset));
-				return Path.asArray(shape);
+				return Shape.polygon(Path.asArray(shape));
 			}
 		},
 
@@ -350,7 +448,7 @@ public class Octahedral {
 					new Octant( 1.5,  0.5*sqrt(3),     0  , -PI/2,   0  , toRadians( 200), -1, toRadians(9)), // New Zealand
 				});
 			}
-			double[][] drawShape(double tipOffset, Projection projection) {
+			Shape drawShape(double tipOffset, Projection projection) {
 				List<Path.Command> meridian = projection.drawLoxodrome(0, toRadians(-9), PI/2, toRadians(-9), .1);
 				List<Path.Command> parallel = projection.drawLoxodrome(PI/4, toRadians(0), PI/4, toRadians(45), .1);
 				List<Path.Command> shape = new ArrayList<>();
@@ -369,7 +467,7 @@ public class Octahedral {
 				shape.addAll(Path.translated(1.5, -0.5*sqrt(3), Path.rotated(PI, Path.reversed(meridian))));
 				shape.addAll(starShape( 1.0,  0.0        ,    PI/2, -5*PI/6, 4, tipOffset));
 				shape.addAll(Path.rotated(2*PI/3, meridian));
-				return Path.asArray(Path.rotated(toRadians(5), shape));
+				return Shape.polygon(Path.asArray(Path.rotated(toRadians(5), shape)));
 			}
 		},
 
@@ -380,9 +478,9 @@ public class Octahedral {
 						new Octant(0.0, 0.0, PI/6, 0, PI/2, PI/4),
 						};
 			}
-			double[][] drawShape(double tipOffset, Projection projection) {
+			Shape drawShape(double tipOffset, Projection projection) {
 				double cutDepth = tipOffset*(cotd(15) + sqrt(3))/2;
-				return new double[][] {
+				return Shape.polygon(new double[][] {
 						{cutDepth*sqrt(3)/2., -cutDepth/2.},
 						{tipOffset/2., -tipOffset*sqrt(3)/2.},
 						{0, -cutDepth},
@@ -392,7 +490,7 @@ public class Octahedral {
 						{sqrt(3)/2. - cutDepth*sqrt(3)/2, -1/2. - cutDepth/2.},
 						{sqrt(3)/2. - tipOffset, -1/2.},
 						{sqrt(3)/2. - cutDepth*sqrt(3)/2., -1/2. + cutDepth/2.},
-				};
+				});
 			}
 		};
 		
@@ -423,7 +521,7 @@ public class Octahedral {
 		 * @param projection the projection to be used for each face, in case meridians and parallels are involved
 		 *                   in the shape TODO: right now I'm using the full projection but ideally this should be a projection for just one octant
 		 */
-		abstract double[][] drawShape(double tipOffset, Projection projection);
+		abstract Shape drawShape(double tipOffset, Projection projection);
 
 		/**
 		 * generate a path representing a partial star shape, comprising some number of points, separated by

@@ -129,9 +129,8 @@ public abstract class MapApplication extends Application {
 			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
 			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER,
 			Lenticular.VAN_DER_GRINTEN, ArbitraryPseudocylindrical.ROBINSON,
-			WinkelTripel.WINKEL_TRIPEL, EqualEarth.EQUAL_EARTH,
-			Octahedral.KEYES_BASIC_M, Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Misc.PEIRCE_QUINCUNCIAL,
-			Misc.LEMONS };
+			WinkelTripel.WINKEL_TRIPEL, EqualEarth.EQUAL_EARTH, Octahedral.KEYES_SIMPLIFIED,
+			Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Misc.PEIRCE_QUINCUNCIAL, Misc.LEMONS };
 
 	public static final String[] PROJECTION_CATEGORIES = { "Cylindrical", "Azimuthal", "Conic",
 			"Tetrahedral", "Polyhedral", "Pseudocylindrical", "Lenticular", "Other", "Invented by Justin" }; //the overarching categories by which I organise my projections
@@ -145,9 +144,11 @@ public abstract class MapApplication extends Application {
 			{ Conic.ALBERS, Misc.BRAUN_CONIC, Conic.LAMBERT, Conic.EQUIDISTANT },
 			{ Polyhedral.AUTHAGRAPH, Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
 			  Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR, Polyhedral.VAN_LEEUWEN },
-			{ Octahedral.CONFORMAL_CAHILL_BUTTERFLY, Octahedral.CAHILL_CONCIALDI,
-			  Octahedral.KEYES_STANDARD, Octahedral.KEYES_BASIC_M, Octahedral.KEYES_OCTANT,
-			  Polyhedral.DYMAXION, Octahedral.WATERMAN },
+			{ Octahedral.CONFORMAL_CAHILL_BUTTERFLY, Octahedral.CONFORMAL_CAHILL_OCTANT,
+			  Octahedral.CAHILL_CONCIALDI, Octahedral.KEYES_STANDARD, Octahedral.KEYES_BUTTERFLY,
+			  Octahedral.KEYES_SIMPLIFIED, Octahedral.KEYES_OCTANT, Polyhedral.DYMAXION,
+			  Octahedral.WATERMAN_BUTTERFLY, Octahedral.WATERMAN_SIMPLIFIED,
+			  Octahedral.WATERMAN_OCTANT },
 			{ Pseudocylindrical.ECKERT_IV, EqualEarth.EQUAL_EARTH,
 			  Pseudocylindrical.HOMOLOSINE_INTERRUPTED, Pseudocylindrical.HOMOLOSINE,
 			  Gyorffy.B, Gyorffy.D, Pseudocylindrical.KAVRAYSKIY_VII, Pseudocylindrical.MOLLWEIDE,
