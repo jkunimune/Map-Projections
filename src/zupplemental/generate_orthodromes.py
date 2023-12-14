@@ -15,7 +15,7 @@ def plot_orthodrome(phi0, lam0, tht0) -> str:
 	
 
 def generate_orthodromes() -> str:
-	"""generate an icosohedral orthodromic mesh, like the Brilliant logo (#notsponsored)"""
+	"""generate an icosahedral orthodromic mesh, like the Brilliant logo (#notsponsored)"""
 	result = ""
 	for l in range(-180, 180, 36):
 		result += plot_orthodrome(pi/2, 0, radians(l))

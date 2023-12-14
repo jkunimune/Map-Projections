@@ -93,7 +93,7 @@ public class MapOptimizer extends Application {
 		chart.setCreateSymbols(true);
 		chart.setAxisSortingPolicy(SortingPolicy.NONE);
 		
-		PrintStream log = new PrintStream(new File("output/parameters.txt"));
+		PrintStream log = new PrintStream("output/parameters.txt");
 		
 		chart.getData().add(analyzeAll(EXISTING_PROJECTIONS));
 		for (Projection p: PROJECTIONS_TO_OPTIMIZE)
@@ -119,13 +119,13 @@ public class MapOptimizer extends Application {
 		
 		for (Projection proj : projs)
 			if (!proj.isParametrized())
-				output.getData().add(plotDistortion(proj, new double[0]));
+				output.getData().add(plotDistortion(proj));
 		
 		return output;
 	}
 	
 	
-	private static Data<Number, Number> plotDistortion(Projection proj, double[] params) {
+	private static Data<Number, Number> plotDistortion(Projection proj) {
 		double[] distortion = proj.avgDistortion(GLOBE, proj.getDefaultParameters());
 		return new Data<Number, Number>(distortion[0], distortion[1]);
 	}
@@ -193,8 +193,8 @@ public class MapOptimizer extends Application {
 				bestValue = avgDist;
 				bestParams = params.clone();
 			}
-			for (int i = 0; i < params.length; i ++)
-				System.out.print(params[i]+", ");
+			for (double param: params)
+				System.out.print(param + ", ");
 			System.out.println(avgDist+";");
 			
 			int i;
@@ -222,7 +222,7 @@ public class MapOptimizer extends Application {
 	 * a backtracking line search.
 	 * @param arrFunction - The function that takes a parameter array and returns a double value.
 	 * @param x0 - The initial guess.
-	 * @return The array of parameters that mimimise arrFunction.
+	 * @return The array of parameters that minimise arrFunction.
 	 */
 	private static double[] bfgsMinimise(Function<double[], Double> arrFunction, double[] x0) { //The Broyden-Fletcher-Goldfarb-Shanno algorithm
 		System.out.println("BFGS = [");

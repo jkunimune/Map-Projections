@@ -41,7 +41,7 @@ public class Dixon {
 	/**
 	 * One third of the period of a dixon sm or cm function
 	 */
-	public static double PERIOD_THIRD = 1.7666387503;
+	public static final double PERIOD_THIRD = 1.7666387503;
 	
 	private static final double[] COEF = { 1.000000e0, .625000e-1, .223214e-2, .069754e-3,
 			.020121e-4/*, .005539e-5, .001477e-6, .000385e-7, .000099e-8, .000025e-9*/ };

@@ -3,7 +3,6 @@
 	 xmlns:dc="http://purl.org/dc/elements/1.1/"
 	 xmlns:cc="http://creativecommons.org/ns#"
 	 xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-	 xmlns:svg="http://www.w3.org/2000/svg"
 	 xmlns="http://www.w3.org/2000/svg"
 	 width="2048"
 	 height="1024"
@@ -14,8 +13,8 @@
 			<cc:work>
 				<rdf:Description
 					 about="https://github.com/jkunimune/Map-Projections/"
-					 dc:title="Icosohedral orthodromic mesh - Equirectangular projection"
-					 dc:description="A mesh of great circles that intersect with 10-fold symmetry at 12 principal nodes and 6-fold symmetry at 20 minor nodes. Aligns with the edges of an icosohedron and its dual dodecahedron."
+					 dc:title="Icosahedral orthodromic mesh - Equirectangular projection"
+					 dc:description="A mesh of great circles that intersect with 10-fold symmetry at 12 principal nodes and 6-fold symmetry at 20 minor nodes. Aligns with the edges of an icosahedron and its dual dodecahedron."
 					 dc:creator="Justin Kunimune"
 					 dc:source="http://www.naturalearthdata.com/"
 					 dc:date="2018-02-04"
@@ -33,9 +32,9 @@
 			</cc:License>
 		</rdf:RDF>
 	</metadata>
-	<title>Icosohedral orthodromic mesh &#8211; Equirectangular projection</title>
+	<title>Icosahedral orthodromic mesh &#8211; Equirectangular projection</title>
 	<desc>
-		A mesh of great circles that intersect with 10-fold symmetry at 12 principal nodes and 6-fold symmetry at 20 minor nodes. Aligns with the edges of an icosohedron and its dual dodecahedron.
+		A mesh of great circles that intersect with 10-fold symmetry at 12 principal nodes and 6-fold symmetry at 20 minor nodes. Aligns with the edges of an icosahedron and its dual dodecahedron.
 	</desc>
 	<style type="text/css">
 		.lines {

@@ -170,7 +170,9 @@ public class Misc {
 			double phi1 = PI/2 - hypot(x, y);
 			if (phi1 < -PI/2) 	return null;
 			double lam1 = atan2(x, -y);
-			double phiP = asin(sin(phi0)/hypot(sin(phi1),cos(phi1)*cos(lam1))) - atan2(cos(phi1)*cos(lam1),sin(phi1));
+			double y1 = cos(phi1)*cos(lam1);
+			double z1 = sin(phi1);
+			double phiP = asin(sin(phi0)/hypot(z1, y1)) - atan2(y1, z1);
 			if (abs(phiP) > PI/2)
 				phiP = signum(phiP)*PI - phiP;
 			double delL = acos(sin(phi1)/cos(phiP)/cos(phi0) - tan(phiP)*tan(phi0));

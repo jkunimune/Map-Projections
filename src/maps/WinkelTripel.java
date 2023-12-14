@@ -74,7 +74,7 @@ public final class WinkelTripel {
 		public double[] inverse(double x, double y) {
 			return NumericalAnalysis.newtonRaphsonApproximation(
 					x, y,
-					y/2, x*(1 + cos(y*PI/2))/(2 + 2*cos(stdParallel)), //inital guess is Eckert V
+					y/2, x*(1 + cos(y*PI/2))/(2 + 2*cos(stdParallel)), //initial guess is Eckert V
 					this::f1pX, this::f2pY,
 					this::df1dphi, this::df1dlam, this::df2dphi, this::df2dlam, .001);
 		}

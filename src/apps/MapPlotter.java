@@ -155,7 +155,7 @@ public class MapPlotter extends Application {
 		for (Projection projection: projections) {
 			System.out.print(projection+": ");
 			final double[] params = projection.getDefaultParameters();
-			final double distortion[] = projection.avgDistortion(points, params);
+			final double[] distortion = projection.avgDistortion(points, params);
 			final Data<Number, Number> datum = new Data<Number, Number>(
 					distortion[0]/DECIBEL, distortion[1]/DECIBEL);
 			series.getData().add(datum);

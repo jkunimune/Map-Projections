@@ -113,18 +113,14 @@ public class Polyhedral {
 	
 	public static final PolyhedralProjection AUTHAGRAPH = new PolyhedralProjection(
 			"IMAGO (AuthaGraph)",
-			"Authagraph is a hip new Japanese map that would be super great if they actually " +
+			"AuthaGraph is a hip new Japanese map that would be super great if they actually " +
 			"published their equations. This is technically just an approximation, also known as " +
-			"the Infinitessimal Mutated AuthaGraph Offspring.",
+			"the Infinitesimal Mutated AuthaGraph Offspring.",
 			true, true, false, Polyhedron.AUTHAGRAPH, Property.COMPROMISE, 3,
 			new String[] {"Power"}, new double[][] {{.5,1,.68}}) {
 		
 		private final double[] POLE = {toRadians(77), toRadians(143), toRadians(17)};
-		private double k;
-		
-		public void initialize(double... params) {
-				this.k = params[0];
-		}
+		private final double k = .68;
 		
 		@Override
 		public double[] project(double lat, double lon) { //apply a pole shift to AuthaGraph
@@ -137,21 +133,14 @@ public class Polyhedral {
 			return transformToOblique(super.inverse(x, y), POLE);
 		}
 		
-		
 		public double[] faceProject(double lat, double lon) {
-			final double tht = atan((lon - asin(sin(lon)/sqrt(3)))/PI*sqrt(12));
-			final double p = (PI/2 - lat) / atan(sqrt(2)/cos(lon));
-			return new double[] { pow(p,k)*sqrt(3)/cos(tht), tht };
+			AUTHAPOWER.initialize(k);
+			return AUTHAPOWER.faceProject(lat, lon);
 		}
 		
-		protected double[] faceInverse(double r, double th) {
-			final double lon = NumericalAnalysis.newtonRaphsonApproximation(th, th*2,
-					(l) -> atan((l - asin(sin(l)/sqrt(3)))/PI*sqrt(12)),
-					(l) -> (1-1/sqrt(1+2*pow(cos(l),-2)))/sqrt(pow(PI,2)/12+pow(l-asin(sin(l)/sqrt(3)),2)),
-					.001);
-			final double R = r / (sqrt(3)/cos(th));
-			return new double[] {
-					PI/2 - pow(R,1/k)*atan(sqrt(2)/cos(lon)), lon };
+		public double[] faceInverse(double r, double th) {
+			AUTHAPOWER.initialize(k);
+			return AUTHAPOWER.faceInverse(r, th);
 		}
 	};
 	
@@ -173,7 +162,7 @@ public class Polyhedral {
 			return new double[] { pow(p,k)*sqrt(3)/cos(tht), tht };
 		}
 		
-		protected double[] faceInverse(double r, double th) {
+		public double[] faceInverse(double r, double th) {
 			final double lon = NumericalAnalysis.newtonRaphsonApproximation(th, th*2,
 					(l) -> atan((l - asin(sin(l)/sqrt(3)))/PI*sqrt(12)),
 					(l) -> (1-1/sqrt(1+2*pow(cos(l),-2)))/sqrt(pow(PI,2)/12+pow(l-asin(sin(l)/sqrt(3)),2)),
@@ -310,9 +299,9 @@ public class Polyhedral {
 			double y = r*sin(th)*atan(2);
 			double a = sqrt(3)*x + y; //angular distance up each side of the triangle
 			double b = sqrt(3)*x - y;
-			double xG = cos36*(sin(a) + sin(b))/(1 + cos(a) + cos(b)); //unnormalised gnomonic coordinates
-			double yG = sin36*
-					(sin(a) - sin(b) + 2*sin(a-b))/(1 + cos(a) + cos(b));
+			double correction = 1 + cos(a) + cos(b);
+			double xG = cos36*(sin(a) + sin(b))/correction; //unnormalised gnomonic coordinates
+			double yG = sin36*(sin(a) - sin(b) + 2*sin(a-b))/correction;
 			return new double[] {atan(1/hypot(xG, yG)), atan2(yG, xG)}; //inverse gnomonic projection
 		}
 	};
@@ -530,7 +519,7 @@ public class Polyhedral {
 				new Facet(-0.5, -0.5*sqrt(3),    PI/2,       -PI/2,     0  , -3*PI/5,   -PI/5, 2*PI/5), //West Pacific O.
 				new Facet(-1.5, -0.5*sqrt(3),    PI/2,       -PI/2,     0  ,   -PI/5,     0  , 3*PI/5), //Melanesia
 		});
-		/** the number of the rotational spmmetry in the spherical coordinate system */
+		/** the number of the rotational symmetry in the spherical coordinate system */
 		public final int sphereSym;
 		/** the number of the rotational symmetry in the planar coordinate system */
 		public final int planarSym;
@@ -549,7 +538,7 @@ public class Polyhedral {
 			if (sphereSym == 3)
 				this.type = Type.TETRAHEDRAL;
 			else
-				this.type = Type.ICOSOHEDRAL;
+				this.type = Type.ICOSAHEDRAL;
 		}
 		
 		public double[] rotateOOB(double x, double y, double xCen, double yCen) { //move points that are out of bounds for project()

@@ -42,7 +42,8 @@ import static utils.Math2.tand;
 /**
  * A truncated octahedral map. The projection is Cahill-Keyes, because it was invented after Cahill,
  * so it is presumably better (not that Tobler World in a Square wasn't invented after Lambert EAC).
- * http://www.genekeyes.com/CKOG-OOo/7-CKOG-illus-&-coastline.html
+ *
+ * <a href="http://www.genekeyes.com/CKOG-OOo/7-CKOG-illus-&-coastline.html">genekeyes.com/CKOG-OOo/7-CKOG-illus-&-coastline</a>
  *
  * @author jkunimune
  */
@@ -74,7 +75,7 @@ public class CahillKeyes {
 	public static final double POLE_OFFSET = lMA*SCALE_FACTOR; //lMA expressed in output coordinates
 	
 	
-	public static Projection FACE = new Projection(
+	public static final Projection FACE = new Projection(
 			"Cahill–Keyes (face)", "A single face of Gene Keyes's octahedral projection",
 			Shape.polygon(new double[][] {{0., 0.}, {0., -sqrt(3)/2.}, {1/2., -sqrt(3)/2.}}),
 			true, true, true, false, Projection.Type.OTHER, Projection.Property.COMPROMISE, 2) {

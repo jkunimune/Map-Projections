@@ -74,7 +74,6 @@ import maps.EqualEarth;
 import maps.Gyorffy;
 import maps.Lenticular;
 import maps.Misc;
-import maps.MyProjections;
 import maps.Octahedral;
 import maps.Polyhedral;
 import maps.Projection;
@@ -224,7 +223,7 @@ public abstract class MapApplication extends Application {
 			FileChooser.ExtensionFilter defaultExtension,
 			Function<File, Task<Void>> inputSetter) {
 		final Label label = new Label("Current input:");
-		final Text inputLabel = new Text("Basic"+defaultExtension.getExtensions().get(0).substring(1)); //this line kind of cheats, since it assumes the first input will be called "Basic", but I couldn't figure out a good way for this to update when the subclass programatically sets the input
+		final Text inputLabel = new Text("Basic"+defaultExtension.getExtensions().get(0).substring(1)); //this line kind of cheats, since it assumes the first input will be called "Basic", but I couldn't figure out a good way for this to update when the subclass programmatically sets the input
 		
 		final FileChooser inputChooser = new FileChooser();
 		inputChooser.setInitialDirectory(new File("input"));
@@ -415,9 +414,7 @@ public abstract class MapApplication extends Application {
 		final CheckBox cropBox = new CheckBox("Crop at antimeridian"); //the CheckBox for whether there should be shown imagery beyond += 180 degrees
 		cropBox.setSelected(cropAtIDL.isSet());
 		cropBox.setTooltip(new Tooltip("Hide points of extreme longitude."));
-		cropBox.selectedProperty().addListener((observable, old, now) -> {
-				cropAtIDL.set(now);
-			});
+		cropBox.selectedProperty().addListener((observable, old, now) -> cropAtIDL.set(now));
 		
 		final ObservableList<Double> factorsOf90 = FXCollections.observableArrayList();
 		for (double f = 1; f <= 90; f += 0.5)
@@ -533,9 +530,7 @@ public abstract class MapApplication extends Application {
 									"Could not access "+f.getAbsolutePath()+". It's possible that another program has it open.");
 						}
 						pBar.close();
-//						try {
-//							Desktop.getDesktop().open(f.getParentFile()); // TODO: show a popup here with a button to open the folder inste of of doing it automatically
-//						} catch (IOException e) {} //if you can't open the directory for some reason, don't worry about it.
+//						// TODO: show a popup here with a button to open the folder
 					});
 					disableWhile(task.runningProperty(), buttonType);
 					new Thread(task).start(); //now execute!
@@ -698,7 +693,7 @@ public abstract class MapApplication extends Application {
 	
 	
 	protected enum ButtonType {
-		LOAD_INPUT, UPDATE_MAP, SAVE_MAP, SAVE_GRAPH;
+		LOAD_INPUT, UPDATE_MAP, SAVE_MAP, SAVE_GRAPH
 	}
 }
 

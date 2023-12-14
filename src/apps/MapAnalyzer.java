@@ -25,11 +25,11 @@ package apps;
 
 import image.ImageUtils;
 import image.SavableImage;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.SnapshotResult;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.NumberAxis;
@@ -38,6 +38,7 @@ import javafx.scene.chart.XYChart.Series;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -53,6 +54,7 @@ import utils.Procedure;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.util.concurrent.ExecutionException;
 import java.util.function.DoubleUnaryOperator;
 
 import static java.lang.Double.isFinite;
@@ -194,20 +196,16 @@ public class MapAnalyzer extends MapApplication {
 	
 	private Task<SavableImage> calculatePlotTask() {
 		Task<SavableImage> task = new Task<SavableImage>() {
-			private SnapshotResult snapRes = null;
-			
-			protected void running() {
-				charts.snapshot((snapRes) -> {
-					this.snapRes = snapRes;
-					return null;
-				}, null, null);
-			}
-			
-			protected SavableImage call() { //yeah, this is weird and dumb, but only because the
-				updateProgress(-1, 1); //snapshot method is dumb. Why does it have to be called on
-				updateMessage("Converting graph\u2026"); //the GUI thread? It's clearly doing Thread
-				while (!isCancelled() && snapRes == null) {} //things, judging by the fact that it
-				return SavableImage.savable(snapRes.getImage()); //_has_ a Callback version
+			protected SavableImage call() throws ExecutionException, InterruptedException {
+				updateProgress(-1, 1);
+				updateMessage("Converting graph\u2026");
+				Task<WritableImage> snapshotTask = new Task<>() {
+					protected WritableImage call() {
+						return charts.snapshot(null, null);
+					}
+				};
+				Platform.runLater(snapshotTask);
+				return SavableImage.savable(snapshotTask.get());
 			}
 		};
 		disableWhile(task.runningProperty(), ButtonType.SAVE_GRAPH);

@@ -77,14 +77,9 @@ public class ImageUtils {
 		Path2D awtPath = new Path2D.Double(Path2D.WIND_NON_ZERO, path.size());
 		for (Path.Command svgCmd: path) {
 			switch (svgCmd.type) {
-			case 'M':
-				awtPath.moveTo(svgCmd.args[0], svgCmd.args[1]);
-				break;
-			case 'L':
-				awtPath.lineTo(svgCmd.args[0], svgCmd.args[1]);
-				break;
-			case 'Z':
-				awtPath.closePath();
+				case 'M' -> awtPath.moveTo(svgCmd.args[0], svgCmd.args[1]);
+				case 'L' -> awtPath.lineTo(svgCmd.args[0], svgCmd.args[1]);
+				case 'Z' -> awtPath.closePath();
 			}
 		}
 		g.draw(awtPath);

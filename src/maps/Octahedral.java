@@ -182,7 +182,7 @@ public class Octahedral {
 		
 		public OctahedralProjection(String name, String desc, int rating, double tipOffset,
 		                            Projection faceProj, Configuration config) {
-			super(name, desc, null, false, config.comprehensive, faceProj.isSolveable(), faceProj.isInvertable(),
+			super(name, desc, null, false, config.comprehensive, faceProj.isSolvable(), faceProj.isInvertible(),
 			      (tipOffset == 0) ? Type.OCTAHEDRAL : Type.TETRADECAHEDRAL, faceProj.getProperty(), rating,
 			      new String[] {}, new double[][] {}, config.hasAspect);
 			this.octants = config.placeOctants(tipOffset);

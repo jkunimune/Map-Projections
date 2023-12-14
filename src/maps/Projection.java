@@ -70,8 +70,8 @@ public abstract class Projection {
 	
 	private final boolean continuous; //is the interruption kept to no more than one meridian's equivalent?
 	private final boolean comprehensive; //does it display the entire world?
-	private final boolean solveable; //is the solution closed-form?
-	private final boolean invertable; //is the inverse solution closed-form?
+	private final boolean solvable; //is the solution closed-form?
+	private final boolean invertible; //is the inverse solution closed-form?
 	private final Type type; //the geometry of the projection
 	private final Property property; //what it is good for
 	private final int rating; //how good I think it is
@@ -87,15 +87,15 @@ public abstract class Projection {
 	
 	protected Projection(
 			String name, String description, Shape shape, boolean continuous, boolean comprehensive,
-			boolean solveable, boolean invertable, Type type, Property property, int rating,
+			boolean solvable, boolean invertible, Type type, Property property, int rating,
 			String[] paramNames, double[][] paramValues) {
-		this(name, description, shape, continuous, comprehensive, solveable, invertable, type, property, rating,
+		this(name, description, shape, continuous, comprehensive, solvable, invertible, type, property, rating,
 		     paramNames, paramValues, true);
 	}
 	
 	protected Projection (
 			String name, String description, Shape shape, boolean continuous, boolean comprehensive,
-			boolean solveable, boolean invertable, Type type, Property property, int rating,
+			boolean solvable, boolean invertible, Type type, Property property, int rating,
 			String[] paramNames, double[][] paramValues, boolean hasAspect) {
 		this.name = name;
 		this.description = description;
@@ -105,16 +105,16 @@ public abstract class Projection {
 		this.shape = shape;
 		this.continuous = continuous;
 		this.comprehensive = comprehensive;
-		this.solveable = solveable;
-		this.invertable = invertable;
+		this.solvable = solvable;
+		this.invertible = invertible;
 		this.type = type;
 		this.property = property;
 		this.rating = rating;
 	}
 	
 	protected Projection(String name, Projection base) {
-		this(name, base.description, base.shape, base.comprehensive, base.invertable,
-		     base.solveable, base.continuous, base.type, base.property, base.rating,
+		this(name, base.description, base.shape, base.comprehensive, base.invertible,
+		     base.solvable, base.continuous, base.type, base.property, base.rating,
 		     base.paramNames, base.paramValues, base.hasAspect);
 	}
 
@@ -188,30 +188,7 @@ public abstract class Projection {
 	public double[] inverse(double[] coords) {
 		return inverse(coords[0], coords[1]);
 	}
-
-	/**
-	 * convert a location on the map plane to a location on the rotated globe
-	 * @param coords the x and y value, in the same units as this.bounds
-	 * @param pole the desired aspect: the latitude and longitude of the location that should appear as the North Pole
-	 *             and the angle to rotate the globe about its new axis
-	 * @return the latitude and longitude in radians
-	 */
-	public double[] inverse(double[] coords, double[] pole) {
-		return inverse(coords[0], coords[1], pole);
-	}
-
-	/**
-	 * convert a location on the map plane to a location on the rotated globe
-	 * @param x the x value in the same units as this.bounds
-	 * @param y the y value in the same units as this.bounds
-	 * @param pole the desired aspect: the latitude and longitude of the location that should appear as the North Pole
-	 *             and the angle to rotate the globe about its new axis
-	 * @return the latitude and longitude in radians
-	 */
-	public double[] inverse(double x, double y, double[] pole) {
-		return inverse(x, y, pole, false);
-	}
-
+	
 	/**
 	 * convert a location on the map plane to a location on the rotated globe
 	 * @param x the x value in the same units as this.bounds
@@ -233,19 +210,8 @@ public abstract class Projection {
 		else
 			return transformToOblique(relCoords, hasAspect ? pole : null);
 	}
-
-
-	/**
-	 * perform the inverse projection on a 2D array of points
-	 * @param size the maximum linear dimension of the 2D array
-	 * @return an array of latitude-longitude pairs, where each row is at a particular x value,
-	 *         and each column is at a particular y value.  y decreases with increasing row index.
-	 *         elements corresponding to points not on the map will be set to zero.
-	 */
-	public double[][][] map(int size) {
-		return map(size, false);
-	}
-
+	
+	
 	/**
 	 * perform the inverse projection on a 2D array of points
 	 * @param size the maximum linear dimension of the 2D array
@@ -431,11 +397,11 @@ public abstract class Projection {
 	}
 	
 	public double[][][] calculateDistortion(double[][][] points,
-			BooleanSupplier cancelation, DoubleConsumer progressTracker) { //calculate both kinds of distortion over the given region
+			BooleanSupplier cancellation, DoubleConsumer progressTracker) { //calculate both kinds of distortion over the given region
 		double[][][] output = new double[2][points.length][points[0].length]; //the distortion matrix
 		
 		for (int y = 0; y < points.length; y ++) {
-			if (cancelation.getAsBoolean()) 	return null;
+			if (cancellation.getAsBoolean()) 	return null;
 			progressTracker.accept((double)y/points.length);
 			for (int x = 0; x < points[y].length; x ++) {
 				if (points[y][x] != null) {
@@ -632,12 +598,12 @@ public abstract class Projection {
 		return this.comprehensive;
 	}
 	
-	public final boolean isInvertable() {
-		return this.invertable;
+	public final boolean isInvertible() {
+		return this.invertible;
 	}
 	
-	public final boolean isSolveable() {
-		return this.solveable;
+	public final boolean isSolvable() {
+		return this.solvable;
 	}
 	
 	public final boolean isContinuous() {
@@ -692,7 +658,7 @@ public abstract class Projection {
 		PSEUDOCYLINDRICAL("Pseudocylindrical"), PSEUDOCONIC("Pseudoconic"),
 		PSEUDOAZIMUTHAL("Pseudoazimuthal"),
 		TETRAHEDRAL("Tetrahedral"), OCTAHEDRAL("Octahedral"),
-		TETRADECAHEDRAL("Truncated Octahedral"), ICOSOHEDRAL("Icosohedral"),
+		TETRADECAHEDRAL("Truncated Octahedral"), ICOSAHEDRAL("Icosahedral"),
 		POLYNOMIAL("Polynomial"), STREBE("Strebe blend"), PLANAR("Planar"), OTHER("Other");
 		
 		private final String name;

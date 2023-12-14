@@ -3,7 +3,6 @@
 	 xmlns:dc="http://purl.org/dc/elements/1.1/"
 	 xmlns:cc="http://creativecommons.org/ns#"
 	 xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-	 xmlns:svg="http://www.w3.org/2000/svg"
 	 xmlns="http://www.w3.org/2000/svg"
 	 width="2048"
 	 height="1024"
@@ -15,7 +14,7 @@
 				<rdf:Description
 					 about="https://github.com/jkunimune/Map-Projections/"
 					 dc:title="Blank world map (de facto country borders)"
-					 dc:description="A map of the world, showing all countries' defacto borders, with major lakes overlaid. Borders precise to 110km. Equirectangular projection."
+					 dc:description="A map of the world, showing all countries' de facto borders, with major lakes overlaid. Borders precise to 110km. Equirectangular projection."
 					 dc:creator="Justin Kunimune"
 					 dc:source="http://www.naturalearthdata.com/"
 					 dc:date="2018-02-04"
@@ -35,7 +34,7 @@
 	</metadata>
 	<title>Blank world map (de facto country borders)</title>
 	<desc>
-		A map of the world, showing all countries' defacto borders, with major lakes overlaid. Borders precise to 110km. Equirectangular projection.
+		A map of the world, showing all countries' de facto borders, with major lakes overlaid. Borders precise to 110km. Equirectangular projection.
 	</desc>
 	<style type="text/css">
 		.country {

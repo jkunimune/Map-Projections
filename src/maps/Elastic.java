@@ -189,7 +189,9 @@ public class Elastic {
 		/**
 		 * convert a location on the map plane to a location on the globe by iteratively searching
 		 * for the coordinates that project to x and y on a given section.  the algorithm is
-		 * Levenberg-Marquardt; see <i>J. Res. NIST</i> 103, p. 633 (1998).
+		 * Levenberg-Marquardt; see <i>J. Res. NIST</i> 103, p. 633 (1998).  this procedure could
+		 * probably be a lot simpler (or omitted entirely) depending on how high quality an inverse
+		 * you want.
 		 * @param x the x value, in the same units as this.width
 		 * @param y the y value, in the same units as this.height
 		 * @param section_index the index of the section to search
@@ -484,7 +486,7 @@ public class Elastic {
 		/**
 		 * determine whether the given point falls within this polygon or not. the method used is a typical even/odd
 		 * algorithm, with the caveat that the directionality of the polygon is significant.  if the vertices go
-		 * counterclockwise, the contianed points are everything inside the polygon as one would expect, but if the
+		 * counterclockwise, the contained points are everything inside the polygon as one would expect, but if the
 		 * vertices go clockwise, the contained points are actually everything <i>outside</i> the polygon.
 		 * @param ф the latitude of the point
 		 * @param λ the longitude of the point
@@ -681,7 +683,7 @@ public class Elastic {
 		 * recenter a set of spherical coordinates so that the latitude is in the range [-PI/2, PI/2]
 		 * and the longitude is in the range [-PI, PI].  if it's outside of the latitude bounds, it
 		 * will get reflected about the poles until it isn't.  if it's out of the longitude bounds,
-		 * it will get modulused such that it isn't.
+		 * it will get moduloed such that it isn't.
 		 * @param ф the latitude (radians)
 		 * @param λ the longitude (radians)
 		 * @return the equivalent in-bounds latitude and longitude in an array

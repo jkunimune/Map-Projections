@@ -2,7 +2,7 @@ import math
 
 
 AXIAL_TILT = 23.43694
-ANTI_TILT = 66.56306 #I have both of these because it's the easiest way to deal with roundoff
+ANTI_TILT = 66.56306 # I have both of these because it's the easiest way to deal with roundoff
 
 
 def plot_meridian(lamd, granularity, cut=0, clazz=None) -> str:
@@ -27,7 +27,7 @@ def generate_graticule(spacing, granularity, include_tropics=False, adjust_poles
 	result = ""
 	NUM_BASE = 90//spacing
 	cuts = [0]*(4*NUM_BASE)
-	if adjust_poles: #if this is True, reduce the number of meridians as you approach the pole
+	if adjust_poles: # if this is True, reduce the number of meridians as you approach the pole
 		old_num = 1
 		for p in range(0, 90, spacing):
 			new_num = old_num*int(1/math.cos(math.radians(p+spacing/2))/old_num)

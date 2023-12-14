@@ -44,11 +44,7 @@ public class MutableDouble {
 	public double get() {
 		return this.value;
 	}
-
-	public boolean isNaN() {
-		return Double.isNaN(this.value);
-	}
-
+	
 	public void set(double value) {
 		this.value = value;
 	}

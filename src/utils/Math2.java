@@ -154,52 +154,8 @@ public class Math2 {
 	public static double linInterp(double x, double a0, double a1, double b0, double b1) {
 		return (x-a0)*(b1-b0)/(a1-a0) + b0;
 	}
-
-	public static double[] linInterp(double[] xs, double[][] A, double[][] B) {
-		double[] out = new double[xs.length];
-		for (int i = 0; i < xs.length; i ++)
-			out[i] = linInterp(xs[i], A[0][i], A[1][i], B[0][i], B[1][i]);
-		return out;
-	}
-
-	public static boolean outOfBoundsInSameDirection(double[][] range, double[]... xs) {
-		boolean allOutOnLeft = true;
-		for (double[] x : xs)
-			if (x[0] >= range[0][0]) {
-				allOutOnLeft = false;
-				break;
-			}
-		if (allOutOnLeft)
-			return true;
-
-		boolean allOutOnRight = true;
-		for (double[] x : xs)
-			if (x[0] <= range[1][0]) {
-				allOutOnRight = false;
-				break;
-			}
-		if (allOutOnRight)
-			return true;
-
-		boolean allOutOnBottom = true;
-		for (double[] x : xs)
-			if (x[1] >= range[0][1]) {
-				allOutOnBottom = false;
-				break;
-			}
-		if (allOutOnBottom)
-			return true;
-
-		boolean allOutOnTop = true;
-		for (double[] x : xs)
-			if (x[1] <= range[1][1]) {
-				allOutOnTop = false;
-				break;
-			}
-		return allOutOnTop;
-	}
-
-
+	
+	
 	public static double hypot(double[] a, double[] b) {
 		return Math.hypot(a[0] - b[0], a[1] - b[1]);
 	}

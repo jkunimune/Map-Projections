@@ -6,10 +6,11 @@ from helpers import plot, trim_edges, lengthen_edges, load_shaperecords
 def plot_shapes(
 		filename, max_rank=float('inf'), clazz=None,
 		trim_antarctica=False, flesh_out_antarctica=False, mark_antarctica=False,
-		filter_field=None, filter_values=['']) -> str:
+		filter_field=None, filter_values=None) -> str:
 	result = ""
 	for shape, record in load_shaperecords(filename):
 		if filter_field is not None:
+			assert filter_values is not None
 			filter_value = record[filter_field]
 			if filter_value not in filter_values:
 				continue  # skip it if it is filtered out

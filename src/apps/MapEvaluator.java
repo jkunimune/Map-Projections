@@ -69,7 +69,7 @@ public class MapEvaluator {
 			};
 
 	public static void main(String[] args) throws IOException {
-		BufferedImage img = ImageIO.read(new File("input/Sillouette.png")); // start by loading the mask
+		BufferedImage img = ImageIO.read(new File("input/Silhouette.png")); // start by loading the mask
 		boolean[][] land = new boolean[img.getHeight()][img.getWidth()];
 		for (int i = 0; i < land.length; i ++)
 			for (int j = 0; j < land[i].length; j ++)
@@ -142,7 +142,7 @@ public class MapEvaluator {
 			}
 			
 			System.out.printf("Usable area: %.6f sr\n", totalArea);
-			System.out.printf("Anglular:   %8.4f %%\n", 100*shearedArea/totalArea);
+			System.out.printf("Angular:    %8.4f %%\n", 100*shearedArea/totalArea);
 			System.out.printf("Areal:      %8.4f %%\n", 100*swollenArea/totalArea);
 			System.out.printf("Precision:  %8.4f %%\n", 100*maxArea/totalArea);
 			System.out.println();

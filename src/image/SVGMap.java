@@ -243,7 +243,7 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 				y = y*transform[1] + transform[3];
 				width = width*transform[0];
 				height = height*transform[1];
-				// check if it exactly covers the viewbox (it's okay if it's vertically inverted)
+				// check if it exactly covers the viewBox (it's okay if it's vertically inverted)
 				if ((x == header.vbMinX && y == header.vbMinY && width == header.vbWidth && height == header.vbHeight) ||
 				    (x == header.vbMinX && y == header.vbMinY + header.vbHeight && width == header.vbWidth && height == -header.vbHeight)) {
 					// if so, remove the dimensions and stick the remainder in a Background Object
@@ -516,7 +516,7 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 						partI.remove(0); //remove the useless moveto
 						partJ.addAll(partI); //combine them
 						partI = partJ;
-						parts.remove(j); //don't look at J anymone; it has been absorbed.
+						parts.remove(j); //don't look at J anymore; it has been absorbed.
 						break;
 					}
 				}
@@ -551,10 +551,6 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 
 		public Content(String content) {
 			this.content = content;
-		}
-
-		public Content projected() {
-			return this;
 		}
 
 		public String toString() {
@@ -621,10 +617,6 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 			this.formatSpecifier = formatSpecifier;
 			this.x = x;
 			this.y = y;
-		}
-
-		public GeographicPoint projected() {
-			return this;
 		}
 
 		public String toString() {

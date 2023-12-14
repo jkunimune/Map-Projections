@@ -67,7 +67,7 @@ def plot_political_shapes(filename, mode="normal",
 	else:
 		regions = load_shapes_from_one_place_and_records_from_another(filename, include_circles_from)
 	# go thru the records and sort them into a dictionary by ISO 3166 codes
-	hierarchially_arranged_regions: dict[tuple[tuple[str, ...], str], ShapeRecord] = {}
+	hierarchically_arranged_regions: dict[tuple[tuple[str, ...], str], ShapeRecord] = {}
 	for shape, record in regions:
 		# if it Antarctica, trim it
 		if trim_antarctica:
@@ -84,25 +84,25 @@ def plot_political_shapes(filename, mode="normal",
 			if province_code.endswith("~"):
 				province_code = province_code[:-1]
 			country_code = province_code[:province_code.index("-")]
-			hierarchial_identifier = (sovereign_code, country_code, province_code)
+			hierarchical_identifier = (sovereign_code, country_code, province_code)
 			unique_identifier = record["adm1_code"]
 		else:  # or by sovereign, admin0
 			country_code = record["adm0_a3"]
-			hierarchial_identifier = (sovereign_code, country_code)
+			hierarchical_identifier = (sovereign_code, country_code)
 			unique_identifier = country_code
-		if hierarchial_identifier[0] == hierarchial_identifier[1]:  # remove duplicate layers
-			hierarchial_identifier = hierarchial_identifier[1:]
-		key = (hierarchial_identifier, unique_identifier)
-		hierarchially_arranged_regions[key] = (shape, record)
+		if hierarchical_identifier[0] == hierarchical_identifier[1]:  # remove duplicate layers
+			hierarchical_identifier = hierarchical_identifier[1:]
+		key = (hierarchical_identifier, unique_identifier)
+		hierarchically_arranged_regions[key] = (shape, record)
 
 	# next, go thru and plot the borders
 	current_state = []
 	result = ""
 	already_titled = set()
 	# for each item
-	for key in sorted(hierarchially_arranged_regions.keys()):
+	for key in sorted(hierarchically_arranged_regions.keys()):
 		hierarchy, identifier = key
-		shape, record = hierarchially_arranged_regions[key]
+		shape, record = hierarchically_arranged_regions[key]
 
 		# decide whether it's "small"
 		is_small = True
@@ -179,7 +179,7 @@ def plot_political_shapes(filename, mode="normal",
 		current_state.pop()
 
 	# remove any groups with no elements
-	for i in range(3):
+	for _ in range(3):
 		result = re.sub(r'(\t)*<g class="([A-Za-z_-]+)">(\s*)</g>\n',
 		                '', result)
 	# simplify any groups with only a single element

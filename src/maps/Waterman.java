@@ -35,8 +35,9 @@ import static utils.Math2.linInterp;
 
 /**
  * A class of methods pertaining to the Waterman projection.
- * http://www.watermanpolyhedron.com/methodp.html
- * 
+ *
+ * <a href="http://www.watermanpolyhedron.com/methodp.html">watermanpolyhedron.com/methodp</a>
+ *
  * @author jkunimune
  */
 public class Waterman {
@@ -50,7 +51,7 @@ public class Waterman {
 	private static final double cos15 = (sqrt(3)+1)/sqrt(8);  // cos(15°)
 	
 	
-	public static Projection FACE = new Projection(
+	public static final Projection FACE = new Projection(
 			"Waterman (face)", "A single face of Waterman's octahedral projection",
 			Shape.polygon(new double[][] {{0., 0.}, {0., -sqrt(3)/2.}, {1/2., -sqrt(3)/2.}}),
 			true, true, true, false, Type.OTHER, Property.COMPROMISE, 2) {

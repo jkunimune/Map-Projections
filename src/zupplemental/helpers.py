@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import math
 import random as rng
-from typing import Any, Iterable
+from typing import Any, Iterable, Optional
 
 import shapefile
+from numpy import pi, sin, cos, tan, arcsin, arccos, degrees, ceil, radians, arctan2, hypot
 
 
 def load_shaperecords(filename) -> Iterable[ShapeRecord]:
@@ -49,31 +49,46 @@ def load_shapes_from_one_place_and_records_from_another(shape_filename, record_f
 
 def obliquify(lat1, lon1, lat0, lon0):
 	""" go from relative to absolute coordinates """
-	latf = math.asin(math.sin(lat0)*math.sin(lat1) - math.cos(lat0)*math.cos(lon1)*math.cos(lat1))
-	innerFunc = math.sin(lat1)/math.cos(lat0)/math.cos(latf) - math.tan(lat0)*math.tan(latf)
-	if lat0 == math.pi/2: # accounts for special case when lat0 = pi/2
+	latf = arcsin(sin(lat0)*sin(lat1) - cos(lat0)*cos(lon1)*cos(lat1))
+	innerFunc = sin(lat1)/cos(lat0)/cos(latf) - tan(lat0)*tan(latf)
+	if lat0 == pi/2: # accounts for special case when lat0 = pi/2
 		lonf = lon1+lon0
-	elif lat0 == -math.pi/2: # accounts for special case when lat0 = -pi/2
-		lonf = -lon1+lon0 + math.pi
+	elif lat0 == -pi/2: # accounts for special case when lat0 = -pi/2
+		lonf = -lon1+lon0 + pi
 	elif abs(innerFunc) > 1: # accounts for special case when cos(lat1) -> 0
 		if (lon1 == 0 and lat1 < -lat0) or (lon1 != 0 and lat1 < lat0):
-			lonf = lon0 + math.pi
+			lonf = lon0 + pi
 		else:
 			lonf = lon0
-	elif math.sin(lon1) > 0:
-		lonf = lon0 + math.acos(innerFunc)
+	elif sin(lon1) > 0:
+		lonf = lon0 + arccos(innerFunc)
 	else:
-		lonf = lon0 - math.acos(innerFunc)
+		lonf = lon0 - arccos(innerFunc)
 
-	while lonf > math.pi:
-		lonf -= 2*math.pi
-	while lonf < -math.pi:
-		lonf += 2*math.pi
+	while lonf > pi:
+		lonf -= 2*pi
+	while lonf < -pi:
+		lonf += 2*pi
 		
 	return latf, lonf
 
 
-def plot(coords, midx=[0], close=True, fourmat='pr', clazz=None, ident=None, tabs=3) -> str:
+def plot(coords: list[tuple[float, float]], midx: Optional[list[int]] = None, close=True, fourmat='pr', clazz=None, ident=None, tabs=3) -> str:
+	"""
+	express a list of 2D points as an SVG <path> tag
+	:param coords: the coordinate pairs of the vertices
+	:param midx: the indices at which each part of the path starts (that is, the indices of the movetos in the path)
+	:param close: whether to toss a Z on the end of the path string
+	:param fourmat: the order and units of the coordinates in each pair.  probably "pr" if it's (ф,λ) coordinates in
+	                radians, or "xd" if it's (λ,ф) in degrees.  the output will always be expressed as (λ,ф) in degrees,
+	                so that's why I ask.
+	:param clazz: the class attribute to give the <path>, if any
+	:param ident: the id attribute to give the <path>, if any
+	:param tabs: the number of tab characters to prepend to the <path> element
+	:return: a string describing the <path> in SVG syntax, including some tab characters on the front and a newline on the back
+	"""
+	if midx is None:
+		midx = [0]
 	class_attr = f'class="{clazz}" ' if clazz is not None else ''
 	ident_attr = f'id="{ident}" ' if ident is not None else ''
 	tag = '\t'*tabs + f'<path {class_attr}{ident_attr}d="'
@@ -92,11 +107,13 @@ def plot(coords, midx=[0], close=True, fourmat='pr', clazz=None, ident=None, tab
 			letter = 'L'
 
 		if 'r' in fourmat:
-			coord = (math.degrees(c) for c in coord)
+			coord = (degrees(c) for c in coord)
 		if 'p' in fourmat:
 			y, x = coord
 		elif 'x' in fourmat:
 			x, y = coord
+		else:
+			raise ValueError(f"unrecognized format string: '{fourmat}'")
 
 		tag += '{}{:.3f},{:.3f} '.format(letter, x, y)
 	if close:
@@ -126,11 +143,11 @@ def lengthen_edges(coast):
 		x1, y1 = coast[i+1]
 		if x0 == x1 and abs(y1-y0) > 1:
 			step = 1 if y0 > y1 else -1
-			for j in range(math.ceil(abs(y1-y0))-1):
+			for j in range(int(ceil(abs(y1-y0))-1)):
 				coast.insert(i+1, (x1, y1+step*(j+1)))
 		elif y0 == y1 and abs(x1-x0) > 1:
 			step = 1 if x0 > x1 else -1
-			for j in range(math.ceil(abs(x1-x0))-1):
+			for j in range(int(ceil(abs(x1-x0))-1)):
 				coast.insert(i+1, (x1+step*(j+1), y1))
 	return coast
 
@@ -143,10 +160,10 @@ def get_centroid(points, parts=None):
 	maxP = max([p[1] for p in points])
 
 	if maxL-minL < 15 and maxP-minP < 60:
-		return ((maxL+minL)/2, (maxP+minP)/2)
-	elif parts: #if there are multiple parts, try guessing the centroid of just one; the biggest one by bounding box
+		return (maxL + minL)/2, (maxP + minP)/2
+	elif parts: # if there are multiple parts, try guessing the centroid of just one; the biggest one by bounding box
 		parts.append(len(points))
-		max_area = 0
+		max_area, best_part = 0, None
 		for i in range(1, len(parts)):
 			part = points[parts[i-1]:parts[i]]
 			minL = min([p[0] for p in part])
@@ -156,7 +173,10 @@ def get_centroid(points, parts=None):
 			if (maxL-minL)*(maxP-minP) > max_area:
 				max_area = (maxL-minL)*(maxP-minP)
 				best_part = (parts[i-1], parts[i])
-		return get_centroid(points[best_part[0]:best_part[1]])
+		if best_part is not None:
+			return get_centroid(points[best_part[0]:best_part[1]])
+		else:
+			raise ValueError("no parts from which to take the centroid were found")
 
 	lines = []
 	for i in range(1, len(points)):
@@ -164,30 +184,30 @@ def get_centroid(points, parts=None):
 	xc, yc, zc = 0, 0, 0
 	j = 0
 	num_in = 0
-	min_latnum = math.sin(math.radians(minP))
-	max_latnum = math.sin(math.radians(maxP))
-	min_lonnum = math.radians(minL)
-	max_lonnum = math.radians(maxL)
+	min_latnum = sin(radians(minP))
+	max_latnum = sin(radians(maxP))
+	min_lonnum = radians(minL)
+	max_lonnum = radians(maxL)
 	rng.seed(0)
-	while j < 4000 or num_in < 10: #monte carlo
+	while j < 4000 or num_in < 10: # monte carlo
 		j += 1
-		latr = math.asin(rng.random()*(max_latnum-min_latnum)+min_latnum)
+		latr = arcsin(rng.random()*(max_latnum-min_latnum)+min_latnum)
 		lonr = rng.random()*(max_lonnum-min_lonnum) + min_lonnum
-		latd, lond = math.degrees(latr), math.degrees(lonr)
+		latd, lond = degrees(latr), degrees(lonr)
 		num_crosses = 0
-		for l1, p1, l2, p2 in lines: #count the lines a northward ray crosses
+		for l1, p1, l2, p2 in lines: # count the lines a northward ray crosses
 			if ((l1 <= lond and l2 > lond) or (l2 <= lond and l1 > lond)) and (p1*(l2-lond)/(l2-l1) + p2*(l1-lond)/(l1-l2) > latd):
 				num_crosses += 1
 
-		if num_crosses%2 == 1: #if odd,
+		if num_crosses%2 == 1: # if odd,
 			num_in += 1
-			xc += math.cos(latr)*math.cos(lonr) #this point is in.
-			yc += math.cos(latr)*math.sin(lonr) #update the centroid
-			zc += math.sin(latr)
+			xc += cos(latr)*cos(lonr) # this point is in.
+			yc += cos(latr)*sin(lonr) # update the centroid
+			zc += sin(latr)
 
-	loncr = math.atan2(yc, xc)
-	latcr = math.atan2(zc, math.hypot(xc, yc))
-	return (math.degrees(loncr), math.degrees(latcr))
+	loncr = arctan2(yc, xc)
+	latcr = arctan2(zc, hypot(xc, yc))
+	return degrees(loncr), degrees(latcr)
 
 
 def normalize_shaperecord(shaperecord: shapefile.ShapeRecord) -> ShapeRecord:
