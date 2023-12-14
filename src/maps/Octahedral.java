@@ -182,7 +182,7 @@ public class Octahedral {
 		
 		public OctahedralProjection(String name, String desc, int rating, double tipOffset,
 		                            Projection faceProj, Configuration config) {
-			super(name, desc, null, false, config.finite, faceProj.isSolveable(), faceProj.isInvertable(),
+			super(name, desc, null, false, config.comprehensive, faceProj.isSolveable(), faceProj.isInvertable(),
 			      (tipOffset == 0) ? Type.OCTAHEDRAL : Type.TETRADECAHEDRAL, faceProj.getProperty(), rating,
 			      new String[] {}, new double[][] {}, config.hasAspect);
 			this.octants = config.placeOctants(tipOffset);
@@ -487,15 +487,15 @@ public class Octahedral {
 			}
 		};
 		
-		public final boolean finite;
+		public final boolean comprehensive;
 		public final boolean hasAspect;
 
 		/**
-		 * @param finite whether there are enuff octants to project every part of the earth
+		 * @param comprehensive whether there are enuff octants to project every part of the earth
 		 * @param hasAspect whether it would make any sense to change the aspect
 		 */
-		Configuration(boolean finite, boolean hasAspect) {
-			this.finite = finite;
+		Configuration(boolean comprehensive, boolean hasAspect) {
+			this.comprehensive = comprehensive;
 			this.hasAspect = hasAspect;
 		}
 

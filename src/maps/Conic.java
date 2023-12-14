@@ -259,9 +259,9 @@ public class Conic {
 		protected double lat1, lat2;
 		protected boolean reversed;
 		
-		ConicProjection(String name, boolean finite, boolean solvable, boolean invertible,
+		ConicProjection(String name, boolean comprehensive, boolean solvable, boolean invertible,
 		                Property property, int rating) {
-			super(name, "The " + property + " conic projection", null, true, finite, solvable,
+			super(name, "The " + property + " conic projection", null, true, comprehensive, solvable,
 			      invertible, Type.CONIC, property, rating,
 			      new String[] {"Std. Parallel 1", "Std. Parallel 2"},
 			      new double[][] {{-89,89,15},{-89,89,45}});

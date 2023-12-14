@@ -69,7 +69,7 @@ public abstract class Projection {
 	private final boolean hasAspect; //is it spherically symmetrical?
 	
 	private final boolean continuous; //is the interruption kept to no more than one meridian's equivalent?
-	private final boolean finite; //does it display the entire world?
+	private final boolean comprehensive; //does it display the entire world?
 	private final boolean solveable; //is the solution closed-form?
 	private final boolean invertable; //is the inverse solution closed-form?
 	private final Type type; //the geometry of the projection
@@ -79,22 +79,22 @@ public abstract class Projection {
 
 	
 	protected Projection(
-			String name, String description, Shape shape, boolean continuous, boolean finite,
+			String name, String description, Shape shape, boolean continuous, boolean comprehensive,
 			boolean solvable, boolean invertible, Type type, Property property, int rating) {
-		this(name, description, shape, continuous, finite, solvable, invertible, type, property, rating,
+		this(name, description, shape, continuous, comprehensive, solvable, invertible, type, property, rating,
 		     new String[0], new double[0][]);
 	}
 	
 	protected Projection(
-			String name, String description, Shape shape, boolean continuous, boolean finite,
+			String name, String description, Shape shape, boolean continuous, boolean comprehensive,
 			boolean solveable, boolean invertable, Type type, Property property, int rating,
 			String[] paramNames, double[][] paramValues) {
-		this(name, description, shape, continuous, finite, solveable, invertable, type, property, rating,
+		this(name, description, shape, continuous, comprehensive, solveable, invertable, type, property, rating,
 		     paramNames, paramValues, true);
 	}
 	
 	protected Projection (
-			String name, String description, Shape shape, boolean continuous, boolean finite,
+			String name, String description, Shape shape, boolean continuous, boolean comprehensive,
 			boolean solveable, boolean invertable, Type type, Property property, int rating,
 			String[] paramNames, double[][] paramValues, boolean hasAspect) {
 		this.name = name;
@@ -104,7 +104,7 @@ public abstract class Projection {
 		this.hasAspect = hasAspect;
 		this.shape = shape;
 		this.continuous = continuous;
-		this.finite = finite;
+		this.comprehensive = comprehensive;
 		this.solveable = solveable;
 		this.invertable = invertable;
 		this.type = type;
@@ -113,7 +113,7 @@ public abstract class Projection {
 	}
 	
 	protected Projection(String name, Projection base) {
-		this(name, base.description, base.shape, base.finite, base.invertable,
+		this(name, base.description, base.shape, base.comprehensive, base.invertable,
 		     base.solveable, base.continuous, base.type, base.property, base.rating,
 		     base.paramNames, base.paramValues, base.hasAspect);
 	}
@@ -628,8 +628,8 @@ public abstract class Projection {
 		return this.hasAspect;
 	}
 	
-	public final boolean isFinite() {
-		return this.finite;
+	public final boolean isComprehensive() {
+		return this.comprehensive;
 	}
 	
 	public final boolean isInvertable() {

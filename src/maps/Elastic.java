@@ -133,18 +133,20 @@ public class Elastic {
 
 			// then use Newton-Raphson iteration to arrive at an exact solution for each section
 			double[][] exact_solutions = new double[sections.length][];
-			for (int i = 0; i < sections.length; i ++) {
-				exact_solutions[i] = inverse_by_iteration(x, y, i, guess);
+			for (int section_index = 0; section_index < sections.length; section_index ++) {
+				exact_solutions[section_index] = inverse_by_iteration(x, y, section_index, guess);
 				// if any solution is non-null and also in-bounds, use it immediately
-				if (exact_solutions[i] != null &&
-				    section_borders[i].contains(exact_solutions[i][0], exact_solutions[i][1]))
-					return exact_solutions[i];
+				if (exact_solutions[section_index] != null &&
+				    section_borders[section_index].contains(
+							exact_solutions[section_index][0], exact_solutions[section_index][1]))
+					return exact_solutions[section_index];
 			}
 
 			// otherwise, arbitrarily choose one of the non-null solutions
-			for (int i = 0; i < sections.length; i ++)
-				if (exact_solutions[i] != null)  // add 2π to the longitude to mark it as out-of-bounds
-					return new double[] {exact_solutions[i][0], exact_solutions[i][1] + 2*PI};
+			for (int section_index = 0; section_index < sections.length; section_index ++)
+				if (exact_solutions[section_index] != null)  // add 2π to the longitude to mark it as out-of-bounds
+					return new double[] {exact_solutions[section_index][0],
+					                     exact_solutions[section_index][1] + 2*PI};
 			// if no solutions are non-null, shikatanai.
 			return null;
 		}
@@ -190,28 +192,30 @@ public class Elastic {
 		 * Levenberg-Marquardt; see <i>J. Res. NIST</i> 103, p. 633 (1998).
 		 * @param x the x value, in the same units as this.width
 		 * @param y the y value, in the same units as this.height
-		 * @param i the index of the section to search
+		 * @param section_index the index of the section to search
 		 * @param initial_guess an initial input that projects to the correct vicinity
 		 * @return the latitude and longitude, in radians, or null if no solution can be found
 		 */
-		private double[] inverse_by_iteration(double x, double y, int i, double[] initial_guess) {
+		private double[] inverse_by_iteration(double x, double y, int section_index, double[] initial_guess) {
 			final double finite_difference = 1e-5; // radians
 			final double second_finite_difference = 0.1; // dimensionless
-			final double distance_tolerance = pow(1e-2, 2); // km^2
+			final double cost_tolerance = pow(1e-2, 2); // km^2
 			final double cosine_tolerance = 1e-3; // dimensionless
 			final double backstep_factor = 2.0;
 			final double backstep_relaxation_factor = 12.0;
 			final int max_num_steps = 40;
 			final int max_num_step_sizes = 40;
 			double[] target = {x, y};
+			
+			SplineSurface[] section = sections[section_index];
 
 			// instantiate the state variables
 			double[] guess = initial_guess.clone();
 			double[] residual = new double[2];
 			for (int l = 0; l < 2; l ++)
-				residual[l] = sections[i][l].evaluate(guess[0], guess[1]) - target[l];
-			double distance = 1/2.*LinAlg.square(residual);
-			if (isNaN(distance))  // if this section doesn't cover the initial guess, it's probably pointless
+				residual[l] = section[l].evaluate(guess[0], guess[1]) - target[l];
+			double cost = 1/2.*LinAlg.square(residual);
+			if (isNaN(cost))  // if this section doesn't cover the initial guess, it's probably pointless
 				return null;
 
 			// until we find the solution...
@@ -220,7 +224,7 @@ public class Elastic {
 			while (true) {
 
 				// check the stopping conditions
-				if (distance < distance_tolerance)
+				if (cost < cost_tolerance)
 					return guess;  // solution is found
 				if (num_steps > max_num_steps)
 					return null;  // too many outer iterations have elapsed
@@ -228,10 +232,10 @@ public class Elastic {
 				// evaluate the jacobian using finite differences
 				double[][] jacobian = new double[2][2];
 				for (int l = 0; l < 2; l ++) {
-					double north_residual = sections[i][l].evaluate(
+					double north_residual = section[l].evaluate(
 							guess[0] + finite_difference, guess[1]) - target[l];
 					jacobian[l][0] = (north_residual - residual[l])/finite_difference;
-					double east_residual = sections[i][l].evaluate(
+					double east_residual = section[l].evaluate(
 							guess[0], guess[1] + finite_difference) - target[l];
 					jacobian[l][1] = (east_residual - residual[l])/finite_difference;
 					if (isNaN(jacobian[l][0]) || isNaN(jacobian[l][1]))
@@ -245,7 +249,7 @@ public class Elastic {
 				// check the other stopping condition
 				double sum_cosines_squared = 0;
 				for (int l = 0; l < 2; l ++)
-					sum_cosines_squared += pow(gradient[l], 2)/(LinAlg.square(jacobian_transpose[l])*distance);
+					sum_cosines_squared += pow(gradient[l], 2)/(LinAlg.square(jacobian_transpose[l])*cost);
 				if (sum_cosines_squared < cosine_tolerance)
 					return guess;  // local minimum is found
 
@@ -265,7 +269,7 @@ public class Elastic {
 					double[] expected_slope = LinAlg.dot(jacobian, step);
 					double[] curvature = new double[2];
 					for (int l = 0; l < 2; l ++) {
-						double fore_residual = sections[i][l].evaluate(
+						double fore_residual = section[l].evaluate(
 								guess[0] + step[0]*second_finite_difference,
 								guess[1] + step[1]*second_finite_difference) - target[l];
 						curvature[l] = 2./second_finite_difference*(
@@ -290,15 +294,15 @@ public class Elastic {
 						// re-evaluate the function
 						double[] new_residual = new double[2];
 						for (int l = 0; l < 2; l++)
-							new_residual[l] = sections[i][l].evaluate(new_guess[0], new_guess[1]) - target[l];
-						double new_distance = 1/2.*LinAlg.square(new_residual);
+							new_residual[l] = section[l].evaluate(new_guess[0], new_guess[1]) - target[l];
+						double new_cost = 1/2.*LinAlg.square(new_residual);
 
 						// check the line-search stopping conditions
-						if (!isNaN(new_distance) && new_distance < distance) {
+						if (!isNaN(new_cost) && new_cost < cost) {
 							// valid step is found
 							guess = new_guess;
 							residual = new_residual;
-							distance = new_distance;
+							cost = new_cost;
 							step_limiter /= backstep_relaxation_factor;
 							break;
 						}

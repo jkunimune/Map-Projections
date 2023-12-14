@@ -330,18 +330,18 @@ public class Polyhedral {
 		
 		
 		public PolyhedralProjection(
-				String name, String description, boolean finite, boolean solvable,
+				String name, String description, boolean comprehensive, boolean solvable,
 				boolean invertible, Polyhedron config, Property property, int rating) {
-			super(name, description, config.shape, false, finite, solvable, invertible,
+			super(name, description, config.shape, false, comprehensive, solvable, invertible,
 			      config.type, property, rating);
 			this.configuration = config;
 		}
 		
 		public PolyhedralProjection(
-				String name, String description, boolean finite,
-				boolean solvable, boolean invertible, Polyhedron config, Property property,
-				int rating, String[] paramNames, double[][] paramValues) {
-			super(name, description, config.shape, false, finite, solvable, invertible,
+				String name, String description, boolean comprehensive, boolean solvable,
+				boolean invertible, Polyhedron config, Property property, int rating,
+				String[] paramNames, double[][] paramValues) {
+			super(name, description, config.shape, false, comprehensive, solvable, invertible,
 			      config.type, property, rating, paramNames, paramValues);
 			this.configuration = config;
 		}

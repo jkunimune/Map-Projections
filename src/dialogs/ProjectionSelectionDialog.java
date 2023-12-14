@@ -143,7 +143,7 @@ public class ProjectionSelectionDialog extends Dialog<Projection> {
 		text.addRow(0, new Label("Geometry:"), new Label(p.getType().getName()));
 		text.addRow(1, new Label("Property:"), new Label(p.getProperty().getName()));
 		text.addRow(2, new Label("Uninterrupted:"), new Label(p.isContinuous() ? "Yes" : "No"));
-		text.addRow(3, new Label("Shows entire world:"), new Label(p.isFinite() ? "Yes" : "No"));
+		text.addRow(3, new Label("Shows entire world:"), new Label(p.isComprehensive() ? "Yes" : "No"));
 		text.addRow(4, new Label("Closed-form solution:"), new Label(p.isSolveable() ? "Yes" : "No"));
 		text.addRow(5, new Label("Closed-form inverse:"), new Label(p.isInvertable() ? "Yes" : "No"));
 		for (Node label: text.getChildren())

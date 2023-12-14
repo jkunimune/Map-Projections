@@ -147,7 +147,7 @@ public class MapExplainer extends Application {
 				out.println("      <dt>Uninterrupted:&nbsp;</dt>");
 				out.println("      <dd>"+ (proj.isContinuous() ? "Yes":"No") +"</dd>");
 				out.println("      <dt>Shows entire world:&nbsp;</dt>");
-				out.println("      <dd>"+ (proj.isFinite() ? "Yes":"No") +"</dd>");
+				out.println("      <dd>" + (proj.isComprehensive() ? "Yes" : "No") + "</dd>");
 				out.println("      <dt>Closed-form solution:&nbsp;</dt>");
 				out.println("      <dd>"+ (proj.isSolveable() ? "Yes":"No") +"</dd>");
 				out.println("      <dt>Closed-form inverse:&nbsp;</dt>");
