@@ -142,13 +142,16 @@ public class MapDesignerVector extends MapApplication {
 			protected void failed() {
 				if (getException() instanceof IOException)
 					showError("File not found!",
-							"We couldn't find "+file.getAbsolutePath()+".");
+					          "We couldn't find "+file.getAbsolutePath()+".");
 				else if (getException() instanceof SAXException)
 					showError("Unreadable file!",
-							"We couldn't read "+file.getAbsolutePath()+". It may be corrupt or an unreadable format.");
+					          "We couldn't read "+file.getAbsolutePath()+". It may be corrupt or an unreadable format. " +
+					          "If you think your SVG file is valid, leave an issue on the GitHub (https://github.com/" +
+					          "jkunimune/Map-Projections/issues) or send me an email (justin.kunimune@gmail.com) and " +
+					          "I'll see if I can find out why this isn't working.");
 				else if (getException() instanceof ParserConfigurationException)
 					showError("Parser Configuration Error!",
-							"My parser configured incorrectly. I blame you.");
+					          "My parser configured incorrectly. I blame you.");
 				else {
 					getException().printStackTrace();
 					showError("Unexpected error!", getException().getMessage());

@@ -32,6 +32,7 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -56,6 +57,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -686,7 +688,12 @@ public abstract class MapApplication extends Application {
 	protected static void showError(String header, String message) { //a simple error handling thing
 		final Alert alert = new Alert(Alert.AlertType.ERROR);
 		alert.setHeaderText(header);
-		alert.setContentText(message);
+		Text contentText = new Text(message);
+		contentText.setWrappingWidth(350);
+		StackPane contentPane = new StackPane(contentText);
+		contentPane.setPadding(new Insets(10, 10, 10, 10));
+		contentPane.setAlignment(Pos.CENTER);
+		alert.getDialogPane().setContent(contentPane);
 		alert.showAndWait();
 	}
 	
