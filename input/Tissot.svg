@@ -1,37 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-	 xmlns:dc="http://purl.org/dc/elements/1.1/"
-	 xmlns:cc="http://creativecommons.org/ns#"
-	 xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-	 xmlns="http://www.w3.org/2000/svg"
-	 width="2048"
-	 height="1024"
-	 viewBox="0 0 360 180"
-	 version="1.1">
-	<metadata>
-		<rdf:RDF>
-			<cc:work>
-				<rdf:Description
-					 about="https://github.com/jkunimune/Map-Projections/"
-					 dc:title="Equirectangular map of the world - coastlines with Tissot's indicatrices"
-					 dc:description="A map of the world, showing all landmasses with Tissot's indicatrices of radius 3 degrees 45 minutes and spacing 15 degrees. Coastlines precise to 50km."
-					 dc:creator="Justin Kunimune"
-					 dc:source="http://www.naturalearthdata.com/"
-					 dc:date="2018-02-04"
-					 dc:format="image/svg+xml"
-					 dc:language="en" >
-				</rdf:Description>
-			</cc:work>
-			<cc:License>
-				<cc:permits rdf:resource="http://web.resource.org/cc/Reproduction" />
-				<cc:permits rdf:resource="http://web.resource.org/cc/Distribution" />
-				<cc:permits rdf:resource="http://web.resource.org/cc/DerivativeWorks" />
-				<cc:permits rdf:resource="http://web.resource.org/cc/Sharing" />
-				<cc:requires rdf:resource="http://web.resource.org/cc/Attribution" />
-				<cc:requires rdf:resource="http://web.resource.org/cc/ShareAlike" />
-			</cc:License>
-		</rdf:RDF>
-	</metadata>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="2048"
+     height="1024"
+     viewBox="0 0 360 180"
+     version="1.1">
 	<title>Equirectangular map of the world &#8211; coastlines with Tissot's indicatrices</title>
 	<desc>
 		A map of the world, showing all landmasses with Tissot's indicatrices of radius 3&#0176;&#0160;45&#8242; and spacing 15&#0176;. Coastlines precise to 50&#0160;km.
