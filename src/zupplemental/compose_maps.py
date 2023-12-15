@@ -17,6 +17,7 @@ def main():
 	write_svg_code_to_file(
 		"../../input/Basic.svg",
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
+		'		<rect class="water" x="-180" y="-90" width="360" height="180" />\n'
 		'		<g class="land">\n'
 		+ plot_shapes('ne_50m_land', trim_antarctica=True, mark_antarctica=True) +
 		'		</g>\n'
@@ -112,10 +113,11 @@ def main():
 	write_svg_code_to_file(
 		"../../input/Political.svg",
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
+		'		<rect class="water" x="-180" y="-90" width="360" height="180" />\n'
 		'		<g class="country">\n'
 		+ plot_political_shapes('ne_50m_admin_0_countries', trim_antarctica=True) +
 		'		</g>\n'
-		'		<g class="lakes">\n'
+		'		<g class="water">\n'
 		+ plot_shapes('ne_50m_lakes', max_rank=4) +
 		'		</g>\n'
 		'	</g>\n'
@@ -126,6 +128,7 @@ def main():
 	write_svg_code_to_file(
 		"../../input/Advanced/Template countries.svg",
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
+		'		<rect class="water" x="-180" y="-90" width="360" height="180" />\n'
 		'		<g class="country">\n'
 		+ plot_political_shapes('ne_110m_admin_0_countries', trim_antarctica=True, add_title=True,
 		                        mode="normal")
@@ -145,6 +148,7 @@ def main():
 	write_svg_code_to_file(
 		"../../input/Advanced/Template provinces.svg",
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
+		'		<rect class="water" x="-180" y="-90" width="360" height="180" />\n'
 		'		<g class="province">\n'
 		+ plot_political_shapes('ne_10m_admin_1_states_provinces', trim_antarctica=True, add_title=True) +
 		'		</g>\n'

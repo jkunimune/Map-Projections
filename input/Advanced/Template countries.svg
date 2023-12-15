@@ -1,37 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg
-	 xmlns:dc="http://purl.org/dc/elements/1.1/"
-	 xmlns:cc="http://creativecommons.org/ns#"
-	 xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-	 xmlns="http://www.w3.org/2000/svg"
-	 width="2048"
-	 height="1024"
-	 viewBox="0 0 360 180"
-	 version="1.1">
-	<metadata>
-		<rdf:RDF>
-			<cc:work>
-				<rdf:Description
-					 about="https://github.com/jkunimune/Map-Projections/"
-					 dc:title="Blank world map (de facto country borders)"
-					 dc:description="A map of the world, showing all countries' de facto borders, with major lakes overlaid. Borders precise to 110km. Equirectangular projection."
-					 dc:creator="Justin Kunimune"
-					 dc:source="http://www.naturalearthdata.com/"
-					 dc:date="2018-02-04"
-					 dc:format="image/svg+xml"
-					 dc:language="en" >
-				</rdf:Description>
-			</cc:work>
-			<cc:License>
-				<cc:permits rdf:resource="http://web.resource.org/cc/Reproduction" />
-				<cc:permits rdf:resource="http://web.resource.org/cc/Distribution" />
-				<cc:permits rdf:resource="http://web.resource.org/cc/DerivativeWorks" />
-				<cc:permits rdf:resource="http://web.resource.org/cc/Sharing" />
-				<cc:requires rdf:resource="http://web.resource.org/cc/Attribution" />
-				<cc:requires rdf:resource="http://web.resource.org/cc/ShareAlike" />
-			</cc:License>
-		</rdf:RDF>
-	</metadata>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="2048"
+     height="1024"
+     viewBox="0 0 360 180"
+     version="1.1">
 	<title>Blank world map (de facto country borders)</title>
 	<desc>
 		A map of the world, showing all countries' de facto borders, with major lakes overlaid. Borders precise to 110km. Equirectangular projection.
@@ -41,17 +13,16 @@
 			stroke:#ffffff;
 			stroke-width:.1;
 			fill:#c0c0c0; /* gray */
-			circle {
-				display:none;
-			}
 		}
-		/* color in countries here by inserting their ISO 3166 A3 codes. */
-		/* for example:
-		.BRA, .FRA, .USV {
-			fill:#00ff00;
-			circle {
-				display:block;
-			}
+		.country circle {
+			display:none;
+		}
+		/* color in countries and show their circles here by inserting their ISO 3166 A3 codes. for example:
+		.BRA, .FRA, .VIR {
+			fill:#00ff00; (color Brazil, France, and the US Virgin Islands green)
+		}
+		.BRA circle, .FRA circle, .VIR circle {
+			display:block; (display the small-country circles for these regions and their dependencies)
 		}
 		*/
 		.water {
@@ -60,6 +31,7 @@
 		}
 	</style>
 	<g transform="matrix(1,0,0,-1,180,90)">
+		<rect class="water" x="-180" y="-90" width="360" height="180" />
 		<g class="country">
 			<g class="AFG">
 				<path id="AFG" d="M66.519,37.363 L67.076,37.356 L67.830,37.145 L68.136,37.023 L68.859,37.344 L69.196,37.151 L69.519,37.609 L70.117,37.588 L70.271,37.735 L70.376,38.138 L70.807,38.486 L71.348,38.259 L71.239,37.953 L71.542,37.906 L71.449,37.066 L71.845,36.738 L72.193,36.948 L72.637,37.048 L73.260,37.495 L73.949,37.422 L74.980,37.420 L75.158,37.133 L74.576,37.021 L74.068,36.836 L72.920,36.720 L71.846,36.510 L71.262,36.074 L71.499,35.651 L71.613,35.153 L71.115,34.733 L71.157,34.349 L70.882,33.989 L69.931,34.020 L70.324,33.359 L69.687,33.105 L69.263,32.502 L69.318,31.901 L68.927,31.620 L68.557,31.713 L67.793,31.583 L67.683,31.303 L66.939,31.305 L66.381,30.739 L66.346,29.888 L65.047,29.472 L64.350,29.560 L64.148,29.341 L63.550,29.468 L62.550,29.319 L60.874,29.829 L61.781,30.736 L61.699,31.380 L60.942,31.548 L60.864,32.183 L60.536,32.981 L60.964,33.529 L60.528,33.676 L60.803,34.404 L61.211,35.650 L62.231,35.271 L62.985,35.404 L63.194,35.857 L63.983,36.008 L64.546,36.312 L64.746,37.112 L65.589,37.305 L65.746,37.661 L66.217,37.394 Z" />
