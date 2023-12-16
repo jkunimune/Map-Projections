@@ -293,8 +293,9 @@ public class MapDesignerRaster extends MapApplication {
 						double[] coords = proj.inverse(X, Y, aspect, crop);
 						if (coords != null) { //if it is null, the default (0:transparent) is used
 							if (isNaN(coords[0]) || isNaN(coords[1]))
-								System.err.println(proj+" returns "+coords[0]+","+coords[1]+" at "+X+","+Y+"!");
-							colors[step*dy+dx] = input.getArgb(coords[0], coords[1]);
+								colors[step*dy+dx] = 0xffff00ff;
+							else
+								colors[step*dy+dx] = input.getArgb(coords[0], coords[1]);
 						}
 					}
 				}
