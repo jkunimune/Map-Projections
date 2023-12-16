@@ -201,8 +201,8 @@ public class Elastic {
 		private double[] inverse_by_iteration(double x, double y, int section_index, double[] initial_guess) {
 			final double finite_difference = 1e-5; // radians
 			final double second_finite_difference = 0.1; // dimensionless
-			final double cost_tolerance = pow(1e-2, 2); // km^2
-			final double cosine_tolerance = 1e-3; // dimensionless
+			final double cost_tolerance = pow(1e-1, 2); // km^2
+			final double cosine_tolerance = 1e-2; // dimensionless
 			final double backstep_factor = 2.0;
 			final double backstep_relaxation_factor = 12.0;
 			final int max_num_steps = 40;
