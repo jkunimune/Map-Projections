@@ -35,6 +35,7 @@ import maps.Conic;
 import maps.Cylindrical;
 import maps.EqualEarth;
 import maps.Gyorffy;
+import maps.HammerRetroazimuthal;
 import maps.Lenticular;
 import maps.Misc;
 import maps.Octahedral;
@@ -57,7 +58,7 @@ import static java.lang.Math.toRadians;
 public class MapProducer extends Application {
 	
 	public static final Projection[][] ALL_PROJECTIONS = {
-			{ 
+			{
 					Cylindrical.PLATE_CARREE, Misc.CASSINI,
 					Cylindrical.MERCATOR,
 					Cylindrical.MERCATOR.withAspect("Transverse Mercator", 0, PI/2, -PI/2),
@@ -72,7 +73,8 @@ public class MapProducer extends Application {
 					Azimuthal.EQUAL_AREA, Azimuthal.STEREOGRAPHIC, Azimuthal.ORTHOGRAPHIC,
 					Azimuthal.PERSPECTIVE, Misc.TWO_POINT_EQUIDISTANT,
 					Misc.PEIRCE_QUINCUNCIAL.transverse("Adams Doubly-Periodic"),
-					Polyhedral.DYMAXION, Misc.HAMMER_RETROAZIMUTHAL, Snyder.GS50,
+					Polyhedral.DYMAXION, HammerRetroazimuthal.FULL, HammerRetroazimuthal.FRONT,
+					HammerRetroazimuthal.BACK, Snyder.GS50,
 					Azimuthal.STEREOGRAPHIC.withAspect("Oblique Stereographic", .5, 2.5, -2.5),
 					Cylindrical.MERCATOR.withAspect("Oblique Mercator", .5, 2.5, 2.5), Misc.BONNE,
 					Misc.BRAUN_CONIC, Octahedral.CAHILL_CONCIALDI, Octahedral.KEYES_STANDARD,

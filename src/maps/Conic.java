@@ -104,7 +104,7 @@ public class Conic {
 
 			// reverse the shape if this is inverted
 			if (reversed)
-				this.shape = Shape.scaled(shape, 1, -1);
+				this.shape = Shape.scaled(1, -1, shape);
 		}
 		
 		public double[] project(double lat, double lon) {

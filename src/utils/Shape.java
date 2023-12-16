@@ -107,7 +107,7 @@ public class Shape {
 		// for upside-down annular sectors, generate a rightside-up one and invert it
 		else {
 			Shape reverse = annularSector(innerRadius, outerRadius, angularWidth, true);
-			return scaled(reverse, -1, -1);
+			return scaled(-1, -1, reverse);
 		}
 	}
 
@@ -165,7 +165,7 @@ public class Shape {
 	/**
 	 * take an existing shape and scale it along the x- and y- axes
 	 */
-	public static Shape scaled(Shape shape, double xScale, double yScale) {
+	public static Shape scaled(double xScale, double yScale, Shape shape) {
 		List<Path.Command> path = Path.scaled(xScale, yScale, shape.path);
 		double xMin = shape.xMin*xScale;
 		double xMax = shape.xMax*xScale;
@@ -180,6 +180,29 @@ public class Shape {
 			double newYMin = yMax;
 			yMax = yMin;
 			yMin = newYMin;
+		}
+		return new Shape(xMin, xMax, yMin, yMax, path);
+	}
+	
+	
+	/**
+	 * combine two shapes.  whether this is a union or subtraction depends on the polarity of the components' paths;
+	 * all this really does is overlay their paths and union their bounding boxen.
+	 */
+	public static Shape combination(Shape... components) {
+		double xMin = POSITIVE_INFINITY, xMax = NEGATIVE_INFINITY;
+		double yMin = POSITIVE_INFINITY, yMax = NEGATIVE_INFINITY;
+		List<Path.Command> path = new ArrayList<>();
+		for (Shape component: components) {
+			if (component.xMin < xMin)
+				xMin = component.xMin;
+			if (component.xMax > xMax)
+				xMax = component.xMax;
+			if (component.yMin < yMin)
+				yMin = component.yMin;
+			if (component.yMax > yMax)
+				yMax = component.yMax;
+			path.addAll(component.path);
 		}
 		return new Shape(xMin, xMax, yMin, yMax, path);
 	}

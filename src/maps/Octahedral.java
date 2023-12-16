@@ -327,25 +327,9 @@ public class Octahedral {
 				sideShape.add(new Path.Command('L', shortEdge, ySouthPole));
 				sideShape.addAll(Path.translated(-tipOffset/sqrt(2), -tipOffset/sqrt(2) + ySouthPole,
 				                                 Path.rotated(3*PI/4, Path.reversed(parallelSegment))));
-				// determine the bounds and set the path 'M's and 'L's correctly
-				double xMax = NEGATIVE_INFINITY, yMin = POSITIVE_INFINITY, yMax = NEGATIVE_INFINITY;
-				for (int i = 0; i < mainShape.size(); i ++) {
-					if (mainShape.get(i).args[0] > xMax)
-						xMax = mainShape.get(i).args[0];
-					if (mainShape.get(i).args[1] > yMax)
-						yMax = mainShape.get(i).args[1];
-					if (i > 0 && mainShape.get(i).type == 'M')
-						mainShape.set(i, new Path.Command('L', mainShape.get(i).args));
-				}
-				for (int i = 0; i < sideShape.size(); i ++) {
-					if (sideShape.get(i).args[1] < yMin)
-						yMin = sideShape.get(i).args[1];
-					if (i > 0 && sideShape.get(i).type == 'M')
-						sideShape.set(i, new Path.Command('L', sideShape.get(i).args));
-				}
-				// puth the paths together and construct the shape directly
-				mainShape.addAll(sideShape);
-				return new Shape(-xMax, xMax, yMin, yMax, mainShape);
+				// put the paths together and construct the shape
+				return Shape.combination(Shape.polygon(Path.asArray(mainShape)),
+				                         Shape.polygon(Path.asArray(sideShape)));
 			}
 		},
 		

@@ -57,7 +57,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -74,6 +73,7 @@ import maps.Danseiji;
 import maps.Elastic;
 import maps.EqualEarth;
 import maps.Gyorffy;
+import maps.HammerRetroazimuthal;
 import maps.Lenticular;
 import maps.Misc;
 import maps.Octahedral;
@@ -158,9 +158,9 @@ public abstract class MapApplication extends Application {
 			{ Lenticular.AITOFF, Lenticular.POLYCONIC, Lenticular.EISENLOHR, Gyorffy.E, Gyorffy.F,
 			  Lenticular.HAMMER, Lenticular.LAGRANGE, Lenticular.STREBE_95,
 			  Lenticular.VAN_DER_GRINTEN, Lenticular.WAGNER_VIII, WinkelTripel.WINKEL_TRIPEL },
-			{ Misc.BONNE, Misc.CASSINI, Snyder.GS50, Misc.GUYOU, Misc.HAMMER_RETROAZIMUTHAL,
-			  Misc.LEMONS, Misc.PEIRCE_QUINCUNCIAL, Misc.T_SHIRT, Misc.TWO_POINT_EQUIDISTANT,
-			  Misc.FLAT_EARTH },
+			{ Misc.BONNE, Misc.CASSINI, Snyder.GS50, Misc.GUYOU, HammerRetroazimuthal.FULL,
+			  HammerRetroazimuthal.FRONT, HammerRetroazimuthal.BACK, Misc.LEMONS,
+			  Misc.PEIRCE_QUINCUNCIAL, Misc.T_SHIRT, Misc.TWO_POINT_EQUIDISTANT, Misc.FLAT_EARTH },
 			{ Elastic.ELASTIC_I, Elastic.ELASTIC_II, Elastic.ELASTIC_III,
 			  Danseiji.DANSEIJI_N, Danseiji.DANSEIJI_I, Danseiji.DANSEIJI_II, Danseiji.DANSEIJI_III,
 			  Danseiji.DANSEIJI_IV, Danseiji.DANSEIJI_V, Danseiji.DANSEIJI_VI,

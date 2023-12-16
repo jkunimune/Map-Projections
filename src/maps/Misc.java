@@ -139,62 +139,6 @@ public class Misc {
 	};
 	
 	
-	public static final Projection HAMMER_RETROAZIMUTHAL =
-			new Projection(
-					"Hammer Retroazimuthal", "The full version of a map where bearing and distance to a reference point is preserved",
-					Shape.circle(Math.PI), false, true, true, true, Type.PSEUDOCONIC, Property.RETROAZIMUTHAL, 2,
-					new String[] {"Latitude","Longitude"},
-					new double[][] {{-89,89,21.4}, {-180,180,39.8}}, false) {
-		
-		private double phi0, lam0;
-		
-		public void initialize(double... params) {
-			this.phi0 = toRadians(params[0]);
-			this.lam0 = toRadians(params[1]);
-		}
-		
-		public double[] project(double lat, double lon) {
-			final double z = acos(sin(phi0)*sin(lat) +
-					cos(phi0)*cos(lat)*cos(lon-lam0));
-			final double K = z/sin(z);
-			final double x = K*cos(phi0)*sin(lon-lam0);
-			final double y = -K*(sin(phi0)*cos(lat) -
-					cos(phi0)*sin(lat)*cos(lon-lam0));
-			if (cos(lon-lam0) < 0)
-				return new double[] {-x, -y};
-			else
-				return new double[] {x, y};
-		}
-		
-		public double[] inverse(double x, double y) {
-			double phi1 = PI/2 - hypot(x, y);
-			if (phi1 < -PI/2) 	return null;
-			double lam1 = atan2(x, -y);
-			double y1 = cos(phi1)*cos(lam1);
-			double z1 = sin(phi1);
-			double phiP = asin(sin(phi0)/hypot(z1, y1)) - atan2(y1, z1);
-			if (abs(phiP) > PI/2)
-				phiP = signum(phiP)*PI - phiP;
-			double delL = acos(sin(phi1)/cos(phiP)/cos(phi0) - tan(phiP)*tan(phi0));
-			double lamP = lam0 + signum(x)*delL;
-			if (isNaN(phiP) || isNaN(lamP)) 	return null;
-			if (lamP > PI) 	lamP -= 2*PI;
-			if (lamP < -PI) 	lamP += 2*PI;
-			return new double[] {phiP, lamP};
-		}
-		
-		@Override
-		public double[] project(double lat, double lon, double[] pole) {
-			return super.project(lat, lon, null);
-		}
-		
-		@Override
-		public double[] inverse(double x, double y, double[] pole, boolean crop) {
-			return super.inverse(x, y, null, crop);
-		}
-	};
-	
-	
 	public static final Projection TWO_POINT_EQUIDISTANT =
 			new Projection(
 					"Two-point Equidistant", "A map that preserves distances, but not azimuths, to two arbitrary points",
