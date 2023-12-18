@@ -130,6 +130,8 @@ public class Elastic {
 		public double[] inverse(double x, double y) {
 			// start by interpolating on the raster
 			double[] guess = inverse_by_interpolation(x, y);
+			if (guess == null)
+				return null;
 
 			// then use Newton-Raphson iteration to arrive at an exact solution for each section
 			double[][] exact_solutions = new double[sections.length][];
@@ -164,6 +166,11 @@ public class Elastic {
 			int i = (int) floor(min(i_partial, inverse_raster.length - 2));
 			double j_partial = (y - raster_lower)/raster_height*(inverse_raster[i].length - 1);
 			int j = (int) floor(min(j_partial, inverse_raster[i].length - 2));
+			
+			// check that we have everything we need to interpolate
+			if (isNaN(inverse_raster[i][j][0]) || isNaN(inverse_raster[i][j + 1][0]) ||
+			    isNaN(inverse_raster[i + 1][j][0]) || isNaN(inverse_raster[i + 1][j + 1][0]))
+				return null;
 
 			// calculate the linear weights
 			double right_weight = i_partial - i;
@@ -199,9 +206,10 @@ public class Elastic {
 		 * @return the latitude and longitude, in radians, or null if no solution can be found
 		 */
 		private double[] inverse_by_iteration(double x, double y, int section_index, double[] initial_guess) {
-			final double finite_difference = 1e-5; // radians
+			final double finite_difference = 1e-7; // radians
 			final double second_finite_difference = 0.1; // dimensionless
-			final double cost_tolerance = pow(1e-1, 2); // km^2
+			final double strict_cost_tolerance = pow(.1, 2); // km^2
+			final double lenient_cost_tolerance = pow(1000, 2); // km^2
 			final double cosine_tolerance = 1e-2; // dimensionless
 			final double backstep_factor = 2.0;
 			final double backstep_relaxation_factor = 12.0;
@@ -226,7 +234,7 @@ public class Elastic {
 			while (true) {
 
 				// check the stopping conditions
-				if (cost < cost_tolerance)
+				if (cost < strict_cost_tolerance)
 					return guess;  // solution is found
 				if (num_steps > max_num_steps)
 					return null;  // too many outer iterations have elapsed
@@ -252,7 +260,7 @@ public class Elastic {
 				double sum_cosines_squared = 0;
 				for (int l = 0; l < 2; l ++)
 					sum_cosines_squared += pow(gradient[l], 2)/(LinAlg.square(jacobian_transpose[l])*cost);
-				if (sum_cosines_squared < cosine_tolerance)
+				if (sum_cosines_squared < cosine_tolerance && cost < lenient_cost_tolerance)
 					return guess;  // local minimum is found
 
 				// perform a backtracking line-search
