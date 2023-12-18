@@ -235,11 +235,11 @@ public abstract class Projection {
 	 *         elements corresponding to points not on the map will be set to zero.
 	 */
 	public double[][][] map(int size, double[] pole, boolean cropAtPi) {
-		if (shape.width >= shape.width)
-			return map(size, Math.max(Math.round(size*shape.width/shape.width),1),
+		if (shape.width >= shape.height)
+			return map(size, Math.max(round(size*shape.height/shape.width), 1),
 			           pole, cropAtPi, null);
 		else
-			return map(Math.max(Math.round(size*shape.width/shape.width),1), size,
+			return map(Math.max(round(size*shape.width/shape.height), 1), size,
 			           pole, cropAtPi, null);
 	}
 
