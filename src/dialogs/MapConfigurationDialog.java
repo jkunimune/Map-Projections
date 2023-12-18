@@ -42,7 +42,7 @@ import static java.lang.Math.sqrt;
 public class MapConfigurationDialog extends Dialog<Boolean> {
 
 	public final int MIN_SIZE = 5, MAX_SIZE = 30000;
-	public final double DEF_SIZE = 1500;
+	public final double DEF_SIZE = 1200;
 	
 	
 	private final double defaultRatio;
@@ -66,7 +66,7 @@ public class MapConfigurationDialog extends Dialog<Boolean> {
 		this.widthBox.setMaxWidth(Double.MAX_VALUE);
 		
 		this.heightBox = new Spinner<Integer>(MIN_SIZE, MAX_SIZE,
-				10*(int)round(this.widthBox.getValue()/defaultRatio/10));
+				(int)round(this.widthBox.getValue()/defaultRatio));
 		this.heightBox.setEditable(true);
 		this.widthBox.setMaxWidth(Double.MAX_VALUE);
 		
