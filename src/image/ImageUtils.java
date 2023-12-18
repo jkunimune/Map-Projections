@@ -80,6 +80,7 @@ public class ImageUtils {
 				case 'M' -> awtPath.moveTo(svgCmd.args[0], svgCmd.args[1]);
 				case 'L' -> awtPath.lineTo(svgCmd.args[0], svgCmd.args[1]);
 				case 'Z' -> awtPath.closePath();
+				default -> throw new IllegalArgumentException("unsupported path command type for AWT images: " + svgCmd.type);
 			}
 		}
 		g.draw(awtPath);

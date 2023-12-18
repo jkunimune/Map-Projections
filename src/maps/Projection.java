@@ -43,6 +43,7 @@ import static java.lang.Math.asin;
 import static java.lang.Math.cos;
 import static java.lang.Math.hypot;
 import static java.lang.Math.log;
+import static java.lang.Math.round;
 import static java.lang.Math.sin;
 import static java.lang.Math.tan;
 import static utils.Math2.coerceAngle;
@@ -282,20 +283,29 @@ public abstract class Projection {
 			double maxLat, double maxLon, double[] pole) {
 		List<Path.Command> output = new ArrayList<>();
 		
-		for (int y = 0; y < (int)(maxLat/spacing); y ++) {
-			output.addAll(drawLoxodrome( //northern parallel
-					 y*spacing,-maxLon, y*spacing, maxLon, precision, pole));
-			if (y == 0) 	continue;
-			output.addAll(drawLoxodrome( //southern parallel
-					-y*spacing,-maxLon,-y*spacing, maxLon, precision, pole));
+		// draw the parallels
+		int numParallels = (int)round(maxLat/spacing);
+		for (int y = 0; y < numParallels; y ++) {
+			output.addAll(drawLoxodrome( // in the northern hemisphere
+					 y*spacing, -maxLon, y*spacing, maxLon, precision, pole));
+			if (y != 0)
+				output.addAll(drawLoxodrome( // in the southern hemisphere
+						-y*spacing, -maxLon, -y*spacing, maxLon, precision, pole));
 		}
-		maxLat -= .0001; //don't draw on the poles; it makes things easier
-		for (int x = 0; x <= (int)(maxLon/spacing); x ++) {
-			output.addAll(drawLoxodrome( //western meridian
-					-maxLat,-x*spacing, maxLat,-x*spacing, precision, pole));
-			if (x == 0 || x == (int)(maxLon/spacing)) 	continue;
-			output.addAll(drawLoxodrome( //eastern meridian
-					-maxLat, x*spacing, maxLat, x*spacing, precision, pole));
+		
+		// draw the meridians
+		int numMeridians = (int)round(maxLon/spacing);
+		for (int x = 0; x <= numMeridians; x ++) {
+			double meridianHeight;
+			if (x == 0 || x == numMeridians/2. || x == numMeridians)
+				meridianHeight = maxLat - .0001; // never go all the way to the poles
+			else
+				meridianHeight = maxLat - spacing; // don't even get close for most meridians
+			output.addAll(drawLoxodrome( // in the western hemisphere
+					-meridianHeight, -x*spacing, meridianHeight, -x*spacing, precision, pole));
+			if (x != 0 && x != numMeridians)
+				output.addAll(drawLoxodrome( //eastern meridian
+						-meridianHeight, x*spacing, meridianHeight, x*spacing, precision, pole));
 		}
 
 		// rescale it to the desired bounding box
