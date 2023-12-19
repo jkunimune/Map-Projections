@@ -5,7 +5,7 @@ A class to create custom maps of the Earth's surface. There are thousands of com
 <img src="output/AuthaGraph indicatrices.png" alt="AuthaGraph imitation with Tissot's indicatrices of distortion" width="300px"/>
 <img src="output/Better Guyou.jpg" alt="Guyou physical map" width="300px"/>
 
-## Executable files
+## Running the programs
 
 There are three main programs here:
 * `MapDesignerRaster.jar` &ndash; The original program. Create custom oblique raster images of the Earth's surface using a variety of algorithms called _projections_.
@@ -28,18 +28,17 @@ The output will still be sized as though the entire map were there, unless it's 
 
 If you are a fancy Windows user, I recommend the convenient [fancy Windows binaries](https://github.com/jkunimune/Map-Projections/releases). Double-click to install them and then keep pressing buttons until something good happens. If you see a map, you're in the right place.
 
-If you are not on Windows or are otherwise not fancy enough to deserve such executables, there are also equivalent `.jar` files in the main directory.
-Simply double-click them and, if you have [Java](https://java.com/en/download/) installed (10/10 would recommend), it *should* just run without further set-up.
-Sometimes Windows is weird and you have to use the command line.
-
 ### Running from the command line
 
-To run the `.jar` files from the command line, you need to download JavaFX, which you can get from [here](https://gluonhq.com/products/javafx/).  It must be JavaFX 17 or older (JavaFX 20 is not back-compatible), and make sure you get the SDK version, not the Jmods version.  Once you’ve unzipped it into some directory – let’s say, for example, `/home/jkunimune/javafx-17-sdk` – then you can run the programs like so:
+If you are not on Windows or are otherwise not fancy enough to deserve such binaries, there are also equivalent `.jar` files in the main directory.
+You used to be able to run these by double-clicking them, but I accidentally upgraded to Java 17 so now you need to run them from the command line.
+For that, you'll need to download and install both [Java 17](https://www.oracle.com/java/technologies/downloads/#jdk17-windows) and [JavaFX 17](https://gluonhq.com/products/javafx/).  Newer versions are probably okay. Make sure you get the SDK JavaFX, not the Jmods JavaFX.  Once you’ve installed Java 17 and unzipped JavaFX 17 into some directory – let’s say, for example, `/home/jkunimune/javafx-sdk-17` – then you can run the programs like so:
 
 ~~~bash
-java --module-path '/home/jkunimune/javafx-17-sdk/lib' --add-modules javafx.controls,javafx.swing -jar MapDesignerRaster.jar
+java --module-path '/home/jkunimune/javafx-sdk-17/lib' --add-modules javafx.controls,javafx.swing -jar MapDesignerRaster.jar
 ~~~
 
+Change the filename at the end accordingly, of course.
 I think this syntax might be somewhat platform dependent, but I can’t really remember.
 If you’re having problems, try forward slashes instead of backslashes or double quotes instead of single quotes.
 
@@ -63,13 +62,18 @@ Once you have those and put them in, for example, `/home/jkunimune/apache` and `
 javac --module-path '/home/jkunimune/javafx-17-sdk/lib:/home/jkunimune/apache/commons-math3-3.6.1.jar:/home/jkunimune/jtem' --add-modules javafx.controls,javafx.swing,ellipticFunctions --source-path=src src/apps/MapPlotter.java
 java --class-path '/home/jkunimune/javafx-17-sdk/lib/javafx.controls.jar:/home/jkunimune/javafx-17-sdk/lib/javafx.swing.jar:/home/jkunimune/apache/commons-math3-3.6.1.jar:/home/jkunimune/jtem/ellipticFunctions.jar:src' apps.MapPlotter
 ~~~
-As with running the .jar file, the syntax is somewhat platform-dependent; the colons might need to be semicolons, for example.
+As with running the .jar file, the syntax might be somewhat platform-dependent; the colons might need to be semicolons, for example.
+
+To build the JAR and MSI files, you use the Ant file `build.xml`.
+I don't know what commands are used for that; IntelliJ IDEA does it for me.
+The last step, the Javapackager, often has problems but doesn't have useful error messages (every failure mode appears to be "builder did not produce a bundle").
+Make sure you set the directories at the top of the file according to your file system, make sure the compiled Java is in the `bin/` directory, make sure none of the jar files have restricted read access or are being used by any other programs.
 
 There are also some Python files used to generate SVG inputs for MapDesignerVector in the src/zupplemental directory.
-To run those, you'll need a couple of packages from [PyPI](https://pypi.python.org/pypi).
+To run those, you'll need a few packages from [PyPI](https://pypi.python.org/pypi).
 Just install Python 3 and pip, and then call the following from a command line (or use Anaconda or something, I don't know. Up to you).
 ~~~~
-pip3 install numpy pyshp
+pip3 install numpy pyshp shapely
 ~~~~
 
 Note that `compose_maps.py` requires input data from [naturalearthdata.com](http://www.naturalearthdata.com/downloads/), which should be downloaded and placed in `src/zupplemental/shapefiles/`.

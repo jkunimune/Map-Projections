@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project name="Map Projections" default="cleanup">
 	
-	<property name="dir.workspace" value="C:\Users\Justin Kunimune\eclipse-workspace"/>
-	<property name="dir.javafx" value="C:\Program Files\Java\javafx-sdk-13.0.2"/>
-	<property name="dir.jre" value="C:\Program Files\Java\jre1.8.0_171"/>
+	<property name="dir.jtem" value="C:\Program Files\Java\JTEM"/>
+	<property name="dir.commons" value="C:\Program Files\Java\commons-math3-3.6.1"/>
+	<property name="dir.jre" value="C:\Program Files\Java\jdk-17"/>
 	<property name="dir.jarfile" value="."/>
-	<property name="version" value="3.4.6"/>
-	<property name="year" value="2020"/>
+	<property name="version" value="3.5.1"/>
+	<property name="year" value="2023"/>
 	
 	<target name="setup">
 		<mkdir dir="build"/>
@@ -18,45 +18,45 @@
 				<attribute name="Main-Class" value="apps.MapDesignerRaster"/>
 			</manifest>
 			<fileset dir="bin"/>
-			<zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/JTEM/ellipticFunctions.jar"/>
-			<zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/JTEM/mfc.jar"/>
-			<zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/commons-math3-3.6.1/commons-math3-3.6.1.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${dir.jtem}/ellipticFunctions.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${dir.jtem}/mfc.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${dir.commons}/commons-math3-3.6.1.jar"/>
 		</jar>
 		<jar destfile="${dir.jarfile}/MapDesignerVector.jar" filesetmanifest="mergewithoutmain">
 			<manifest>
 				<attribute name="Main-Class" value="apps.MapDesignerVector"/>
 			</manifest>
 			<fileset dir="bin"/>
-			<zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/JTEM/ellipticFunctions.jar"/>
-			<zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/JTEM/mfc.jar"/>
-			<zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/commons-math3-3.6.1/commons-math3-3.6.1.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${dir.jtem}/ellipticFunctions.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${dir.jtem}/mfc.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${dir.commons}/commons-math3-3.6.1.jar"/>
 		</jar>
 		<jar destfile="${dir.jarfile}/MapAnalyzer.jar" filesetmanifest="mergewithoutmain">
 			<manifest>
 				<attribute name="Main-Class" value="apps.MapAnalyzer"/>
 			</manifest>
 			<fileset dir="bin"/>
-			<zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/JTEM/ellipticFunctions.jar"/>
-			<zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/JTEM/mfc.jar"/>
-			<zipfileset excludes="META-INF/*.SF" src="${dir.workspace}/commons-math3-3.6.1/commons-math3-3.6.1.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${dir.jtem}/ellipticFunctions.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${dir.jtem}/mfc.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="${dir.commons}/commons-math3-3.6.1.jar"/>
 		</jar>
 	</target>
 	
 	<target name="deploy" depends="build">
 		<exec executable="javapackager">
-			<arg line="-deploy -native exe -srcdir ${dir.jarfile} -srcfiles MapDesignerRaster.jar;LICENSE.md;data;input -appclass apps.MapDesignerRaster -outdir build -outfile MapDesignerRaster"/>
+			<arg line="-deploy -native msi -srcdir ${dir.jarfile} -srcfiles MapDesignerRaster.jar;LICENSE.md;res;input -appclass apps.MapDesignerRaster -outdir build -outfile MapDesignerRaster"/>
 			<arg line="-name &quot;Map Designer Raster&quot; -title &quot;Map Designer (Raster)&quot; -description &quot;Design oblique raster world maps in different projections&quot;"/>
 			<arg line="-vendor &quot;Justin Kunimune&quot; -Bcopyright=&quot;Copyright (c) ${year} Justin Kunimune&quot;"/>
 			<arg line="-BappVersion=${version} -Bicon=res\raster.ico -BlicenseFile=LICENSE.md -Bruntime=&quot;${dir.jre}&quot; -BjvmOptions=-Xmx8g"/>
 		</exec>
 		<exec executable="javapackager">
-			<arg line="-deploy -native exe -srcdir ${dir.jarfile} -srcfiles MapDesignerVector.jar;LICENSE.md;data;input -appclass apps.MapDesignerVector -outdir build -outfile MapDesignerVector"/>
+			<arg line="-deploy -native msi -srcdir ${dir.jarfile} -srcfiles MapDesignerVector.jar;LICENSE.md;res;input -appclass apps.MapDesignerVector -outdir build -outfile MapDesignerVector"/>
 			<arg line="-name &quot;Map Designer Vector&quot; -title &quot;Map Designer (Vector)&quot; -description &quot;Design oblique vector world maps in different projections&quot;"/>
 			<arg line="-vendor &quot;Justin Kunimune&quot; -Bcopyright=&quot;Copyright (c) ${year} Justin Kunimune&quot;"/>
 			<arg line="-BappVersion=${version} -Bicon=res\vector.ico -BlicenseFile=LICENSE.md -Bruntime=&quot;${dir.jre}&quot;"/>
 		</exec>
 		<exec executable="javapackager">
-			<arg line="-deploy -native exe -srcdir ${dir.jarfile} -srcfiles MapAnalyzer.jar;LICENSE.md;data -appclass apps.MapAnalyzer -outdir build -outfile MapAnalyzer"/>
+			<arg line="-deploy -native msi -srcdir ${dir.jarfile} -srcfiles MapAnalyzer.jar;LICENSE.md;res -appclass apps.MapAnalyzer -outdir build -outfile MapAnalyzer"/>
 			<arg line="-name &quot;Map Analyzer&quot; -title &quot;Map Analyzer&quot; -description &quot;Compare distortion graphs and metrics for different map projections.&quot;"/>
 			<arg line="-vendor &quot;Justin Kunimune&quot; -Bcopyright=&quot;Copyright (c) ${year} Justin Kunimune&quot;"/>
 			<arg line="-BappVersion=${version} -Bicon=res\analyz.ico -BlicenseFile=LICENSE.md -Bruntime=&quot;${dir.jre}&quot;"/>
