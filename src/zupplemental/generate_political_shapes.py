@@ -1,8 +1,8 @@
 import re
-from math import inf
+from typing import Optional, Any
 
 import shapefile
-from numpy import pi, sqrt, cos, radians
+from numpy import pi, sqrt, cos, radians, inf
 from shapely import Polygon
 
 from helpers import plot, trim_edges, ShapeRecord, \
@@ -49,7 +49,9 @@ ISO_A3_TO_A2 = {
 
 
 def plot_political_shapes(filename, mode="normal",
-                          trim_antarctica=False, add_title=False, include_circles_from=None) -> str:
+                          trim_antarctica=False, add_title=False, include_circles_from=None,
+                          filter_field: Optional[str] = None,
+                          filter_values: Optional[list[Any]] = None, filter_mode="in") -> str:
 	""" it's like plot_shapes but it also can make circles and handles, like, dependencies and stuff
 	    :param filename: the name of the natural earth dataset to use (minus the .shp)
 	    :param mode: one of "normal" to draw countries' shapes as one would expect,
@@ -61,6 +63,11 @@ def plot_political_shapes(filename, mode="normal",
 	    :param include_circles_from: an additional filename from which to borrow small objects. anything
 	                                 present in this shapefile but not in the main one will be included
 	                                 in the output as only a circle (assuming add_circles is True)
+	    :param filter_field: a record key that will be used to select a subset of records to be used
+	    :param filter_values: a list of values that will be compared against each record's
+	                          filter_field to determine whether to use it
+	    :param filter_mode: if "in", use only records whose filter_field value is in filter_values.
+	                        if "out", use only records whose filter_field value is *not* in filter_values.
 	"""
 	if include_circles_from is None:
 		regions = load_shaperecords(filename)
@@ -69,6 +76,19 @@ def plot_political_shapes(filename, mode="normal",
 	# go thru the records and sort them into a dictionary by ISO 3166 codes
 	hierarchically_arranged_regions: dict[tuple[tuple[str, ...], str], ShapeRecord] = {}
 	for shape, record in regions:
+		# if it is filtered out, skip it
+		if filter_field is not None:
+			assert filter_values is not None
+			filter_value = record[filter_field]
+			if filter_mode == "in":
+				if filter_value not in filter_values:
+					continue
+			elif filter_mode == "out":
+				if filter_value in filter_values:
+					continue
+			else:
+				raise ValueError(f"unrecognized filter_mode: '{filter_mode}' (must be 'in' or 'out')")
+
 		# if it Antarctica, trim it
 		if trim_antarctica:
 			if record["sov_a3"] == 'ATA':
@@ -77,7 +97,6 @@ def plot_political_shapes(filename, mode="normal",
 		if sovereign_code in SOVEREIGN_CODES:
 			sovereign_code = SOVEREIGN_CODES[sovereign_code]  # convert US1 to USA
 		if "iso_3166_2" in record:  # either key them by sovereign, admin0, admin1
-			sovereign_code = ISO_A3_TO_A2[sovereign_code]
 			province_code = record["iso_3166_2"]
 			if province_code.startswith("-99"):
 				province_code = "__" + province_code[3:]
@@ -90,8 +109,9 @@ def plot_political_shapes(filename, mode="normal",
 			country_code = record["adm0_a3"]
 			hierarchical_identifier = (sovereign_code, country_code)
 			unique_identifier = country_code
-		if hierarchical_identifier[0] == hierarchical_identifier[1]:  # remove duplicate layers
-			hierarchical_identifier = hierarchical_identifier[1:]
+		if hierarchical_identifier[0] == hierarchical_identifier[1] or \
+			ISO_A3_TO_A2[hierarchical_identifier[0]] == hierarchical_identifier[1]:  # remove layer [1] if redundant
+			hierarchical_identifier = hierarchical_identifier[:1] + hierarchical_identifier[2:]
 		key = (hierarchical_identifier, unique_identifier)
 		hierarchically_arranged_regions[key] = (shape, record)
 
@@ -120,8 +140,9 @@ def plot_political_shapes(filename, mode="normal",
 		is_sovereign = len(hierarchy) == 1  # this won't work for admin-1-states-provinces but that's fine
 		is_inhabited = (record.get("pop_est", inf) > 500 and  # Vatican is inhabited but US Minor Outlying I. are not
 		                record["type"] != "Lease" and  # don't circle Baykonur or Guantanamo
-		                "Base" not in record["admin"])  # don't circle military bases
-		if not is_sovereign and 'note_adm0' in record:
+		                "Base" not in record["admin"] and  # don't circle military bases
+		                (record["type"] != "Indeterminate" or record["pop_est"] > 100_000))  # don't circle Cyprus No Mans Land or Siachen Glacier
+		if not is_sovereign and "note_adm0" in record and record["note_adm0"] != "":
 			label = f"{record['name_long']} ({record['note_adm0']})"  # indicate dependencies' sovereigns in parentheses
 		elif "name_long" in record:
 			label = record["name_long"]
@@ -135,7 +156,10 @@ def plot_political_shapes(filename, mode="normal",
 		# enter any new <g>s
 		while len(current_state) < len(hierarchy):
 			current_state.append(hierarchy[len(current_state)])
-			result += '\t'*(2 + len(current_state)) + f'<g class="{current_state[-1]}">\n'
+			clazz = current_state[-1]
+			if clazz in ISO_A3_TO_A2.keys():
+				clazz += " " + ISO_A3_TO_A2[clazz]
+			result += '\t'*(2 + len(current_state)) + f'<g class="{clazz}">\n'
 		indentation = '\t'*(3 + len(current_state))
 
 		# then put in whatever type of content is appropriate:
@@ -180,10 +204,10 @@ def plot_political_shapes(filename, mode="normal",
 
 	# remove any groups with no elements
 	for _ in range(3):
-		result = re.sub(r'(\t)*<g class="([A-Za-z_-]+)">(\s*)</g>\n',
+		result = re.sub(r'(\t)*<g class="([A-Za-z _-]+)">(\s*)</g>\n',
 		                '', result)
 	# simplify any groups with only a single element
-	result = re.sub(r'<g class="([A-Za-z_-]+)">(\s*)<([a-z]+) ([^\n]*)>(\s*)</g>',
+	result = re.sub(r'<g class="([A-Za-z _-]+)">(\s*)<([a-z]+) ([^\n]*)>(\s*)</g>',
 	                '<\\3 class="\\1" \\4>', result)
 
 	return result

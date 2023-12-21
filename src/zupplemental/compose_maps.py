@@ -55,7 +55,7 @@ def main():
 		'		<g class="graticule">\n'
 		+ generate_graticule(15, 1, include_tropics=True, adjust_poles=True) +
 		'		</g>\n'
-		'		<rect class="graticule prime-m" x="-180" y="-90" width="360" height="180" />\n'
+		'		<rect class="graticule border" x="-180" y="-90" width="360" height="180" />\n'
 		'	</g>\n'
 	)
 
@@ -145,18 +145,25 @@ def main():
 	)
 
 	# political template (provinces)
+	a3_with_provinces = ["RUS", "CAN", "CHN", "USA", "AUS", "BRA", "IDN", "ZAF"]
 	write_svg_code_to_file(
 		"../../input/Advanced/Template provinces.svg",
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
 		'		<rect class="water" x="-180" y="-90" width="360" height="180" />\n'
 		'		<g class="province">\n'
-		+ plot_political_shapes('ne_10m_admin_1_states_provinces', trim_antarctica=True, add_title=True) +
+		+ plot_political_shapes('ne_50m_admin_1_states_provinces', trim_antarctica=True, add_title=True,
+		                        filter_field="adm0_a3", filter_values=a3_with_provinces) +
+		'		</g>\n'
+		'		<g class="country-outline">\n'
+		+ plot_shapes('ne_50m_admin_0_countries', trim_antarctica=True,
+		              filter_field="adm0_a3", filter_values=a3_with_provinces) +
 		'		</g>\n'
 		'		<g class="country">\n'
-		+ plot_shapes('ne_10m_admin_0_countries', trim_antarctica=True) +
-		'		</g>\n'
+		+ plot_political_shapes('ne_50m_admin_0_countries', trim_antarctica=True, add_title=True,
+		                        filter_field="adm0_a3", filter_values=a3_with_provinces, filter_mode="out") +
+		'       </g>\n'
 		'		<g class="water">\n'
-		+ plot_shapes('ne_10m_lakes', max_rank=4) +
+		+ plot_shapes('ne_50m_lakes', max_rank=4) +
 		'		</g>\n'
 		'	</g>\n'
 	)
