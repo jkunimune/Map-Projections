@@ -32,9 +32,7 @@ import utils.Shape;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.Double.NEGATIVE_INFINITY;
 import static java.lang.Double.NaN;
-import static java.lang.Double.POSITIVE_INFINITY;
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
 import static java.lang.Math.atan;

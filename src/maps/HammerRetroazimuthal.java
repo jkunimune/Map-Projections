@@ -2,8 +2,6 @@ package maps;
 
 import utils.Shape;
 
-import java.util.Arrays;
-
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
 import static java.lang.Math.acos;
@@ -12,7 +10,6 @@ import static java.lang.Math.atan2;
 import static java.lang.Math.cos;
 import static java.lang.Math.hypot;
 import static java.lang.Math.pow;
-import static java.lang.Math.signum;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
 import static java.lang.Math.toRadians;
