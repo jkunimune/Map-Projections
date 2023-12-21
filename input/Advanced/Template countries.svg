@@ -17,14 +17,15 @@
 		.country circle {
 			display:none;
 		}
-		/* color in countries and show their circles here by inserting their ISO 3166 A3 codes. for example:
-		.BRA, .FRA, .VIR {
-			fill:#00ff00; (color Brazil, France, and the US Virgin Islands green)
-		}
-		.BRA circle, .FRA circle, .VIR circle {
-			display:block; (display the small-country circles for these regions and their dependencies)
-		}
-		*/
+		/*
+		 * color in countries and show their circles here by inserting their ISO 3166 A3 codes. for example:
+		 * .BRA, .FRA, .VIR {
+		 * 	fill:#00ff00; (color Brazil, France, and the US Virgin Islands green)
+		 * }
+		 * .BRA circle, .FRA circle, .VIR circle {
+		 * 	display:block; (display the small-country circles for these regions and their dependencies)
+		 * }
+		 */
 		.water {
 			fill:#ffffff;
 			stroke:none;
