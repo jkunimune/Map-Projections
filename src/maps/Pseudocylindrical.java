@@ -30,6 +30,7 @@ import utils.NumericalAnalysis;
 import utils.Shape;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static java.lang.Double.isNaN;
@@ -196,7 +197,7 @@ public class Pseudocylindrical {
 	
 	public static final Projection ECKERT_IV = new Projection(
 			"Eckert IV", "An equal-area projection released in a set of six (I'm only giving you the one because the others are not good)",
-			new Shape(-2, 2, -1, 1, List.of(
+			new Shape(-2, 2, -1, 1, Arrays.asList(
 					new Path.Command('M', -1, 1),
 					new Path.Command('A', 1, 1, 0, 0, 1, -1, -1),
 					new Path.Command('L', 1, -1),

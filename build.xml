@@ -3,7 +3,7 @@
 	
 	<property name="dir.jtem" value="C:\Program Files\Java\JTEM"/>
 	<property name="dir.commons" value="C:\Program Files\Java\commons-math3-3.6.1"/>
-	<property name="dir.jre" value="C:\Program Files\Java\jdk-17"/>
+	<property name="dir.jre" value="C:\Program Files\Java\jre-1.8"/>
 	<property name="dir.jarfile" value="."/>
 	<property name="version" value="3.5.1"/>
 	<property name="year" value="2023"/>

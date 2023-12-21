@@ -199,7 +199,7 @@ public class MapAnalyzer extends MapApplication {
 			protected SavableImage call() throws ExecutionException, InterruptedException {
 				updateProgress(-1, 1);
 				updateMessage("Converting graph\u2026");
-				Task<WritableImage> snapshotTask = new Task<>() {
+				Task<WritableImage> snapshotTask = new Task<WritableImage>() {
 					protected WritableImage call() {
 						return charts.snapshot(null, null);
 					}

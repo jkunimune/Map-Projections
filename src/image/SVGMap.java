@@ -77,6 +77,8 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 	 */
 	public SVGMap(File file) throws IOException, SAXException, ParserConfigurationException {
 		elements = new ArrayList<>(); // the list elements
+		elements.add(new Content( // start by guessing the xml declaration, since SaxParser always skips it
+				"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"));
 
 		final SAXParser parser = SAXParserFactory.newInstance().newSAXParser();
 		
@@ -147,21 +149,25 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 			}
 
 			@Override
-			public void characters(char[] ch, int start, int length) {
+			public void characters(char[] characters, int start, int length) {
 				// just dump the provided characters into currentFormatString
 				StringBuilder characterString = new StringBuilder();
 				for (int i = 0; i < length; i++) {
-					characterString.append(ch[start + i]);
+					char c = characters[start + i];
+					if (c >= 128 || c == '\'' || c == '"' || c == '<' || c == '>' || c == '&') // some characters must be escaped here
+						characterString.append("&#").append((int) c).append(";");
+					else
+						characterString.append(c);
 				}
 				elements.add(new Content(characterString.toString()));
 			}
 			
-			@Override
-			public void declaration(String version, String encoding, String standalone) {
-				elements.add(new Content(String.format(
-						"<?xml version=\"%s\" encoding=\"%s\" standalone=\"%s\"?>\n",
-						version, encoding, standalone)));
-			}
+//			@Override  /* only available in Java 14+ */
+//			public void declaration(String version, String encoding, String standalone) {
+//				elements.add(new Content(String.format(
+//						"<?xml version=\"%s\" encoding=\"%s\" standalone=\"%s\"?>\n",
+//						version, encoding, standalone)));
+//			}
 			
 			private double[] parseTransform(String transString) {
 				double xScale = 1, yScale = 1, xTrans = 0, yTrans = 0;

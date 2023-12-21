@@ -31,14 +31,22 @@ If you are a fancy Windows user, I recommend the convenient [fancy Windows binar
 ### Running from the command line
 
 If you are not on Windows or are otherwise not fancy enough to deserve such binaries, there are also equivalent `.jar` files in the main directory.
-You used to be able to run these by double-clicking them, but I accidentally upgraded to Java 17 so now you need to run them from the command line.
-For that, you'll need to download and install both [Java 17](https://www.oracle.com/java/technologies/downloads/#jdk17-windows) and [JavaFX 17](https://gluonhq.com/products/javafx/).  Newer versions are probably okay. Make sure you get the SDK JavaFX, not the Jmods JavaFX.  Once you’ve installed Java 17 and unzipped JavaFX 17 into some directory – let’s say, for example, `/home/jkunimune/javafx-sdk-17` – then you can run the programs like so:
+For that, you'll need to download and install [Java](https://www.java.com/download/).
+You can use any version 8 or higher.
+Once you've installed it, you can run the programs like so *if* you're on Java 8 specifically:
+~~~bash
+java -jar MapDesignerRaster.jar
+~~~
+Change the filename at the end accordingly, of course.
+
+If you have Java 9 or higher, that's fine too, but you'll need to also install [JavaFX](https://gluonhq.com/products/javafx/).
+Make sure you get the SDK JavaFX, not the Jmods JavaFX; the version doesn't matter.
+Once you've unzipped JavaFX into some directory – let’s say, for example, `/home/jkunimune/javafx-sdk-17` – then you can run the programs like so:
 
 ~~~bash
 java --module-path '/home/jkunimune/javafx-sdk-17/lib' --add-modules javafx.controls,javafx.swing -jar MapDesignerRaster.jar
 ~~~
 
-Change the filename at the end accordingly, of course.
 I think this syntax might be somewhat platform dependent, but I can’t really remember.
 If you’re having problems, try forward slashes instead of backslashes or double quotes instead of single quotes.
 
@@ -59,22 +67,19 @@ To run these, you’ll need to install some dependencies in addition to JavaFX a
 
 Once you have those and put them in, for example, `/home/jkunimune/apache` and `/home/jkunimune/jtem`, you can compile and run with
 ~~~bash
-javac --module-path '/home/jkunimune/javafx-17-sdk/lib:/home/jkunimune/apache/commons-math3-3.6.1.jar:/home/jkunimune/jtem' --add-modules javafx.controls,javafx.swing,ellipticFunctions --source-path=src src/apps/MapPlotter.java
-java --class-path '/home/jkunimune/javafx-17-sdk/lib/javafx.controls.jar:/home/jkunimune/javafx-17-sdk/lib/javafx.swing.jar:/home/jkunimune/apache/commons-math3-3.6.1.jar:/home/jkunimune/jtem/ellipticFunctions.jar:src' apps.MapPlotter
+javac --module-path '/home/jkunimune/javafx-sdk-17/lib:/home/jkunimune/apache/commons-math3-3.6.1.jar:/home/jkunimune/jtem' --add-modules javafx.controls,javafx.swing,ellipticFunctions --source-path=src src/apps/MapPlotter.java
+java --class-path '/home/jkunimune/javafx-sdk-17/lib/javafx.controls.jar:/home/jkunimune/javafx-sdk-17/lib/javafx.swing.jar:/home/jkunimune/apache/commons-math3-3.6.1.jar:/home/jkunimune/jtem/ellipticFunctions.jar:src' apps.MapPlotter
 ~~~
 As with running the .jar file, the syntax might be somewhat platform-dependent; the colons might need to be semicolons, for example.
 
-To build the JAR and MSI files, you use the Ant file `build.xml`.
+To build the JAR and EXE files, you use the Ant file `build.xml`.
 I don't know what commands are used for that; IntelliJ IDEA does it for me.
-The main trick here is you have to install the Java 8 JDK because Javapackager was dropped in 9.
-This is fine because the Javapackager itself is version-neutral and will use whichever JDK you used to compiled the JAR;
-just make sure `javapackager.exe` is on your PATH.
-You may have to install the WiX Toolset 4 and Inno Setup 5 (not Inno Setup 6!).
+The main trick here is you *must* use the Java 8 JDK because the tool I use, Javapackager, was dropped in Java 9.
+If you use Javapackager in conjunction with a newer JDK, it will seem to work at first, but the resulting EXEs won't run.
+You may have to put `javapackager.exe` in your path and install the WiX Toolset 4 and Inno Setup 5 (not Inno Setup 6!).
 Javapackager does often have problems but doesn't have useful error messages (every failure mode appears to be "builder did not produce a bundle"),
-so I apologie about that.
+so I apologize about that.
 Make sure you set the directories at the top of the file according to your file system, make sure the compiled Java is in the `bin/` directory, make sure none of the jar files have restricted read access or are being used by any other programs.
-It seems like maybe what I'm supposed to do is switch to Jpackage?
-But that wasn't giving me useful error messages when I tried it either.
 
 There are also some Python files used to generate SVG inputs for MapDesignerVector in the src/zupplemental directory.
 To run those, you'll need a few packages from [PyPI](https://pypi.python.org/pypi).

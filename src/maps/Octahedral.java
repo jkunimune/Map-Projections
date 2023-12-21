@@ -30,6 +30,7 @@ import maps.Projection.Type;
 import utils.Shape;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static java.lang.Double.NaN;
@@ -523,7 +524,7 @@ public class Octahedral {
 				return shape;
 			}
 			else {
-				return List.of(new Path.Command('M', x0, y0));
+				return Collections.singletonList(new Path.Command('M', x0, y0));
 			}
 		}
 

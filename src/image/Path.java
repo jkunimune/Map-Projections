@@ -72,30 +72,36 @@ public class Path {
 		for (Command old: path) {
 			double[] newArgs = Arrays.copyOf(old.args, old.args.length);
 			switch (old.type) {
-				case 'H' -> newArgs[0] += xShift;
-				case 'V' -> newArgs[0] += yShift;
-				case 'L', 'M' -> {
+				case 'H':
+					newArgs[0] += xShift;
+					break;
+				case 'V':
+					newArgs[0] += yShift;
+					break;
+				case 'L': case 'M':
 					newArgs[0] += xShift;
 					newArgs[1] += yShift;
-				}
-				case 'Q' -> {
+					break;
+				case 'Q':
 					newArgs[0] += xShift;
 					newArgs[1] += yShift;
 					newArgs[2] += xShift;
 					newArgs[3] += yShift;
-				}
-				case 'C' -> {
+					break;
+				case 'C':
 					newArgs[0] += xShift;
 					newArgs[1] += yShift;
 					newArgs[2] += xShift;
 					newArgs[3] += yShift;
 					newArgs[4] += xShift;
 					newArgs[5] += yShift;
-				}
-				case 'A' -> {
+					break;
+				case 'A':
 					newArgs[5] += xShift;
 					newArgs[6] += yShift;
-				}
+					break;
+				default:  // anything other than these stays the same in a translation
+					break;
 			}
 			newPath.add(new Command(old.type, newArgs));
 		}
@@ -112,34 +118,42 @@ public class Path {
 		for (Command old: path) {
 			double[] newArgs = Arrays.copyOf(old.args, old.args.length);
 			switch (old.type) {
-				case 'H', 'h' -> newArgs[0] *= xScale;
-				case 'V', 'v' -> newArgs[0] *= yScale;
-				case 'L', 'l', 'M', 'm' -> {
+				case 'H': case 'h':
+					newArgs[0] *= xScale;
+					break;
+				case 'V': case 'v':
+					newArgs[0] *= yScale;
+					break;
+				case 'L': case 'l': case 'M': case 'm':
 					newArgs[0] *= xScale;
 					newArgs[1] *= yScale;
-				}
-				case 'Q', 'q' -> {
+					break;
+				case 'Q': case 'q':
 					newArgs[0] *= xScale;
 					newArgs[1] *= yScale;
 					newArgs[2] *= xScale;
 					newArgs[3] *= yScale;
-				}
-				case 'C', 'c' -> {
+					break;
+				case 'C': case 'c':
 					newArgs[0] *= xScale;
 					newArgs[1] *= yScale;
 					newArgs[2] *= xScale;
 					newArgs[3] *= yScale;
 					newArgs[4] *= xScale;
 					newArgs[5] *= yScale;
-				}
-				case 'A', 'a' -> {
+					break;
+				case 'A': case 'a':
 					newArgs[0] *= abs(xScale);
 					newArgs[1] *= abs(yScale);
 					if (xScale*yScale < 0)
 						newArgs[4] = 1 - newArgs[4];
 					newArgs[5] *= xScale;
 					newArgs[6] *= yScale;
-				}
+					break;
+				case 'Z': case 'z':
+					break;
+				default:
+					throw new IllegalArgumentException("unrecognized path command encountered in rotated(): " + old.type);
 			}
 			newPath.add(new Command(old.type, newArgs));
 		}
@@ -158,29 +172,33 @@ public class Path {
 			char newType = old.type;
 			double[] newArgs = Arrays.copyOf(old.args, old.args.length);
 			switch (old.type) {
-				case 'H', 'h' -> {
+				case 'H': case 'h':
 					newType = (char)(old.type + 4);
 					newArgs = new double[] {
 							old.args[0]*cos(rotation),
 							old.args[0]*sin(rotation)};
-				}
-				case 'V', 'v' -> {
+					break;
+				case 'V': case 'v':
 					newType = (char)(old.type - 10);
 					newArgs = new double[] {
 							-old.args[0]*sin(rotation),
 							old.args[0]*cos(rotation)};
-				}
-				case 'L', 'l', 'M', 'm', 'Q', 'q', 'C', 'c' -> {
+					break;
+				case 'L': case 'l': case 'M': case 'm': case 'Q': case 'q': case 'C': case 'c':
 					for (int i = 0; i < newArgs.length; i += 2) {
 						newArgs[i    ] = old.args[i]*cos(rotation) - old.args[i + 1]*sin(rotation);
 						newArgs[i + 1] = old.args[i]*sin(rotation) + old.args[i + 1]*cos(rotation);
 					}
-				}
-				case 'A', 'a' -> {
+					break;
+				case 'A': case 'a':
 					newArgs[2] -= toDegrees(rotation);
 					newArgs[5] = old.args[5]*cos(rotation) - old.args[6]*sin(rotation);
 					newArgs[6] = old.args[5]*sin(rotation) + old.args[6]*cos(rotation);
-				}
+					break;
+				case 'Z': case 'z':
+					break;
+				default:
+					throw new IllegalArgumentException("unrecognized path command encountered in rotated(): " + old.type);
 			}
 			newPath.add(new Command(newType, newArgs));
 		}
