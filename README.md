@@ -66,8 +66,15 @@ As with running the .jar file, the syntax might be somewhat platform-dependent; 
 
 To build the JAR and MSI files, you use the Ant file `build.xml`.
 I don't know what commands are used for that; IntelliJ IDEA does it for me.
-The last step, the Javapackager, often has problems but doesn't have useful error messages (every failure mode appears to be "builder did not produce a bundle").
+The main trick here is you have to install the Java 8 JDK because Javapackager was dropped in 9.
+This is fine because the Javapackager itself is version-neutral and will use whichever JDK you used to compiled the JAR;
+just make sure `javapackager.exe` is on your PATH.
+You may have to install the WiX Toolset 4 and Inno Setup 5 (not Inno Setup 6!).
+Javapackager does often have problems but doesn't have useful error messages (every failure mode appears to be "builder did not produce a bundle"),
+so I apologie about that.
 Make sure you set the directories at the top of the file according to your file system, make sure the compiled Java is in the `bin/` directory, make sure none of the jar files have restricted read access or are being used by any other programs.
+It seems like maybe what I'm supposed to do is switch to Jpackage?
+But that wasn't giving me useful error messages when I tried it either.
 
 There are also some Python files used to generate SVG inputs for MapDesignerVector in the src/zupplemental directory.
 To run those, you'll need a few packages from [PyPI](https://pypi.python.org/pypi).

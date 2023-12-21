@@ -44,19 +44,19 @@
 	
 	<target name="deploy" depends="build">
 		<exec executable="javapackager">
-			<arg line="-deploy -native msi -srcdir ${dir.jarfile} -srcfiles MapDesignerRaster.jar;LICENSE.md;res;input -appclass apps.MapDesignerRaster -outdir build -outfile MapDesignerRaster"/>
+			<arg line="-deploy -native exe -srcdir ${dir.jarfile} -srcfiles MapDesignerRaster.jar;LICENSE.md;res;input -appclass apps.MapDesignerRaster -outdir build -outfile MapDesignerRaster"/>
 			<arg line="-name &quot;Map Designer Raster&quot; -title &quot;Map Designer (Raster)&quot; -description &quot;Design oblique raster world maps in different projections&quot;"/>
 			<arg line="-vendor &quot;Justin Kunimune&quot; -Bcopyright=&quot;Copyright (c) ${year} Justin Kunimune&quot;"/>
 			<arg line="-BappVersion=${version} -Bicon=res\raster.ico -BlicenseFile=LICENSE.md -Bruntime=&quot;${dir.jre}&quot; -BjvmOptions=-Xmx8g"/>
 		</exec>
 		<exec executable="javapackager">
-			<arg line="-deploy -native msi -srcdir ${dir.jarfile} -srcfiles MapDesignerVector.jar;LICENSE.md;res;input -appclass apps.MapDesignerVector -outdir build -outfile MapDesignerVector"/>
+			<arg line="-deploy -native exe -srcdir ${dir.jarfile} -srcfiles MapDesignerVector.jar;LICENSE.md;res;input -appclass apps.MapDesignerVector -outdir build -outfile MapDesignerVector"/>
 			<arg line="-name &quot;Map Designer Vector&quot; -title &quot;Map Designer (Vector)&quot; -description &quot;Design oblique vector world maps in different projections&quot;"/>
 			<arg line="-vendor &quot;Justin Kunimune&quot; -Bcopyright=&quot;Copyright (c) ${year} Justin Kunimune&quot;"/>
 			<arg line="-BappVersion=${version} -Bicon=res\vector.ico -BlicenseFile=LICENSE.md -Bruntime=&quot;${dir.jre}&quot;"/>
 		</exec>
 		<exec executable="javapackager">
-			<arg line="-deploy -native msi -srcdir ${dir.jarfile} -srcfiles MapAnalyzer.jar;LICENSE.md;res -appclass apps.MapAnalyzer -outdir build -outfile MapAnalyzer"/>
+			<arg line="-deploy -native exe -srcdir ${dir.jarfile} -srcfiles MapAnalyzer.jar;LICENSE.md;res -appclass apps.MapAnalyzer -outdir build -outfile MapAnalyzer"/>
 			<arg line="-name &quot;Map Analyzer&quot; -title &quot;Map Analyzer&quot; -description &quot;Compare distortion graphs and metrics for different map projections.&quot;"/>
 			<arg line="-vendor &quot;Justin Kunimune&quot; -Bcopyright=&quot;Copyright (c) ${year} Justin Kunimune&quot;"/>
 			<arg line="-BappVersion=${version} -Bicon=res\analyz.ico -BlicenseFile=LICENSE.md -Bruntime=&quot;${dir.jre}&quot;"/>
