@@ -4,8 +4,7 @@ import random as rng
 from typing import Any, Iterable, Optional
 
 import shapefile
-from matplotlib import pyplot as plt
-from numpy import pi, sin, cos, tan, arcsin, arccos, degrees, ceil, radians, arctan2, hypot, cumsum, transpose
+from numpy import pi, sin, cos, tan, arcsin, arccos, degrees, ceil, radians, arctan2, hypot, cumsum
 
 
 def load_shaperecords(filename) -> Iterable[ShapeRecord]:
