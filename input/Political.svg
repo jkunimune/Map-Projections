@@ -6,7 +6,7 @@
      version="1.1">
 	<title>Equirectangular map of the world &#8211; political borders</title>
 	<desc>
-		A map of the world, showing all countries recognised by the UN as SVG paths, with major lakes overlaid. Borders precise to 50&#0160;km.
+		A political map of the world on the Equirectangular projection, showing all countries' de factor borders as SVG paths, with major lakes overlaid. Borders precise to 50&#0160;km.
 	</desc>
 	<style type="text/css">
 		.water {

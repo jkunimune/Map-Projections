@@ -6,7 +6,7 @@
      version="1.1">
 	<title>Icosahedral orthodromic mesh &#8211; Equirectangular projection</title>
 	<desc>
-		A mesh of great circles that intersect with 10-fold symmetry at 12 principal nodes and 6-fold symmetry at 20 minor nodes. Aligns with the edges of an icosahedron and its dual dodecahedron.
+		A mesh of great circles plotted on the Equirectangular projection. Fifteen great circles intersect with 10-fold symmetry at 12 principal nodes and 6-fold symmetry at 20 minor nodes. Aligns with the edges of an icosahedron and its dual dodecahedron.
 	</desc>
 	<style type="text/css">
 		.lines {
