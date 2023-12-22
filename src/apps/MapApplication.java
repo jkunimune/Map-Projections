@@ -143,8 +143,9 @@ public abstract class MapApplication extends Application {
 			{ Azimuthal.EQUAL_AREA, Azimuthal.POLAR, Azimuthal.GNOMONIC, Azimuthal.MAGNIFIER,
 			  Azimuthal.ORTHOGRAPHIC, Azimuthal.PERSPECTIVE, Azimuthal.STEREOGRAPHIC },
 			{ Conic.ALBERS, Misc.BRAUN_CONIC, Conic.LAMBERT, Conic.EQUIDISTANT },
-			{ Polyhedral.AUTHAGRAPH, Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
-			  Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR, Polyhedral.VAN_LEEUWEN },
+			{ Polyhedral.AUTHAGRAPH, Polyhedral.AUTHAGRAPH_ALT,
+			  Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
+			  Polyhedral.VAN_LEEUWEN },
 			{ Octahedral.CONFORMAL_CAHILL_BUTTERFLY, Octahedral.CONFORMAL_CAHILL_OCTANT,
 			  Octahedral.CAHILL_CONCIALDI, Octahedral.KEYES_STANDARD, Octahedral.KEYES_BUTTERFLY,
 			  Octahedral.KEYES_SIMPLIFIED, Octahedral.KEYES_OCTANT, Polyhedral.DYMAXION,
@@ -164,7 +165,7 @@ public abstract class MapApplication extends Application {
 			{ Elastic.ELASTIC_I, Elastic.ELASTIC_II, Elastic.ELASTIC_III,
 			  Danseiji.DANSEIJI_N, Danseiji.DANSEIJI_I, Danseiji.DANSEIJI_II, Danseiji.DANSEIJI_III,
 			  Danseiji.DANSEIJI_IV, Danseiji.DANSEIJI_V, Danseiji.DANSEIJI_VI,
-			  Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH, Polyhedral.TETRAGRAPH } };
+			  Polyhedral.ACTUAUTHAGRAPH, Polyhedral.TETRAGRAPH } };
 	
 	private static final String[] ASPECT_NAMES = {
 			"Normal", "Transverse", "Atlantis", "Jerusalem", "Point Nemo", "Longest Line",

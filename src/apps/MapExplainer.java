@@ -72,7 +72,7 @@ public class MapExplainer extends Application {
 					Octahedral.CAHILL_CONCIALDI, Misc.PEIRCE_QUINCUNCIAL.transverse(), Snyder.GS50,
 					Misc.TWO_POINT_EQUIDISTANT, HammerRetroazimuthal.FULL, Misc.FLAT_EARTH },
 			{Danseiji.DANSEIJI_N, Danseiji.DANSEIJI_IV, Danseiji.DANSEIJI_V, Polyhedral.TETRAGRAPH,
-			 Polyhedral.AUTHAPOWER, Polyhedral.ACTUAUTHAGRAPH } };
+			 Polyhedral.AUTHAGRAPH_ALT, Polyhedral.ACTUAUTHAGRAPH } };
 
 
 	public static void main(String[] args) {

@@ -120,7 +120,11 @@ public class Polyhedral {
 			new String[] {"Power"}, new double[][] {{.5,1,.68}}) {
 		
 		private final double[] POLE = {toRadians(77), toRadians(143), toRadians(17)};
-		private final double k = .68;
+		
+		@Override
+		public void initialize(double... params) {
+			AUTHAGRAPH_ALT.initialize(params[0]);
+		}
 		
 		@Override
 		public double[] project(double lat, double lon) { //apply a pole shift to AuthaGraph
@@ -134,21 +138,19 @@ public class Polyhedral {
 		}
 		
 		public double[] faceProject(double lat, double lon) {
-			AUTHAPOWER.initialize(k);
-			return AUTHAPOWER.faceProject(lat, lon);
+			return AUTHAGRAPH_ALT.faceProject(lat, lon);
 		}
 		
 		public double[] faceInverse(double r, double th) {
-			AUTHAPOWER.initialize(k);
-			return AUTHAPOWER.faceInverse(r, th);
+			return AUTHAGRAPH_ALT.faceInverse(r, th);
 		}
 	};
 	
 	
-	public static final PolyhedralProjection AUTHAPOWER = new PolyhedralProjection(
-			"TetraPower", "A parametrised, simplified version of my AuthaGraph approximation",
+	public static final PolyhedralProjection AUTHAGRAPH_ALT = new PolyhedralProjection(
+			"IMAGO (simplified)", "An approximation of the AuthaGraph projection, rearranged to an alternate layout that's more north-up",
 			true, true, false, Polyhedron.TETRAHEDRON_WIDE_VERTEX, Property.COMPROMISE, 4,
-			new String[] {"Power"}, new double[][] {{.5,1,.6}}) {
+			new String[] {"Power"}, new double[][] {{.5,1,.68}}) {
 		
 		private double k;
 		

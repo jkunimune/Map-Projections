@@ -66,7 +66,7 @@ public class MapOptimizer extends Application {
 			ArbitraryPseudocylindrical.ROBINSON, Cylindrical.PLATE_CARREE, Cylindrical.GALL_STEREOGRAPHIC,
 			Misc.PEIRCE_QUINCUNCIAL };
 	private static final Projection[] PROJECTIONS_TO_OPTIMIZE = { Tobler.TOBLER,
-			WinkelTripel.WINKEL_TRIPEL, Polyhedral.AUTHAPOWER };
+			WinkelTripel.WINKEL_TRIPEL, Polyhedral.AUTHAGRAPH_ALT};
 	private static final double[] WEIGHTS = { 0., .125, .25, .375, .5, .625, .75, .875, 1. };
 	private static final int NUM_BRUTE_FORCE = 30;
 	private static final int NUM_BFGS_ITERATE = 7;
