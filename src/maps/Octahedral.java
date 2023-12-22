@@ -495,7 +495,7 @@ public class Octahedral {
 		 * @param tipOffset if the projection is for a truncated octahedron, this is the distance from where the
 		 *                  tip of the octant would be for a true octahedron to where it actually is
 		 * @param projection the projection to be used for each face, in case meridians and parallels are involved
-		 *                   in the shape TODO: right now I'm using the full projection but ideally this should be a projection for just one octant
+		 *                   in the shape
 		 */
 		abstract Shape drawShape(double tipOffset, Projection projection);
 

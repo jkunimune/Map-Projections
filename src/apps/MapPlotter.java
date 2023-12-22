@@ -23,15 +23,6 @@
  */
 package apps;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import javax.imageio.ImageIO;
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -47,10 +38,10 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import maps.Danseiji;
 import maps.ArbitraryPseudocylindrical;
 import maps.Azimuthal;
 import maps.Cylindrical;
+import maps.Elastic;
 import maps.EqualEarth;
 import maps.Gyorffy;
 import maps.Lenticular;
@@ -60,6 +51,14 @@ import maps.Polyhedral;
 import maps.Projection;
 import maps.Pseudocylindrical;
 import maps.WinkelTripel;
+
+import javax.imageio.ImageIO;
+import java.io.File;
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static java.lang.Math.log;
 
@@ -80,16 +79,15 @@ public class MapPlotter extends Application {
 	private static final Projection[] AZIMUTHAL = { Azimuthal.POLAR };
 	private static final Projection[] PSEUDOCYL = { Pseudocylindrical.MOLLWEIDE,
 			ArbitraryPseudocylindrical.ROBINSON, ArbitraryPseudocylindrical.NATURAL_EARTH,
-			Pseudocylindrical.KAVRAYSKIY_VII, EqualEarth.EQUAL_EARTH };
+			Pseudocylindrical.KAVRAYSKIY_VII, EqualEarth.EQUAL_EARTH, Pseudocylindrical.ECKERT_IV };
 	private static final Projection[] LENTICULAR = {Lenticular.AITOFF, Lenticular.VAN_DER_GRINTEN,
-	                                                WinkelTripel.WINKEL_TRIPEL, Danseiji.DANSEIJI_N, Danseiji.DANSEIJI_I, // TODO: ELASTIK
-	                                                Danseiji.DANSEIJI_II, Gyorffy.E, Gyorffy.F };
+	                                                WinkelTripel.WINKEL_TRIPEL, Gyorffy.E, Gyorffy.F };
 	private static final Projection[] TETRAHEDRAL = { Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR,
 			Polyhedral.AUTHAGRAPH, Polyhedral.VAN_LEEUWEN };
 	private static final Projection[] CHEATY = {Misc.LEMONS, Octahedral.KEYES_STANDARD,
-	                                            Polyhedral.DYMAXION, Octahedral.CAHILL_CONCIALDI, Danseiji.DANSEIJI_IV,
-	                                            Pseudocylindrical.HOMOLOSINE_INTERRUPTED };
-	private static final Projection[] OTHER = { Misc.PEIRCE_QUINCUNCIAL };
+	                                            Polyhedral.DYMAXION, Octahedral.CAHILL_CONCIALDI,
+	                                            Elastic.ELASTIC_I, Pseudocylindrical.HOMOLOSINE_INTERRUPTED };
+	private static final Projection[] OTHER = { Misc.PEIRCE_QUINCUNCIAL, Lenticular.BERTIN };
 	
 	
 	private StackPane stack;
