@@ -73,7 +73,7 @@ def obliquify(lat1, lon1, lat0, lon0):
 	return latf, lonf
 
 
-def plot(coords: list[tuple[float, float]], midx: Optional[list[int]] = None, close=True, fourmat='pr', clazz=None, ident=None, tabs=3) -> str:
+def plot(coords: list[tuple[float, float]], midx: Optional[list[int]] = None, close=True, fourmat='pr', clazz=None, ident=None, tabs=4) -> str:
 	"""
 	express a list of 2D points as an SVG <path> tag
 	:param coords: the coordinate pairs of the vertices

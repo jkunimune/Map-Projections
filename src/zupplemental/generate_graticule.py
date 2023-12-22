@@ -7,13 +7,13 @@ ANTI_TILT = 66.56306 # I have both of these because it's the easiest way to deal
 
 def plot_meridian(lamd, granularity, cut=0, clazz=None) -> str:
 	class_attr = 'class="{}" '.format(clazz) if clazz is not None else ''
-	tag = '\t\t\t<path {}d="M{},{}'.format(class_attr, lamd, cut-90) + 'v{}'.format(granularity)*round((180-2*cut)/granularity) + '" />\n'
+	tag = '\t\t\t\t<path {}d="M{},{}'.format(class_attr, lamd, cut-90) + 'v{}'.format(granularity)*round((180-2*cut)/granularity) + '" />\n'
 	return tag
 
 
 def plot_parallel(phid, granularity, cut=0, clazz=None) -> str:
 	class_attr = 'class="{}" '.format(clazz) if clazz is not None else ''
-	tag = '\t\t\t<path {}d="M{},{}'.format(class_attr, cut-180, phid) + 'h{}'.format(granularity)*round((360-2*cut)/granularity) + '" />\n'
+	tag = '\t\t\t\t<path {}d="M{},{}'.format(class_attr, cut-180, phid) + 'h{}'.format(granularity)*round((360-2*cut)/granularity) + '" />\n'
 	return tag
 
 

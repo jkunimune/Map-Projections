@@ -156,7 +156,7 @@ def plot_political_shapes(filename, mode="normal",
 
 		# exit any <g>s we're no longer in
 		while current_state and (len(current_state) > len(hierarchy) or current_state[-1] != hierarchy[len(current_state) - 1]):
-			result += '\t'*(2 + len(current_state)) + f'</g>\n'
+			result += '\t'*(3 + len(current_state)) + f'</g>\n'
 			current_state.pop()
 		# enter any new <g>s
 		while len(current_state) < len(hierarchy):
@@ -164,8 +164,8 @@ def plot_political_shapes(filename, mode="normal",
 			clazz = current_state[-1]
 			if clazz in ISO_A3_TO_A2.keys():
 				clazz += " " + ISO_A3_TO_A2[clazz]
-			result += '\t'*(2 + len(current_state)) + f'<g class="{clazz}">\n'
-		indentation = '\t'*(3 + len(current_state))
+			result += '\t'*(3 + len(current_state)) + f'<g class="{clazz}">\n'
+		indentation = '\t'*(4 + len(current_state))
 
 		# then put in whatever type of content is appropriate:
 		any_content = False
@@ -173,7 +173,7 @@ def plot_political_shapes(filename, mode="normal",
 		if mode == "normal":
 			if has_geometry:
 				result += plot(shape.points, midx=shape.parts, close=False,
-				               fourmat='xd', tabs=3 + len(current_state), ident=identifier)
+				               fourmat='xd', tabs=4 + len(current_state), ident=identifier)
 				any_content = True
 		# or the clipped and copied thick border
 		elif mode == "trace":
@@ -204,7 +204,7 @@ def plot_political_shapes(filename, mode="normal",
 
 	# exit all <g>s before returning
 	while len(current_state) > 0:
-		result += '\t'*(2 + len(current_state)) + f'</g>\n'
+		result += '\t'*(3 + len(current_state)) + f'</g>\n'
 		current_state.pop()
 
 	# remove any groups with no elements
