@@ -4,9 +4,9 @@
      height="1024"
      viewBox="0 0 360 180"
      version="1.1">
-	<title>Equirectangular map of the world &#8211; coastlines with Tissot's indicatrices</title>
+	<title>Equirectangular map of the world &#8211; coastlines with Tissot's indicatrix</title>
 	<desc>
-		A map of the world, showing all landmasses with Tissot's indicatrices of radius 3&#0176;&#0160;45&#8242; and spacing 15&#0176;. Coastlines precise to 50&#0160;km.
+		A map of the world, showing all landmasses with Tissot's indicatrix of distortion. Circles of radius 3&#0176;&#0160;45&#8242; and spacing 15&#0176;. Coastlines precise to 50&#0160;km.
 	</desc>
 	<style type="text/css">
 		.ocean, .lakes {
