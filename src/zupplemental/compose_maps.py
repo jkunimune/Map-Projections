@@ -70,7 +70,7 @@ def main():
 		'		<g class="lakes">\n'
 		+ plot_shapes('ne_50m_lakes', max_rank=4) +
 		'		</g>\n'
-		'		<g class="indicatrix">\n'
+		'		<g class="ellipse">\n'
 		+ generate_indicatrices(15, math.radians(3.75), resolution=180, adjust_poles=True) +
 		'		</g>\n'
 		'	</g>\n'
@@ -91,7 +91,7 @@ def main():
 			'		<g class="graticule">\n'
 			+ generate_graticule(10, .5) +
 			'		</g>\n'
-			'		<g class="indicatrix">\n'
+			'		<g class="ellipse">\n'
 			+ generate_indicatrices(30, 500/6371, ctr_meridian=ctr_meridian,
 			                        adjust_poles=True, resolution=120, side_res=5, pole_res=120) +
 			'		</g>\n'
