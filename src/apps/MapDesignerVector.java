@@ -45,6 +45,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import maps.Projection;
 import org.xml.sax.SAXException;
+import utils.Quantity;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
@@ -57,6 +58,7 @@ import java.util.function.Consumer;
 
 import static java.lang.Double.isNaN;
 import static java.lang.Math.hypot;
+import static java.lang.String.format;
 import static utils.Math2.max;
 import static utils.Math2.min;
 
@@ -144,17 +146,22 @@ public class MapDesignerVector extends MapApplication {
 					showError("File not found!",
 					          "We couldn't find "+file.getAbsolutePath()+".");
 				else if (getException() instanceof SAXException)
-					showError("Unreadable file!",
-					          "We couldn't read "+file.getAbsolutePath()+". It may be corrupt or an unreadable format. " +
-					          "If you think your SVG file is valid, leave an issue on the GitHub (https://github.com/" +
-					          "jkunimune/Map-Projections/issues) or send me an email (justin.kunimune@gmail.com) and " +
-					          "I'll see if I can find out why this isn't working.");
+					showError("Unreadable file!", format(
+					          "We couldn't read %s because there was a *Simple API for XML* error: %s. It may be " +
+					          "corrupt or an unreadable format.",
+					          file.getAbsolutePath(), getException().getMessage()));
 				else if (getException() instanceof ParserConfigurationException)
 					showError("Parser Configuration Error!",
-					          "My parser configured incorrectly. I blame you.");
+					          "My parser configured incorrectly. Sorry, I have no idea how this happened.");
 				else {
 					getException().printStackTrace();
 					showError("Unexpected error!", getException().getMessage());
+					showError("Unexpected error!", format(
+					          "When reading %s, there was a %s: %s. It may be corrupt or an unreadable format. " +
+					          "If you think your SVG file is valid, leave an issue on the GitHub (https://github.com/" +
+					          "jkunimune/Map-Projections/issues) or send me an email (justin.kunimune@gmail.com) and " +
+					          "I'll see if I can find out why this isn't working.",
+					          file.getAbsolutePath(), getException().getClass().getName(), getException().getMessage()));
 				}
 			}
 			
@@ -284,18 +291,22 @@ public class MapDesignerVector extends MapApplication {
 		updateMessage.accept("Generating map\u2026");
 
 		// set the scale so that the viewBox is approximately the same size as it was before projection
-		double outDisplayWidth, outDisplayHeight;
+		Quantity outDisplayWidth, outDisplayHeight;
 		double originalViewBoxSize = max(input.getVbWidth(), input.getVbHeight());
 		double projectionSize = max(proj.getShape().width, proj.getShape().height);
 		double scale = originalViewBoxSize/projectionSize;
-		double originalDisplaySize = max(input.getDisplayWidth(), input.getDisplayHeight());
+		double originalDisplaySize = max(input.getDisplayWidth().value, input.getDisplayHeight().value);
 		if (proj.getShape().aspectRatio > 1) {
-			outDisplayWidth = originalDisplaySize;
-			outDisplayHeight = outDisplayWidth/proj.getShape().aspectRatio;
+			outDisplayWidth = new Quantity(
+					originalDisplaySize, input.getDisplayWidth().units);
+			outDisplayHeight = new Quantity(
+					originalDisplaySize/proj.getShape().aspectRatio, input.getDisplayHeight().units);
 		}
 		else {
-			outDisplayHeight = originalDisplaySize;
-			outDisplayWidth = originalDisplaySize*proj.getShape().aspectRatio;
+			outDisplayHeight = new Quantity(
+					originalDisplaySize, input.getDisplayHeight().units);
+			outDisplayWidth = new Quantity(
+					originalDisplaySize*proj.getShape().aspectRatio, input.getDisplayWidth().units);
 		}
 
 		// set some bounds that are bigger than the map area but finite, so that we don't end up with absurdly SVG coordinates

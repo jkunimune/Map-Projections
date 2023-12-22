@@ -28,6 +28,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 import org.xml.sax.helpers.DefaultHandler;
+import utils.Quantity;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -52,6 +53,7 @@ import static java.lang.Math.hypot;
 import static java.lang.String.format;
 import static utils.Math2.linInterp;
 import static utils.Math2.max;
+import static utils.Quantity.parseQuantity;
 
 /**
  * An input equirectangular map based on an SVG file
@@ -213,20 +215,20 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 					attributes.addAttribute("", "", "width", "", "360");
 				if (attributes.getValue("height") == null)
 					attributes.addAttribute("", "", "height", "", "180");
-				double displayWidth = parseDouble(attributes.getValue("width"));
-				double displayHeight = parseDouble(attributes.getValue("height"));
+				Quantity displayWidth = parseQuantity(attributes.getValue("width"));
+				Quantity displayHeight = parseQuantity(attributes.getValue("height"));
 				if (attributes.getValue("viewBox") == null)
 					attributes.addAttribute("", "", "viewBox", "",
-					                        format("%f %f %f %f", 0., 0., displayWidth, displayHeight));
+					                        format("%f %f %f %f", 0., 0., displayWidth.value, displayHeight.value));
 				String[] values = attributes.getValue("viewBox").split("\\s", 4);
 				double vbMinX = parseDouble(values[0]);
 				double vbMinY = parseDouble(values[1]);
 				double vbWidth = parseDouble(values[2]);
 				double vbHeight = parseDouble(values[3]);
 
-				attributes.setValue(attributes.getIndex("width"), "%1$.6g");
-				attributes.setValue(attributes.getIndex("height"), "%2$.6g");
-				attributes.setValue(attributes.getIndex("viewBox"), "%3$.6g %4$.6g %5$.6g %6$.6g");
+				attributes.setValue(attributes.getIndex("width"), "%1$.6g%2$s");
+				attributes.setValue(attributes.getIndex("height"), "%3$.6g%4$s");
+				attributes.setValue(attributes.getIndex("viewBox"), "%5$.6g %6$.6g %7$.6g %8$.6g");
 				String formatSpecifier = formatAttributes("svg", attributes);
 
 				header = new SVGHeader(formatSpecifier, displayWidth, displayHeight, vbMinX, vbMinY, vbWidth, vbHeight);
@@ -441,14 +443,14 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 	/**
 	 * @return the SVG's display width
 	 */
-	public double getDisplayWidth() {
+	public Quantity getDisplayWidth() {
 		return this.header.width;
 	}
 
 	/**
 	 * @return the SVG's display height
 	 */
-	public double getDisplayHeight() {
+	public Quantity getDisplayHeight() {
 		return this.header.height;
 	}
 
@@ -569,14 +571,15 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 	 */
 	public static class SVGHeader implements SVGElement {
 		public final String formatSpecifier;
-		public final double width;
-		public final double height;
+		public final Quantity width;
+		public final Quantity height;
 		public final double vbMinX;
 		public final double vbMinY;
 		public final double vbWidth;
 		public final double vbHeight;
 
-		public SVGHeader(String formatSpecifier, double width, double height, double vbMinX, double vbMinY, double vbWidth, double vbHeight) {
+		public SVGHeader(String formatSpecifier, Quantity width, Quantity height,
+		                 double vbMinX, double vbMinY, double vbWidth, double vbHeight) {
 			this.formatSpecifier = formatSpecifier;
 			this.width = width;
 			this.height = height;
@@ -587,7 +590,8 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 		}
 
 		public String toString() {
-			return format(formatSpecifier, width, height, vbMinX, vbMinY, vbWidth, vbHeight);
+			return format(formatSpecifier, width.value, width.units, height.value, height.units,
+			              vbMinX, vbMinY, vbWidth, vbHeight);
 		}
 	}
 
