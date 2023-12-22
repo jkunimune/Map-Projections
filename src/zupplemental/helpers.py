@@ -4,7 +4,8 @@ import random as rng
 from typing import Any, Iterable, Optional
 
 import shapefile
-from numpy import pi, sin, cos, tan, arcsin, arccos, degrees, ceil, radians, arctan2, hypot
+from matplotlib import pyplot as plt
+from numpy import pi, sin, cos, tan, arcsin, arccos, degrees, ceil, radians, arctan2, hypot, cumsum, transpose
 
 
 def load_shaperecords(filename) -> Iterable[ShapeRecord]:
@@ -125,15 +126,67 @@ def plot(coords: list[tuple[float, float]], midx: Optional[list[int]] = None, cl
 def trim_edges(coast, coast_parts):
 	"""remove the extra points placed along the edges of the Plate Carree map"""
 	for i in range(len(coast)-1, -1, -1):
+		if i in coast_parts:
+			continue
 		x0, y0 = coast[i-1] if i > 0 else coast[i]
 		x1, y1 = coast[i]
 		x2, y2 = coast[i+1] if i < len(coast)-1 else coast[i]
-		if (i not in coast_parts) and (abs(x0) > 179.99 or abs(y0) > 89.99) and (abs(x1) > 179.99 or abs(y1) > 89.99) and (abs(x2) > 179.99 or abs(y2) > 89.99):
+		if (abs(x0) > 179.99 or abs(y0) > 89.99) and \
+			(abs(x1) > 179.99 or abs(y1) > 89.99) and \
+			(abs(x2) > 179.99 or abs(y2) > 89.99):
 			coast.pop(i)
 			for j in range(len(coast_parts)):
 				if coast_parts[j] > i:
 					coast_parts[j] -= 1
-	return coast
+	return coast, coast_parts
+
+
+def fuse_edges(points: list[tuple[float, float]], part_indices: list[int]) -> tuple[list[tuple[float, float]], list[int]]:
+	"""look for parts with matching vertices on either side of the antimeridian and combine them"""
+	# first, we must apply the trimming algorithm.
+	points, parts = trim_edges(points, part_indices)
+	# break the data up into the individual parts
+	parts = []
+	for i in range(len(part_indices)):
+		start = part_indices[i]
+		end = part_indices[i + 1] if i + 1 < len(part_indices) else len(points)
+		parts.append(points[start:end])
+		if points[start] == points[end - 1]:
+			parts[-1] = parts[-1][:-1]  # also remove the duplicate endpoint
+
+	# look for pairs of parts with matching antimeridianal points, and stitch them together
+	parts = fuse_edges_of_parts(parts)
+
+	# put it all back into a single list of points and a list of moveto indices
+	for part in parts:
+		part.append(part[0])  # don't forget to undo the part where we removed the duplicate endpoint
+	points = sum(parts, start=[])
+	part_indices = cumsum([len(part) for part in parts])
+	part_indices = [0] + list(part_indices[:-1])
+	return points, part_indices
+
+
+def fuse_edges_of_parts(parts: list[list[tuple[float, float]]]) -> list[list[tuple[float, float]]]:
+	"""look for parts with matching vertices on either side of the antimeridian and combine them"""
+	for i in range(len(parts)):
+		# look at every point in part i
+		for j in range(0, len(parts[i])):
+			# search for any that are on the antimeridian, and after another on the antimeridian
+			if abs(parts[i][j][0]) > 179.99 and abs(parts[i][j - 1][0]) > 179.99:
+				for k in range(i):
+					# look at every point in part k
+					for l in range(len(parts[k])):
+						# search for any that are on the antimeridian, and after another on the antimeridian
+						if abs(parts[k][l][0]) > 179.99 and abs(parts[k][l - 1][0]) > 179.99:
+							# if the two points' latitudes match
+							if abs(parts[i][j - 1][1] - parts[k][l][1]) < 0.01:
+								# do the stitching
+								parts[i] = parts[i][:j] + parts[k][l:] + parts[k][:l] + parts[i][j:]
+								parts.pop(k)
+								# recurse in case we need to stitch together a few in a row
+								return fuse_edges_of_parts(parts)
+	# return the unmodified list if we found absolutely noting to fuse
+	return parts
 
 
 def lengthen_edges(coast):

@@ -6,7 +6,7 @@ from numpy import pi, sqrt, cos, radians, inf
 from shapely import Polygon
 
 from helpers import plot, trim_edges, ShapeRecord, \
-	load_shapes_from_one_place_and_records_from_another, load_shaperecords
+	load_shapes_from_one_place_and_records_from_another, load_shaperecords, fuse_edges
 
 SIZE_CLASSES = [
 	'lg', 'md', 'sm', None, None, None]
@@ -49,7 +49,8 @@ ISO_A3_TO_A2 = {
 
 
 def plot_political_shapes(filename, mode="normal",
-                          trim_antarctica=False, add_title=False, include_circles_from=None,
+                          trim_antarctica=False, fuse_russia=False,
+                          add_title=False, include_circles_from=None,
                           filter_field: Optional[str] = None,
                           filter_values: Optional[list[Any]] = None, filter_mode="in") -> str:
 	""" it's like plot_shapes but it also can make circles and handles, like, dependencies and stuff
@@ -59,6 +60,7 @@ def plot_political_shapes(filename, mode="normal",
 	                        ID and clip to that existing shape, or
 	                        "circle" to do circles at the center of mass specificly for small countries
 	    :param trim_antarctica: whether to adjust antarctica's shape
+	    :param fuse_russia: whether to reattach the bit of Russia that's in the western hemisphere
 	    :param add_title: add mouseover text
 	    :param include_circles_from: an additional filename from which to borrow small objects. anything
 	                                 present in this shapefile but not in the main one will be included
@@ -91,8 +93,11 @@ def plot_political_shapes(filename, mode="normal",
 
 		# if it Antarctica, trim it
 		if trim_antarctica:
-			if record["sov_a3"] == 'ATA':
-				shape.points = trim_edges(shape.points, shape.parts)
+			if record["sov_a3"] == "ATA":
+				shape.points, shape.parts = trim_edges(shape.points, shape.parts)
+		if fuse_russia:
+			if record["sov_a3"] == "RUS":
+				shape.points, shape.parts = fuse_edges(shape.points, shape.parts)
 		sovereign_code = record["sov_a3"]
 		if sovereign_code in SOVEREIGN_CODES:
 			sovereign_code = SOVEREIGN_CODES[sovereign_code]  # convert US1 to USA
