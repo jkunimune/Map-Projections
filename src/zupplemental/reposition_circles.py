@@ -1,3 +1,4 @@
+import os
 import re
 
 import numpy as np
@@ -6,13 +7,26 @@ from numpy import inf, hypot, log, pi, cos, sin, newaxis
 from numpy.typing import NDArray
 from scipy import optimize
 
-FILENAME = "mymap.svg"
+DIRECTORY = "../../output"
 TERMINATION_THRESHOLD = 1e-9
 
 
 def main():
-	svg, centers_original, radii = read_svg_circles(FILENAME)
+	for filename in os.listdir(DIRECTORY):
+		if filename.endswith(".svg"):
+			svg, centers_original, radii = read_svg_circles(os.path.join(DIRECTORY, filename))
+			if radii.size > 0:
+				print(filename)
+				fig = plt.figure(facecolor="none", figsize=(8, 4))
+				plt.gca().invert_yaxis()
+				centers_final = reposition_circles(centers_original, radii)
+				os.makedirs(os.path.join(DIRECTORY, "spaced"), exist_ok=True)
+				write_svg_circles(os.path.join(DIRECTORY, "spaced", filename), svg, centers_final, radii)
+				print("done")
+				plt.close(fig)
 
+
+def reposition_circles(centers_original: NDArray[float], radii: NDArray[float]) -> NDArray[float]:
 	if radii.size == 0:
 		raise ValueError("the given file did not contain any circles")
 
@@ -20,7 +34,6 @@ def main():
 
 	length_scale = np.min(radii)
 
-	plt.figure(facecolor="none", figsize=(8, 4))
 	plot_circles(centers, centers_original, radii)
 
 	# first ramp up a center-to-center repulsive force until no circles overlap
@@ -73,9 +86,7 @@ def main():
 
 		plot_circles(centers, centers_original, radii)
 
-	write_svg_circles(FILENAME, svg, centers, radii)
-	print("done")
-	plt.show()
+	return centers
 
 
 def plot_circles(centers: NDArray[float], centers_original: NDArray[float], radii: NDArray[float]) -> None:
@@ -139,15 +150,15 @@ def calculate_distance_matrix(centers: NDArray[float], radii: NDArray[float], mo
 
 
 def read_svg_circles(filename: str) -> tuple[str, NDArray[float], NDArray[float]]:
-	circle_pattern = r'r="([-0-9.]+)" cx="([-0-9.]+)" cy="([-0-9.]+)"'
+	circle_pattern = r'cx="([-0-9.]+)" cy="([-0-9.]+)" r="([-0-9.]+)"'
 	centers = []
 	radii = []
-	with open(f"../../output/{filename}") as svg_file:
+	with open(filename) as svg_file:
 		contents = svg_file.read()
 	while re.search(circle_pattern, contents):
 		i = len(radii)
 		match = re.search(circle_pattern, contents)
-		r, x, y = [float(value) for value in match.groups()]
+		x, y, r = [float(value) for value in match.groups()]
 		centers.append((x, y))
 		radii.append(r)
 		contents = re.sub(circle_pattern, f"<<{i}>>", contents, count=1)
@@ -158,7 +169,7 @@ def write_svg_circles(filename: str, contents: str, centers: NDArray[float], rad
 	for i in range(len(radii)):
 		contents = contents.replace(
 			f"<<{i}>>", f'cx="{centers[i, 0]}" cy="{centers[i, 1]}" r="{radii[i]}"')
-	with open(f"../../output/{filename[:-4]}-spaced.svg", "w") as svg_file:
+	with open(f"{filename[:-4]}.svg", "w") as svg_file:
 		svg_file.write(contents)
 
 
