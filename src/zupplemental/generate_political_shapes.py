@@ -16,7 +16,7 @@ SOVEREIGN_CODES = {
 	"AU1": "AUS", "CH1": "CHN", "CU1": "CUB", "DN1": "DNK", "FI1": "FIN", "FR1": "FRA",
 	"IS1": "ISR", "KA1": "KAZ", "GB1": "GBR", "NL1": "NLD", "NZ1": "NZL", "US1": "USA",
 }
-ISO_A3_TO_A2 = {
+ISO_A3_TO_A2 = {  # why did I think hard-coding this table was a good idea...
 	"AFG": "AF", "AGO": "AO", "ALB": "AL", "AND": "AD", "ARE": "AE", "ARG": "AR", "ARM": "AM",
 	"ATA": "AQ", "ATG": "AG", "AUS": "AU", "AUT": "AT", "AZE": "AZ", "BDI": "BI", "BEL": "BE",
 	"BEN": "BJ", "BFA": "BF", "BGD": "BD", "BGR": "BG", "BHR": "BH", "BHS": "BS", "BIH": "BA",
@@ -29,23 +29,31 @@ ISO_A3_TO_A2 = {
 	"GBR": "GB", "GEO": "GE", "GHA": "GH", "GIN": "GN", "GMB": "GM", "GNB": "GW", "GNQ": "GQ",
 	"GRC": "GR", "GRD": "GD", "GTM": "GT", "GUY": "GY", "HND": "HN", "HRV": "HR", "HTI": "HT",
 	"HUN": "HU", "IDN": "ID", "IND": "IN", "IRL": "IE", "IRN": "IR", "IRQ": "IQ", "ISL": "IS",
-	"ISR": "IL", "ITA": "IT", "JAM": "JM", "JOR": "JO", "JPN": "JP", "KAZ": "KZ", "KAS": "__",
-	"KEN": "KE", "KGZ": "KG", "KHM": "KH", "KIR": "KI", "KNA": "KN", "KOR": "KR", "KOS": "XK",
-	"KWT": "KW", "LAO": "LA", "LBN": "LB", "LBR": "LR", "LBY": "LY", "LCA": "LC", "LIE": "LI",
-	"LKA": "LK", "LSO": "LS", "LTU": "LT", "LUX": "LU", "LVA": "LV", "MAR": "MA", "MCO": "MC",
-	"MDA": "MD", "MDG": "MG", "MDV": "MV", "MEX": "MX", "MHL": "MH", "MKD": "MK", "MLI": "ML",
-	"MLT": "MT", "MMR": "MM", "MNE": "ME", "MNG": "MN", "MOZ": "MZ", "MRT": "MR", "MUS": "MU",
-	"MWI": "MW", "MYS": "MY", "NAM": "NA", "NER": "NE", "NGA": "NG", "NIC": "NI", "NLD": "NL",
-	"NOR": "NO", "NPL": "NP", "NRU": "NR", "NZL": "NZ", "OMN": "OM", "PAK": "PK", "PAN": "PA",
-	"PER": "PE", "PGA": "SP", "PHL": "PH", "PLW": "PW", "PNG": "PG", "POL": "PL", "PRK": "KP",
-	"PRT": "PT", "PRY": "PY", "QAT": "QA", "ROU": "RO", "RUS": "RU", "RWA": "RW", "SAH": "EH",
-	"SAU": "SA", "SDN": "SD", "SDS": "SS", "SEN": "SN", "SGP": "SG", "SLB": "SB", "SLE": "SL",
-	"SLV": "SV", "SMR": "SM", "SOL": "__", "SOM": "SO", "SRB": "RS", "STP": "ST", "SUR": "SR",
-	"SVK": "SK", "SVN": "SI", "SWE": "SE", "SWZ": "SZ", "SYC": "SC", "SYR": "SY", "TCD": "TD",
-	"TGO": "TG", "THA": "TH", "TJK": "TJ", "TKM": "TM", "TLS": "TL", "TON": "TO", "TTO": "TT",
-	"TUN": "TN", "TUR": "TR", "TUV": "TV", "TWN": "TW", "TZA": "TZ", "UGA": "UG", "UKR": "UA",
-	"URY": "UY", "USA": "US", "UZB": "UZ", "VAT": "VA", "VCT": "VC", "VEN": "VE", "VNM": "VN",
-	"VUT": "VU", "WSM": "WS", "YEM": "YE", "ZAF": "ZA", "ZMB": "ZM", "ZWE": "ZW", }
+	"ISR": "IL", "ITA": "IT", "JAM": "JM", "JOR": "JO", "JPN": "JP", "KAZ": "KZ", "KEN": "KE",
+	"KGZ": "KG", "KHM": "KH", "KIR": "KI", "KNA": "KN", "KOR": "KR", "KOS": "XK", "KWT": "KW",
+	"LAO": "LA", "LBN": "LB", "LBR": "LR", "LBY": "LY", "LCA": "LC", "LIE": "LI", "LKA": "LK",
+	"LSO": "LS", "LTU": "LT", "LUX": "LU", "LVA": "LV", "MAR": "MA", "MCO": "MC", "MDA": "MD",
+	"MDG": "MG", "MDV": "MV", "MEX": "MX", "MHL": "MH", "MKD": "MK", "MLI": "ML", "MLT": "MT",
+	"MMR": "MM", "MNE": "ME", "MNG": "MN", "MOZ": "MZ", "MRT": "MR", "MUS": "MU", "MWI": "MW",
+	"MYS": "MY", "NAM": "NA", "NER": "NE", "NGA": "NG", "NIC": "NI", "NLD": "NL", "NOR": "NO",
+	"NPL": "NP", "NRU": "NR", "NZL": "NZ", "OMN": "OM", "PAK": "PK", "PAN": "PA", "PER": "PE",
+	"PGA": "SP", "PHL": "PH", "PLW": "PW", "PNG": "PG", "POL": "PL", "PRK": "KP", "PRT": "PT",
+	"PRY": "PY", "QAT": "QA", "ROU": "RO", "RUS": "RU", "RWA": "RW", "SAH": "EH", "SAU": "SA",
+	"SDN": "SD", "SDS": "SS", "SEN": "SN", "SGP": "SG", "SLB": "SB", "SLE": "SL", "SLV": "SV",
+	"SMR": "SM", "SOM": "SO", "SRB": "RS", "STP": "ST", "SUR": "SR", "SVK": "SK", "SVN": "SI",
+	"SWE": "SE", "SWZ": "SZ", "SYC": "SC", "SYR": "SY", "TCD": "TD", "TGO": "TG", "THA": "TH",
+	"TJK": "TJ", "TKM": "TM", "TLS": "TL", "TON": "TO", "TTO": "TT", "TUN": "TN", "TUR": "TR",
+	"TUV": "TV", "TWN": "TW", "TZA": "TZ", "UGA": "UG", "UKR": "UA", "URY": "UY", "USA": "US",
+	"UZB": "UZ", "VAT": "VA", "VCT": "VC", "VEN": "VE", "VNM": "VN", "VUT": "VU", "WSM": "WS",
+	"YEM": "YE", "ZAF": "ZA", "ZMB": "ZM", "ZWE": "ZW",
+	"IOA": "CX", "NFK": "NF", "HKG": "HK", "MAC": "MO", "GRL": "GL", "FRO": "FO", "ALD": "AX",
+	"ATF": "FQ", "BLM": "BL", "MAF": "MF", "NCL": "NC", "PYF": "PF", "SPM": "PM", "WLF": "WF",
+	"AIA": "AI", "BMU": "BM", "CYM": "KY", "FLK": "FK", "GGY": "GG", "GIB": "GI", "IMN": "IM",
+	"IOT": "IO", "JEY": "JE", "MSR": "MS", "SHN": "SH", "TCA": "TC", "VGB": "VG", "PSX": "PS",
+	"ABW": "AW", "CUW": "CW", "SXM": "SX", "COK": "CK", "NIU": "NU", "ASM": "AS", "GUM": "GU",
+	"MNP": "MP", "PRI": "PR", "VIR": "VI", "HMD": "HM", "PCN": "PN", "SGS": "GS",
+	"CLP": "CP", "UMI": "UM",
+}
 
 
 def plot_political_shapes(filename, mode="normal",
@@ -115,7 +123,7 @@ def plot_political_shapes(filename, mode="normal",
 			hierarchical_identifier = (sovereign_code, country_code)
 			unique_identifier = country_code
 		if hierarchical_identifier[0] == hierarchical_identifier[1] or \
-			ISO_A3_TO_A2[hierarchical_identifier[0]] == hierarchical_identifier[1]:  # remove layer [1] if redundant
+			ISO_A3_TO_A2.get(hierarchical_identifier[0]) == hierarchical_identifier[1]:  # remove layer [1] if redundant
 			hierarchical_identifier = hierarchical_identifier[:1] + hierarchical_identifier[2:]
 		key = (hierarchical_identifier, unique_identifier)
 		hierarchically_arranged_regions[key] = (shape, record)
@@ -164,6 +172,8 @@ def plot_political_shapes(filename, mode="normal",
 			clazz = current_state[-1]
 			if clazz in ISO_A3_TO_A2.keys():
 				clazz += " " + ISO_A3_TO_A2[clazz]
+			elif len(clazz) < 4 and record["iso_a2"] != "-99":
+				print(f"warning: no ISO 3166 alpha2 code found for {clazz}: {record['name']}, {record['iso_a2']}")
 			result += '\t'*(3 + len(current_state)) + f'<g class="{clazz}">\n'
 		indentation = '\t'*(4 + len(current_state))
 
