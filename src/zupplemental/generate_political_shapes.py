@@ -58,8 +58,7 @@ ISO_A3_TO_A2 = {  # why did I think hard-coding this table was a good idea...
 
 def plot_political_shapes(filename, mode="normal",
                           trim_antarctica=False, fuse_russia=False,
-                          add_title=False, include_circles_from=None,
-                          filter_field: Optional[str] = None,
+                          add_title=False, include_circles_from=None, filter_field: Optional[str] = None,
                           filter_values: Optional[list[Any]] = None, filter_mode="in") -> str:
 	""" it's like plot_shapes but it also can make circles and handles, like, dependencies and stuff
 	    :param filename: the name of the natural earth dataset to use (minus the .shp)
@@ -67,6 +66,7 @@ def plot_political_shapes(filename, mode="normal",
 	                        "trace" to redraw each border by copying an existing element of the same
 	                        ID and clip to that existing shape, or
 	                        "circle" to do circles at the center of mass specificly for small countries
+	                        "bubble" to also do circles but their area is proportional to population
 	    :param trim_antarctica: whether to adjust antarctica's shape
 	    :param fuse_russia: whether to reattach the bit of Russia that's in the western hemisphere
 	    :param add_title: add mouseover text
@@ -205,6 +205,13 @@ def plot_political_shapes(filename, mode="normal",
 					radius = round(CIRCLE_RADIUS/sqrt(2), 2)
 				result += f'{indentation}<circle id="{identifier}-circle" cx="{x_center:.3f}" cy="{y_center:.3f}" r="{radius}" />\n'
 				any_content = True
+		# or a circle with its area set to the population
+		elif mode == "bubble":
+			x_center = record["label_x"] if "label_x" in record else record["longitude"]
+			y_center = record["label_y"] if "label_y" in record else record["latitude"]
+			area = record["pop_est"] if "pop_est" in record else 1e8
+			result += f'{indentation}<circle id="{identifier}-bubble" cx="{x_center:.3f}" cy="{y_center:.3f}" r="{2e-4*sqrt(area):.3f}" />\n'
+			any_content = True
 
 		# also a title if that's desired
 		if add_title and any_content and tuple(hierarchy) not in already_titled:
