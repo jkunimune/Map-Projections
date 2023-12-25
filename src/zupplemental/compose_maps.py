@@ -180,7 +180,7 @@ def main():
 	)
 
 	# political template (provinces)
-	a3_with_provinces = ["RUS", "CAN", "CHN", "USA", "AUS", "BRA", "IDN"]
+	a3_with_provinces = ["RUS", "CAN", "CHN", "USA", "AUS", "BRA", "IND", "IDN"]
 	write_svg_code_to_file(
 		"../../input/Advanced/Template provinces.svg",
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
