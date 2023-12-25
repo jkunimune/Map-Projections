@@ -6,7 +6,7 @@
      version="1.1">
 	<title>Blank world map</title>
 	<desc>
-		A map of the world with the top-level administrative divisions for some countries shown. De facto borders are shown as according to <a href="http://www.naturalearthdata.com/">Natural Earth</a>. Major lakes overlaid. Borders precise to 50&#0160;km. Equirectangular projection.
+		A map of the world with the top-level administrative divisions for some countries shown. De facto borders as of 2022 are taken from <a href="http://www.naturalearthdata.com/">Natural Earth</a>. Major lakes overlaid. Equirectangular projection.
 	</desc>
 	<style type="text/css">
 		/*

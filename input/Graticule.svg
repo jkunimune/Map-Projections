@@ -6,7 +6,7 @@
      version="1.1">
 	<title>Equirectangular map &#8211; 5&#0176; graticule</title>
 	<desc>
-		An Equirectangular graticule, showing all landmasses with 5&#0176; graticule, including the Polar Circles and the Tropics.
+		An Equirectangular graticule, showing all landmasses with 5&#0176; graticule, including the polar circles and the tropic lines.
 	</desc>
 	<style type="text/css">
 		.border {
