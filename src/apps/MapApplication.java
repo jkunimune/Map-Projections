@@ -409,15 +409,15 @@ public abstract class MapApplication extends Application {
 	/**
 	 * Create a block of niche options - specifically antimeridian cropping and whether
 	 * there should be a graticule
-	 * @param cropAtIDL - The mutable boolean value to which to bind the "Crop at antimeridian" CheckBox.
+	 * @param extendMap - The mutable boolean value to which to bind the "Crop at antimeridian" CheckBox.
 	 * @param graticule - The mutable double value to which to bind the "Graticule" Spinner.
 	 * @return The full formatted Region.
 	 */
-	protected Region buildOptionPane(Flag cropAtIDL, MutableDouble graticule) {
-		final CheckBox cropBox = new CheckBox("Crop at antimeridian"); //the CheckBox for whether there should be shown imagery beyond += 180 degrees
-		cropBox.setSelected(cropAtIDL.isSet());
-		cropBox.setTooltip(new Tooltip("Hide points of extreme longitude."));
-		cropBox.selectedProperty().addListener((observable, old, now) -> cropAtIDL.set(now));
+	protected Region buildOptionPane(Flag extendMap, MutableDouble graticule) {
+		final CheckBox extendBox = new CheckBox("Extend map area"); //the CheckBox for whether there should be shown imagery beyond += 180 degrees
+		extendBox.setSelected(extendMap.isSet());
+		extendBox.setTooltip(new Tooltip("Show points beyond the normal boundaries of the map (so some locations are shown twice)"));
+		extendBox.selectedProperty().addListener((observable, old, now) -> extendMap.set(now));
 		
 		final ObservableList<Double> factorsOf90 = FXCollections.observableArrayList();
 		for (double f = 1; f <= 90; f += 0.5)
@@ -447,7 +447,7 @@ public abstract class MapApplication extends Application {
 		
 		final HBox gratRow = new HBox(H_SPACE, gratBox, gratSpinner);
 		gratRow.setAlignment(Pos.CENTER_LEFT);
-		return new VBox(V_SPACE, cropBox, gratRow);
+		return new VBox(V_SPACE, extendBox, gratRow);
 	}
 	
 	

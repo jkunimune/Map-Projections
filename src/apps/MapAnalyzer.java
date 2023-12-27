@@ -92,7 +92,7 @@ public class MapAnalyzer extends MapApplication {
 	private static final Color GRATICULE_COLOR = Color.BLACK;
 	private static final float GRATICULE_WIDTH = 0.5f;
 	
-	private Flag cropAtIDL;
+	private Flag extendMap;
 	private MutableDouble graticuleSpacing;
 	private Text avgSizeDistort, avgShapeDistort;
 	private ImageView mapDisplay;
@@ -116,11 +116,11 @@ public class MapAnalyzer extends MapApplication {
 	
 	@Override
 	protected Region makeWidgets() {
-		this.cropAtIDL = new Flag(true);
+		this.extendMap = new Flag(false);
 		this.graticuleSpacing = new MutableDouble();
 		final Region projectionSelector = buildProjectionSelector(Procedure.NONE);
 		final Region parameterSelector = buildParameterSelector(Procedure.NONE);
-		final Region optionPane = buildOptionPane(cropAtIDL, graticuleSpacing);
+		final Region optionPane = buildOptionPane(extendMap, graticuleSpacing);
 		final Region textDisplay = buildTextDisplay();
 		final Region updateBtn = buildUpdateButton("Calculate",
 				this::calculateGraphicTaskForUpdate);
@@ -227,9 +227,9 @@ public class MapAnalyzer extends MapApplication {
 	
 	private Task<SavableImage> calculateGraphicTask(int imgSize, boolean detailedAnalysis) {
 		loadParameters();
-		return calculateGraphicTask(imgSize, getProjection(), cropAtIDL.isSet(),
-				graticuleSpacing.get(), mapDisplay, detailedAnalysis ? sizeChart : null,
-				shapeChart, avgSizeDistort, avgShapeDistort);
+		return calculateGraphicTask(imgSize, getProjection(), !extendMap.isSet(),
+		                            graticuleSpacing.get(), mapDisplay, detailedAnalysis ? sizeChart : null,
+		                            shapeChart, avgSizeDistort, avgShapeDistort);
 	}
 	
 	/**

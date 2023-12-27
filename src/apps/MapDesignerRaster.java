@@ -91,7 +91,7 @@ public class MapDesignerRaster extends MapApplication {
 	
 	private Region aspectSelector;
 	private double[] aspect;
-	private Flag cropAtIDL;
+	private Flag extendMap;
 	private MutableDouble graticuleSpacing;
 	private PixelMap input;
 	private ImageView display;
@@ -117,14 +117,14 @@ public class MapDesignerRaster extends MapApplication {
 	@Override
 	protected Region makeWidgets() {
 		this.aspect = new double[3];
-		this.cropAtIDL = new Flag(true);
+		this.extendMap = new Flag(false);
 		this.graticuleSpacing = new MutableDouble();
 		final Region inputSelector = buildInputSelector(READABLE_TYPES,
 				RASTER_TYPES[0], this::setInputTask);
 		final Region projectionSelector = buildProjectionSelector(this::updateAspect);
 		this.aspectSelector = buildAspectSelector(this.aspect, Procedure.NONE);
 		final Region parameterSelector = buildParameterSelector(Procedure.NONE);
-		final Region optionPane = buildOptionPane(cropAtIDL, graticuleSpacing);
+		final Region optionPane = buildOptionPane(extendMap, graticuleSpacing);
 		final Region updateBtn = buildUpdateButton("Update Map", this::calculateTaskForUpdate);
 		final Region saveMapBtn = buildSaveButton(
 				"map", RASTER_TYPES, RASTER_TYPES[0],
@@ -205,8 +205,8 @@ public class MapDesignerRaster extends MapApplication {
 	
 	private Task<SavableImage> calculateTask(int width, int height, int step) {
 		return calculateTask(width, height, step,
-				input, getProjection(), aspect.clone(), cropAtIDL.isSet(), graticuleSpacing.get(),
-				display);
+		                     input, getProjection(), aspect.clone(), !extendMap.isSet(), graticuleSpacing.get(),
+		                     display);
 	}
 	
 	/**
