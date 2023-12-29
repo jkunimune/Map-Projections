@@ -26,22 +26,23 @@ The output will still be sized as though the entire map were there, unless it's 
 
 ### Running by double-clicking
 
-If you are a fancy Windows user, I recommend the convenient [fancy Windows binaries](https://github.com/jkunimune/Map-Projections/releases). Double-click to install them and then keep pressing buttons until something good happens. If you see a map, you're in the right place.
+If you are a fancy Windows user, I recommend the convenient [fancy Windows binaries](https://github.com/jkunimune/Map-Projections/releases). Download the EXE files, find them in your downloads folder, double-click to install, and then keep pressing buttons until something good happens. If you see a map, you're in the right place.
 
 ### Running from the command line
 
 If you are not on Windows or are otherwise not fancy enough to deserve such binaries, there are also equivalent `.jar` files in the main directory.
 For that, you'll need to download and install [Java](https://www.java.com/download/).
 You can use any version 8 or higher.
-Once you've installed it, you can run the programs like so *if* you're on Java 8 specifically:
+Once you've installed it, you can download the source code, unzip it, and navigate to the resulting directory in a command line window.
+If the Java you installed is Java 8, you can run the programs with the following command:
 ~~~bash
 java -jar MapDesignerRaster.jar
 ~~~
 Change the filename at the end accordingly, of course.
 
 If you have Java 9 or higher, that's fine too, but you'll need to also install [JavaFX](https://gluonhq.com/products/javafx/).
-Make sure you get the SDK JavaFX, not the Jmods JavaFX; the version doesn't matter.
-Once you've unzipped JavaFX into some directory – let’s say, for example, `/home/jkunimune/javafx-sdk-17` – then you can run the programs like so:
+Make sure you get the SDK JavaFX, not the Jmods JavaFX. The version number doesn't matter.
+Once you've unzipped JavaFX into some directory – let’s say, for example, `/home/jkunimune/javafx-sdk-17` – then you can run the programs with the following command:
 
 ~~~bash
 java --module-path '/home/jkunimune/javafx-sdk-17/lib' --add-modules javafx.controls,javafx.swing -jar MapDesignerRaster.jar
