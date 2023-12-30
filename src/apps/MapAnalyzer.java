@@ -309,7 +309,7 @@ public class MapAnalyzer extends MapApplication {
 					updateProgress(-1, 1);
 					updateMessage("Drawing graticule\u2026");
 					ImageUtils.drawSVGPath(
-							proj.drawGraticule(toRadians(gratSpacing), .02,
+							proj.drawGraticule(toRadians(gratSpacing), true, .02,
 									width, height, PI/2, PI, null),
 							GRATICULE_COLOR, GRATICULE_WIDTH, true,
 							(Graphics2D)graphic.getGraphics());

@@ -271,6 +271,7 @@ public abstract class Projection {
 	/**
 	 * Create a series of paths that draw a graticule mesh, scaled into a rectangle so x in [0, outW] and y in [0, outH]
 	 * @param spacing The number of radians between each parallel or meridian
+	 * @param sparsePole Whether to cut most meridians short near the pole
 	 * @param precision The maximum allowable distance from the true path
 	 * @param maxLat The maximum absolute value of latitude for any graticule curve
 	 * @param maxLon The maximum absolute value of longitude for any graticule curve
@@ -279,7 +280,8 @@ public abstract class Projection {
 	 * @param pole The aspect of this graticule
 	 * @return list of curves where each curve is a list of {x,y} arrays
 	 */
-	public List<Path.Command> drawGraticule(double spacing, double precision, double outW, double outH,
+	public List<Path.Command> drawGraticule(
+			double spacing, boolean sparsePole, double precision, double outW, double outH,
 			double maxLat, double maxLon, double[] pole) {
 		List<Path.Command> output = new ArrayList<>();
 		
@@ -297,10 +299,11 @@ public abstract class Projection {
 		int numMeridians = (int)round(maxLon/spacing);
 		for (int x = 0; x <= numMeridians; x ++) {
 			double meridianHeight;
-			if (x == 0 || x == numMeridians/2. || x == numMeridians)
-				meridianHeight = maxLat - .0001; // never go all the way to the poles
-			else
+			if (sparsePole && x != 0 && x != numMeridians/2. && x != numMeridians)
 				meridianHeight = maxLat - spacing; // don't even get close for most meridians
+			else
+				meridianHeight = maxLat - .0001; // never go all the way to the poles
+			
 			output.addAll(drawLoxodrome( // in the western hemisphere
 					-meridianHeight, -x*spacing, meridianHeight, -x*spacing, precision, pole));
 			if (x != 0 && x != numMeridians)

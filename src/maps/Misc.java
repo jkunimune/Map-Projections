@@ -501,9 +501,10 @@ public class Misc {
 		}
 		
 		@Override
-		public List<Path.Command> drawGraticule(double spacing, double precision, double outW, double outH,
-		                                        double maxLat, double maxLon, double[] pole) {
-			return Azimuthal.POLAR.drawGraticule(spacing, precision, outW, outH, maxLat, maxLon, null);
+		public List<Path.Command> drawGraticule(
+				double spacing, boolean sparsePole, double precision, double outW, double outH,
+				double maxLat, double maxLon, double[] pole) {
+			return Azimuthal.POLAR.drawGraticule(spacing, sparsePole, precision, outW, outH, maxLat, maxLon, null);
 		}
 	};
 	

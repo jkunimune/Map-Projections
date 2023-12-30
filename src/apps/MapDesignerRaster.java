@@ -57,7 +57,9 @@ import utils.MutableDouble;
 import utils.Procedure;
 import utils.Shape;
 
+import static java.lang.Boolean.parseBoolean;
 import static java.lang.Double.isNaN;
+import static java.lang.Float.parseFloat;
 import static java.lang.Integer.parseInt;
 import static java.lang.Math.PI;
 import static java.lang.Math.toRadians;
@@ -308,8 +310,9 @@ public class MapDesignerRaster extends MapApplication {
 			updateProgress.accept(-1, 1);
 			updateMessage.accept("Drawing graticule\u2026");
 
-			int r = 255, g = 255, b = 255, a = 255;
-			float lineWidth = (float)(min(width, height)/300);
+			int r, g, b, a;
+			float lineWidth;
+			boolean sparsePole;
 			BufferedReader fileReader = null;
 			try {
 				fileReader = new BufferedReader(new FileReader("input/graticule.txt"));
@@ -317,9 +320,19 @@ public class MapDesignerRaster extends MapApplication {
 				g = parseInt(fileReader.readLine().split(":")[1].trim());
 				b = parseInt(fileReader.readLine().split(":")[1].trim());
 				a = parseInt(fileReader.readLine().split(":")[1].trim());
-				lineWidth = Float.parseFloat(fileReader.readLine().split(":")[1]);
+				lineWidth = parseFloat(fileReader.readLine().split(":")[1].trim());
+				sparsePole = parseBoolean(fileReader.readLine().split(":")[1].trim());
 			} catch (NumberFormatException | IOException e) {
 				e.printStackTrace();
+				showError("Bad 'graticule.txt' file",
+				          "Something has happened to graticule.txt in the input folder, and I can't read it.  " +
+				          "I'll just use the default graticule styling.");
+				r = 255;
+				g = 255;
+				b = 255;
+				a = 255;
+				lineWidth = (float)(min(width, height)/300);
+				sparsePole = true;
 			} finally {
 				if (fileReader != null)
 					try {
@@ -328,7 +341,7 @@ public class MapDesignerRaster extends MapApplication {
 			}
 
 			ImageUtils.drawSVGPath(
-				  proj.drawGraticule(toRadians(gratSpacing), GRATICULE_PRECISION,
+				  proj.drawGraticule(toRadians(gratSpacing), sparsePole, GRATICULE_PRECISION,
 									 width, height, PI/2, PI, aspect),
 				  new Color(r, g, b, a), lineWidth,
 				  true, (Graphics2D)theMap.getGraphics());
