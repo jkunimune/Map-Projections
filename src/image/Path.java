@@ -13,6 +13,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.sin;
 import static java.lang.Math.toDegrees;
 import static java.lang.String.format;
+import static java.util.Locale.US;
 
 public class Path {
 	/**
@@ -242,7 +243,7 @@ public class Path {
 
 
 	private static String formatDouble(double d) { //format a number with the minimum number of digits, but at most 3
-		String str = format("%.3f", d);
+		String str = format(US, "%.3f", d);
 		if (str.contains("."))
 			str = str.replaceFirst("0+$", "");
 		if (str.endsWith("."))

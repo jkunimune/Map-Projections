@@ -51,6 +51,7 @@ import static java.lang.Double.parseDouble;
 import static java.lang.Math.PI;
 import static java.lang.Math.hypot;
 import static java.lang.String.format;
+import static java.util.Locale.US;
 import static utils.Math2.linInterp;
 import static utils.Math2.max;
 import static utils.Quantity.parseQuantity;
@@ -166,7 +167,7 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 			
 //			@Override  /* only available in Java 14+ */
 //			public void declaration(String version, String encoding, String standalone) {
-//				elements.add(new Content(String.format(
+//				elements.add(new Content(format(
 //						"<?xml version=\"%s\" encoding=\"%s\" standalone=\"%s\"?>\n",
 //						version, encoding, standalone)));
 //			}
@@ -218,8 +219,10 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 				Quantity displayWidth = parseQuantity(attributes.getValue("width"));
 				Quantity displayHeight = parseQuantity(attributes.getValue("height"));
 				if (attributes.getValue("viewBox") == null)
-					attributes.addAttribute("", "", "viewBox", "",
-					                        format("%f %f %f %f", 0., 0., displayWidth.value, displayHeight.value));
+					attributes.addAttribute(
+							"", "", "viewBox", "",
+							format(US, "%f %f %f %f",
+							       0., 0., displayWidth.value, displayHeight.value));
 				String[] values = attributes.getValue("viewBox").split("\\s", 4);
 				double vbMinX = parseDouble(values[0]);
 				double vbMinY = parseDouble(values[1]);
@@ -590,7 +593,7 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 		}
 
 		public String toString() {
-			return format(formatSpecifier, width.value, width.units, height.value, height.units,
+			return format(US, formatSpecifier, width.value, width.units, height.value, height.units,
 			              vbMinX, vbMinY, vbWidth, vbHeight);
 		}
 	}
@@ -630,7 +633,7 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 		}
 
 		public String toString() {
-			return format(formatSpecifier, x, y);
+			return format(US, formatSpecifier, x, y);
 		}
 	}
 
@@ -648,7 +651,7 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 		}
 		
 		public String toString() {
-			return format(formatSpecifier, Path.toString(commands));
+			return format(US, formatSpecifier, Path.toString(commands));
 		}
 	}
 }
