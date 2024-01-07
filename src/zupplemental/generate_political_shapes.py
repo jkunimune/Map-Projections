@@ -12,9 +12,11 @@ SIZE_CLASSES = [
 	'lg', 'md', 'sm', None, None, None]
 CIRCLE_RADIUS = .7
 
-SOVEREIGN_CODES = {
+ISO_A3_CODES_THAT_DONT_NEED_BE_UNIQUE = {
 	"AU1": "AUS", "CH1": "CHN", "CU1": "CUB", "DN1": "DNK", "FI1": "FIN", "FR1": "FRA",
-	"IS1": "ISR", "KA1": "KAZ", "GB1": "GBR", "NL1": "NLD", "NZ1": "NZL", "US1": "USA",
+	"IS1": "ISR", "KA1": "KAZ", "GB1": "GBR", "NL1": "NLD", "NZ1": "NZL", "PN1": "PNG",
+	"PR1": "PRT", "US1": "USA",
+	"FXX": "FRA", "NOW": "NOR", "PNX": "PNG", "SRS": "SRB", "SYX": "SYR",
 }
 ISO_A3_TO_A2 = {  # why did I think hard-coding this table was a good idea...
 	"AFG": "AF", "AGO": "AO", "ALB": "AL", "AND": "AD", "ARE": "AE", "ARG": "AR", "ARM": "AM",
@@ -46,13 +48,23 @@ ISO_A3_TO_A2 = {  # why did I think hard-coding this table was a good idea...
 	"TUV": "TV", "TWN": "TW", "TZA": "TZ", "UGA": "UG", "UKR": "UA", "URY": "UY", "USA": "US",
 	"UZB": "UZ", "VAT": "VA", "VCT": "VC", "VEN": "VE", "VNM": "VN", "VUT": "VU", "WSM": "WS",
 	"YEM": "YE", "ZAF": "ZA", "ZMB": "ZM", "ZWE": "ZW",
-	"IOA": "CX", "NFK": "NF", "HKG": "HK", "MAC": "MO", "GRL": "GL", "FRO": "FO", "ALD": "AX",
-	"ATF": "FQ", "BLM": "BL", "MAF": "MF", "NCL": "NC", "PYF": "PF", "SPM": "PM", "WLF": "WF",
+	"NFK": "NF", "HKG": "HK", "MAC": "MO", "GRL": "GL", "FRO": "FO", "ALD": "AX",
+	"ATF": "TF", "BLM": "BL", "MAF": "MF", "NCL": "NC", "PYF": "PF", "SPM": "PM", "WLF": "WF",
 	"AIA": "AI", "BMU": "BM", "CYM": "KY", "FLK": "FK", "GGY": "GG", "GIB": "GI", "IMN": "IM",
 	"IOT": "IO", "JEY": "JE", "MSR": "MS", "SHN": "SH", "TCA": "TC", "VGB": "VG", "PSX": "PS",
 	"ABW": "AW", "CUW": "CW", "SXM": "SX", "COK": "CK", "NIU": "NU", "ASM": "AS", "GUM": "GU",
 	"MNP": "MP", "PRI": "PR", "VIR": "VI", "HMD": "HM", "PCN": "PN", "SGS": "GS",
+	"GUF": "GF", "BVT": "BV", "CCK": "CC", "CXR": "CX", "GLP": "GP", "MTQ": "MQ", "MYT": "YT",
+	"REU": "RE", "NLY": "BQ", "NSV": "SJ", "TKL": "TK", "SYU": "XD",
 	"CLP": "CP", "UMI": "UM",
+	"EUE": "EU",
+}
+SUPRANATIONS = {
+	"EUE": {
+		"AUT", "BEL", "BGR", "HRV", "CYP", "CZE", "DNK", "EST", "FIN", "FRA", "DEU", "GRC", "HUN",
+		"IRL", "ITA", "LVA", "LTU", "LUX", "MLT", "NLD", "POL", "PRT", "ROU", "SVK", "SVN", "ESP",
+		"SWE",
+	}
 }
 
 
@@ -103,28 +115,44 @@ def plot_political_shapes(filename, mode="normal",
 		if trim_antarctica:
 			if record["sov_a3"] == "ATA":
 				shape.points, shape.parts = trim_edges(shape.points, shape.parts)
+		# fuse edges across the antimeridian if desired
 		if fuse_russia:
 			if record["sov_a3"] == "RUS":
 				shape.points, shape.parts = fuse_edges(shape.points, shape.parts)
+
+		# normalize some alpha3 codes
+		for key in ["sov_a3", "adm0_a3", "gu_a3"]:
+			if record[key] in ISO_A3_CODES_THAT_DONT_NEED_BE_UNIQUE:
+				record[key] = ISO_A3_CODES_THAT_DONT_NEED_BE_UNIQUE[record[key]]
+
+		# then figure out the keying
 		sovereign_code = record["sov_a3"]
-		if sovereign_code in SOVEREIGN_CODES:
-			sovereign_code = SOVEREIGN_CODES[sovereign_code]  # convert US1 to USA
-		if "iso_3166_2" in record:  # either key them by sovereign, admin0, admin1
+		country_code = record["adm0_a3"]
+		geounit_code = record["gu_a3"]
+		unique_identifier = geounit_code
+		# key them by sovereign, admin0, geounit
+		hierarchical_identifier = (sovereign_code, country_code, geounit_code)
+		# and then by admin1 if applicable
+		if "iso_3166_2" in record:
 			province_code = record["iso_3166_2"]
 			if province_code.startswith("-99"):
 				province_code = "__" + province_code[3:]
 			if province_code.endswith("~"):
 				province_code = province_code[:-1]
-			country_code = province_code[:province_code.index("-")]
-			hierarchical_identifier = (sovereign_code, country_code, province_code)
 			unique_identifier = record["adm1_code"]
-		else:  # or by sovereign, admin0
-			country_code = record["adm0_a3"]
-			hierarchical_identifier = (sovereign_code, country_code)
-			unique_identifier = country_code
-		if hierarchical_identifier[0] == hierarchical_identifier[1] or \
-			ISO_A3_TO_A2.get(hierarchical_identifier[0]) == hierarchical_identifier[1]:  # remove layer [1] if redundant
-			hierarchical_identifier = hierarchical_identifier[:1] + hierarchical_identifier[2:]
+			hierarchical_identifier = hierarchical_identifier + (province_code,)
+		# put nations under supranations when applicable
+		for code, member_codes in SUPRANATIONS.items():
+			if sovereign_code in member_codes:
+				hierarchical_identifier = (code,) + hierarchical_identifier
+		# remove redundant layers
+		for i in range(len(hierarchical_identifier) - 1, 0, -1):
+			if hierarchical_identifier[i] == hierarchical_identifier[i - 1]:
+				hierarchical_identifier = hierarchical_identifier[:i] + hierarchical_identifier[i + 1:]
+			elif hierarchical_identifier[i - 1] in ISO_A3_TO_A2:
+				if hierarchical_identifier[i] == ISO_A3_TO_A2[hierarchical_identifier[i - 1]]:
+					hierarchical_identifier = hierarchical_identifier[:i] + hierarchical_identifier[i + 1:]
+		# key it in this dictionary by both its classes and its id
 		key = (hierarchical_identifier, unique_identifier)
 		hierarchically_arranged_regions[key] = (shape, record)
 
@@ -150,7 +178,7 @@ def plot_political_shapes(filename, mode="normal",
 
 		# make some other decisions
 		has_geometry = shape.shapeType != shapefile.NULL
-		is_sovereign = len(hierarchy) == 1  # this won't work for admin-1-states-provinces but that's fine
+		is_sovereign = len(hierarchy) == 1 or (len(hierarchy) == 2 and hierarchy[0] in SUPRANATIONS)
 		is_inhabited = (record.get("pop_est", inf) > 500 and  # Vatican is inhabited but US Minor Outlying I. are not
 		                record["type"] != "Lease" and  # don't circle Baykonur or Guantanamo
 		                "Base" not in record["admin"] and  # don't circle military bases
@@ -170,7 +198,7 @@ def plot_political_shapes(filename, mode="normal",
 		while len(current_state) < len(hierarchy):
 			current_state.append(hierarchy[len(current_state)])
 			clazz = current_state[-1]
-			if clazz in ISO_A3_TO_A2.keys():
+			if current_state[-1] in ISO_A3_TO_A2.keys():
 				clazz += " " + ISO_A3_TO_A2[clazz]
 			elif len(clazz) < 4 and record["iso_a2"] != "-99":
 				print(f"warning: no ISO 3166 alpha2 code found for {clazz}: {record['name']}, {record['iso_a2']}")

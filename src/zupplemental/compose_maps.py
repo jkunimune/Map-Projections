@@ -194,11 +194,11 @@ def main():
 		                        add_title=True, filter_field="adm0_a3", filter_values=a3_with_provinces) +
 		'			</g>\n'
 		'			<g class="country-outline">\n'
-		+ plot_shapes('ne_50m_admin_0_countries', trim_antarctica=True, fuse_russia=True,
+		+ plot_shapes('ne_50m_admin_0_map_units', trim_antarctica=True, fuse_russia=True,
 		              filter_field="adm0_a3", filter_values=a3_with_provinces) +
 		'			</g>\n'
 		'			<g class="country">\n'
-		+ plot_political_shapes('ne_50m_admin_0_countries', trim_antarctica=True, fuse_russia=True,
+		+ plot_political_shapes('ne_50m_admin_0_map_units', trim_antarctica=True, fuse_russia=True,
 		                        add_title=True, filter_field="adm0_a3", filter_values=a3_with_provinces,
 		                        filter_mode="out") +
 		'    	   </g>\n'
@@ -254,11 +254,11 @@ def main():
 		'		</clipPath>\n'
 		'		<g clip-path="url(#clipPath)">\n'
 		'			<g class="country">\n'
-		+ plot_political_shapes('ne_10m_admin_0_countries', trim_antarctica=True, fuse_russia=True,
+		+ plot_political_shapes('ne_10m_admin_0_map_units', trim_antarctica=True, fuse_russia=True,
 		                        mode="normal") +
 		'			</g>\n'
 		'			<g class="thick-country-border">\n'
-		+ plot_political_shapes('ne_10m_admin_0_countries', trim_antarctica=True, fuse_russia=True,
+		+ plot_political_shapes('ne_10m_admin_0_map_units', trim_antarctica=True, fuse_russia=True,
 		                        mode="trace") +
 		'			</g>\n'
 		'			<g class="river">\n'
