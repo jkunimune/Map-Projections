@@ -209,41 +209,6 @@ def main():
 		'	</g>\n'
 	)
 
-	# population bubbles
-	big_countries = ["RUS", "CAN", "CHN", "USA", "AUS", "BRA", "IND"]
-	write_svg_code_to_file(
-		"../../input/Advanced/Population.svg",
-		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
-		'		<rect id="background" class="water" x="-180" y="-90" width="360" height="180" />\n'
-		'		<clipPath id="clipPath">\n'
-		'			<use href="#background" xlink:href="#background" />\n'
-		'		</clipPath>\n'
-		'		<g clip-path="url(#clipPath)">\n'
-		'			<g class="province">\n'
-		+ plot_political_shapes('ne_50m_admin_1_states_provinces', trim_antarctica=True, fuse_russia=True,
-		                        add_title=True, filter_field="adm0_a3", filter_values=big_countries) +
-		'			</g>\n'
-		'			<g class="country">\n'
-		+ plot_political_shapes('ne_50m_admin_0_countries', trim_antarctica=True, fuse_russia=True,
-		                        filter_field="adm0_a3", filter_values=big_countries, filter_mode="out") +
-		'			</g>\n'
-		'			<g class="water">\n'
-		+ plot_shapes('ne_50m_lakes', max_rank=4) +
-		'			</g>\n'
-		'			<g class="province">\n'
-		+ plot_political_shapes('ne_50m_admin_1_states_provinces', trim_antarctica=True, fuse_russia=True,
-		                        add_title=True, mode="bubble",
-		                        filter_field="adm0_a3", filter_values=big_countries) +
-		'			</g>\n'
-		'			<g class="country">\n'
-		+ plot_political_shapes('ne_50m_admin_0_countries', trim_antarctica=True, fuse_russia=True,
-		                        add_title=True, mode="bubble",
-		                        filter_field="adm0_a3", filter_values=big_countries, filter_mode="out") +
-		'    	   </g>\n'
-		'		</g>\n'
-		'	</g>\n'
-	)
-
 	# everything
 	write_svg_code_to_file(
 		"../../input/Advanced/Supermap.svg",
