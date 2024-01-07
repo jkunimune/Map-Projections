@@ -1,12 +1,11 @@
 import re
 from typing import Optional, Any
 
-import shapefile
 from numpy import pi, sqrt, cos, radians, inf
+from shapefile import Shape, NULL
 from shapely import Polygon
 
-from helpers import plot, trim_edges, ShapeRecord, \
-	load_shapes_from_one_place_and_records_from_another, load_shaperecords, fuse_edges
+from helpers import plot, trim_edges, load_shapes_from_one_place_and_records_from_another, load_shaperecords, fuse_edges
 
 SIZE_CLASSES = [
 	'lg', 'md', 'sm', None, None, None]
@@ -16,7 +15,14 @@ ISO_A3_CODES_THAT_DONT_NEED_BE_UNIQUE = {
 	"AU1": "AUS", "CH1": "CHN", "CU1": "CUB", "DN1": "DNK", "FI1": "FIN", "FR1": "FRA",
 	"IS1": "ISR", "KA1": "KAZ", "GB1": "GBR", "NL1": "NLD", "NZ1": "NZL", "PN1": "PNG",
 	"PR1": "PRT", "US1": "USA",
-	"FXX": "FRA", "NOW": "NOR", "PNX": "PNG", "SRS": "SRB", "SYX": "SYR",
+	"FXX": "FRA", "GEG": "GEO", "NOW": "NOR", "PNX": "PNG", "SRS": "SRB", "SYX": "SYR",
+}
+SUPRANATIONS = {
+	"EUE": {
+		"AUT", "BEL", "BGR", "HRV", "CYP", "CZE", "DNK", "EST", "FIN", "FRA", "DEU", "GRC", "HUN",
+		"IRL", "ITA", "LVA", "LTU", "LUX", "MLT", "NLD", "POL", "PRT", "ROU", "SVK", "SVN", "ESP",
+		"SWE",
+	}
 }
 ISO_A3_TO_A2 = {  # why did I think hard-coding this table was a good idea...
 	"AFG": "AF", "AGO": "AO", "ALB": "AL", "AND": "AD", "ARE": "AE", "ARG": "AR", "ARM": "AM",
@@ -59,44 +65,34 @@ ISO_A3_TO_A2 = {  # why did I think hard-coding this table was a good idea...
 	"CLP": "CP", "UMI": "UM",
 	"EUE": "EU",
 }
-SUPRANATIONS = {
-	"EUE": {
-		"AUT", "BEL", "BGR", "HRV", "CYP", "CZE", "DNK", "EST", "FIN", "FRA", "DEU", "GRC", "HUN",
-		"IRL", "ITA", "LVA", "LTU", "LUX", "MLT", "NLD", "POL", "PRT", "ROU", "SVK", "SVN", "ESP",
-		"SWE",
-	}
-}
 
 
-def plot_political_shapes(filename, mode="normal",
+def load_political_shapes(filename: str, small_country_filename: Optional[str] = None,
                           trim_antarctica=False, fuse_russia=False,
-                          add_title=False, include_circles_from=None, filter_field: Optional[str] = None,
-                          filter_values: Optional[list[Any]] = None, filter_mode="in") -> str:
-	""" it's like plot_shapes but it also can make circles and handles, like, dependencies and stuff
+                          filter_field: Optional[str] = None,
+                          filter_values: Optional[list[Any]] = None, filter_mode="in"
+                          ) -> dict[str, tuple[Shape, Optional[dict[str, Any]], dict]]:
+	""" load the data from a shapefile and arrange the shape-records into a hierarchical dictionary,
+	    such that they can be input to plot_political_shapes.
 	    :param filename: the name of the natural earth dataset to use (minus the .shp)
-	    :param mode: one of "normal" to draw countries' shapes as one would expect,
-	                        "trace" to redraw each border by copying an existing element of the same
-	                        ID and clip to that existing shape, or
-	                        "circle" to do circles at the center of mass specificly for small countries
-	                        "bubble" to also do circles but their area is proportional to population
+	    :param small_country_filename: an additional filename from which to borrow small objects. anything
+	                                   present in this shapefile but not in the main one will be included
+	                                   in the output as only a circle (assuming add_circles is True)
 	    :param trim_antarctica: whether to adjust antarctica's shape
 	    :param fuse_russia: whether to reattach the bit of Russia that's in the western hemisphere
-	    :param add_title: add mouseover text
-	    :param include_circles_from: an additional filename from which to borrow small objects. anything
-	                                 present in this shapefile but not in the main one will be included
-	                                 in the output as only a circle (assuming add_circles is True)
 	    :param filter_field: a record key that will be used to select a subset of records to be used
 	    :param filter_values: a list of values that will be compared against each record's
 	                          filter_field to determine whether to use it
 	    :param filter_mode: if "in", use only records whose filter_field value is in filter_values.
 	                        if "out", use only records whose filter_field value is *not* in filter_values.
 	"""
-	if include_circles_from is None:
+	if small_country_filename is None:
 		regions = load_shaperecords(filename)
 	else:
-		regions = load_shapes_from_one_place_and_records_from_another(filename, include_circles_from)
+		regions = load_shapes_from_one_place_and_records_from_another(filename, small_country_filename)
+
 	# go thru the records and sort them into a dictionary by ISO 3166 codes
-	hierarchically_arranged_regions: dict[tuple[tuple[str, ...], str], ShapeRecord] = {}
+	world: dict[str, tuple[Shape, Optional[dict[str, Any]], dict]] = {}
 	for shape, record in regions:
 		# if it is filtered out, skip it
 		if filter_field is not None:
@@ -126,165 +122,153 @@ def plot_political_shapes(filename, mode="normal",
 				record[key] = ISO_A3_CODES_THAT_DONT_NEED_BE_UNIQUE[record[key]]
 
 		# then figure out the keying
-		sovereign_code = record["sov_a3"]
-		country_code = record["adm0_a3"]
-		geounit_code = record["gu_a3"]
-		unique_identifier = geounit_code
-		# key them by sovereign, admin0, geounit
-		hierarchical_identifier = (sovereign_code, country_code, geounit_code)
+		key = [record["sov_a3"], record["adm0_a3"], record["gu_a3"]]
+		# put nations under supranations when applicable
+		for supranation_code, member_codes in SUPRANATIONS.items():
+			if key[0] in member_codes:
+				key = [supranation_code] + key
 		# and then by admin1 if applicable
 		if "iso_3166_2" in record:
 			province_code = record["iso_3166_2"]
 			if province_code.startswith("-99"):
-				province_code = "__" + province_code[3:]
+				province_code = key[-1] + province_code[3:]
 			if province_code.endswith("~"):
 				province_code = province_code[:-1]
-			unique_identifier = record["adm1_code"]
-			hierarchical_identifier = hierarchical_identifier + (province_code,)
-		# put nations under supranations when applicable
-		for code, member_codes in SUPRANATIONS.items():
-			if sovereign_code in member_codes:
-				hierarchical_identifier = (code,) + hierarchical_identifier
-		# remove redundant layers
-		for i in range(len(hierarchical_identifier) - 1, 0, -1):
-			if hierarchical_identifier[i] == hierarchical_identifier[i - 1]:
-				hierarchical_identifier = hierarchical_identifier[:i] + hierarchical_identifier[i + 1:]
-			elif hierarchical_identifier[i - 1] in ISO_A3_TO_A2:
-				if hierarchical_identifier[i] == ISO_A3_TO_A2[hierarchical_identifier[i - 1]]:
-					hierarchical_identifier = hierarchical_identifier[:i] + hierarchical_identifier[i + 1:]
-		# key it in this dictionary by both its classes and its id
-		key = (hierarchical_identifier, unique_identifier)
-		hierarchically_arranged_regions[key] = (shape, record)
+			key = key + [province_code]
 
-	# next, go thru and plot the borders
-	current_state = []
-	result = ""
-	already_titled = set()
-	# for each item
-	for key in sorted(hierarchically_arranged_regions.keys()):
-		hierarchy, identifier = key
-		shape, record = hierarchically_arranged_regions[key]
-
-		# decide whether it's "small"
-		is_small = True
-		for i in range(len(shape.parts)):
-			if i + 1 < len(shape.parts):
-				part = shape.points[shape.parts[i]:shape.parts[i + 1]]
-			else:
-				part = shape.points[shape.parts[i]:]
-			area = Polygon(part).area*cos(radians(part[0][1]))
-			if area > pi*CIRCLE_RADIUS**2:
-				is_small = False
-
-		# make some other decisions
-		has_geometry = shape.shapeType != shapefile.NULL
-		is_sovereign = len(hierarchy) == 1 or (len(hierarchy) == 2 and hierarchy[0] in SUPRANATIONS)
-		is_inhabited = (record.get("pop_est", inf) > 500 and  # Vatican is inhabited but US Minor Outlying I. are not
-		                record["type"] != "Lease" and  # don't circle Baykonur or Guantanamo
-		                "Base" not in record["admin"] and  # don't circle military bases
-		                (record["type"] != "Indeterminate" or record["pop_est"] > 100_000))  # don't circle Cyprus No Mans Land or Siachen Glacier
-		if not is_sovereign and "note_adm0" in record and record["note_adm0"] != "":
-			label = f"{record['name_long']} ({record['note_adm0']})"  # indicate dependencies' sovereigns in parentheses
-		elif "name_long" in record:
-			label = record["name_long"]
+		# choose an appropriate unique ID
+		if "adm1_code" in record:
+			record["id"] = record["adm1_code"]
 		else:
-			label = record["name"]
+			record["id"] = key[-1]
 
-		# exit any <g>s we're no longer in
-		while current_state and (len(current_state) > len(hierarchy) or current_state[-1] != hierarchy[len(current_state) - 1]):
-			result += '\t'*(3 + len(current_state)) + f'</g>\n'
-			current_state.pop()
-		# enter any new <g>s
-		while len(current_state) < len(hierarchy):
-			current_state.append(hierarchy[len(current_state)])
-			clazz = current_state[-1]
-			if current_state[-1] in ISO_A3_TO_A2.keys():
-				clazz += " " + ISO_A3_TO_A2[clazz]
-			elif len(clazz) < 4 and record["iso_a2"] != "-99":
-				print(f"warning: no ISO 3166 alpha2 code found for {clazz}: {record['name']}, {record['iso_a2']}")
-			result += '\t'*(3 + len(current_state)) + f'<g class="{clazz}">\n'
-		indentation = '\t'*(4 + len(current_state))
+		# remove redundant layers
+		for i in range(len(key) - 1, 0, -1):
+			if key[i] == key[i - 1]:
+				key.pop(i)
+			elif key[i - 1] in ISO_A3_TO_A2:
+				if key[i] == ISO_A3_TO_A2[key[i - 1]]:
+					key.pop(i)
 
-		# then put in whatever type of content is appropriate:
-		any_content = False
-		# the normal polygon
-		if mode == "normal":
-			if has_geometry:
-				result += plot(shape.points, midx=shape.parts, close=False,
-				               fourmat='xd', tabs=4 + len(current_state), ident=identifier)
-				any_content = True
-		# or the clipped and copied thick border
-		elif mode == "trace":
-			if has_geometry:
-				result += (
-					f'{indentation}<clipPath id="{identifier}-clipPath">\n'
-					f'{indentation}<use href="#{identifier}" />\n'
-					f'{indentation}</clipPath>\n'
-					f'{indentation}<use href="#{identifier}" style="clip-path:url(#{identifier}-clipPath);" />\n'
-				)
-				any_content = True
-		# or just a circle
-		elif mode == "circle":
-			if is_small and is_inhabited:
-				x_center, y_center = float(record["label_x"]), float(record["label_y"])
-				if is_sovereign:
-					radius = CIRCLE_RADIUS
+		# place it in the dictionary
+		parent = world
+		for code in key:
+			if code not in parent:
+				parent[code] = (Shape(NULL), None, {})
+			if code != key[-1]:
+				parent = parent[code][2]
+		existing_shape, existing_record, existing_children = parent.get(key[-1])
+		if existing_shape.shapeType != NULL or existing_record is not None:
+			raise ValueError(f"we've already put something at {'/'.join(*key)}")
+		else:
+			parent[key[-1]] = (shape, record, existing_children)
+
+	return world
+
+
+def plot_political_shapes(data: dict[str, tuple[Shape, Optional[dict[str, Any]], dict]],
+                          num_tabs=4, is_sovereign=True, mode="normal", add_title=False) -> str:
+	""" it's like plot_shapes but it also can make circles and handles, like, dependencies and stuff
+	    :param data: the hierarchicly arranged shape-records to plot.  each is keyed with its alpha-3 code,
+	                 and each value is a tuple of the Shape, the record, and the dict of children.  the
+	                 children dict, if not None, has the same structure as data.
+	    :param mode: one of "normal" to draw countries' shapes as one would expect,
+	                        "trace" to redraw each border by copying an existing element of the same
+	                        ID and clip to that existing shape, or
+	                        "circle" to do circles at the center of mass specificly for small countries
+	    :param is_sovereign: whether the shapes being plotted at the top level should be treated as sovereign
+	    :param num_tabs: the number of tabs to put before each top-level group
+	    :param add_title: add mouseover text
+	"""
+	# next, go thru and plot the borders
+	result = ""
+	# for each item
+	for key in sorted(data.keys()):
+		shape, record, children = data[key]
+
+		# start the <g>
+		clazz = key
+		if key in ISO_A3_TO_A2.keys():
+			clazz += " " + ISO_A3_TO_A2[clazz]
+		elif len(clazz) < 4 and record is not None and record["iso_a2"] != "-99":
+			print(f"warning: no ISO 3166 alpha2 code found for {clazz}: {record['name']}, {record['iso_a2']}")
+		result += '\t'*num_tabs + f'<g class="{clazz}">\n'
+
+		if record is not None:
+			# decide whether it's "small"
+			is_small = True
+			for i in range(len(shape.parts)):
+				if i + 1 < len(shape.parts):
+					part = shape.points[shape.parts[i]:shape.parts[i + 1]]
 				else:
-					radius = round(CIRCLE_RADIUS/sqrt(2), 2)
-				result += f'{indentation}<circle id="{identifier}-circle" cx="{x_center:.3f}" cy="{y_center:.3f}" r="{radius}" />\n'
-				any_content = True
-		# or a circle with its area set to the population
-		elif mode == "bubble":
-			x_center = record["label_x"] if "label_x" in record else record["longitude"]
-			y_center = record["label_y"] if "label_y" in record else record["latitude"]
-			area = record["pop_est"] if "pop_est" in record else 1e8
-			result += f'{indentation}<circle id="{identifier}-bubble" cx="{x_center:.3f}" cy="{y_center:.3f}" r="{2e-4*sqrt(area):.3f}" />\n'
-			any_content = True
+					part = shape.points[shape.parts[i]:]
+				area = Polygon(part).area*cos(radians(part[0][1]))
+				if area > pi*CIRCLE_RADIUS**2:
+					is_small = False
 
-		# also a title if that's desired
-		if add_title and any_content and tuple(hierarchy) not in already_titled:
-			if has_geometry or is_inhabited:
-				result += f'{indentation}<title>{label}</title>\n'
-				already_titled.add(tuple(hierarchy))  # occasionally a thing can get two titles if the hierarchy isn't unique; only label the first one
+			# make some other decisions
+			has_geometry = shape.shapeType != NULL
+			is_inhabited = (record.get("pop_est", inf) > 500 and  # Vatican is inhabited but US Minor Outlying I. are not
+			                record["type"] != "Lease" and  # don't circle Baykonur or Guantanamo
+			                "Base" not in record["admin"] and  # don't circle military bases
+			                (record["type"] != "Indeterminate" or record["pop_est"] > 100_000))  # don't circle Cyprus No Mans Land or Siachen Glacier
+			if not is_sovereign and "note_adm0" in record and record["note_adm0"] != "":
+				label = f"{record['name_long']} ({record['note_adm0']})"  # indicate dependencies' sovereigns in parentheses
+			elif "name_long" in record:
+				label = record["name_long"]
+			else:
+				label = record["name"]
+			identifier = record["id"]
 
-	# exit all <g>s before returning
-	while len(current_state) > 0:
-		result += '\t'*(3 + len(current_state)) + f'</g>\n'
-		current_state.pop()
+			# then put in whatever type of content is appropriate:
+			indentation = '\t'*(1 + num_tabs)
+			any_content = False
+			# the normal polygon
+			if mode == "normal":
+				if has_geometry:
+					result += plot(shape.points, midx=shape.parts, close=False,
+					               fourmat='xd', tabs=num_tabs + 1, ident=identifier)
+					any_content = True
+			# or the clipped and copied thick border
+			elif mode == "trace":
+				if has_geometry:
+					result += (
+						f'{indentation}<clipPath id="{identifier}-clipPath">\n'
+						f'{indentation}<use href="#{identifier}" />\n'
+						f'{indentation}</clipPath>\n'
+						f'{indentation}<use href="#{identifier}" style="clip-path:url(#{identifier}-clipPath);" />\n'
+					)
+					any_content = True
+			# or just a circle
+			elif mode == "circle":
+				if is_small and is_inhabited:
+					x_center, y_center = float(record["label_x"]), float(record["label_y"])
+					if is_sovereign:
+						radius = CIRCLE_RADIUS
+					else:
+						radius = round(CIRCLE_RADIUS/sqrt(2), 2)
+					result += f'{indentation}<circle id="{identifier}-circle" cx="{x_center:.3f}" cy="{y_center:.3f}" r="{radius}" />\n'
+					any_content = True
 
-	# remove any groups with no elements
-	for _ in range(3):
-		result = re.sub(r'(\t)*<g class="([A-Za-z _-]+)">(\s*)</g>\n',
-		                '', result)
+			# also a title if that's desired
+			if add_title and any_content:# and tuple(hierarchy) not in already_titled:
+				if has_geometry or is_inhabited:
+					result += f'{indentation}<title>{label}</title>\n'
+					# already_titled.add(tuple(hierarchy))  # occasionally a thing can get two titles if the hierarchy isn't unique; only label the first one
+
+		# if there are children, plot those recursive-like
+		result += plot_political_shapes(
+			children, num_tabs=num_tabs + 1, is_sovereign=key in SUPRANATIONS,
+			mode=mode, add_title=add_title)
+
+		# exit the <g>
+		result += '\t'*num_tabs + f'</g>\n'
+
+	# # remove any groups with no elements
+	result = re.sub(r'(\t)*<g class="([A-Za-z _-]+)">(\s*)</g>\n',
+	                '', result)
 	# simplify any groups with only a single element
 	result = re.sub(r'<g class="([A-Za-z _-]+)">(\s*)<([a-z]+) ([^\n]*)>(\s*)</g>',
 	                '<\\3 class="\\1" \\4>', result)
 
 	return result
-
-
-def complete_sovereign_code_if_necessary(sovereignty_code: str, regions: list[ShapeRecord]) -> str:
-	""" so, under the NaturalEarth dataset system, countries are grouped together under
-	    sovereignties.  and each sovereignty has one country within it which is in charge.  let's call it
-	    the sovereign.  to encode this, the dataset gives every region a sovereign code and an admin0 code,
-	    where the admin0 code is from some ISO standard, and the sovereign code = if it's the only region
-	    under this sovereign { the admin0 code } else { the admin0 code of the sovereign with its last
-	    letter replaced with a 1 };  I find this kind of weird; I can't find any basis for it in ISO
-	    standards.  I get it, but I would rather the sovereign code just be the same as the admin0 code of
-	    the sovereign.  so that's what this function does; it figures out what letter should go where that
-	    1 is.
-	"""
-	sovereign_code = None
-	for shape, record in regions:
-		if record["adm0_a3"][:2] == sovereignty_code[:2]:
-			if sovereign_code is not None:
-				if sovereignty_code == "KA1":
-					return "KAZ"
-				else:
-					raise ValueError(f"there are two possible sovereign codes for {sovereignty_code} and I "
-					                 f"don't know which to use: {sovereign_code} and {record['adm0_a3']}")
-			else:
-				sovereign_code = record['adm0_a3']
-	if sovereign_code is None:
-		raise ValueError(f"there are no possible sovereign codes for {sovereignty_code}")
-	return sovereign_code
