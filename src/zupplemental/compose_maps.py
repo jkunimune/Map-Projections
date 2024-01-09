@@ -159,6 +159,28 @@ def main():
 		+ label_shapes('ne_50m_admin_0_countries', label_type="polity", secondary_attr="note_adm0")
 	)
 
+	# physical template
+	write_svg_code_to_file(
+		"../../input/Advanced/Template coastlines.svg",
+		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
+		'		<rect id="background" class="water" x="-180" y="-90" width="360" height="180" />\n'
+		'		<clipPath id="clipPath">\n'
+		'			<use href="#background" xlink:href="#background" />\n'
+		'		</clipPath>\n'
+		'		<g clip-path="url(#clipPath)">\n'
+		'			<g class="land">\n'
+		+ plot_shapes('ne_110m_land', trim_antarctica=True, mark_antarctica=True) +
+		'			</g>\n'
+		'			<g class="river">\n'
+		+ plot_shapes('ne_110m_rivers_lake_centerlines') +
+		'			</g>\n'
+		'			<g class="water">\n'
+		+ plot_shapes('ne_110m_lakes') +
+		'			</g>\n'
+		'		</g>\n'
+		'	</g>\n'
+	)
+
 	# political template (countries)
 	write_svg_code_to_file(
 		"../../input/Advanced/Template countries.svg",
@@ -180,7 +202,7 @@ def main():
 			add_title=True, mode="circle") +
 		'			</g>\n'
 		'			<g class="water">\n'
-		+ plot_shapes('ne_110m_lakes', max_rank=4) +
+		+ plot_shapes('ne_110m_lakes') +
 		'			</g>\n'
 		'		</g>\n'
 		'	</g>\n'
@@ -223,7 +245,7 @@ def main():
 			add_title=False, mode="trace") +
 		'			</g>\n'
 		'			<g class="water">\n'
-		+ plot_shapes('ne_50m_lakes', max_rank=4) +
+		+ plot_shapes('ne_50m_lakes') +
 		'			</g>\n'
 		'		</g>\n'
 		'	</g>\n'

@@ -90,6 +90,9 @@ pip3 install numpy pyshp shapely
 ~~~~
 
 Note that `compose_maps.py` requires input data from [naturalearthdata.com](http://www.naturalearthdata.com/downloads/), which should be downloaded and placed in `src/zupplemental/shapefiles/`.
+You can either put the zip file in there or extract the individual files and put them in; it works either way.
+I don't have a complete list of what data files are needed, so I usually just run it and look at the error message to see what it wants me to download.
+You can alternatively scroll through `compose_maps.py` to see what files it references (anything that starts with "ne_" is the name of a Natural Earth dataset).
 
 ## Wherefore?
 I'll write a little blurb here later.
