@@ -226,7 +226,7 @@ def plot_political_shapes(data: dict[str, tuple[Shape, Optional[dict[str, Any]],
 			# the normal polygon
 			if mode == "normal":
 				if has_geometry:
-					result += plot(shape.points, midx=shape.parts, close=False,
+					result += plot(shape.points, midx=shape.parts,
 					               fourmat='xd', tabs=num_tabs + 1, ident=identifier)
 					any_content = True
 			# or the clipped and copied thick border

@@ -23,7 +23,7 @@ def main():
 		'		</clipPath>\n'
 		'		<g clip-path="url(#clipPath)">\n'
 		'			<g class="land">\n'
-		+ plot_shapes('ne_50m_land', trim_antarctica=True, mark_antarctica=True) +
+		+ plot_shapes('ne_50m_land', trim_antarctica=True, mark_antarctica=True, fuse_russia=True) +
 		'			</g>\n'
 		'			<g class="water">\n'
 		+ plot_shapes('ne_50m_lakes', max_rank=4) +
@@ -266,7 +266,7 @@ def main():
 		+ plot_shapes('ne_10m_admin_0_boundary_lines_disputed_areas') +
 		'			</g>\n'
 		'			<g class="coastline">\n'
-		+ plot_shapes('ne_10m_coastline', trim_antarctica=True, fuse_russia=True) +
+		+ plot_shapes('ne_10m_coastline', trim_antarctica=True) +
 		'			</g>\n'
 		'			<g class="lake">\n'
 		+ plot_shapes('ne_10m_lakes', max_rank=4) +

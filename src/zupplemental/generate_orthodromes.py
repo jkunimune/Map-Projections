@@ -11,7 +11,7 @@ def plot_orthodrome(phi0, lam0, tht0) -> str:
 	points = []
 	for p in np.linspace(-90, 90, 1001):
 		points.append(obliquify(radians(p), tht0, phi0, lam0))
-	return plot(points, close=False)
+	return plot(points)
 	
 
 def generate_orthodromes() -> str:

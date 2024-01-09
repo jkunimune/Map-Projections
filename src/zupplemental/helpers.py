@@ -3,7 +3,9 @@ from __future__ import annotations
 import random as rng
 from typing import Any, Iterable, Optional
 
+import numpy as np
 import shapefile
+from matplotlib import pyplot as plt
 from numpy import pi, sin, cos, tan, arcsin, arccos, degrees, ceil, radians, arctan2, hypot, cumsum
 from shapefile import NULL, Shape, ShapefileException
 
@@ -74,7 +76,7 @@ def obliquify(lat1, lon1, lat0, lon0):
 	return latf, lonf
 
 
-def plot(coords: list[tuple[float, float]], midx: Optional[list[int]] = None, close=True, fourmat='pr', clazz=None, ident=None, tabs=4) -> str:
+def plot(coords: list[tuple[float, float]], midx: Optional[list[int]] = None, close=False, fourmat='pr', clazz=None, ident=None, tabs=4) -> str:
 	"""
 	express a list of 2D points as an SVG <path> tag
 	:param coords: the coordinate pairs of the vertices

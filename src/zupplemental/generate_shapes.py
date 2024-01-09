@@ -38,7 +38,7 @@ def plot_shapes(
 		if fuse_russia:
 			shape.points, shape.parts = fuse_edges(shape.points, shape.parts)
 
-		result += plot(shape.points, midx=shape.parts, close=False,
+		result += plot(shape.points, midx=shape.parts,
 		               clazz=clazz_for_this_section, fourmat='xd')
 
 	return result

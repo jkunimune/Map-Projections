@@ -11,7 +11,7 @@ def plot_indicatrix(phi0, lam0, r, res) -> str:
 	points = []
 	for l in range(0, 360, 360//res):
 		points.append(obliquify(math.pi/2-r, math.radians(l), phi0, lam0))
-	return plot(points)
+	return plot(points, close=True)
 
 
 def plot_side_indicatrix(phi0, r, res, side_res=1) -> str:
@@ -28,7 +28,7 @@ def plot_side_indicatrix(phi0, r, res, side_res=1) -> str:
 		points.append((pr, lr + math.pi))
 	for i in range(side_res):
 		points.append((phi0-r+(2*r)/side_res*(i+1), math.pi))
-	return plot(points, midx=midx, close=False)
+	return plot(points, midx=midx)
 
 
 def plot_pole_indicatrix(north, r, res, ctr_meridian=0., side_res=1, pole_res=1) -> str:
@@ -46,7 +46,7 @@ def plot_pole_indicatrix(north, r, res, ctr_meridian=0., side_res=1, pole_res=1)
 		points.append((pr + (pp-pr)/side_res*(i+1), ctr_meridian+math.pi))
 	for x in range(180, -181, -360//pole_res):
 		points.append((pp, ctr_meridian+math.radians(x)))
-	return plot(points)
+	return plot(points, close=True)
 
 
 def generate_indicatrices(spacing, radius, adjust_poles=False, resolution=60, ctr_meridian=0, side_res=1, pole_res=1) -> str:
