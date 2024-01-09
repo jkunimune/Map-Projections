@@ -7,7 +7,7 @@
      version="1.1">
 	<title>Equirectangular map of the world &#8211; coastlines and lakes</title>
 	<desc>
-		A map of the world on the Equirectangular projection, showing all landmasses as SVG paths. Equirectangular projection. 		An Equirectangular map of the world, showing all landmasses with 10&#0176; graticule and Tissot's ellipses of distortion. Circles of diameter 1,000&#0160;km and spacing 30&#0176;. Coastline data is taken from <a href="http://www.naturalearthdata.com/">Natural Earth</a>.
+		A map of the world on the Equirectangular projection, showing all landmasses as SVG paths. Equirectangular projection. Coastline data is taken from <a href="http://www.naturalearthdata.com/">Natural Earth</a>.
 	</desc>
 	<style type="text/css">
 		.water {
