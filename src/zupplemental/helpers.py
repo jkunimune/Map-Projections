@@ -5,6 +5,7 @@ from typing import Any, Iterable, Optional
 
 import shapefile
 from numpy import pi, sin, cos, tan, arcsin, arccos, degrees, ceil, radians, arctan2, hypot, cumsum
+from shapefile import NULL, Shape, ShapefileException
 
 
 def load_shaperecords(filename) -> Iterable[ShapeRecord]:
@@ -16,7 +17,7 @@ def load_shaperecords(filename) -> Iterable[ShapeRecord]:
 	"""
 	try:
 		sf = shapefile.Reader(f"shapefiles/{filename}")
-	except shapefile.ShapefileException:
+	except ShapefileException:
 		raise FileNotFoundError(f"The shapefile {filename} is missing; please download it and put it in "
 		                        f"src/zupplemental/shapefiles/")
 	good_shaperecords = []
@@ -42,7 +43,7 @@ def load_shapes_from_one_place_and_records_from_another(shape_filename, record_f
 				shape = other_shape
 				break
 		if shape is None:
-			shape = shapefile.Shape(shapefile.NULL)
+			shape = Shape(NULL)
 		new_regions.append((shape, record))
 	return new_regions
 
@@ -279,4 +280,4 @@ def normalize_shaperecord(shaperecord: shapefile.ShapeRecord) -> ShapeRecord:
 	return better_shaperecord
 
 
-ShapeRecord = tuple[shapefile.Shape, dict[str, Any]]
+ShapeRecord = tuple[Shape, dict[str, Any]]

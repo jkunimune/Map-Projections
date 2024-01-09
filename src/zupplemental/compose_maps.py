@@ -4,12 +4,12 @@
 import math
 import re
 
-from generate_political_shapes import plot_political_shapes, load_political_shapes
 from generate_graticule import generate_graticule
 from generate_indicatrices import generate_indicatrices
-from generate_orthodromes import generate_orthodromes
-from generate_shapes import plot_shapes
 from generate_labels import generate_topographical_labels, label_shapes, label_points
+from generate_orthodromes import generate_orthodromes
+from generate_political_shapes import plot_political_shapes, load_political_shapes
+from generate_shapes import plot_shapes
 
 
 def main():
@@ -188,6 +188,7 @@ def main():
 
 	# political template (provinces)
 	a3_with_provinces = ["RUS", "CAN", "CHN", "USA", "AUS", "BRA", "IND", "IDN"]
+	a3_with_subunits = ["BEL", "BIH", "FRA", "GBR", "IOA", "NLD", "NOR", "NZL", "PRT", "PSX", "SRB"]
 	write_svg_code_to_file(
 		"../../input/Advanced/Template provinces.svg",
 		'	<g transform="matrix(1,0,0,-1,180,90)">\n'
@@ -196,24 +197,31 @@ def main():
 		'			<use href="#background" xlink:href="#background" />\n'
 		'		</clipPath>\n'
 		'		<g clip-path="url(#clipPath)">\n'
-		'			<g class="province">\n'
-		+ plot_political_shapes(
-			load_political_shapes(
-				'ne_50m_admin_1_states_provinces', trim_antarctica=True, fuse_russia=True,
-				filter_field="adm0_a3", filter_values=a3_with_provinces),
-			add_title=True, mode="normal") +
-		'			</g>\n'
-		'			<g class="country-outline">\n'
-		+ plot_shapes('ne_50m_admin_0_map_units', trim_antarctica=True, fuse_russia=True,
-		              filter_field="adm0_a3", filter_values=a3_with_provinces) +
-		'			</g>\n'
 		'			<g class="country">\n'
 		+ plot_political_shapes(
 			load_political_shapes(
-				'ne_50m_admin_0_map_units', trim_antarctica=True, fuse_russia=True,
-				filter_field="adm0_a3", filter_values=a3_with_provinces, filter_mode="out"),
-			add_title=True, mode="normal") +
+				'ne_50m_admin_0_countries', fuse_russia=True, trim_antarctica=True),
+			add_title=True) +
 		'    	   </g>\n'
+		'			<g class="province">\n'
+		+ plot_political_shapes(
+			load_political_shapes(
+				'ne_50m_admin_0_map_units',
+				filter_field="adm0_a3", filter_values=a3_with_subunits),
+			add_title=True)
+		+ plot_political_shapes(
+			load_political_shapes(
+				'ne_50m_admin_1_states_provinces', fuse_russia=True,
+				filter_field="adm0_a3", filter_values=a3_with_provinces),
+			add_title=True) +
+		'			</g>\n'
+		'			<g class="country-outline">\n'
+		+ plot_political_shapes(
+			load_political_shapes(
+				'ne_50m_admin_0_countries', fuse_russia=True,
+				filter_field="adm0_a3", filter_values=a3_with_provinces + a3_with_subunits),
+			add_title=False, mode="trace") +
+		'			</g>\n'
 		'			<g class="water">\n'
 		+ plot_shapes('ne_50m_lakes', max_rank=4) +
 		'			</g>\n'
@@ -233,13 +241,13 @@ def main():
 		'			<g class="country">\n'
 		+ plot_political_shapes(
 			load_political_shapes(
-				'ne_10m_admin_0_map_units', trim_antarctica=True, fuse_russia=True),
+				'ne_10m_admin_0_countries', trim_antarctica=True, fuse_russia=True),
 			mode="normal") +
 		'			</g>\n'
 		'			<g class="thick-country-border">\n'
 		+ plot_political_shapes(
 			load_political_shapes(
-				'ne_10m_admin_0_map_units', trim_antarctica=True, fuse_russia=True),
+				'ne_10m_admin_0_countries', trim_antarctica=True, fuse_russia=True),
 			mode="trace") +
 		'			</g>\n'
 		'			<g class="river">\n'
@@ -249,8 +257,10 @@ def main():
 		+ plot_shapes('ne_10m_admin_0_map_units') +
 		'			</g>\n'
 		'			<g class="province-border">\n'
+		+ plot_shapes('ne_10m_admin_0_map_units', filter_field='adm0_a3',
+		              filter_values=["BEL", "BIH", "GBR", "SRB"])
 		+ plot_shapes('ne_10m_admin_1_states_provinces_lines', filter_field='adm0_a3',
-		              filter_values=['RUS', 'CAN', 'CHN', 'USA', 'BRA', 'AUS', 'IND', 'ARG', 'KAZ']) +
+		              filter_values=["RUS", "CAN", "CHN", "USA", "BRA", "AUS", "IND", "ARG", "KAZ"]) +
 		'			</g>\n'
 		'			<g class="disputed-border">\n'
 		+ plot_shapes('ne_10m_admin_0_boundary_lines_disputed_areas') +

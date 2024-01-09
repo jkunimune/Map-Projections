@@ -15,7 +15,7 @@ ISO_A3_CODES_THAT_DONT_NEED_BE_UNIQUE = {
 	"AU1": "AUS", "CH1": "CHN", "CU1": "CUB", "DN1": "DNK", "FI1": "FIN", "FR1": "FRA",
 	"IS1": "ISR", "KA1": "KAZ", "GB1": "GBR", "NL1": "NLD", "NZ1": "NZL", "PN1": "PNG",
 	"PR1": "PRT", "US1": "USA",
-	"FXX": "FRA", "GEG": "GEO", "NOW": "NOR", "PNX": "PNG", "SRS": "SRB", "SYX": "SYR",
+	"FXX": "FRA", "GEG": "GEO", "NOW": "NOR", "PNX": "PNG", "PRX": "PRT", "SRS": "SRB", "SYX": "SYR",
 }
 SUPRANATIONS = {
 	"EUE": {
@@ -109,11 +109,11 @@ def load_political_shapes(filename: str, small_country_filename: Optional[str] =
 
 		# if it Antarctica, trim it
 		if trim_antarctica:
-			if record["sov_a3"] == "ATA":
+			if record["adm0_a3"] == "ATA":
 				shape.points, shape.parts = trim_edges(shape.points, shape.parts)
 		# fuse edges across the antimeridian if desired
 		if fuse_russia:
-			if record["sov_a3"] == "RUS":
+			if record["adm0_a3"] == "RUS":
 				shape.points, shape.parts = fuse_edges(shape.points, shape.parts)
 
 		# normalize some alpha3 codes
@@ -268,7 +268,9 @@ def plot_political_shapes(data: dict[str, tuple[Shape, Optional[dict[str, Any]],
 	result = re.sub(r'(\t)*<g class="([A-Za-z _-]+)">(\s*)</g>\n',
 	                '', result)
 	# simplify any groups with only a single element
-	result = re.sub(r'<g class="([A-Za-z _-]+)">(\s*)<([a-z]+) ([^\n]*)>(\s*)</g>',
-	                '<\\3 class="\\1" \\4>', result)
+	result = re.sub(r'<g class="([A-Za-z _-]+)">(\s*)<([a-z]+) class="([A-Za-z _-]+)" ([^\n]*)/>(\s*)</g>',
+	                '<\\3 class="\\1 \\4" \\5/>', result)
+	result = re.sub(r'<g class="([A-Za-z _-]+)">(\s*)<([a-z]+) ([^\n]*)/>(\s*)</g>',
+	                '<\\3 class="\\1" \\4/>', result)
 
 	return result
