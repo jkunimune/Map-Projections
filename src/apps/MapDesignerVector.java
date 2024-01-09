@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import static image.SVGMap.escapeHTML;
 import static java.lang.Double.isNaN;
 import static java.lang.Math.hypot;
 import static java.lang.String.format;
@@ -378,7 +379,7 @@ public class MapDesignerVector extends MapApplication {
 			}
 			// for non-data Strings, replace "Equirectangular" with the name of the projection
 			else if (elementS instanceof Content) {
-				elementP = new Content(((Content) elementS).content.replace("Equirectangular", proj.getName()));
+				elementP = new Content(((Content) elementS).content.replace("Equirectangular", escapeHTML(proj.getName())));
 			}
 			// anything else doesn't need to be changed with the projection
 			else {

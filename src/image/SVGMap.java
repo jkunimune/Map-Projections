@@ -154,15 +154,8 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 			@Override
 			public void characters(char[] characters, int start, int length) {
 				// just dump the provided characters into currentFormatString
-				StringBuilder characterString = new StringBuilder();
-				for (int i = 0; i < length; i++) {
-					char c = characters[start + i];
-					if (c >= 128 || c == '\'' || c == '"' || c == '<' || c == '>' || c == '&') // some characters must be escaped here
-						characterString.append("&#").append((int) c).append(";");
-					else
-						characterString.append(c);
-				}
-				elements.add(new Content(characterString.toString()));
+				elements.add(new Content(escapeHTML(
+						new String(characters).substring(start, start + length))));
 			}
 			
 //			@Override  /* only available in Java 14+ */
@@ -544,6 +537,19 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 			string.append(" ").append(attributes.getQName(i)).append("=\"").append(attributes.getValue(i)).append("\"");
 		string.append(">");
 		return string.toString();
+	}
+	
+	
+	public static String escapeHTML(String raw) {
+		StringBuilder escaped = new StringBuilder();
+		for (int i = 0; i < raw.length(); i ++) {
+			char c = raw.charAt(i);  // don't forget to escape special characters
+			if (c >= 128 || c == '\'' || c == '"' || c == '<' || c == '>' || c == '&') // some characters must be escaped here
+				escaped.append(format("&#%d;", (int) c));
+			else
+				escaped.append(c);
+		}
+		return escaped.toString();
 	}
 
 
