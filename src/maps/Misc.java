@@ -433,12 +433,10 @@ public class Misc {
 			final double lemonCenter = (lemonIndex - numLemons/2. + 1/2.)*lemonWidth;
 			final double dx = x - lemonCenter;  // find the relative x
 			double[] latLon = CASSINI.inverse(dx, y);  // project from Cassini with that
-			if (abs(latLon[1]) > lemonWidth/2)  // make sure it's still in the correct lemon
-				return null;
-			else {
-				latLon[1] += lemonCenter;
-				return latLon;
-			}
+			if (abs(latLon[1]) > lemonWidth/2)
+				latLon[1] += 4*PI;  // mark it as out of bounds if it's out of the bounds of its lemon
+			latLon[1] += lemonCenter;  // set the absolute longitude based on which lemon it is
+			return latLon;
 		}
 	};
 	
