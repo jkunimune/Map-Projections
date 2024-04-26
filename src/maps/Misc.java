@@ -378,34 +378,39 @@ public class Misc {
 	
 	public static final Projection LEMONS = new Projection(
 			"Gores", "A heavily interrupted projection that can be pasted onto a globe",
-			null, false, true, true, true, Type.CYLINDRICAL, Property.COMPROMISE, 2) {
+			null, false, true, true, true, Type.OTHER, Property.COMPROMISE, 2,
+			new String[] {"Number of gores"}, new double[][] {{4, 72, 12}}) {
 		
-		private static final int NUM_LEMONS = 12; //number of lemons
-		private static final double LEMON_WIDTH = 2*PI/NUM_LEMONS; //longitude span of 1 lemon
+		private int numLemons;
+		private double lemonWidth;
 		
 		public void initialize(double... params) {
+			// read in the number of gores and calculate the longitudinal extent of each
+			this.numLemons = (int) Math.round(params[0]);
+			this.lemonWidth = 2*PI/numLemons;
+			
 			// to calculate the shape, start by getting the shape of a generic meridian
 			List<Path.Command> polewardSegment = CASSINI.drawLoxodrome(
-					0, LEMON_WIDTH/2, PI/2, LEMON_WIDTH/2, .1);
+					0, lemonWidth/2, PI/2, lemonWidth/2, .1);
 			// make an equator-to-pole version and a pole-to-equator version
 			List<Path.Command> tropicwardSegment = Path.reversed(polewardSegment);
 			// remove one endpoint from each so there are no duplicate vertices
 			polewardSegment = polewardSegment.subList(0, polewardSegment.size() - 1);
 			tropicwardSegment = tropicwardSegment.subList(0, tropicwardSegment.size() - 1);
 			// then build up the full shape by transforming the generic segments
-			List<Path.Command> envelope = new ArrayList<>(NUM_LEMONS*4*polewardSegment.size());
+			List<Path.Command> envelope = new ArrayList<>(numLemons*4*polewardSegment.size());
 			// go east to west in the north hemisphere
-			for (int i = NUM_LEMONS - 1; i >= 0; i --) {
-				envelope.addAll(Path.transformed(1, 1, (i - (NUM_LEMONS - 1)/2.)*LEMON_WIDTH, 0,
+			for (int i = numLemons - 1; i >= 0; i --) {
+				envelope.addAll(Path.transformed(1, 1, (i - (numLemons - 1)/2.)*lemonWidth, 0,
 				                                 polewardSegment));
-				envelope.addAll(Path.transformed(-1, 1, (i - (NUM_LEMONS - 1)/2.)*LEMON_WIDTH, 0,
+				envelope.addAll(Path.transformed(-1, 1, (i - (numLemons - 1)/2.)*lemonWidth, 0,
 				                                 tropicwardSegment));
 			}
 			// go west to east in the south hemisphere
-			for (int i = 0; i < NUM_LEMONS; i ++) {
-				envelope.addAll(Path.transformed(-1, -1, (i - (NUM_LEMONS - 1)/2.)*LEMON_WIDTH, 0,
+			for (int i = 0; i < numLemons; i ++) {
+				envelope.addAll(Path.transformed(-1, -1, (i - (numLemons - 1)/2.)*lemonWidth, 0,
 				                                 polewardSegment));
-				envelope.addAll(Path.transformed(1, -1, (i - (NUM_LEMONS - 1)/2.)*LEMON_WIDTH, 0,
+				envelope.addAll(Path.transformed(1, -1, (i - (numLemons - 1)/2.)*lemonWidth, 0,
 				                                 tropicwardSegment));
 			}
 			// finally, convert it all to a Shape
@@ -413,22 +418,25 @@ public class Misc {
 		}
 		
 		public double[] project(double lat, double lon) {
-			final double lemonIndex =
-					max(-NUM_LEMONS/2., min((NUM_LEMONS - 1)/2., floor(lon/LEMON_WIDTH) + .5));  // pick a lemon
-			final double dl = lon - lemonIndex*LEMON_WIDTH;  // find the relative longitude
+			double lemonIndex = floor((lon + PI)/lemonWidth);  // pick a lemon
+			if (lon == 2*PI)
+				lemonIndex = numLemons - 1;
+			final double lemonCenter = (lemonIndex - numLemons/2. + 1/2.)*lemonWidth;
+			final double dl = lon - lemonCenter;  // find the relative longitude
 			double[] xy = CASSINI.project(lat, dl);  // project on Cassini with that
-			xy[0] += lemonIndex*LEMON_WIDTH;  // shift according to the lemon's x center
+			xy[0] += lemonCenter;  // shift according to the lemon's x center
 			return xy;
 		}
 		
 		public double[] inverse(double x, double y) {
-			final int lemonIndex = (int)floor(x/LEMON_WIDTH);  // pick a lemon
-			final double dx = (x+2*PI)%LEMON_WIDTH - LEMON_WIDTH/2;  // find the relative x
+			final int lemonIndex = (int)floor((x + PI)/lemonWidth);  // pick a lemon
+			final double lemonCenter = (lemonIndex - numLemons/2. + 1/2.)*lemonWidth;
+			final double dx = x - lemonCenter;  // find the relative x
 			double[] latLon = CASSINI.inverse(dx, y);  // project from Cassini with that
-			if (abs(latLon[1]) > LEMON_WIDTH/2)  // make sure it's still in the correct lemon
+			if (abs(latLon[1]) > lemonWidth/2)  // make sure it's still in the correct lemon
 				return null;
 			else {
-				latLon[1] += (lemonIndex+.5)*LEMON_WIDTH;
+				latLon[1] += lemonCenter;
 				return latLon;
 			}
 		}
