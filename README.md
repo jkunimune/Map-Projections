@@ -97,7 +97,7 @@ You can alternatively scroll through `compose_maps.py` to see what files it refe
 ## Wherefore?
 I'll write a little blurb here later.
 
-For some examples, check out the `output` folder (all were created with this program but some also involved some postprocessing in paint.net). For more information, go to [jkunimune.github.io/Map-Projections](https://jkunimune15.github.io/Map-Projections).
+For some examples, check out the `output` folder (all were created with this program but some also involved some postprocessing in paint.net). For more information, go to [jkunimune.github.io/Map-Projections](https://jkunimune.github.io/Map-Projections).
 
 ## Credits
 While I wrote all of the code in this repository myself, and I created several of the simpler images from scratch, other people did help. Here's a comprehensive list.
