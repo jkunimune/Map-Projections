@@ -95,7 +95,14 @@ I don't have a complete list of what data files are needed, so I usually just ru
 You can alternatively scroll through `compose_maps.py` to see what files it references (anything that starts with "ne_" is the name of a Natural Earth dataset).
 
 ## Wherefore?
-I'll write a little blurb here later.
+While maps of the world are often perceived as authoritative sources of information, in reality, any image that represents the Earth's surface on a plane is inherently wrong.  This is because the Earth's surface cannot all be viewed at the same time, either on a sphere or on any isometric transformation of a sphere, unless one is willing to distort the features in the map to make them all lie flat.
+This is the impetus for the map projection – any technique by which geographic features on the map may be represented on a computer screen or on a piece of paper.
+For localized maps, it doesn't make much of a difference, but the larger the mapped area the more the distortion will become aparent, depending on which projection you use.
+Hundreds have been invented over the past two thousand years.
+Some distort areas, some distort angles, and some distort both.
+Some are widely used, some are hotly debated, and some are only known to a select few corners of the internet.
+The goal of this program is to gather and categorize them, not only for the sake of learning about them (the collection at [map-projections.net](https://map-projections.net/) is far more comprehensive than mine if that's your aim) but also for the sake of using to display arbitrary data.
+And in oblique aspects!
 
 For some examples, check out the `output` folder (all were created with this program but some also involved some postprocessing in paint.net). For more information, go to [jkunimune.github.io/Map-Projections](https://jkunimune.github.io/Map-Projections).
 
