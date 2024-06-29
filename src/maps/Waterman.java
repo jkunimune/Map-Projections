@@ -86,7 +86,7 @@ public class Waterman {
 				longitude = x/linInterp(y, yELD[i-1], yELD[i], dXdL[i-1], dXdL[i]);
 			}
 			else { //the well-behaved part of the last segment?
-				longitude = x/linInterp(y, yELD[i-1], -2*sqrt(3), dXdL[i-1], dXdL[i]);
+				longitude = x/linInterp(y, yELD[i-1], -sqrt(3)/2, dXdL[i-1], dXdL[i]);
 				if (longitude > lonDiag) { //the diagonal part of the last segment?
 					double a = dXdL[2]*dXdL[3]*sin15; //surprisingly, the equation becomes quadratic here
 					double b = (dXdL[3]*cos15-dXdL[2])*(y-yELD[2]) - dXdL[3]*sin15*x - dXdL[2]*(dXdL[3]*lonDiag*sin15-yELD[1]);
