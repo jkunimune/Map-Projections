@@ -358,7 +358,7 @@ public class MapDesignerVector extends MapApplication {
 						Path.Command cmdP = new Path.Command(cmdS.type, new double[cmdS.args.length]);
 						for (int k = 0; k < cmdS.args.length; k += 2) {
 							double[] coords = proj.project(cmdS.args[k + 1], cmdS.args[k], aspect); // TODO: use Projection.drawLoxodrome for this; it would be so much better.
-							if (isNaN(coords[k]) || isNaN(coords[k + 1]))
+							if (isNaN(coords[0]) || isNaN(coords[1]))
 								System.err.println(proj + " returns " + coords[0] + "," + coords[1] + " at " + cmdS.args[k + 1] + "," + cmdS.args[k] + "!");
 							cmdP.args[k] = scale*max(min(coords[0], absoluteMaxX), absoluteMinX);
 							cmdP.args[k + 1] = -scale*max(min(coords[1], absoluteMaxY), absoluteMinY);
