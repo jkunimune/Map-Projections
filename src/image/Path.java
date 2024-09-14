@@ -45,7 +45,7 @@ public class Path {
 				argStrings = argString.trim().split("[\\s,]+");
 
 			// parse the arguments
-			final double[] args = new double[argStrings.length]; // TODO: break up command with too many arguments
+			final double[] args = new double[argStrings.length];
 			for (int j = 0; j < args.length; j++) {
 				args[j] = parseDouble(argStrings[j]); //parse the coordinate
 				if (!isFinite(args[j]))
@@ -81,11 +81,11 @@ public class Path {
 				case 'V':
 					newArgs[0] += yShift;
 					break;
-				case 'L': case 'M':
+				case 'L': case 'M': case 'T':
 					newArgs[0] += xShift;
 					newArgs[1] += yShift;
 					break;
-				case 'Q':
+				case 'Q': case 'S':
 					newArgs[0] += xShift;
 					newArgs[1] += yShift;
 					newArgs[2] += xShift;
@@ -127,11 +127,11 @@ public class Path {
 				case 'V': case 'v':
 					newArgs[0] *= yScale;
 					break;
-				case 'L': case 'l': case 'M': case 'm':
+				case 'L': case 'l': case 'M': case 'm': case 'T': case 't':
 					newArgs[0] *= xScale;
 					newArgs[1] *= yScale;
 					break;
-				case 'Q': case 'q':
+				case 'Q': case 'q': case 'S': case 's':
 					newArgs[0] *= xScale;
 					newArgs[1] *= yScale;
 					newArgs[2] *= xScale;
@@ -187,7 +187,7 @@ public class Path {
 							-old.args[0]*sin(rotation),
 							old.args[0]*cos(rotation)};
 					break;
-				case 'L': case 'l': case 'M': case 'm': case 'Q': case 'q': case 'C': case 'c':
+				case 'L': case 'l': case 'M': case 'm': case 'Q': case 'q': case 'C': case 'c': case 'T': case 't': case 'S': case 's':
 					for (int i = 0; i < newArgs.length; i += 2) {
 						newArgs[i    ] = old.args[i]*cos(rotation) - old.args[i + 1]*sin(rotation);
 						newArgs[i + 1] = old.args[i]*sin(rotation) + old.args[i + 1]*cos(rotation);
@@ -230,7 +230,7 @@ public class Path {
 		double[][] points = new double[commands.size()][];
 		for (int i = 0; i < commands.size(); i ++) {
 			Command command = commands.get(i);
-			if (command.args.length >= 2)  // just ignore 'L', 'V', and 'Z' commands
+			if (command.args.length >= 2)  // just ignore 'H', 'V', and 'Z' commands
 				points[i] = new double[] {
 						command.args[command.args.length - 2],
 						command.args[command.args.length - 1]};  // use the last two arguments as the coordinates

@@ -298,46 +298,115 @@ public class SVGMap implements Iterable<SVGMap.SVGElement>, SavableImage {
 
 				// then parse the d and simplify the result
 				List<Path.Command> path = Path.parse(d);
-				double[] lastMove = {0, 0}; //for closepaths
-				double[] last = {0, 0}; //for relative coordinates
-				for (int i = 0; i < path.size(); i ++) {
+				
+				// start by breaking up any commands with multiple sets of arguments
+				for (int i = path.size() - 1; i >= 0; i --) {
 					char type = path.get(i).type;
+					int expectedArgsLength;
+					if (type == 'Z' || type == 'z')
+						expectedArgsLength = 0;
+					else if (type == 'A' || type == 'a')
+						expectedArgsLength = 7;
+					else if (type == 'C' || type == 'c')
+						expectedArgsLength = 6;
+					else if (type == 'Q' || type == 'q' || type == 'S' || type == 's')
+						expectedArgsLength = 4;
+					else if (type == 'H' || type == 'h' || type == 'V' || type == 'v')
+						expectedArgsLength = 1;
+					else
+						expectedArgsLength = 2;
 					double[] args = path.get(i).args;
+					if (args.length < expectedArgsLength)
+						throw new IllegalArgumentException(format(
+								"this '%s' command only has %d elements, but I think '%s's should have %d.",
+								type, args.length, type, expectedArgsLength));
+					if (args.length > expectedArgsLength) {
+						if (expectedArgsLength == 0 || args.length%expectedArgsLength != 0)
+							throw new IllegalArgumentException(format(
+									"this '%s' command has %d elements, which is not a whole multiple of %d like it should be.",
+									type, args.length, expectedArgsLength));
+						path.remove(i);
+						for (int j = 0; j < args.length/expectedArgsLength; j ++) {
+							if (j > 0 && type == 'M')
+								type = 'L'; //when multiple pairs of args come after 'M', the subsequent commands are 'L'
+							double[] subArgs = Arrays.copyOfRange(
+									args, j*expectedArgsLength, (j + 1)*expectedArgsLength);
+							path.add(i + j, new Path.Command(type, subArgs));
+						}
+					}
+				}
+				
+				// then convert fancy commands into simpler commands
+				double[] lastMove = {0, 0}; //for closepaths
+				double[] lastPoint = {0, 0}; //for H, V, and relative coordinates
+				double[] lastControlPoint = {0, 0}; // for T and S commands
+				for (int i = 0; i < path.size(); i ++) {
+					char type = path.get(i).type; //get the type
+					double[] args = path.get(i).args;
+					
+					// replace relative commands with absolute commands
+					if (type >= 'a') {
+						if (type == 'h') //for h, it's relative to the last x coordinate
+							args[0] += lastPoint[0];
+						else if (type == 'v') //for v, it's relative to the last y coordinate
+							args[0] += lastPoint[1];
+						else if (type == 'a') { //for arcs, only the last two args are relative
+							args[5] += lastPoint[0];
+							args[6] += lastPoint[1];
+						}
+						else { //for everything else, shift all the args in pairs
+							for (int j = 0; j < args.length; j += 2) {
+								args[j] += lastPoint[0];
+								args[j + 1] += lastPoint[1];
+							}
+						}
+						type -= 32; //and then make it a capital letter to indicate that it is now absolute
+					}
 					// replace arcs with lines because I don't want to deal with those
-					if (type == 'a' || type == 'A') {
-						type = (type == 'a') ? 'l' : 'L';
+					if (type == 'A') {
+						type = 'L';
 						args = new double[] {args[5], args[6]};
 					}
 					// convert horizontal and vertical lines to general lines to keep things simple
-					if (type == 'h' || type == 'H' || type == 'v' || type == 'V') {
-						final int direcIdx = (type%32 == 8) ? 0 : 1;
-						double[] newArgs = new double[] {last[0], last[1]};
-						if (type <= 'Z')
-							newArgs[direcIdx] = args[0]; //uppercase (absolute)
-						else
-							newArgs[direcIdx] += args[0]; //lowercase (relative)
-						args = newArgs;
-						last[direcIdx] = args[direcIdx];
+					if (type == 'H') {
+						args = new double[] {args[0], lastPoint[1]};
+						type = 'L';
+					}
+					if (type == 'V') {
+						args = new double[] {lastPoint[0], args[0]};
 						type = 'L';
 					}
 					// also replace closepath with an explicit line to the last moveto
-					else if (type == 'z' || type == 'Z') {
+					else if (type == 'Z') {
 						args = new double[] {lastMove[0], lastMove[1]};
 						type = 'L';
 					}
-					else {
-						for (int j = 0; j < args.length; j ++) {
-							if (type >= 'a')
-								args[j] += last[j%2]; //account for relative commands
-							last[j%2] = args[j];
-						}
-						if (type >= 'a') //make all letters uppercase (because it's all absolute from now on)
-							type -= 32;
+					// also convert 'T' Bezier curves to explicit 'Q' Bezier curves
+					else if (type == 'T') {
+						args = new double[] {
+							2*lastPoint[0] - lastControlPoint[0],
+							2*lastPoint[1] - lastControlPoint[1],
+							args[0], args[1],
+						};
+						type = 'Q';
 					}
-					if (type == 'M') { //make note of the last moveto, so we can interpret closepaths properly
-						lastMove[0] = args[args.length-2];
-						lastMove[1] = args[args.length-1];
+					// also convert 'S' Bezier curves to explicit 'C' Bezier curves
+					else if (type == 'S') {
+						args = new double[] {
+							2*lastPoint[0] - lastControlPoint[0],
+							2*lastPoint[1] - lastControlPoint[1],
+							args[0], args[1],
+							args[2], args[3],
+						};
+						type = 'C';
 					}
+					lastPoint = Arrays.copyOfRange(args, args.length - 2, args.length); //make note of the endpoint of this command
+					if (type == 'M') //make note of the last moveto, so we can interpret closepaths properly
+						lastMove = lastPoint;
+					if (type == 'Q' || type == 'C') // make note of the last control point, if there were any
+						lastControlPoint = Arrays.copyOfRange(args, args.length - 4, args.length - 2);
+					else
+						lastControlPoint = lastPoint;
 					path.set(i, new Path.Command(type, args));
 				}
 
