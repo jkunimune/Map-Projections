@@ -34,6 +34,8 @@ public class Path {
 				i ++;
 			String argString = d.substring(start, i);
 			argString = argString.replaceAll("([0-9.])-", "$1,-"); //this is necessary because some Adobe products leave out delimiters between negative numbers
+			argString = argString.replaceAll("\\.([0-9]+)\\.", ".$1,."); //this is necessary because some Adobe products also leave out delimiters between a number containing a decimal point and a number starting with a decimal point
+			argString = argString.replaceAll("\\.([0-9]+)\\.", ".$1,."); //you have to call it twice in case there are multiple point-separated numbers in a row
 
 			// separate the arguments
 			String[] argStrings;
