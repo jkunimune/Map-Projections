@@ -1,5 +1,7 @@
 # Map-Projections
-A class to create custom maps of the Earth's surface. There are thousands of combinations of color-schemes, projections, and aspects. Includes Mercator, Gall-Peters, Orthographic, Peirce Quincuncial, and More!
+A set of GUI applications to create custom maps of the Earth's surface. There are thousands of combinations of color-schemes, projections, and aspects. Includes Mercator, Gall-Peters, Orthographic, Peirce Quincuncial, and More!
+
+<img src="res/gui_image.png" alt="Screenshot of the Map Designer interface" width="450px"/>
 
 <img src="output/Political equal-area.png" alt="Tobler hyperelliptical political map" width="300px"/>
 <img src="output/AuthaGraph indicatrices.png" alt="AuthaGraph imitation with Tissot's indicatrices of distortion" width="300px"/>
