@@ -75,6 +75,7 @@ import maps.EqualEarth;
 import maps.Gyorffy;
 import maps.HammerRetroazimuthal;
 import maps.Lenticular;
+import maps.Liquid;
 import maps.Misc;
 import maps.Octahedral;
 import maps.Polyhedral;
@@ -134,7 +135,7 @@ public abstract class MapApplication extends Application {
 			Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Misc.PEIRCE_QUINCUNCIAL, Misc.LEMONS };
 
 	public static final String[] PROJECTION_CATEGORIES = { "Cylindrical", "Azimuthal", "Conic",
-			"Tetrahedral", "Polyhedral", "Pseudocylindrical", "Lenticular", "Other", "Invented by Justin" }; //the overarching categories by which I organise my projections
+			"Tetrahedral", "Polyhedral", "Pseudocylindrical", "Lenticular", "Mesh-based", "Other" }; //the overarching categories by which I organise my projections
 	public static final Projection[][] ALL_PROJECTIONS = { // every projection I have programmed
 			{ Cylindrical.EQUAL_AREA, Cylindrical.EQUIRECTANGULAR, Cylindrical.GALL_ORTHOGRAPHIC,
 			  Cylindrical.GALL_STEREOGRAPHIC, Cylindrical.HOBO_DYER, Cylindrical.LAMBERT,
@@ -145,7 +146,7 @@ public abstract class MapApplication extends Application {
 			{ Conic.ALBERS, Misc.BRAUN_CONIC, Conic.LAMBERT, Conic.EQUIDISTANT },
 			{ Polyhedral.AUTHAGRAPH, Polyhedral.AUTHAGRAPH_ALT,
 			  Polyhedral.LEE_TETRAHEDRAL_RECTANGULAR, Polyhedral.LEE_TETRAHEDRAL_TRIANGULAR,
-			  Polyhedral.VAN_LEEUWEN },
+			  Polyhedral.VAN_LEEUWEN, Polyhedral.ACTUAUTHAGRAPH, Polyhedral.TETRAGRAPH },
 			{ Octahedral.CONFORMAL_CAHILL_BUTTERFLY, Octahedral.CONFORMAL_CAHILL_OCTANT,
 			  Octahedral.CAHILL_CONCIALDI, Octahedral.KEYES_STANDARD, Octahedral.KEYES_BUTTERFLY,
 			  Octahedral.KEYES_SIMPLIFIED, Octahedral.KEYES_OCTANT, Polyhedral.DYMAXION,
@@ -159,13 +160,14 @@ public abstract class MapApplication extends Application {
 			{ Lenticular.AITOFF, Lenticular.POLYCONIC, Lenticular.EISENLOHR, Gyorffy.E, Gyorffy.F,
 			  Lenticular.HAMMER, Lenticular.LAGRANGE, Lenticular.STREBE_95,
 			  Lenticular.VAN_DER_GRINTEN, Lenticular.WAGNER_VIII, WinkelTripel.WINKEL_TRIPEL },
+			{ Elastic.ELASTIC_I, Elastic.ELASTIC_II, Elastic.ELASTIC_III,
+			  Liquid.LIQUID_EARTH,
+			  Danseiji.DANSEIJI_N, Danseiji.DANSEIJI_I, Danseiji.DANSEIJI_II, Danseiji.DANSEIJI_III,
+			  Danseiji.DANSEIJI_IV, Danseiji.DANSEIJI_V, Danseiji.DANSEIJI_VI },
 			{ Misc.BONNE, Misc.CASSINI, Snyder.GS50, Misc.GUYOU, HammerRetroazimuthal.FULL,
 			  HammerRetroazimuthal.FRONT, HammerRetroazimuthal.BACK, Misc.LEMONS,
 			  Misc.PEIRCE_QUINCUNCIAL, Misc.T_SHIRT, Misc.TWO_POINT_EQUIDISTANT, Misc.FLAT_EARTH },
-			{ Elastic.ELASTIC_I, Elastic.ELASTIC_II, Elastic.ELASTIC_III,
-			  Danseiji.DANSEIJI_N, Danseiji.DANSEIJI_I, Danseiji.DANSEIJI_II, Danseiji.DANSEIJI_III,
-			  Danseiji.DANSEIJI_IV, Danseiji.DANSEIJI_V, Danseiji.DANSEIJI_VI,
-			  Polyhedral.ACTUAUTHAGRAPH, Polyhedral.TETRAGRAPH } };
+	};
 	
 	private static final String[] ASPECT_NAMES = {
 			"Normal", "Transverse", "Atlantis", "Jerusalem", "Point Nemo", "Longest Line",

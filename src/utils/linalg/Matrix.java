@@ -36,14 +36,28 @@ public class Matrix {
 	private final double[][] values;
 	
 	
-	public Matrix(int n, int m) {
-		this.values = new double[n][m];
+	/** instantiate a Matrix of all zeros */
+	public Matrix(int height, int width) {
+		this.values = new double[height][width];
 	}
 	
+	/** instantiate a matrix given its rows */
 	public Matrix(double[]... values) {
 		this.values = values;
 	}
 	
+	/** instantiate a Matrix by horizontally stacking a bunch of column vectors */
+	public static Matrix fromColumns(Vector... columns) {
+		if (columns.length == 0)
+			throw new IllegalArgumentException("I can't infer the Matrix height if you don't pass any columns.");
+		Matrix matrix = new Matrix(columns[0].getLength(), columns.length);
+		for (int i = 0; i < matrix.getHeight(); i ++)
+			for (int j = 0; j < matrix.getWidth(); j ++)
+				matrix.setElement(i, j, columns[j].getElement(i));
+		return matrix;
+	}
+	
+	/** instantiate a square Matrix with ones on the diagonal */
 	public static Matrix identity(int n) {
 		Matrix identity = new Matrix(n, n);
 		for (int i = 0; i < n; i ++)

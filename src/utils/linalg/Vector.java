@@ -32,26 +32,31 @@ package utils.linalg;
  */
 public class Vector extends Matrix {
 	
+	/** create a column vector of zeros */
 	public Vector(int n) {
 		super(n, 1);
 	}
 	
+	/** create a column vector with the given values */
 	public Vector(double... values) {
 		super(values.length, 1);
 		for (int i = 0; i < values.length; i ++)
 			this.setElement(i, 0, values[i]);
 	}
 	
+	/** convert an n×1 matrix to a Vector */
 	private Vector(double[][] values) {
 		super(values);
 		if (values[0].length != 1)
 			throw new IllegalArgumentException("Matrix has width "+values[0].length+" and can therefore not be converted to a column vector.");
 	}
 	
+	/** convert an n×1 Matrix to a Vector */
 	public static Vector fromMatrix(Matrix mat) {
 		return new Vector(mat.getArray());
 	}
 	
+	/** create a vector with all zeros except a single element which is 1 */
 	public static Vector unit(int i, int n) {
 		Vector iHat = new Vector(n);
 		iHat.setElement(i, 1);
@@ -61,6 +66,10 @@ public class Vector extends Matrix {
 	
 	public int getLength() {
 		return this.getHeight();
+	}
+	
+	public double getElement(int i) {
+		return this.getElement(i, 0);
 	}
 
 	public void setElement(int i, double val) {
@@ -88,6 +97,16 @@ public class Vector extends Matrix {
 	
 	public double dot(Vector that) {
 		return this.transpose().times(that).getElement(0, 0);
+	}
+	
+	public Vector cross(Vector that) {
+		if (this.getLength() != 3 || that.getLength() != 3)
+			throw new IllegalArgumentException("cross product is only implemented for three dimensional vectors");
+		return new Vector(
+				this.getElement(1)*that.getElement(2) - this.getElement(2)*that.getElement(1),
+				this.getElement(2)*that.getElement(0) - this.getElement(0)*that.getElement(2),
+				this.getElement(0)*that.getElement(1) - this.getElement(1)*that.getElement(0)
+		);
 	}
 
 }
