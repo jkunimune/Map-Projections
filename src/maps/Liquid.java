@@ -136,7 +136,8 @@ public class Liquid {
 					this.verticesTransformed[a], this.verticesTransformed[b], this.verticesTransformed[c],
 					this.verticesInitial[a], this.verticesInitial[b], this.verticesInitial[c],
 					transformedCoordinates[0], transformedCoordinates[1]);
-			initialCoordinates[1] += this.centralMeridian;
+			initialCoordinates[1] = coerceAngle(initialCoordinates[1] + this.centralMeridian); // account for the central meridian
+			initialCoordinates[1] += floor((transformedCoordinates[1] + PI)/(2*PI))*2*PI;
 			return initialCoordinates;
 		}
 		
