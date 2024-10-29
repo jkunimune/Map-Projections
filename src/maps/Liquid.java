@@ -43,6 +43,7 @@ import static java.lang.Math.atan2;
 import static java.lang.Math.ceil;
 import static java.lang.Math.cos;
 import static java.lang.Math.floor;
+import static java.lang.Math.floorMod;
 import static java.lang.Math.hypot;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -259,12 +260,14 @@ public class Liquid {
 				double фMax = NEGATIVE_INFINITY;
 				double λMin = POSITIVE_INFINITY;
 				double λMax = NEGATIVE_INFINITY;
+				double λPrevius = 0;
 				for (int k = 0; k < 3; k ++) {
 					double x = vertices[triangle[k]].getElement(0);
 					double y = vertices[triangle[k]].getElement(1);
 					double z = vertices[triangle[k]].getElement(2);
 					double ф = atan(z/hypot(x, y));
 					double λ = atan2(y, x);
+					λ = coerceAngle(λ - λPrevius) + λPrevius; // put λ within ±π of the last λ if you can
 					if (ф < фMin)
 						фMin = ф;
 					if (ф > фMax)
@@ -273,6 +276,7 @@ public class Liquid {
 						λMin = λ;
 					if (λ > λMax)
 						λMax = λ;
+					λPrevius = λ;
 				}
 				// really wide triangles might wrap around the antimeridian, so widen them manually
 				if (λMax - λMin >= PI) {
@@ -280,18 +284,19 @@ public class Liquid {
 					λMax = PI;
 				}
 				// wide triangles can also bulge poleward, so extend them toward the pole manually
-				фMax += (λMax - λMin)/2; // this is a pretty conservative estimate of the amount of bulging
-				фMin -= (λMax - λMin)/2;
+				if (фMax > 0)
+					фMax = min(фMax + (λMax - λMin)/2, PI/2); // this is a pretty conservative estimate of the amount of bulging
+				if (фMin < 0)
+					фMin = max(фMin - (λMax - λMin)/2, -PI/2);
 				// now you can identify the cells that this triangle spans
 				int iStart = (int) floor((фMin - фBins[0])/(фBins[1] - фBins[0])); // inclusive
 				int iStop = (int) ceil((фMax - фBins[0])/(фBins[1] - фBins[0])); // exclusive
 				int jStart = (int) floor((λMin - λBins[0])/(λBins[1] - λBins[0])); // inclusive
 				int jStop = (int) ceil((λMax - λBins[0])/(λBins[1] - λBins[0])); // exclusive
-				for (int i = max(0, iStart); i < min(iStop, cache.length); i ++)
-					for (int j = max(0, jStart); j < min(jStop, cache[i].length); j ++)
-						cache[i][j].add(triangle);
+				for (int i = iStart; i < iStop; i ++)
+					for (int j = jStart; j < jStop; j ++)
+						cache[i][floorMod(j, cache[i].length)].add(triangle);
 			}
-			
 			return cache;
 		}
 		
