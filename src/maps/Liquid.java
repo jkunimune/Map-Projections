@@ -48,6 +48,7 @@ import static java.lang.Math.hypot;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.sin;
+import static java.lang.Math.toRadians;
 import static utils.Math2.coerceAngle;
 
 /**
@@ -59,13 +60,14 @@ public class Liquid {
 
 	public static final LiquidProjection LIQUID_EARTH = new LiquidProjection(
 			"Liquid Earth", "An equal-area map in the shape of the Equal Earth projection, optimized around the continents",
-			EqualEarth.EQUAL_EARTH, true, "liquid");
+			EqualEarth.EQUAL_EARTH, toRadians(11), true, "liquid");
 
 
 	private static class LiquidProjection extends Projection {
 		
 		private final String filename; // the data filename
 		private final Projection baseProjection;
+		private final double centralMeridian;
 		private int[][] triangles;
 		private Vector[] verticesInitial;
 		private Vector[] verticesTransformed;
@@ -77,13 +79,14 @@ public class Liquid {
 		
 		public LiquidProjection(
 				String title, String description, Projection baseProjection,
-				boolean based_on_land, String filename) {
+				double centralMeridian, boolean based_on_land, String filename) {
 			super(title, description, null,
 			      true, false, true, baseProjection.isContinuous(),
 			      Type.OTHER, baseProjection.getProperty(), 4,
 			      new String[0], new double[0][], !based_on_land);
 			this.filename = filename;
 			this.baseProjection = baseProjection;
+			this.centralMeridian = centralMeridian;
 		}
 		
 		
@@ -96,6 +99,7 @@ public class Liquid {
 		 */
 		@Override
 		public double[] project(double ф, double λ) {
+			λ -= this.centralMeridian;
 			int[] triangle = findContainingTriangle(
 					this.фBins, this.λBins, this.lookupTableInitial, this.verticesInitial, ф, λ);
 			int a = triangle[0];
@@ -128,10 +132,12 @@ public class Liquid {
 			int a = triangle[0];
 			int b = triangle[1];
 			int c = triangle[2];
-			return mapFromTriangleToTriangle(
+			double[] initialCoordinates = mapFromTriangleToTriangle(
 					this.verticesTransformed[a], this.verticesTransformed[b], this.verticesTransformed[c],
 					this.verticesInitial[a], this.verticesInitial[b], this.verticesInitial[c],
 					transformedCoordinates[0], transformedCoordinates[1]);
+			initialCoordinates[1] += this.centralMeridian;
+			return initialCoordinates;
 		}
 		
 		
