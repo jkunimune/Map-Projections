@@ -90,7 +90,7 @@ public class Elastic {
 		public ElasticProjection(
 				String title, String description, boolean interrupted, Type type, Property property,
 				boolean based_on_land, String filename) {
-			super(title, description, null,
+			super(title, "Justin H. Kunimune", description, null,
 			      true, false, true, !interrupted,
 			      type, property, 4,
 			      new String[0], new double[0][], !based_on_land);

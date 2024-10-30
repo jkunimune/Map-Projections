@@ -100,7 +100,7 @@ public class Danseiji {
 		public DanseijiProjection(
 				String title, String description, boolean interrupted, Type type, Property property,
 				boolean basedOnLand, String filename) {
-			super(title, description, null, !interrupted, true, true, false, type, property, 3,
+			super(title, "Justin H. Kunimune", description, null, !interrupted, true, true, false, type, property, 3,
 			      new String[0], new double[0][], !basedOnLand);
 			this.filename = filename;
 			this.shape = null;

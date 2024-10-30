@@ -59,7 +59,7 @@ import static utils.Math2.sind;
 public class Octahedral {
 	
 	public static final Projection CONFORMAL_CAHILL_FACE = new Projection(
-			"Cahill Conformal (face)", "The conformal projection from an octant to an equilateral triangle",
+			"Cahill Conformal (face)", "B. J. S. Cahill and O. S. Adams", "The conformal projection from an octant to an equilateral triangle",
 			Shape.polygon(new double[][] {{0., 0.}, {0., -sqrt(3)/2.}, {1/2., -sqrt(3)/2.}}),
 			true, true, false, false, Type.OTHER, Property.CONFORMAL, 3) {
 		
@@ -123,52 +123,52 @@ public class Octahedral {
 	
 	
 	public static final OctahedralProjection CONFORMAL_CAHILL_BUTTERFLY = new OctahedralProjection(
-			"Cahill Conformal", "The conformal and only reproducible variant of Cahill's original map",
+			"Cahill Conformal", "B. J. S. Cahill and O. S. Adams", "The conformal and only reproducible variant of Cahill's original map",
 			3, 0., CONFORMAL_CAHILL_FACE, Configuration.BUTTERFLY);
 	
 	
 	public static final Projection CAHILL_CONCIALDI = new OctahedralProjection(
-			"Cahill\u2013Concialdi", "A conformal octahedral projection with a unique arrangement",
+			"Cahill\u2013Concialdi", "Luca Concialdi", "A conformal octahedral projection with a unique arrangement",
 			4, 0., CONFORMAL_CAHILL_FACE, Configuration.BAT_SHAPE);
 	
 	
 	public static final OctahedralProjection CONFORMAL_CAHILL_OCTANT = new OctahedralProjection(
-			"Cahill Conformal (single octant)", "A single octant of Cahill's conformal projection (for memory economization in the case of very large maps)",
+			"Cahill Conformal (single octant)", "B. J. S. Cahill and O. S. Adams", "A single octant of Cahill's conformal projection (for memory economization in the case of very large maps)",
 			3, 0., CONFORMAL_CAHILL_FACE, Configuration.SINGLE_OCTANT);
 	
 	
 	public static final Projection WATERMAN_BUTTERFLY = new OctahedralProjection(
-			"Waterman Butterfly", "A Cahill-esque octahedral map arrangement, with Antarctica broken off and reassembled",
+			"Waterman Butterfly", "Steve Waterman", "A Cahill-esque octahedral map arrangement, with Antarctica broken off and reassembled",
 			3, (sqrt(3)-1)/8., Waterman.FACE, Configuration.BUTTERFLY_WITH_SOUTH_POLE);
 	
 	
 	public static final Projection WATERMAN_SIMPLIFIED = new OctahedralProjection(
-			"Waterman Butterfly (simplified)", "A simple Cahill-esque octahedral map arrangement, with Antarctica broken into four pieces",
+			"Waterman Butterfly (simplified)", "Steve Waterman", "A simple Cahill-esque octahedral map arrangement, with Antarctica broken into four pieces",
 			3, (sqrt(3)-1)/8., Waterman.FACE, Configuration.BUTTERFLY);
 	
 	
 	public static final Projection WATERMAN_OCTANT = new OctahedralProjection(
-			"Waterman (single octant)", "A single octant of Waterman's octahedral projection (for memory economization in the case of very large maps)",
+			"Waterman (single octant)", "Steve Waterman", "A single octant of Waterman's octahedral projection (for memory economization in the case of very large maps)",
 			3, (sqrt(3)-1)/8., Waterman.FACE, Configuration.SINGLE_OCTANT);
 	
 	
 	public static final Projection KEYES_STANDARD = new OctahedralProjection(
-			"Cahill\u2013Keyes", "An M-shaped octahedral projection with Antarctica assembled in the center",
+			"Cahill\u2013Keyes", "Gene S. Keyes", "An M-shaped octahedral projection with Antarctica assembled in the center",
 			4, CahillKeyes.POLE_OFFSET, CahillKeyes.FACE, Configuration.M_PROFILE_WITH_SOUTH_POLE);
 	
 	
 	public static final Projection KEYES_SIMPLIFIED = new OctahedralProjection(
-			"Cahill\u2013Keyes (simplified)", "A simple M-shaped octahedral projection, with Antarctica broken into three pieces",
+			"Cahill\u2013Keyes (simplified)", "Gene S. Keyes", "A simple M-shaped octahedral projection, with Antarctica broken into three pieces",
 			3, CahillKeyes.POLE_OFFSET, CahillKeyes.FACE, Configuration.M_PROFILE);
 	
 	
 	public static final Projection KEYES_BUTTERFLY = new OctahedralProjection(
-			"Cahill\u2013Keyes (butterfly)", "Keyes's octahedral projection with Cahill's original butterfly arrangement",
+			"Cahill\u2013Keyes (butterfly)", "Gene S. Keyes", "Keyes's octahedral projection with Cahill's original butterfly arrangement",
 			3, CahillKeyes.POLE_OFFSET, CahillKeyes.FACE, Configuration.BUTTERFLY);
 	
 	
 	public static final Projection KEYES_OCTANT = new OctahedralProjection(
-			"Cahill\u2013Keyes (single octant)", "A single octant of the Cahill\u2013Keyes projection (for memory economization in the case of very large maps)",
+			"Cahill\u2013Keyes (single octant)", "Gene S. Keyes", "A single octant of the Cahill\u2013Keyes projection (for memory economization in the case of very large maps)",
 			3, CahillKeyes.POLE_OFFSET, CahillKeyes.FACE, Configuration.SINGLE_OCTANT);
 	
 	
@@ -179,9 +179,9 @@ public class Octahedral {
 		private final Octant[] octants;
 		
 		
-		public OctahedralProjection(String name, String desc, int rating, double tipOffset,
+		public OctahedralProjection(String name, String creator, String desc, int rating, double tipOffset,
 		                            Projection faceProj, Configuration config) {
-			super(name, desc, null, false, config.comprehensive, faceProj.isSolvable(), faceProj.isInvertible(),
+			super(name, creator, desc, null, false, config.comprehensive, faceProj.isSolvable(), faceProj.isInvertible(),
 			      (tipOffset == 0) ? Type.OCTAHEDRAL : Type.TETRADECAHEDRAL, faceProj.getProperty(), rating,
 			      new String[] {}, new double[][] {}, config.hasAspect);
 			this.octants = config.placeOctants(tipOffset);

@@ -60,7 +60,7 @@ public class Snyder {
 	
 	public static final Projection GS50 =
 			new Projection(
-					"GS50", "America!", Shape.rectangle(1.6, 1.1), true, false, true, false,
+					"GS50", "John P. Snyder", "America!", Shape.rectangle(1.6, 1.1), true, false, true, false,
 					Type.POLYNOMIAL, Property.CONFORMAL, 4,
 					new String[] {}, new double[][] {}, false) {
 		

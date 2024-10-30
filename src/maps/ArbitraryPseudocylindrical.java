@@ -45,7 +45,7 @@ public class ArbitraryPseudocylindrical {
 	
 	
 	public static final Projection ROBINSON = new ArbitraryProjection(
-			"Robinson", "Arthur Robinson", 0.5072, new double[][] {
+			"Robinson", "Arthur H. Robinson", 0.5072, new double[][] {
 				{ -90,-85,-80,-75,-70,-65,-60,-55,-50,-45,-40,-35,-30,-25,-20,-15,-10, -5,  0,
 					 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90 }, //Latitude
 				{  0.5322, 0.5722, 0.6213, 0.6732, 0.7186, 0.7597, 0.7986, 0.8350, 0.8679, 0.8962, 0.9216, 0.9427, 0.9600, 0.9730, 0.9822, 0.9900, 0.9954, 0.9986, 1.0000,
@@ -73,7 +73,7 @@ public class ArbitraryPseudocylindrical {
 		private final double yScale;
 		
 		public ArbitraryProjection(String title, String inventor, double yScale, double[][] table) {
-			super(title, "A compromise pseudocylindrical projection designed by " + inventor,
+			super(title, inventor, "A compromise pseudocylindrical projection designed by " + inventor,
 			      null, true, true, true, true, Type.PSEUDOCYLINDRICAL, Property.COMPROMISE, 3);
 			this.table = table;
 			this.yScale = yScale;

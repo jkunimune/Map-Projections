@@ -52,7 +52,7 @@ public class Waterman {
 	
 	
 	public static final Projection FACE = new Projection(
-			"Waterman (face)", "A single face of Waterman's octahedral projection",
+			"Waterman (face)", "Steve Waterman", "A single face of Waterman's octahedral projection",
 			Shape.polygon(new double[][] {{0., 0.}, {0., -sqrt(3)/2.}, {1/2., -sqrt(3)/2.}}),
 			true, true, true, false, Type.OTHER, Property.COMPROMISE, 2) {
 		

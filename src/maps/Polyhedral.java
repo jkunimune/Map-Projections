@@ -58,7 +58,7 @@ import static utils.Math2.floorMod;
 public class Polyhedral {
 	
 	public static final PolyhedralProjection LEE_TETRAHEDRAL_RECTANGULAR = new PolyhedralProjection(
-			"Lee Tetrahedral", "A conformal tetrahedral projection that really deserves more attention",
+			"Lee Tetrahedral", "Laurence P. Lee", "A conformal tetrahedral projection that really deserves more attention",
 			true, false, false, Polyhedron.TETRAHEDRON_WIDE_FACE, Property.CONFORMAL, 4) {
 		
 		public double[] faceProject(double lat, double lon) {
@@ -80,7 +80,7 @@ public class Polyhedral {
 	
 	
 	public static final PolyhedralProjection LEE_TETRAHEDRAL_TRIANGULAR = new PolyhedralProjection(
-			"Lee Tetrahedral (triangular)", "A conformal tetrahedral projection in a triangle, because this is the form in which it was published, even though the rectangle is clearly better",
+			"Lee Tetrahedral (triangular)", "Laurence P. Lee", "A conformal tetrahedral projection in a triangle, because this is the form in which it was published, even though the rectangle is clearly better",
 			true, false, false, Polyhedron.TRIANGLE_FACE, Property.CONFORMAL, 2) {
 		
 		public double[] faceProject(double lat, double lon) {
@@ -94,7 +94,7 @@ public class Polyhedral {
 	
 	
 	public static final PolyhedralProjection TETRAGRAPH = new PolyhedralProjection(
-			"TetraGraph", "An equidistant tetrahedral projection that I invented",
+			"TetraGraph", "Justin H. Kunimune", "An equidistant tetrahedral projection that I invented",
 			true, true, true, Polyhedron.TETRAHEDRON_WIDE_FACE, Property.EQUIDISTANT, 2) {
 		
 		public double[] faceProject(double lat, double lon) {
@@ -112,7 +112,7 @@ public class Polyhedral {
 	
 	
 	public static final PolyhedralProjection AUTHAGRAPH = new PolyhedralProjection(
-			"IMAGO (AuthaGraph)",
+			"IMAGO (AuthaGraph)", "Hajime Narukawa",
 			"AuthaGraph is a hip new Japanese map that would be super great if they actually " +
 			"published their equations. This is technically just an approximation, also known as " +
 			"the Infinitesimal Mutated AuthaGraph Offspring.",
@@ -148,7 +148,7 @@ public class Polyhedral {
 	
 	
 	public static final PolyhedralProjection AUTHAGRAPH_ALT = new PolyhedralProjection(
-			"IMAGO (simplified)", "An approximation of the AuthaGraph projection, rearranged to an alternate layout that's more north-up",
+			"IMAGO (simplified)", "Hajime Narukawa", "An approximation of the AuthaGraph projection, rearranged to an alternate layout that's more north-up",
 			true, true, false, Polyhedron.TETRAHEDRON_WIDE_VERTEX, Property.COMPROMISE, 4,
 			new String[] {"Power"}, new double[][] {{.5,1,.68}}) {
 		
@@ -177,7 +177,7 @@ public class Polyhedral {
 	
 	
 	public static final PolyhedralProjection ACTUAUTHAGRAPH = new PolyhedralProjection(
-			"EquaHedral", "An interrupted authalic tetrahedral projection",
+			"EquaHedral", "Justin H. Kunimune", "An interrupted authalic tetrahedral projection",
 			true, true, false, Polyhedron.TETRAHEDRON_WIDE_VERTEX, Property.EQUAL_AREA, 3,
 			new String[] {"Sinus length"}, new double[][] {{0, 60, 20}}) {
 		
@@ -242,7 +242,7 @@ public class Polyhedral {
 	
 	
 	public static final Projection VAN_LEEUWEN = new PolyhedralProjection(
-			"Van Leeuwen",
+			"Van Leeuwen", "D. van Leeuwen and D. Strebe",
 			"An uninterrupted equal-area tetrahedral projection. It's more accurately known as " +
 			"\"the Vertex-oriented great circle projection applied to a tetrahedron\", but the " +
 			"guy who copublished it with Leeuwen calls it \"the van Leeuwen projection\" on his " +
@@ -262,7 +262,7 @@ public class Polyhedral {
 	
 	
 	public static final Projection DYMAXION = new PolyhedralProjection(
-			"Dymaxion", "A polyhedral projection that slices up the oceans as much as possible without slicing up any landmasses",
+			"Dymaxion", "R. Buckminster Fuller", "A polyhedral projection that slices up the oceans as much as possible without slicing up any landmasses",
 			true, true, true, Polyhedron.DYMAXION, Property.COMPROMISE, 3) {
 		
 		private final double[] POLE = {0.040158, -0.091549,-2.015269}; //I derived these numbers from [Robert Gray](http://www.rwgrayprojects.com/rbfnotes/maps/graymap4.html)
@@ -321,18 +321,18 @@ public class Polyhedral {
 		
 		
 		public PolyhedralProjection(
-				String name, String description, boolean comprehensive, boolean solvable,
+				String name, String creator, String description, boolean comprehensive, boolean solvable,
 				boolean invertible, Polyhedron config, Property property, int rating) {
-			super(name, description, config.shape, false, comprehensive, solvable, invertible,
+			super(name, creator, description, config.shape, false, comprehensive, solvable, invertible,
 			      config.type, property, rating);
 			this.configuration = config;
 		}
 		
 		public PolyhedralProjection(
-				String name, String description, boolean comprehensive, boolean solvable,
+				String name, String creator, String description, boolean comprehensive, boolean solvable,
 				boolean invertible, Polyhedron config, Property property, int rating,
 				String[] paramNames, double[][] paramValues) {
-			super(name, description, config.shape, false, comprehensive, solvable, invertible,
+			super(name, creator, description, config.shape, false, comprehensive, solvable, invertible,
 			      config.type, property, rating, paramNames, paramValues);
 			this.configuration = config;
 		}

@@ -76,7 +76,7 @@ public class CahillKeyes {
 	
 	
 	public static final Projection FACE = new Projection(
-			"Cahill–Keyes (face)", "A single face of Gene Keyes's octahedral projection",
+			"Cahill–Keyes (face)", "Gene S. Keyes", "A single face of Gene Keyes's octahedral projection",
 			Shape.polygon(new double[][] {{0., 0.}, {0., -sqrt(3)/2.}, {1/2., -sqrt(3)/2.}}),
 			true, true, true, false, Projection.Type.OTHER, Projection.Property.COMPROMISE, 2) {
 		

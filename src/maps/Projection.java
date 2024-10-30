@@ -62,8 +62,9 @@ public abstract class Projection {
 	public static final double[] NORTH_POLE = {PI/2, 0, 0};
 	
 	
-	private final String name; //typically the name of the dude credited for it
+	private final String name; //the name of the map projection
 	private final String description; //a noun clause or sentence about it
+	private final String creator; //the name of the person credited for it
 	
 	private final String[] paramNames; //the name of each parameter
 	private final double[][] paramValues; //the bounds and default value of each parameter
@@ -80,26 +81,30 @@ public abstract class Projection {
 
 	
 	protected Projection(
-			String name, String description, Shape shape, boolean continuous, boolean comprehensive,
-			boolean solvable, boolean invertible, Type type, Property property, int rating) {
-		this(name, description, shape, continuous, comprehensive, solvable, invertible, type, property, rating,
+			String name, String creator, String description, Shape shape,
+			boolean continuous, boolean comprehensive, boolean solvable, boolean invertible,
+			Type type, Property property, int rating) {
+		this(name, creator, description, shape, continuous, comprehensive, solvable, invertible, type, property, rating,
 		     new String[0], new double[0][]);
 	}
 	
 	protected Projection(
-			String name, String description, Shape shape, boolean continuous, boolean comprehensive,
-			boolean solvable, boolean invertible, Type type, Property property, int rating,
+			String name, String creator, String description, Shape shape,
+			boolean continuous, boolean comprehensive, boolean solvable, boolean invertible,
+			Type type, Property property, int rating,
 			String[] paramNames, double[][] paramValues) {
-		this(name, description, shape, continuous, comprehensive, solvable, invertible, type, property, rating,
+		this(name, creator, description, shape, continuous, comprehensive, solvable, invertible, type, property, rating,
 		     paramNames, paramValues, true);
 	}
 	
 	protected Projection (
-			String name, String description, Shape shape, boolean continuous, boolean comprehensive,
-			boolean solvable, boolean invertible, Type type, Property property, int rating,
+			String name, String creator, String description, Shape shape,
+			boolean continuous, boolean comprehensive, boolean solvable, boolean invertible,
+			Type type, Property property, int rating,
 			String[] paramNames, double[][] paramValues, boolean hasAspect) {
 		this.name = name;
 		this.description = description;
+		this.creator = creator;
 		this.paramNames = paramNames;
 		this.paramValues = paramValues;
 		this.hasAspect = hasAspect;
@@ -114,8 +119,9 @@ public abstract class Projection {
 	}
 	
 	protected Projection(String name, Projection base) {
-		this(name, base.description, base.shape, base.comprehensive, base.invertible,
-		     base.solvable, base.continuous, base.type, base.property, base.rating,
+		this(name, base.description, base.creator, base.shape,
+		     base.comprehensive, base.invertible, base.solvable, base.continuous,
+		     base.type, base.property, base.rating,
 		     base.paramNames, base.paramValues, base.hasAspect);
 	}
 
@@ -580,6 +586,10 @@ public abstract class Projection {
 		return this.description;
 	}
 	
+	public final String getCreator() {
+		return this.creator;
+	}
+	
 	public final boolean isParametrized() {
 		return this.paramNames.length > 0;
 	}
@@ -648,7 +658,7 @@ public abstract class Projection {
 	}
 
 	public static final Projection NULL_PROJECTION = //this exists solely for the purpose of a "More..." option at the end of menus.  ah, if only enums were as powerful in Java as they are in Rust.
-			new Projection("More...", null, null, false, false, false, false, null, null, 0) {
+			new Projection("More...", null, null, null, false, false, false, false, null, null, 0) {
 		
 		public double[] project(double lat, double lon) {
 			return null;

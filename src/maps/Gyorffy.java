@@ -65,7 +65,7 @@ public class Gyorffy {
 		protected PolynomialProjection(
 				String letter, String description,
 				int rating, double[] coefs) {
-			super("Gy\u00F6rffy "+letter, description, null, true, true, true, false,
+			super("Gy\u00F6rffy "+letter, "Janos Gyorffy", description, null, true, true, true, false,
 			      (coefs[4]==1 && coefs[5]==0 && coefs[6]==0) ? Type.PSEUDOCYLINDRICAL : Type.OTHER,
 			      Property.COMPROMISE, rating);
 			this.coefs = coefs;

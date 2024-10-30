@@ -49,7 +49,7 @@ public class EqualEarth {
 	
 	
 	public static final Projection EQUAL_EARTH = new Projection(
-			"Equal Earth", "An equal-area pseudocylindrical projection specifically designed to woo Gall-Peters supporters away from that horrid thing",
+			"Equal Earth", "B. Savric, T. Patterson, and B. Jenny", "An equal-area pseudocylindrical projection specifically designed to woo Gall-Peters supporters away from that horrid thing",
 			null, true, true, true, true, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
 		
 		public double[] project(double lat, double lon) {

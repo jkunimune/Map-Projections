@@ -48,8 +48,6 @@ import static java.lang.Math.atan2;
 import static java.lang.Math.cos;
 import static java.lang.Math.floor;
 import static java.lang.Math.hypot;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.signum;
 import static java.lang.Math.sin;
@@ -69,7 +67,7 @@ public class Misc {
 	
 	public static final Projection PEIRCE_QUINCUNCIAL =
 			new Projection(
-					"Peirce Quincuncial", "A conformal projection that uses complex elliptic functions",
+					"Peirce Quincuncial", "Charles S. Pierce", "A conformal projection that uses complex elliptic functions",
 					Shape.rectangle(2, 2), false, true, false, false, Type.OTHER, Property.CONFORMAL, 3) {
 
 		private static final double K_RT_HALF = 1.854074677; //this is approx K(sqrt(1/2))
@@ -104,7 +102,7 @@ public class Misc {
 	
 	public static final Projection GUYOU =
 			new Projection(
-					"Guyou", "Peirce Quincuncial, rearranged a bit",
+					"Guyou", "Emile Guyou", "Peirce Quincuncial, rearranged a bit",
 					Shape.rectangle(2, 1), false, true, false, false,
 					Type.OTHER, Property.CONFORMAL, 3) {
 		
@@ -141,7 +139,7 @@ public class Misc {
 	
 	public static final Projection TWO_POINT_EQUIDISTANT =
 			new Projection(
-					"Two-point Equidistant", "A map that preserves distances, but not azimuths, to two arbitrary points",
+					"Two-point Equidistant", "Hans Maurer", "A map that preserves distances, but not azimuths, to two arbitrary points",
 					null, true, true, true, true, Type.OTHER, Property.EQUIDISTANT, 3,
 					new String[] {"Latitude 1","Longitude 1","Latitude 2","Longitude 2"},
 					new double[][] {{-90,90,41.9},{-180,180,12.5},{-90,90,34.7},{-180,180,112.4}},
@@ -208,7 +206,7 @@ public class Misc {
 	
 	public static final Projection BRAUN_CONIC =
 			new Projection(
-					"Braun conic", "A particular perspective conic that is tangent at 30\u00B0",
+					"Braun conic", "Carl Braun", "A particular perspective conic that is tangent at 30\u00B0",
 					Shape.annularSector(0, 2*sqrt(3), PI, false), true, true, true, true,
 					Type.CONIC, Property.PERSPECTIVE, 3) {
 		
@@ -234,7 +232,7 @@ public class Misc {
 	
 	public static final Projection BONNE =
 			new Projection(
-					"Bonne", "A traditional pseudoconic projection, also known as the Sylvanus projection",
+					"Bonne", "Bernardo Sylvano", "A traditional pseudoconic projection, also known as the Sylvanus projection",
 					null, true, true, true, true, Type.PSEUDOCONIC, Property.EQUAL_AREA, 1,
 					new String[] {"Std. Parallel"}, new double[][] {{-90, 90, 45}}) {
 		
@@ -301,7 +299,7 @@ public class Misc {
 	
 	public static final Projection T_SHIRT =
 			new Projection(
-					"T-Shirt", "A conformal projection onto a torso",
+					"T-Shirt", "Justin H. Kunimune", "A conformal projection onto a torso",
 					Shape.polygon(new double[][] {
 							{ 0.000, 1.784},
 							{-1.17, 2.38},
@@ -359,7 +357,7 @@ public class Misc {
 	
 	
 	public static final Projection CASSINI = new Projection(
-			"Cassini", "A transverse Plate–Carée projection",
+			"Cassini", "Cesar-François Cassini de Thury", "A transverse Plate–Carée projection",
 			Shape.rectangle(PI, 2*PI), true, true, true, true, Type.CYLINDRICAL, Property.EQUIDISTANT, 2) {
 		
 		public double[] project(double lat, double lon) {
@@ -377,7 +375,7 @@ public class Misc {
 	
 	
 	public static final Projection LEMONS = new Projection(
-			"Gores", "A heavily interrupted projection that can be pasted onto a globe",
+			"Gores", "(unknown)", "A heavily interrupted projection that can be pasted onto a globe",
 			null, false, true, true, true, Type.OTHER, Property.COMPROMISE, 2,
 			new String[] {"Number of gores"}, new double[][] {{4, 72, 12}}) {
 		
@@ -443,7 +441,7 @@ public class Misc {
 	
 	public static final Projection FLAT_EARTH =
 			new Projection(
-					"Flat Earth", "The one true map", Shape.circle(1), true, true, true, true,
+					"Flat Earth", "Samuel B. Rowbotham", "The one true map", Shape.circle(1), true, true, true, true,
 					Type.PLANAR, Property.TRUE, 5, new String[0], new double[0][], false) {
 		
 		private final double[] CORE_LONGITUDES = {

@@ -76,8 +76,9 @@ public class HammerRetroazimuthal {
 	
 	
 	public static final Projection FRONT = new Projection(
-			"Hammer Retroazimuthal (front)", "A map where bearing and distance to a reference point is preserved " +
-			                                 "(showing the hemisphere nearest the reference point)",
+			"Hammer Retroazimuthal (front)", "Ernst H. H. Hammer",
+			"A map where bearing and distance to a reference point is preserved " +
+			"(showing the hemisphere nearest the reference point)",
 			null, false, false, true, true, Projection.Type.PSEUDOCONIC, Projection.Property.RETROAZIMUTHAL, 2,
 			new String[] {"Latitude","Longitude"},
 			new double[][] {{-89,89,21.4}, {-180,180,39.8}}, false) {
@@ -107,8 +108,9 @@ public class HammerRetroazimuthal {
 	
 	
 	public static final Projection BACK = new Projection(
-			"Hammer Retroazimuthal (back)", "A map where bearing and distance to a reference point is preserved " +
-			                                "(showing the hemisphere farther from the reference point)",
+			"Hammer Retroazimuthal (back)", "Ernst H. H. Hammer",
+			"A map where bearing and distance to a reference point is preserved " +
+			"(showing the hemisphere farther from the reference point)",
 			null, false, false, true, true, Projection.Type.PSEUDOCONIC, Projection.Property.RETROAZIMUTHAL, 2,
 			new String[] {"Latitude","Longitude"},
 			new double[][] {{-89,89,21.4}, {-180,180,39.8}}, false) {
@@ -140,9 +142,10 @@ public class HammerRetroazimuthal {
 	
 	
 	public static final Projection FULL = new Projection(
-			"Hammer Retroazimuthal", "The full version of a map where bearing and distance to a reference point is " +
-			                         "preserved (points separated by more than 90° of longitude have been rotated " +
-			                         "180° to fit)",
+			"Hammer Retroazimuthal", "Ernst H. H. Hammer",
+			"The full version of a map where bearing and distance to a reference point is " +
+			"preserved (points separated by more than 90° of longitude have been rotated " +
+			"180° to fit)",
 			null, false, true, true, true, Projection.Type.PSEUDOCONIC, Projection.Property.RETROAZIMUTHAL, 2,
 			new String[] {"Latitude","Longitude"},
 			new double[][] {{-89,89,21.4}, {-180,180,39.8}}, false) {

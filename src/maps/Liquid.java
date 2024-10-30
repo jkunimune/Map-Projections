@@ -80,7 +80,7 @@ public class Liquid {
 		public LiquidProjection(
 				String title, String description, Projection baseProjection,
 				double centralMeridian, boolean based_on_land, String filename) {
-			super(title, description, null,
+			super(title, "Robert C. Sargent", description, null,
 			      true, false, true, baseProjection.isContinuous(),
 			      Type.OTHER, baseProjection.getProperty(), 4,
 			      new String[0], new double[0][], !based_on_land);

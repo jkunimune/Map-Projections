@@ -47,7 +47,7 @@ import static utils.Math2.min;
 public class Conic {
 	
 	public static final Projection LAMBERT =
-			new ConicProjection("Conformal Conic", false, true, true, Property.CONFORMAL, 2) {
+			new ConicProjection("Conformal Conic", "Johann H. Lambert", false, true, true, Property.CONFORMAL, 2) {
 		
 		private double n; //the scaling factor for angles
 
@@ -140,7 +140,7 @@ public class Conic {
 	
 	
 	public static final Projection EQUIDISTANT =
-			new ConicProjection("Equidistant Conic", true, true, true, Property.EQUIDISTANT, 2) {
+			new ConicProjection("Equidistant Conic", "Johann H. Lambert", true, true, true, Property.EQUIDISTANT, 2) {
 		
 		private double m; //the scaling factor for radii
 		private double n; //the scaling factor for angles
@@ -195,7 +195,7 @@ public class Conic {
 	
 	
 	public static final Projection ALBERS =
-			new ConicProjection("Albers", true, true, true, Property.EQUAL_AREA, 2) {
+			new ConicProjection("Albers", "Heinrich C. Albers", true, true, true, Property.EQUAL_AREA, 2) {
 		
 		private double n; //the scaling factor for angles
 		private double C; //a scaling factor for radii
@@ -259,9 +259,9 @@ public class Conic {
 		protected double lat1, lat2;
 		protected boolean reversed;
 		
-		ConicProjection(String name, boolean comprehensive, boolean solvable, boolean invertible,
+		ConicProjection(String name, String creator, boolean comprehensive, boolean solvable, boolean invertible,
 		                Property property, int rating) {
-			super(name, "The " + property + " conic projection", null, true, comprehensive, solvable,
+			super(name, creator, "The " + property + " conic projection", null, true, comprehensive, solvable,
 			      invertible, Type.CONIC, property, rating,
 			      new String[] {"Std. Parallel 1", "Std. Parallel 2"},
 			      new double[][] {{-89,89,15},{-89,89,45}});

@@ -47,7 +47,7 @@ import static java.lang.Math.toRadians;
 public class Cylindrical {
 	
 	public static final Projection MERCATOR = new Projection(
-			"Mercator", "A very popular conformal cylindrical projection",
+			"Mercator", "Gerardus Mercator", "A very popular conformal cylindrical projection",
 			Shape.rectangle(2*PI, 2*PI), true, false, true, true,
 			Type.CYLINDRICAL, Property.CONFORMAL, 1) {
 		
@@ -62,7 +62,7 @@ public class Cylindrical {
 	
 	
 	public static final Projection PLATE_CARREE = new Projection(
-			"Plate Carr\u00E9e", "An equidistant cylindrical projection focused on the equator",
+			"Plate Carr\u00E9e", "Marinus of Tyre", "An equidistant cylindrical projection focused on the equator",
 			Shape.rectangle(2*Math.PI, Math.PI), true, true, true, true,
 			Type.CYLINDRICAL, Property.EQUIDISTANT, 2){
 		
@@ -77,7 +77,7 @@ public class Cylindrical {
 	
 	
 	public static final Projection EQUIRECTANGULAR = new Projection(
-			"Equirectangular", "A linear mapping from longitude and latitude to x and y",
+			"Equirectangular", "Marinus of Tyre", "A linear mapping from longitude and latitude to x and y",
 			null, true, true, true, true, Type.CYLINDRICAL, Property.EQUIDISTANT, 2,
 			new String[]{"Std. parallel"}, new double[][]{{0, 89, 0}}) {
 		
@@ -99,7 +99,7 @@ public class Cylindrical {
 	
 	
 	public static final Projection GALL_ORTHOGRAPHIC = new Projection(
-			"Gall-Peters", "A somewhat controversial equal-area cylindrical projection with least distortion at 45\u00B0",
+			"Gall-Peters", "James Gall", "A somewhat controversial equal-area cylindrical projection with least distortion at 45\u00B0",
 			Shape.rectangle(2*Math.PI, 4), true, true, true, true, Type.CYLINDRICAL, Property.EQUAL_AREA, 0) {
 		
 		public double[] project(double lat, double lon) {
@@ -113,7 +113,7 @@ public class Cylindrical {
 	
 	
 	public static final Projection HOBO_DYER = new Projection(
-			"Hobo-Dyer", "An equal-area cylindrical projection with least distortion at 37.5\u00B0",
+			"Hobo–Dyer", "H. Bronstein, B. Abramms, and M. Dyer", "An equal-area cylindrical projection with least distortion at 37.5\u00B0",
 			Shape.rectangle(2*PI, 3.178), true, true, true, true, Type.CYLINDRICAL, Property.EQUAL_AREA, 2) {
 		
 		public double[] project(double lat, double lon) {
@@ -127,7 +127,7 @@ public class Cylindrical {
 	
 	
 	public static final Projection BEHRMANN = new Projection(
-			"Behrmann", "An equal-area cylindrical projection with least distortion at 30\u00B0",
+			"Behrmann", "Walter E. Behrmann", "An equal-area cylindrical projection with least distortion at 30\u00B0",
 			Shape.rectangle(2*PI, 8/3.), true, true, true, true, Type.CYLINDRICAL, Property.EQUAL_AREA, 3) {
 		
 		public double[] project(double lat, double lon) {
@@ -141,7 +141,7 @@ public class Cylindrical {
 	
 	
 	public static final Projection LAMBERT = new Projection(
-			"Lambert cylindrical", "An equal-area cylindrical projection with least distortion along the equator",
+			"Lambert cylindrical", "Johann H. Lambert", "An equal-area cylindrical projection with least distortion along the equator",
 			Shape.rectangle(2*PI, 2), true, true, true, true, Type.CYLINDRICAL, Property.EQUAL_AREA, 2) {
 		
 		public double[] project(double lat, double lon) {
@@ -155,7 +155,7 @@ public class Cylindrical {
 	
 	
 	public static final Projection EQUAL_AREA = new Projection(
-			"Cylindrical Equal-area", "A generalized equal-area cylindrical projection",
+			"Cylindrical Equal-area", "Johann H. Lambert", "A generalized equal-area cylindrical projection",
 			null, true, true, true, true, Type.CYLINDRICAL, Property.EQUAL_AREA, 2,
 			new String[]{"Std. parallel"}, new double[][]{{0, 89, 30}}) {
 		
@@ -174,7 +174,7 @@ public class Cylindrical {
 	
 	
 	public static final Projection GALL_STEREOGRAPHIC = new Projection(
-			"Gall Stereographic", "A compromise cylindrical projection",
+			"Gall Stereographic", "James Gall", "A compromise cylindrical projection",
 			Shape.rectangle(2*PI, 1.5*PI), true, true, true, true,
 			Type.CYLINDRICAL, Property.COMPROMISE, 2) {
 		
@@ -189,7 +189,7 @@ public class Cylindrical {
 	
 	
 	public static final Projection MILLER = new Projection(
-			"Miller", "A compromise cylindrical projection",
+			"Miller", "Osborn M. Miller", "A compromise cylindrical projection",
 			Shape.rectangle(2*PI, 2.5*log(tan(9*PI/20))), true, true, true, true,
 			Type.CYLINDRICAL, Property.COMPROMISE, 2) {
 		
@@ -204,7 +204,7 @@ public class Cylindrical {
 	
 	
 	public static final Projection CENTRAL = new Projection(
-			"Central Cylindrical", "A projection used for architectural photography that is conflated with Mercator",
+			"Central Cylindrical", "(unknown)", "A projection used for architectural photography that is conflated with Mercator",
 			Shape.rectangle(2*PI, 2*PI), true, false, true, true, Type.CYLINDRICAL, Property.PERSPECTIVE, 2) {
 		
 		public double[] project(double lat, double lon) {

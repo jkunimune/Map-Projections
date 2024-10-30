@@ -56,7 +56,7 @@ import static utils.Math2.atan;
 public class Lenticular {
 	
 	public static final Projection AITOFF = new Projection(
-			"Aitoff", "A compromise projection shaped like an ellipse",
+			"Aitoff", "David A. Aitoff", "A compromise projection shaped like an ellipse",
 			Shape.ellipse(Math.PI, Math.PI/2), true, true, true, true,
 			Type.PSEUDOAZIMUTHAL, Property.COMPROMISE, 2) {
 
@@ -78,7 +78,7 @@ public class Lenticular {
 	
 	
 	public static final Projection HAMMER = new Projection(
-			"Hammer", "An equal-area projection shaped like an ellipse",
+			"Hammer", "Ernst H. H. von Hammer", "An equal-area projection shaped like an ellipse",
 			Shape.ellipse(2, 1), true, true, true, true, Type.PSEUDOAZIMUTHAL, Property.EQUAL_AREA, 1) {
 
 		public double[] project(double lat, double lon) {
@@ -97,7 +97,7 @@ public class Lenticular {
 	
 	
 	public static final Projection VAN_DER_GRINTEN = new Projection(
-			"Van der Grinten", "A circular compromise map that is popular for some reason",
+			"Van der Grinten", "Alphons J. van der Grinten", "A circular compromise map that is popular for some reason",
 			Shape.circle(1), true, true, true, true, Type.OTHER, Property.COMPROMISE, 0) {
 
 		public double[] project(double lat, double lon) {
@@ -139,7 +139,7 @@ public class Lenticular {
 	
 	
 	public static final Projection STREBE_95 = new Projection(
-			"Strebe 1995", "An equal-area map with curvy poles that pushes distortion to the edges",
+			"Strebe 1995", "Daniel Strebe", "An equal-area map with curvy poles that pushes distortion to the edges",
 			null, true, true, false, true, Type.STREBE, Property.COMPROMISE, 2,
 			new String[] {"Scale Factor"},
 			new double[][] {{sqrt(2*PI/(4+PI)), sqrt((4+PI)/PI*2), 1.35}}) {
@@ -179,7 +179,7 @@ public class Lenticular {
 	
 	
 	public static final Projection BERTIN = new Projection(
-			"Bertin", "An artistically conceived oblique map projection",
+			"Bertin", "Jacques Bertin", "An artistically conceived oblique map projection",
 			Shape.ellipse(1.68, 1), true, true, true, false, Type.OTHER, Property.COMPROMISE, 3) {
 		
 		private final double[] POLE = {toRadians(42), toRadians(-163.5), toRadians(180)};
@@ -214,7 +214,7 @@ public class Lenticular {
 	
 	
 	public static final Projection LAGRANGE = new Projection(
-			"Lagrange", "A circular conformal map",
+			"Lagrange", "Johann H. Lambert", "A circular conformal map",
 			Shape.circle(1), true, true, true, true, Type.OTHER, Property.CONFORMAL, 2) {
 
 		public double[] project(double lat, double lon) {
@@ -241,7 +241,7 @@ public class Lenticular {
 	
 	
 	public static final Projection EISENLOHR = new Projection(
-			"Eisenlohr", "The optimal conventional conformal map",
+			"Eisenlohr", "Friedrich Eisenlohr", "The optimal conventional conformal map",
 			null, true, true, true, false, Type.OTHER, Property.CONFORMAL, 2) {
 		
 		public double[] project(double lat, double lon) {
@@ -275,7 +275,7 @@ public class Lenticular {
 	
 	
 	public static final Projection WAGNER_VIII = new Projection(
-			"Wagner VIII", "A compromise projection with pseudoazimuthal energy",
+			"Wagner VIII", "Karlheinz Wagner", "A compromise projection with pseudoazimuthal energy",
 			null, true, true, true, true, Type.OTHER, Property.COMPROMISE, 3) {
 
 		private final double m1 = 0.92118, m2 = 0.8855, n = 3.,
@@ -311,7 +311,7 @@ public class Lenticular {
 	
 	
 	public static final Projection POLYCONIC = new Projection(
-			"American polyconic", "A map made for narrow strips of longitude that was really popular with the USGS for a while",
+			"American polyconic", "Ferdinand R. Hassler", "A map made for narrow strips of longitude that was really popular with the USGS for a while",
 			null, true, true, true, false, Type.OTHER, Property.EQUIDISTANT, 3) {
 		public double[] project(double lat, double lon) {
 			if (lat == 0)
