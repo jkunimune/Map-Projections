@@ -215,14 +215,25 @@ public class Lenticular {
 	
 	public static final Projection LAGRANGE = new Projection(
 			"Lagrange", "Johann H. Lambert", "A circular conformal map",
-			Shape.circle(1), true, true, true, true, Type.OTHER, Property.CONFORMAL, 2) {
+			null, true, true, true, true, Type.OTHER, Property.CONFORMAL, 2,
+			new String[] {"Standard parallel", "Longitudinal scale"},
+			new double[][] {{-89., 89., 0.}, {0.1, 0.9, 0.5}}) {
+		
+		private double prefactor, n;
+		
+		public void initialize(double... params) {
+			double lat0 = Math.toRadians(params[0]);
+			this.prefactor = (1 - sin(lat0))/(1 + sin(lat0));
+			this.n = params[1];
+			this.shape = Shape.meridianEnvelope(this);
+		}
 
 		public double[] project(double lat, double lon) {
 			if (abs(lat) == PI/2)
 				return new double[] { 0, signum(lat) };
-			double v = pow((1 + sin(lat))/(1 - sin(lat)), .25);
-			double c = (v + 1/v)/2 + cos(lon/2);
-			double x = sin(lon/2)/c;
+			double v = pow(prefactor*(1 + sin(lat))/(1 - sin(lat)), n/2);
+			double c = (v + 1/v)/2 + cos(n*lon);
+			double x = sin(n*lon)/c;
 			double y = (v - 1/v)/(2*c);
 			return new double[] {x, y};
 		}
@@ -230,9 +241,9 @@ public class Lenticular {
 		public double[] inverse(double x, double y) {
 			double r2 = x*x + y*y;
 			double th = 2*y/(1 + r2);
-			double t = pow((1 + th)/(1 - th), 2);
-			double lat = asin((t - 1)/(t + 1));
-			double lon = 2*atan(2*x/(1 - r2)) + ((r2 > 1) ? 2*PI*signum(x) : 0);
+			double t = pow((1 + th)/(1 - th), 1/n);
+			double lat = asin((t - prefactor)/(t + prefactor));
+			double lon = 1/n*(atan(2*x/(1 - r2)) + ((r2 > 1) ? PI*signum(x) : 0));
 			return new double[] {lat, lon};
 		}
 	};
