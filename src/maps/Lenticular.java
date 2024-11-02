@@ -229,12 +229,10 @@ public class Lenticular {
 		
 		public double[] inverse(double x, double y) {
 			double r2 = x*x + y*y;
-			if (r2 > 1)
-				return null;
 			double th = 2*y/(1 + r2);
 			double t = pow((1 + th)/(1 - th), 2);
 			double lat = asin((t - 1)/(t + 1));
-			double lon = 2*atan2(2*x, 1 - r2);
+			double lon = 2*atan(2*x/(1 - r2)) + ((r2 > 1) ? 2*PI*signum(x) : 0);
 			return new double[] {lat, lon};
 		}
 	};
