@@ -91,7 +91,7 @@ public class Elastic {
 				String title, String description, boolean interrupted, Type type, Property property,
 				boolean based_on_land, String filename) {
 			super(title, "Justin H. Kunimune", description, null,
-			      true, false, true, !interrupted,
+			      !interrupted, true, true, false,
 			      type, property, 4,
 			      new String[0], new double[0][], !based_on_land);
 			this.filename = filename;

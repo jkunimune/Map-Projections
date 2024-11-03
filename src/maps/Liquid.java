@@ -81,7 +81,7 @@ public class Liquid {
 				String title, String description, Projection baseProjection,
 				double centralMeridian, boolean based_on_land, String filename) {
 			super(title, "Robert C. Sargent", description, null,
-			      true, false, true, baseProjection.isContinuous(),
+			      baseProjection.isContinuous(), baseProjection.isComprehensive(), true, true,
 			      Type.OTHER, baseProjection.getProperty(), 4,
 			      new String[0], new double[0][], !based_on_land);
 			this.filename = filename;
