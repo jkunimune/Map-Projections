@@ -5,7 +5,7 @@
 	<property name="dir.commons" value="C:\Program Files\Java\commons-math3-3.6.1"/>
 	<property name="dir.jre" value="C:\Program Files\Java\jre-1.8"/>
 	<property name="dir.jarfile" value="."/>
-	<property name="version" value="3.6.1"/>
+	<property name="version" value="3.6.2"/>
 	<property name="year" value="2024"/>
 	
 	<target name="setup">
