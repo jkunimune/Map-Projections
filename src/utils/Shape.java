@@ -23,7 +23,18 @@ public class Shape {
 	public final double yMax;
 	public final double height;
 	public final double aspectRatio;
-
+	
+	/**
+	 * instantiate a new Shape with its dimensions and underlying Path.  the x and y limits must
+	 * match the Path, because I don't have a good way to verify that.  in general you should prefer
+	 * to use the static methods circle(), ellipse(), rectangle(), annularSector(), polygon(), and
+	 * meridianEnvelope(), because those will all garantee consistency for you.
+	 * @param xMin the x-coordinate of the leftmost point on the path
+	 * @param xMax the x-coordinate of the rightmost point on the path
+	 * @param yMin the y-coordinate of the bottom of the shape
+	 * @param yMax the y-coordinate of the top of the shape
+	 * @param path the underlying Path object (an List of Commands)
+	 */
 	public Shape(double xMin, double xMax, double yMin, double yMax, List<Path.Command> path) {
 		this.path = path;
 		this.xMin = xMin;
@@ -53,8 +64,8 @@ public class Shape {
 				-semiaxisY, semiaxisY,
 				Arrays.asList(
 						new Path.Command('M', 0, semiaxisY),
-						new Path.Command('A', semiaxisX, semiaxisY, 0, 1, 0, 0, -semiaxisY),
-						new Path.Command('A', semiaxisX, semiaxisY, 0, 1, 0, 0, semiaxisY)));
+						new Path.Command('A', semiaxisX, semiaxisY, 0, 0, 1, 0, -semiaxisY),
+						new Path.Command('A', semiaxisX, semiaxisY, 0, 0, 1, 0, semiaxisY)));
 	}
 
 

@@ -24,10 +24,13 @@
 package maps;
 
 import de.jtem.mfc.field.Complex;
+import image.Path;
 import maps.Projection.Property;
 import maps.Projection.Type;
 import utils.NumericalAnalysis;
 import utils.Shape;
+
+import java.util.Arrays;
 
 import static java.lang.Double.isNaN;
 import static java.lang.Math.PI;
@@ -39,6 +42,8 @@ import static java.lang.Math.atan2;
 import static java.lang.Math.cos;
 import static java.lang.Math.hypot;
 import static java.lang.Math.log;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.signum;
 import static java.lang.Math.sin;
@@ -216,21 +221,15 @@ public class Lenticular {
 	public static final Projection LAGRANGE = new Projection(
 			"Lagrange", "Johann H. Lambert", "A circular conformal map",
 			null, true, true, true, true, Type.OTHER, Property.CONFORMAL, 2,
-			new String[] {"Standard parallel", "Longitudinal scale"},
-			new double[][] {{-89., 89., 0.}, {0.1, 0.9, 0.5}}) {
+			new String[] {"Central parallel", "Longitudinal scale"},
+			new double[][] {{-89., 89., 0.}, {0.01, 1.5, 0.5}}) {
 		
-		private double prefactor, n;
+		private double prefactor, n, lonMax;
 		
-		public void initialize(double... params) {
-			double lat0 = Math.toRadians(params[0]);
-			this.prefactor = (1 - sin(lat0))/(1 + sin(lat0));
-			this.n = params[1];
-			this.shape = Shape.meridianEnvelope(this);
-		}
-
 		public double[] project(double lat, double lon) {
 			if (abs(lat) == PI/2)
 				return new double[] { 0, signum(lat) };
+			lon = max(-lonMax, min(lonMax, lon)); // don't let longitude exceed ± lonMax lest x -> inf
 			double v = pow(prefactor*(1 + sin(lat))/(1 - sin(lat)), n/2);
 			double c = (v + 1/v)/2 + cos(n*lon);
 			double x = sin(n*lon)/c;
@@ -245,6 +244,81 @@ public class Lenticular {
 			double lat = asin((t - prefactor)/(t + prefactor));
 			double lon = 1/n*(atan(2*x/(1 - r2)) + ((r2 > 1) ? PI*signum(x) : 0));
 			return new double[] {lat, lon};
+		}
+		
+		public void initialize(double... params) {
+			double lat0 = Math.toRadians(params[0]);
+			this.prefactor = (1 - sin(lat0))/(1 + sin(lat0));
+			this.n = params[1];
+			// put a limit on longitudes so you don't get self-intersection when n > 1
+			this.lonMax = 0.999*PI/n;
+			// we need to take care with the shape to avoid it getting too big
+			double maxSize = PI*n;
+			double lonEnvelope = min(PI, lonMax);
+			double xIntercept = sin(n*lonEnvelope)/(1 + cos(n*lonEnvelope));
+			double envelopeRadius = (pow(xIntercept, 2) + 1)/(2*xIntercept);
+			double envelopeHeight = (n < 1/2.) ? 1 : envelopeRadius;
+			double xCenter = xIntercept - envelopeRadius;
+			double xOffset = sqrt(pow(envelopeRadius, 2) - pow(maxSize, 2));
+			double yIntersect = sqrt(pow(envelopeRadius, 2) - pow(maxSize - xCenter, 2));
+			// if the poles are too pointy
+			if (n < 1/2. && envelopeHeight > maxSize) {
+				this.shape = new Shape( // cut them off
+						-xIntercept, xIntercept, -maxSize, maxSize,
+						Arrays.asList(
+								new Path.Command('M', xCenter + xOffset, -maxSize),
+								new Path.Command('A', envelopeRadius, envelopeRadius, 0, 0, 1, xCenter + xOffset, maxSize),
+								new Path.Command('H', -xCenter - xOffset),
+								new Path.Command('A', envelopeRadius, envelopeRadius, 0, 0, 1, -xCenter - xOffset, -maxSize),
+								new Path.Command('Z')));
+			}
+			// if the whole thing fits within the square
+			else if (xIntercept <= maxSize) {
+				// just use the meridian envelope
+				this.shape = new Shape(
+						-xIntercept, xIntercept, -envelopeHeight, envelopeHeight,
+						Arrays.asList(
+								new Path.Command('M', 0, -1),
+								new Path.Command('A', envelopeRadius, envelopeRadius, 0, (n > 1/2.) ? 1 : 0, 1, 0, 1),
+								new Path.Command('A', envelopeRadius, envelopeRadius, 0, (n > 1/2.) ? 1 : 0, 1, 0, -1),
+								new Path.Command('Z')));
+			}
+			// if it breaches the side of the square but not the top
+			else if (envelopeRadius <= maxSize) {
+				// cut the sides off
+				this.shape = new Shape(
+						-maxSize, maxSize, -envelopeHeight, envelopeHeight,
+						Arrays.asList(
+								new Path.Command('M', maxSize, yIntersect),
+								new Path.Command('A', envelopeRadius, envelopeRadius, 0, 0, 1, 0, 1),
+								new Path.Command('A', envelopeRadius, envelopeRadius, 0, 0, 1, -maxSize, yIntersect),
+								new Path.Command('V', -yIntersect),
+								new Path.Command('A', envelopeRadius, envelopeRadius, 0, 0, 1, 0, -1),
+								new Path.Command('A', envelopeRadius, envelopeRadius, 0, 0, 1, maxSize, -yIntersect),
+								new Path.Command('Z')));
+			}
+			// NOTE: there's another case here where it breaches the top but doesn't encompass the corners.
+			// however, this happens for such a small part of parameter space that it's currently not possible to save
+			// a map in this case, and even if it was the corner artifact would be almost imperceptible.
+			// so I'm leaving that case out.
+			// if it breaches the top as well and encompasses the corners
+			else {
+				// it becomes a rectangle with just a few cuts out of it
+				this.shape = new Shape(
+						-maxSize, maxSize, -maxSize, maxSize,
+						Arrays.asList(
+								new Path.Command('M', maxSize, maxSize),
+								new Path.Command('H', xCenter - xOffset),
+								new Path.Command('A', envelopeRadius, envelopeRadius, 0, 0, 1, 0, 1),
+								new Path.Command('A', envelopeRadius, envelopeRadius, 0, 0, 1, -xCenter + xOffset, maxSize),
+								new Path.Command('H', -maxSize),
+								new Path.Command('V', -maxSize),
+								new Path.Command('H', -xCenter + xOffset),
+								new Path.Command('A', envelopeRadius, envelopeRadius, 0, 0, 1, 0, -1),
+								new Path.Command('A', envelopeRadius, envelopeRadius, 0, 0, 1, xCenter - xOffset, -maxSize),
+								new Path.Command('H', maxSize),
+								new Path.Command('Z')));
+			}
 		}
 	};
 	
