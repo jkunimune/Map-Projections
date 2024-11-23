@@ -238,8 +238,8 @@ public class Liquid {
 			this.triangles = triangles;
 			
 			// bin the triangles
-			this.фBins = linspace(-PI/2, PI/2, 50);
-			this.λBins = linspace(-PI, PI, 100);
+			this.фBins = linspace(-PI/2, PI/2, 200);
+			this.λBins = linspace(-PI, PI, 500);
 			this.lookupTableInitial = cacheTriangleLocations(
 					this.triangles, this.verticesInitial, this.фBins, this.λBins);
 			this.lookupTableTransformed = cacheTriangleLocations(
@@ -292,12 +292,12 @@ public class Liquid {
 				}
 				// wide triangles can also bulge poleward, so extend them toward the pole manually
 				if (фMax > 0)
-					фMax = min(фMax + (λMax - λMin)/2, PI/2); // this is a pretty conservative estimate of the amount of bulging
+					фMax = фMax + (λMax - λMin)/2; // this is a pretty conservative estimate of the amount of bulging
 				if (фMin < 0)
-					фMin = max(фMin - (λMax - λMin)/2, -PI/2);
+					фMin = фMin - (λMax - λMin)/2;
 				// now you can identify the cells that this triangle spans
-				int iStart = (int) floor((фMin - фBins[0])/(фBins[1] - фBins[0])); // inclusive
-				int iStop = (int) ceil((фMax - фBins[0])/(фBins[1] - фBins[0])); // exclusive
+				int iStart = max((int) floor((фMin - фBins[0])/(фBins[1] - фBins[0])), 0); // inclusive
+				int iStop = min((int) ceil((фMax - фBins[0])/(фBins[1] - фBins[0])), фBins.length - 1); // exclusive
 				int jStart = (int) floor((λMin - λBins[0])/(λBins[1] - λBins[0])); // inclusive
 				int jStop = (int) ceil((λMax - λBins[0])/(λBins[1] - λBins[0])); // exclusive
 				for (int i = iStart; i < iStop; i ++)
