@@ -162,10 +162,10 @@ public class Misc {
 		public double[] project(double lat0, double lon0) {
 			final double d1 = dist(lat0,lon0, lat1,lon1);
 			final double d2 = dist(lat0,lon0, lat2,lon2);
-			final double s =signum(
+			final double s = (
 					tan(lat0)*sin(lon2-lon1) +
 					tan(lat1)*sin(lon0-lon2) +
-					tan(lat2)*sin(lon1-lon0));
+					tan(lat2)*sin(lon1-lon0) > 0) ? 1 : -1;
 			return new double[] {
 					(d1*d1-d2*d2)/(2*D),
 					s*sqrt(d1*d1 - pow((d1*d1-d2*d2+D*D)/(2*D), 2)) };
@@ -176,13 +176,13 @@ public class Misc {
 			final double d2 = hypot(x - c, y);
 			if (d1 + d2 > 2*a) 	return null; //TODO find out why it throws a hissy fit when y=0
 			final double t1 = -(cos(lat1)*sin(lat2) - sin(lat1)*cos(lat2)*cos(lon1-lon2))/sin(D);
-			double t2 = signum(lon1-lon2)*(cos(d1)*cos(D) - cos(d2))/(sin(d1)*sin(D));
-			if (abs(t2) > 1) 	t2 = signum(t2);
-			final double s0 = signum(lon1-lon2)*signum(y);
+			double t2 = (lon1 > lon2 ? 1 : -1)*(cos(d1)*cos(D) - cos(d2))/(sin(d1)*sin(D));
+			t2 = Math.max(-1., Math.min(1., t2));
+			final double s0 = ((lon1 > lon2) == (y > 0)) ? 1 : -1;
 			final double casab = t1*t2 +s0* sqrt((t1*t1 - 1)*(t2*t2 - 1));
-			final double s1 = signum(sin(acos(t1)-s0*acos(t2)));
+			final double s1 = coerceAngle(acos(t1)-s0*acos(t2)) > 0 ? 1 : -1;
 			final double PHI = asin(sin(lat1)*cos(d1) - cos(lat1)*sin(d1)*casab);
-			final double LAM = lon1 +s1* acos((cos(d1) - sin(lat1)*sin(PHI))/(cos(lat1)*cos(PHI)));
+			final double LAM = lon1 + s1*acos((cos(d1) - sin(lat1)*sin(PHI))/(cos(lat1)*cos(PHI)));
 			return new double[] { PHI, coerceAngle(LAM) };
 		}
 		
