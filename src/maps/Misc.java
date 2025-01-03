@@ -160,6 +160,9 @@ public class Misc {
 		}
 		
 		public double[] project(double lat0, double lon0) {
+			if (D == 0.)
+				return Azimuthal.POLAR.project(lat0, lon0, new double[] {lat1, lon1, 0.});
+
 			final double d1 = dist(lat0,lon0, lat1,lon1);
 			final double d2 = dist(lat0,lon0, lat2,lon2);
 			final double s = (
@@ -168,21 +171,27 @@ public class Misc {
 					tan(lat2)*sin(lon1-lon0) > 0) ? 1 : -1;
 			return new double[] {
 					(d1*d1-d2*d2)/(2*D),
-					s*sqrt(d1*d1 - pow((d1*d1-d2*d2+D*D)/(2*D), 2)) };
+					s*sqrt(Math.max(0., d1*d1 - pow((d1*d1-d2*d2+D*D)/(2*D), 2))) };
 		}
 		
 		public double[] inverse(double x, double y) {
+			if (D == 0.)
+				return Azimuthal.POLAR.inverse(x, y, new double[] {lat1, lon1, 0.}, false);
+			
 			final double d1 = hypot(x + c, y);
 			final double d2 = hypot(x - c, y);
 			if (d1 + d2 > 2*a) 	return null; //TODO find out why it throws a hissy fit when y=0
-			final double t1 = -(cos(lat1)*sin(lat2) - sin(lat1)*cos(lat2)*cos(lon1-lon2))/sin(D);
+			double t1 = -(cos(lat1)*sin(lat2) - sin(lat1)*cos(lat2)*cos(lon1-lon2))/sin(D);
+			t1 = Math.max(-1., Math.min(1., t1));
 			double t2 = (lon1 > lon2 ? 1 : -1)*(cos(d1)*cos(D) - cos(d2))/(sin(d1)*sin(D));
 			t2 = Math.max(-1., Math.min(1., t2));
 			final double s0 = ((lon1 > lon2) == (y > 0)) ? 1 : -1;
-			final double casab = t1*t2 +s0* sqrt((t1*t1 - 1)*(t2*t2 - 1));
+			final double casab = t1*t2 + s0*sqrt((t1*t1 - 1)*(t2*t2 - 1));
 			final double s1 = coerceAngle(acos(t1)-s0*acos(t2)) > 0 ? 1 : -1;
 			final double PHI = asin(sin(lat1)*cos(d1) - cos(lat1)*sin(d1)*casab);
-			final double LAM = lon1 + s1*acos((cos(d1) - sin(lat1)*sin(PHI))/(cos(lat1)*cos(PHI)));
+			double cosDeltaLon = (cos(d1) - sin(lat1)*sin(PHI))/(cos(lat1)*cos(PHI));
+			cosDeltaLon = Math.max(-1., Math.min(1., cosDeltaLon));
+			final double LAM = lon1 + s1*acos(cosDeltaLon);
 			return new double[] { PHI, coerceAngle(LAM) };
 		}
 		
