@@ -27,7 +27,9 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
+import image.Path;
 import maps.Projection.Property;
 import maps.Projection.Type;
 import utils.Shape;
@@ -95,7 +97,6 @@ public class Danseiji {
 		private double[][][][] cells; // the values of the corner of each cell
 		private int[][] cellShapes; // the slope of each cell
 		private double[][][] pixels; // the pixel values, for inverse mapping
-		private double[][] edge; // the indices of the edge vertices
 		
 		public DanseijiProjection(
 				String title, String description, boolean interrupted, Type type, Property property,
@@ -154,7 +155,6 @@ public class Danseiji {
 			} catch (IOException | NullPointerException | ArrayIndexOutOfBoundsException e) {
 				cells = new double[][][][] {{{{0,0},{0,0},{0,0},{0,0}}}};
 				cellShapes = new int[][] {{0}};
-				edge = new double[][] {{0,0}};
 				pixels = new double[][][] {{{0,0}}};
 				shape = Shape.rectangle(0, 0);
 				e.printStackTrace();
@@ -222,9 +222,11 @@ public class Danseiji {
 		
 		public double[] inverse(double x, double y) { // this linear interpolation is much simpler
 			boolean inside = false;
-			for (int i = 0; i < edge.length; i ++) {
-				double x0 = edge[i][0], y0 = edge[i][1]; // for each segment of the edge
-				double x1 = edge[(i+1)%edge.length][0], y1 = edge[(i+1)%edge.length][1];
+			List<Path.Command> edge = shape.path;
+			int n = edge.size() - 1; // the number of vertices is one less than the path length (to exclude the Z)
+			for (int i = 0; i < n; i ++) {
+				double x0 = edge.get(i).args[0], y0 = edge.get(i).args[1]; // for each segment of the edge
+				double x1 = edge.get(((i+1)%n)).args[0], y1 = edge.get((i+1)%n).args[1];
 				if ((y0 > y) != (y1 > y)) // if the two points fall on either side of a rightward ray from (X,Y)
 					if ((y-y0)/(y1-y0)*(x1-x0)+x0 > x) // and the line between them intersects our ray right of (X,Y)
 						inside = !inside; // toggle the boolean
