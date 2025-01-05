@@ -33,7 +33,10 @@ import utils.NumericalAnalysis;
 import utils.Shape;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static java.lang.Double.NaN;
 import static java.lang.Double.POSITIVE_INFINITY;
@@ -45,10 +48,12 @@ import static java.lang.Math.acos;
 import static java.lang.Math.asin;
 import static java.lang.Math.atan;
 import static java.lang.Math.atan2;
+import static java.lang.Math.ceil;
 import static java.lang.Math.cos;
 import static java.lang.Math.floor;
 import static java.lang.Math.hypot;
 import static java.lang.Math.pow;
+import static java.lang.Math.round;
 import static java.lang.Math.signum;
 import static java.lang.Math.sin;
 import static java.lang.Math.sqrt;
@@ -393,7 +398,7 @@ public class Misc {
 		
 		public void initialize(double... params) {
 			// read in the number of gores and calculate the longitudinal extent of each
-			this.numLemons = (int) Math.round(params[0]);
+			this.numLemons = (int) round(params[0]);
 			this.lemonWidth = 2*PI/numLemons;
 			
 			// to calculate the shape, start by getting the shape of a generic meridian
@@ -444,6 +449,103 @@ public class Misc {
 				latLon[1] += 4*PI;  // mark it as out of bounds if it's out of the bounds of its lemon
 			latLon[1] += lemonCenter;  // set the absolute longitude based on which lemon it is
 			return latLon;
+		}
+	};
+	
+	
+	public static final Projection SPIRAL = new Projection(
+			"Spiral", "Hannah Fry", "A heavily interrupted projection formed by slicing along a spiral, which tends to an Euler spiral when the number of turns is large",
+			null, false, true, true, true, Type.OTHER, Property.COMPROMISE, 2,
+			new String[] {"Number of turns"}, new double[][] {{2, 100, 12}}) {
+
+		/** the total number of turns the spiral makes between the south and north poles */
+		private double nTurns;
+		/** the rate at which the longitude of the strip center increasse for each increase in latitude */
+		private double dλ_dφ;
+		/** the central strip latitude at which the edge of the strip hits the North Pole */
+		private double φMax;
+		/** the x-coordinates of the spiral centerline at some equally-spaced latitudes */
+		private double[] xRef;
+		/** the y-coordinates of the spiral centerline at some equally-spaced latitudes */
+		private double[] yRef;
+		/** the rate of change of x in the spiral centerline with respect to latitude */
+		private double[] vxRef;
+		/** the rate of change of y in the spiral centerline with respect to latitude */
+		private double[] vyRef;
+
+		public void initialize(double... params) {
+			this.nTurns = params[0];
+			this.dλ_dφ = 2*nTurns;
+			// we need to do some numeric integrals here...
+			int nSamples = (int)ceil(6*nTurns);
+			double dφ = PI/nSamples;
+			// integrate to get the velocity at each vertex
+			this.vxRef = new double[nSamples + 1];
+			this.vyRef = new double[nSamples + 1];
+			for (int i = 0; i <= nSamples; i ++) {
+				double φi = -PI/2 + (double) i/nSamples*PI;
+				double vi = hypot(cos(φi)*dλ_dφ, 1);
+				double θi = (cos(φi) - 1)*dλ_dφ + PI/4; // this is the angle between the tangent and straight up (right is +)
+				this.vxRef[i] = vi*sin(θi);
+				this.vyRef[i] = vi*cos(θi);
+			}
+			// then integrate a twoth time to get the location of each vertex
+			this.xRef = new double[nSamples + 1];
+			this.yRef = new double[nSamples + 1];
+			this.xRef[0] = 0.;
+			this.yRef[0] = 0.;
+			for (int i = 1; i <= nSamples; i ++) {
+				this.xRef[i] = this.xRef[i - 1] + dφ*(vxRef[i] + vxRef[i - 1])/2;
+				this.yRef[i] = this.yRef[i - 1] + dφ*(vyRef[i] + vyRef[i - 1])/2;
+			}
+			
+			this.φMax = PI/2 - PI/nTurns/2;
+			
+			// finally, build the outline polygon
+			List<double[]> southEdge = new LinkedList<double[]>();
+			List<double[]> northEdge = new LinkedList<double[]>();
+			int nOutlineSamples = (int)ceil(72*nTurns);
+			for (int i = 0; i <= nOutlineSamples; i ++) {
+				double φi = -φMax + (double) i/nOutlineSamples*2*φMax;
+				double xi = interp(φi, -PI/2, PI/2, xRef, vxRef);
+				double yi = interp(φi, -PI/2, PI/2, yRef, vyRef);
+				double θi = -((cos(φi) - 1)*dλ_dφ + PI/4) - atan(dλ_dφ*cos(φi));
+				southEdge.add(new double[] {xi - PI/nTurns/2*sin(θi), yi + PI/nTurns/2*cos(θi)});
+				northEdge.add(new double[] {xi + PI/nTurns/2*sin(θi), yi - PI/nTurns/2*cos(θi)});
+			}
+			Collections.reverse(northEdge);
+			this.shape = Shape.polygon(Stream.concat(southEdge.stream(), northEdge.stream()).toArray(double[][]::new));
+		}
+
+		public double[] project(double lat, double lon) {
+			double φ0 = (round(lat/PI*nTurns - lon/(2*PI)) + lon/(2*PI))*PI/nTurns;
+			φ0 = Math.max(-φMax, Math.min(φMax, φ0));
+			double λ0 = φ0*dλ_dφ;
+			double x0 = interp(φ0, -PI/2, PI/2, xRef, vxRef);
+			double y0 = interp(φ0, -PI/2, PI/2, yRef, vyRef);
+			double θ = -((cos(φ0) - 1)*dλ_dφ + PI/4);
+			double[] relativeCoordinates = Azimuthal.EQUIDISTANT.project(
+					lat, lon, new double[] {φ0, λ0, -θ - atan(dλ_dφ*cos(φ0))});
+			return new double[] {x0 + relativeCoordinates[0], y0 + relativeCoordinates[1]};
+		}
+
+		public double[] inverse(double x, double y) {
+			return new double[2];
+		}
+
+		private double interp(double x, double xMin, double xMax, double[] yRef, double[] mRef) {
+			double iExact = (x - xMin)/(xMax - xMin)*(yRef.length - 1);
+			int iLeft = Math.max(0, Math.min(yRef.length - 2, (int)floor(iExact)));
+			int iRight = iLeft + 1;
+			double yLeft = yRef[iLeft];
+			double yRight = yRef[iRight];
+			double mLeft = mRef[iLeft]*(xMax - xMin)/(yRef.length - 1);
+			double mRight = mRef[iRight]*(xMax - xMin)/(yRef.length - 1);
+			double δ = iExact - iLeft;
+			return yLeft +
+			       δ*(mLeft +
+			          δ*(3*(yRight - yLeft) - 2*mLeft - mRight +
+			             δ*(2*(yLeft - yRight) + mLeft + mRight)));
 		}
 	};
 	

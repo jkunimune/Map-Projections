@@ -166,7 +166,8 @@ public abstract class MapApplication extends Application {
 			  Danseiji.DANSEIJI_IV, Danseiji.DANSEIJI_V, Danseiji.DANSEIJI_VI },
 			{ Misc.BONNE, Misc.CASSINI, Snyder.GS50, Misc.GUYOU, HammerRetroazimuthal.FULL,
 			  HammerRetroazimuthal.FRONT, HammerRetroazimuthal.BACK, Misc.LEMONS,
-			  Misc.PEIRCE_QUINCUNCIAL, Misc.T_SHIRT, Misc.TWO_POINT_EQUIDISTANT, Misc.FLAT_EARTH },
+			  Misc.PEIRCE_QUINCUNCIAL, Misc.SPIRAL, Misc.T_SHIRT, Misc.TWO_POINT_EQUIDISTANT,
+			  Misc.FLAT_EARTH },
 	};
 	
 	private static final String[] ASPECT_NAMES = {
