@@ -74,7 +74,7 @@ public class Lenticular {
 		}
 		
 		public double[] inverse(double x, double y) {
-			final double[] intermediate = Azimuthal.POLAR.inverse(x/2, y);
+			final double[] intermediate = Azimuthal.EQUIDISTANT.inverse(x/2, y);
 			double[] transverse = transformToOblique(intermediate, new double[] {0, 0, 0});
 			if (transverse != null) 	transverse[1] *= 2;
 			return transverse;

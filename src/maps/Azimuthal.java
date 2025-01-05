@@ -60,7 +60,7 @@ public class Azimuthal {
 	};
 	
 	
-	public static final Projection POLAR = new Projection(
+	public static final Projection EQUIDISTANT = new Projection(
 			"Azimuthal Equidistant", "Abu Rayhan al-Biruni", "An equidistant azimuthal projection",
 			Shape.circle(PI), true, true, true, true, Type.AZIMUTHAL,
 			Property.EQUIDISTANT, 2) {

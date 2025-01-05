@@ -127,7 +127,7 @@ public abstract class MapApplication extends Application {
 	
 	public static final Projection[] FEATURED_PROJECTIONS = { Cylindrical.MERCATOR, // the set of featured projections for the ComboBox
 			Cylindrical.EQUIRECTANGULAR, Cylindrical.EQUAL_AREA, Cylindrical.MILLER,
-			Azimuthal.STEREOGRAPHIC, Azimuthal.POLAR, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
+			Azimuthal.STEREOGRAPHIC, Azimuthal.EQUIDISTANT, Azimuthal.EQUAL_AREA, Azimuthal.GNOMONIC,
 			Azimuthal.PERSPECTIVE, Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS,
 			Pseudocylindrical.SINUSOIDAL, Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER,
 			Lenticular.VAN_DER_GRINTEN, ArbitraryPseudocylindrical.ROBINSON,
@@ -141,7 +141,7 @@ public abstract class MapApplication extends Application {
 			  Cylindrical.GALL_STEREOGRAPHIC, Cylindrical.HOBO_DYER, Cylindrical.LAMBERT,
 			  Cylindrical.MERCATOR, Cylindrical.MILLER, Cylindrical.CENTRAL,
 			  Cylindrical.PLATE_CARREE },
-			{ Azimuthal.EQUAL_AREA, Azimuthal.POLAR, Azimuthal.GNOMONIC, Azimuthal.MAGNIFIER,
+			{ Azimuthal.EQUAL_AREA, Azimuthal.EQUIDISTANT, Azimuthal.GNOMONIC, Azimuthal.MAGNIFIER,
 			  Azimuthal.ORTHOGRAPHIC, Azimuthal.PERSPECTIVE, Azimuthal.STEREOGRAPHIC },
 			{ Conic.ALBERS, Misc.BRAUN_CONIC, Conic.LAMBERT, Conic.EQUIDISTANT },
 			{ Polyhedral.AUTHAGRAPH, Polyhedral.AUTHAGRAPH_ALT,

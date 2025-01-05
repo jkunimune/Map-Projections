@@ -76,7 +76,7 @@ public class MapPlotter extends Application {
 	private static final Projection[] CYLINDRICAL = { Cylindrical.MERCATOR,
 			Cylindrical.PLATE_CARREE, Cylindrical.GALL_ORTHOGRAPHIC,
 			Cylindrical.GALL_STEREOGRAPHIC };
-	private static final Projection[] AZIMUTHAL = { Azimuthal.POLAR };
+	private static final Projection[] AZIMUTHAL = { Azimuthal.EQUIDISTANT };
 	private static final Projection[] PSEUDOCYL = { Pseudocylindrical.MOLLWEIDE,
 			ArbitraryPseudocylindrical.ROBINSON, ArbitraryPseudocylindrical.NATURAL_EARTH,
 			Pseudocylindrical.KAVRAYSKIY_VII, EqualEarth.EQUAL_EARTH, Pseudocylindrical.ECKERT_IV };

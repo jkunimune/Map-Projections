@@ -69,7 +69,7 @@ public class MapProducer extends Application {
 					ArbitraryPseudocylindrical.ROBINSON, ArbitraryPseudocylindrical.NATURAL_EARTH,
 					Tobler.TOBLER, Lenticular.AITOFF, Lenticular.HAMMER, WinkelTripel.WINKEL_TRIPEL,
 					Lenticular.VAN_DER_GRINTEN, EqualEarth.EQUAL_EARTH, Conic.EQUIDISTANT,
-					Conic.LAMBERT, Conic.ALBERS, Azimuthal.POLAR, Azimuthal.GNOMONIC,
+					Conic.LAMBERT, Conic.ALBERS, Azimuthal.EQUIDISTANT, Azimuthal.GNOMONIC,
 					Azimuthal.EQUAL_AREA, Azimuthal.STEREOGRAPHIC, Azimuthal.ORTHOGRAPHIC,
 					Azimuthal.PERSPECTIVE, Misc.TWO_POINT_EQUIDISTANT,
 					Misc.PEIRCE_QUINCUNCIAL.transverse("Adams Doubly-Periodic"),

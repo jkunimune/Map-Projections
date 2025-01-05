@@ -62,7 +62,7 @@ public class MapExplainer extends Application {
 			{ Cylindrical.MERCATOR, Cylindrical.PLATE_CARREE, Cylindrical.GALL_ORTHOGRAPHIC,
 					Cylindrical.HOBO_DYER, Cylindrical.BEHRMANN, Cylindrical.LAMBERT,
 					Cylindrical.GALL_STEREOGRAPHIC, Azimuthal.STEREOGRAPHIC.transverse(),
-					Azimuthal.POLAR.transverse(), Azimuthal.EQUAL_AREA.transverse(),
+					Azimuthal.EQUIDISTANT.transverse(), Azimuthal.EQUAL_AREA.transverse(),
 					Azimuthal.GNOMONIC.transverse(), Azimuthal.ORTHOGRAPHIC.transverse(),
 					Conic.LAMBERT, Conic.EQUIDISTANT, Conic.ALBERS, Pseudocylindrical.SINUSOIDAL,
 					Pseudocylindrical.MOLLWEIDE, Tobler.TOBLER, Lenticular.AITOFF,

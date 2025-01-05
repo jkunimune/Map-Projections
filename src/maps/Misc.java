@@ -161,7 +161,7 @@ public class Misc {
 		
 		public double[] project(double lat0, double lon0) {
 			if (D == 0.)
-				return Azimuthal.POLAR.project(lat0, lon0, new double[] {lat1, lon1, 0.});
+				return Azimuthal.EQUIDISTANT.project(lat0, lon0, new double[] {lat1, lon1, 0.});
 
 			final double d1 = dist(lat0,lon0, lat1,lon1);
 			final double d2 = dist(lat0,lon0, lat2,lon2);
@@ -176,7 +176,7 @@ public class Misc {
 		
 		public double[] inverse(double x, double y) {
 			if (D == 0.)
-				return Azimuthal.POLAR.inverse(x, y, new double[] {lat1, lon1, 0.}, false);
+				return Azimuthal.EQUIDISTANT.inverse(x, y, new double[] {lat1, lon1, 0.}, false);
 			
 			final double d1 = hypot(x + c, y);
 			final double d2 = hypot(x - c, y);
@@ -384,7 +384,7 @@ public class Misc {
 	
 	
 	public static final Projection LEMONS = new Projection(
-			"Gores", "(unknown)", "A heavily interrupted projection that can be pasted onto a globe",
+			"Gores", "(unknown)", "A heavily interrupted projection formed by slicing along lines of longitude, commonly used for constructing globes",
 			null, false, true, true, true, Type.OTHER, Property.COMPROMISE, 2,
 			new String[] {"Number of gores"}, new double[][] {{4, 72, 12}}) {
 		
@@ -517,7 +517,7 @@ public class Misc {
 		public List<Path.Command> drawGraticule(
 				double spacing, boolean sparsePole, double precision, double outW, double outH,
 				double maxLat, double maxLon, double[] pole) {
-			return Azimuthal.POLAR.drawGraticule(spacing, sparsePole, precision, outW, outH, maxLat, maxLon, null);
+			return Azimuthal.EQUIDISTANT.drawGraticule(spacing, sparsePole, precision, outW, outH, maxLat, maxLon, null);
 		}
 	};
 	
