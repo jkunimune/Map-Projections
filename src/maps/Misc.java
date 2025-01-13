@@ -33,10 +33,8 @@ import utils.NumericalAnalysis;
 import utils.Shape;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static java.lang.Double.NaN;
 import static java.lang.Double.POSITIVE_INFINITY;
@@ -456,11 +454,11 @@ public class Misc {
 	public static final Projection SPIRAL = new Projection(
 			"Spiral", "Hannah Fry", "A heavily interrupted projection formed by slicing along a spiral, which tends to an Euler spiral when the number of turns is large",
 			null, false, true, true, true, Type.OTHER, Property.COMPROMISE, 2,
-			new String[] {"Number of turns"}, new double[][] {{2, 100, 12}}) {
+			new String[] {"Number of turns"}, new double[][] {{2, 24, 6}}) {
 
 		/** the total number of turns the spiral makes between the south and north poles */
 		private double nTurns;
-		/** the rate at which the longitude of the strip center increasse for each increase in latitude */
+		/** the rate at which the longitude of the strip center increases for each increase in latitude */
 		private double dλ_dφ;
 		/** the central strip latitude at which the edge of the strip hits the North Pole */
 		private double φMax;
@@ -472,12 +470,18 @@ public class Misc {
 		private double[] vxRef;
 		/** the rate of change of y in the spiral centerline with respect to latitude */
 		private double[] vyRef;
+		/** the x coordinate of the North Pole */
+		private double xPole;
+		/** the y coordinate of the North Pole */
+		private double yPole;
+		/** the northward direction along the prime meridian at the north pole (relative to +y; right is positive) */
+		private double θPole;
 
 		public void initialize(double... params) {
 			this.nTurns = params[0];
 			this.dλ_dφ = 2*nTurns;
 			// we need to do some numeric integrals here...
-			int nSamples = (int)ceil(6*nTurns);
+			int nSamples = (int)ceil(3*nTurns)*2;
 			double dφ = PI/nSamples;
 			// integrate to get the velocity at each vertex
 			this.vxRef = new double[nSamples + 1];
@@ -492,47 +496,125 @@ public class Misc {
 			// then integrate a twoth time to get the location of each vertex
 			this.xRef = new double[nSamples + 1];
 			this.yRef = new double[nSamples + 1];
-			this.xRef[0] = 0.;
-			this.yRef[0] = 0.;
-			for (int i = 1; i <= nSamples; i ++) {
+			this.xRef[nSamples/2] = 0.;
+			this.yRef[nSamples/2] = 0.;
+			for (int i = nSamples/2 + 1; i <= nSamples; i ++) {
 				this.xRef[i] = this.xRef[i - 1] + dφ*(vxRef[i] + vxRef[i - 1])/2;
 				this.yRef[i] = this.yRef[i - 1] + dφ*(vyRef[i] + vyRef[i - 1])/2;
 			}
+			// go both ways so that it's symmetric
+			for (int i = 0; i < nSamples/2; i ++) {
+				this.xRef[i] = -this.xRef[nSamples - i];
+				this.yRef[i] = -this.yRef[nSamples - i];
+			}
 			
-			this.φMax = PI/2 - PI/nTurns/2;
+			// calculate properties of the pole
+			this.φMax = PI/2 - PI/nTurns/2; // terminate the spiral one half-turn before the pole
+			double[] poleCoordinates = projectFrom(φMax, PI/2);
+			xPole = poleCoordinates[0];
+			yPole = poleCoordinates[1];
+			θPole = (cos(φMax) - 1)*dλ_dφ + PI/4 - atan(dλ_dφ*cos(φMax)) + dλ_dφ*φMax; // the north direction along λ==0 at the north pole (up is 0, right is positive)
 			
 			// finally, build the outline polygon
-			List<double[]> southEdge = new LinkedList<double[]>();
-			List<double[]> northEdge = new LinkedList<double[]>();
+			List<double[]> outline = new LinkedList<double[]>();
 			int nOutlineSamples = (int)ceil(72*nTurns);
 			for (int i = 0; i <= nOutlineSamples; i ++) {
-				double φi = -φMax + (double) i/nOutlineSamples*2*φMax;
-				double xi = interp(φi, -PI/2, PI/2, xRef, vxRef);
-				double yi = interp(φi, -PI/2, PI/2, yRef, vyRef);
-				double θi = -((cos(φi) - 1)*dλ_dφ + PI/4) - atan(dλ_dφ*cos(φi));
-				southEdge.add(new double[] {xi - PI/nTurns/2*sin(θi), yi + PI/nTurns/2*cos(θi)});
-				northEdge.add(new double[] {xi + PI/nTurns/2*sin(θi), yi - PI/nTurns/2*cos(θi)});
+				double φi = -φMax + (double) i/nOutlineSamples*(2*φMax + PI/nTurns);
+				outline.add(projectFrom(φi, φi - PI/nTurns/2));
 			}
-			Collections.reverse(northEdge);
-			this.shape = Shape.polygon(Stream.concat(southEdge.stream(), northEdge.stream()).toArray(double[][]::new));
+			for (int i = 0; i <= nOutlineSamples; i ++) {
+				double φi = φMax - (double) i/nOutlineSamples*(2*φMax + PI/nTurns);
+				outline.add(projectFrom(φi, φi + PI/nTurns/2));
+			}
+			this.shape = Shape.polygon(outline.toArray(new double[0][]));
 		}
 
 		public double[] project(double lat, double lon) {
-			double φ0 = (round(lat/PI*nTurns - lon/(2*PI)) + lon/(2*PI))*PI/nTurns;
-			φ0 = Math.max(-φMax, Math.min(φMax, φ0));
-			double λ0 = φ0*dλ_dφ;
-			double x0 = interp(φ0, -PI/2, PI/2, xRef, vxRef);
-			double y0 = interp(φ0, -PI/2, PI/2, yRef, vyRef);
-			double θ = -((cos(φ0) - 1)*dλ_dφ + PI/4);
-			double[] relativeCoordinates = Azimuthal.EQUIDISTANT.project(
-					lat, lon, new double[] {φ0, λ0, -θ - atan(dλ_dφ*cos(φ0))});
-			return new double[] {x0 + relativeCoordinates[0], y0 + relativeCoordinates[1]};
+			// calculate the spiral parameter for this longitude in this latitude neiborhood
+			double φ0 = (round(lat/PI*nTurns - lon/(2*PI))*2*PI + lon)/dλ_dφ;
+			return projectFrom(φ0, lat);
 		}
-
+		
+		/**
+		 * project a point, assuming it is longitudinally in line with a particular
+		 * reference point on the spiral centerline
+		 */
+		private double[] projectFrom(double φ0, double φ) {
+			double λ = φ0*dλ_dφ;
+			// for most latitudes, project onto a line bisected by the spiral
+			if (abs(φ0) <= φMax) {
+				double θSpiral = (cos(φ0) - 1)*dλ_dφ + PI/4; // the direction along the spiral (up is 0, right is positive)
+				double θNorth = θSpiral - atan(dλ_dφ*cos(φ0)); // the direction of Δφ>0
+				double x0 = interp(φ0, -PI/2, PI/2, xRef, vxRef); // the coordinates of the reference point
+				double y0 = interp(φ0, -PI/2, PI/2, yRef, vyRef);
+				return new double[]{
+						x0 + (φ - φ0)*sin(θNorth),
+						y0 + (φ - φ0)*cos(θNorth) };
+			}
+			// for polar latitudes, switch to a continuus projection from the pole
+			else { // NOTE: the constructor must initialize xPole and yPole before this branch can be called
+				double sign = signum(φ0);
+				return new double[] {
+						sign*xPole + (φ - sign*PI/2)*sin(θPole - sign*λ),
+						sign*yPole + (φ - sign*PI/2)*cos(θPole - sign*λ) };
+			}
+		}
+		
 		public double[] inverse(double x, double y) {
-			return new double[2];
+			int nScan = (int) ceil(4/PI*nTurns*nTurns);
+			double closestPoint = NaN;
+			double closestDistance = POSITIVE_INFINITY;
+			for (int i = 0; i <= nScan; i ++) {
+				double φ0 = asin(-1 + (double) i/nScan*2); // TODO: it might be more efficient if I have these concentrate in the polar region
+				double x0 = interp(φ0, -PI/2, PI/2, xRef, vxRef);
+				double y0 = interp(φ0, -PI/2, PI/2, yRef, vyRef);
+				double distance = hypot(x - x0, y - y0);
+				if (distance < closestDistance) {
+					closestPoint = φ0;
+					closestDistance = distance;
+				}
+			}
+			if (closestDistance < 1) { // TODO: make this limit more rigorus
+				// TODO: it should refine closestPoint by optimizing to minimize abs(inverseFrom()[1] - λ0)
+				double[] result = inverseFrom(closestPoint, x, y);
+				if (abs(result[0] - closestPoint) > PI/nTurns/2)
+					result[1] += 2*PI; // mark it as out of bounds if the latitude discrepancy is too high
+				return result;
+			}
+			else {
+				return null;
+			}
 		}
-
+		
+		/**
+		 * inverse-project a point, assuming a particular reference point on the spiral centerline
+		 */
+		private double[] inverseFrom(double φ0, double x, double y) {
+			double λ0 = φ0*dλ_dφ;
+			// for most latitudes, do an equirectangular projection centered on the reference point
+			if (abs(φ0) <= φMax) {
+				double θSpiral = (cos(φ0) - 1)*dλ_dφ + PI/4; // the direction along the spiral (up is 0, right is positive)
+				double θNorth = θSpiral - atan(dλ_dφ*cos(φ0)); // the direction of Δφ>0
+				double x0 = interp(φ0, -PI/2, PI/2, xRef, vxRef); // the coordinates of the reference point
+				double y0 = interp(φ0, -PI/2, PI/2, yRef, vyRef);
+				double[] result = {
+						φ0 + (x - x0)*sin(θNorth) + (y - y0)*cos(θNorth),
+						λ0 + ((x - x0)*cos(θNorth) - (y - y0)*sin(θNorth))/cos(φ0) };
+				result[1] = coerceAngle(result[1]);
+				return result;
+			}
+			// for polar latitudes, switch to an azimuthal projection centered on the pole
+			else {
+				double sign = signum(φ0);
+				if (φ0 < -φMax) {
+					System.out.println(sign);
+				}
+				return new double[] {
+						sign*(PI/2 - hypot(x - sign*xPole, y - sign*yPole)),
+						sign*coerceAngle(θPole - atan2(xPole - sign*x, yPole - sign*y)) };
+			}
+		}
+		
 		private double interp(double x, double xMin, double xMax, double[] yRef, double[] mRef) {
 			double iExact = (x - xMin)/(xMax - xMin)*(yRef.length - 1);
 			int iLeft = Math.max(0, Math.min(yRef.length - 2, (int)floor(iExact)));
