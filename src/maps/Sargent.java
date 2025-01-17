@@ -56,16 +56,19 @@ import static utils.Math2.coerceAngle;
  *
  * @author Justin Kunimune
  */
-public class Liquid {
-
-	public static final LiquidProjection LIQUID_EARTH = new LiquidProjection(
+public class Sargent {
+	
+	public static final SargentProjection LIQUID_EARTH = new SargentProjection(
 			"Liquid Earth", "An equal-area map in the shape of the Equal Earth projection, optimized around the continents",
-			EqualEarth.EQUAL_EARTH, toRadians(11), true, "liquid");
-
-
-	private static class LiquidProjection extends Projection {
+			EqualEarth.EQUAL_EARTH, toRadians(11), true);
+	
+	public static final SargentProjection SOLID_EARTH = new SargentProjection(
+			"Solid Earth", "A map optimised to show off the continents by compressing the oceans",
+			EqualEarth.SARGENT_EQUIVALENT_EARTH, toRadians(11), true);
+	
+	
+	private static class SargentProjection extends Projection {
 		
-		private final String filename; // the data filename
 		private final Projection baseProjection;
 		private final double centralMeridian;
 		private int[][] triangles;
@@ -77,14 +80,13 @@ public class Liquid {
 		private List<int[]>[][] lookupTableTransformed;
 		
 		
-		public LiquidProjection(
+		public SargentProjection(
 				String title, String description, Projection baseProjection,
-				double centralMeridian, boolean based_on_land, String filename) {
+				double centralMeridian, boolean based_on_land) {
 			super(title, "Robert C. Sargent", description, null,
 			      baseProjection.isContinuous(), baseProjection.isComprehensive(), true, true,
 			      Type.OTHER, baseProjection.getProperty(), 4,
 			      new String[0], new double[0][], !based_on_land);
-			this.filename = filename;
 			this.baseProjection = baseProjection;
 			this.centralMeridian = centralMeridian;
 		}
@@ -142,13 +144,17 @@ public class Liquid {
 		}
 		
 		
+		/**
+		 * find the triangle (represented as an array of three vertex indices) that contains the given point, using a
+		 * table of cached triangle locations to do so efficiently.
+		 */
 		private static int[] findContainingTriangle(
 				double[] фBins, double[] λBins, List<int[]>[][] lookupTable,
 				Vector[] vertices, double ф, double λ) {
 			λ = coerceAngle(λ);
 			Vector point = new Vector(cos(ф)*cos(λ), cos(ф)*sin(λ), sin(ф));
-			int i = (int) floor((ф - фBins[0])/(фBins[1] - фBins[0]));
-			int j = (int) floor((λ - λBins[0])/(λBins[1] - λBins[0]));
+			int i = min((int) floor((ф - фBins[0])/(фBins[1] - фBins[0])), фBins.length - 2);
+			int j = min((int) floor((λ - λBins[0])/(λBins[1] - λBins[0])), λBins.length - 2);
 			triangleLoop:
 			for (int[] triangle: lookupTable[i][j]) {
 				for (int k = 0; k < 3; k ++) {
@@ -216,14 +222,15 @@ public class Liquid {
 				return;
 			
 			// load the files
+			String filename = "res/" + this.getName().replace(" ", "_") + "_mesh";
 			double[][] verticesInitial, verticesTransformed;
 			int[][] triangles;
 			try {
-				verticesInitial = readNumpyFloatArray("res/" + this.filename + "_vertices_initial.npy");
-				verticesTransformed = readNumpyFloatArray("res/" + this.filename + "_vertices_transformed.npy");
-				triangles = readNumpyIntArray("res/" + this.filename + "_triangles.npy");
+				verticesInitial = readNumpyFloatArray(filename + "_verts_initial.npy");
+				verticesTransformed = readNumpyFloatArray(filename + "_verts_transformed.npy");
+				triangles = readNumpyIntArray(filename + "_tris.npy");
 			} catch (IOException e) {
-				throw new IllegalArgumentException("couldn't read the config file for this Liquid Projection: " + e);
+				throw new IllegalArgumentException("couldn't read the config file for this Sargent Projection: " + e);
 			}
 			if (verticesInitial.length != verticesTransformed.length)
 				throw new IllegalArgumentException("the initial vertices file and the transformed vertices files don't match.");
@@ -251,6 +258,15 @@ public class Liquid {
 		}
 		
 		
+		/**
+		 * build a table that will allow us to efficiently determine which triangles might contain a given pixel.
+		 * the output will be a table with фBins.length - 1 rows and λBins.length - 1 collums.  each entry i,j will be
+		 * a list of triangles that contact at least one point in the range
+		 *     фBins[i] <= ф <= фBins[i + 1] && λBins[j] <= λ <= λBins[j]
+		 * thus, if you need to find the triangle that contains a given point, you can find a cell of the table that
+		 * contains that point, and then you only need to check the contained triangles rather than every triangle in
+		 * the mesh.
+		 */
 		private static List<int[]>[][] cacheTriangleLocations(
 				int[][] triangles, Vector[] vertices, double[] фBins, double[] λBins) {
 			@SuppressWarnings("unchecked")

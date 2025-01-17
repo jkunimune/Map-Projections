@@ -49,8 +49,8 @@ public class EqualEarth {
 	
 	
 	public static final Projection EQUAL_EARTH = new Projection(
-			"Equal Earth", "B. Savric, T. Patterson, and B. Jenny", "An equal-area pseudocylindrical projection specifically designed to woo Gall-Peters supporters away from that horrid thing",
-			null, true, true, true, true, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
+			"Equal Earth", "B. Savric, Tom Patterson, and B. Jenny", "An equal-area pseudocylindrical projection specifically designed to woo Gall-Peters supporters away from that horrid thing",
+			null, true, true, true, false, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 3) {
 		
 		public double[] project(double lat, double lon) {
 			double th = asin(B*sin(lat));
@@ -61,6 +61,31 @@ public class EqualEarth {
 			double th = NumericalAnalysis.newtonRaphsonApproximation(
 					y, y/Y_SCALE, EqualEarth::poly9, EqualEarth::poly8, 1e-6);
 			return new double[] { asin(sin(th)/B), x*B/cos(th)*poly8(th) };
+		}
+		
+		public void initialize(double... params) throws IllegalArgumentException {
+			this.shape = Shape.meridianEnvelope(this);
+		}
+	};
+	
+	
+	public static final Projection SARGENT_EQUIVALENT_EARTH = new Projection(
+			"Equivalent Earth", "R. Sargent", "An equal-area pseudocylindrical projection based on the Equal Earth projection and the cylindrical equal area projection, used as the base of the Solid Earth projection",
+			null, true, true, true, false, Type.PSEUDOCYLINDRICAL, Property.EQUAL_AREA, 2) {
+		
+		public double[] project(double lat, double lon) {
+			double th = asin(B*sin(lat));
+			return new double[] {
+					lon/(0.3*B*poly8(th)/cos(th) + 0.7*1.4),
+					0.3*poly9(th) + 0.7*1.4*sin(th)/B };
+		}
+		
+		public double[] inverse(double x, double y) {
+			double th = NumericalAnalysis.newtonRaphsonApproximation(
+					y, y/Y_SCALE,
+					(double th_) -> 0.3*poly9(th_) + 0.7*1.4*sin(th_)/B,
+					(double th_) -> 0.3*poly8(th_) + 0.7*1.4*cos(th_)/B, 1e-6);
+			return new double[] { asin(sin(th)/B), x*(0.3*B*poly8(th)/cos(th) + 0.7*1.4) };
 		}
 		
 		public void initialize(double... params) throws IllegalArgumentException {

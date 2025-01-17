@@ -606,9 +606,6 @@ public class Misc {
 			// for polar latitudes, switch to an azimuthal projection centered on the pole
 			else {
 				double sign = signum(φ0);
-				if (φ0 < -φMax) {
-					System.out.println(sign);
-				}
 				return new double[] {
 						sign*(PI/2 - hypot(x - sign*xPole, y - sign*yPole)),
 						sign*coerceAngle(θPole - atan2(xPole - sign*x, yPole - sign*y)) };

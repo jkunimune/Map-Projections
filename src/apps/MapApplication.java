@@ -75,7 +75,7 @@ import maps.EqualEarth;
 import maps.Gyorffy;
 import maps.HammerRetroazimuthal;
 import maps.Lenticular;
-import maps.Liquid;
+import maps.Sargent;
 import maps.Misc;
 import maps.Octahedral;
 import maps.Polyhedral;
@@ -161,7 +161,7 @@ public abstract class MapApplication extends Application {
 			  Lenticular.HAMMER, Lenticular.LAGRANGE, Lenticular.STREBE_95,
 			  Lenticular.VAN_DER_GRINTEN, Lenticular.WAGNER_VIII, WinkelTripel.WINKEL_TRIPEL },
 			{ Elastic.ELASTIC_I, Elastic.ELASTIC_II, Elastic.ELASTIC_III,
-			  Liquid.LIQUID_EARTH,
+			  Sargent.LIQUID_EARTH, Sargent.SOLID_EARTH,
 			  Danseiji.DANSEIJI_N, Danseiji.DANSEIJI_I, Danseiji.DANSEIJI_II, Danseiji.DANSEIJI_III,
 			  Danseiji.DANSEIJI_IV, Danseiji.DANSEIJI_V, Danseiji.DANSEIJI_VI },
 			{ Misc.BONNE, Misc.CASSINI, Snyder.GS50, Misc.GUYOU, HammerRetroazimuthal.FULL,
