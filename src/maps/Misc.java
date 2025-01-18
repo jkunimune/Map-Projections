@@ -183,7 +183,7 @@ public class Misc {
 			
 			final double d1 = hypot(x + c, y);
 			final double d2 = hypot(x - c, y);
-			if (d1 + d2 > 2*a) 	return null; //TODO find out why it throws a hissy fit when y=0
+			if (d1 + d2 > 2*a) 	return null;
 			double t1 = -(cos(lat1)*sin(lat2) - sin(lat1)*cos(lat2)*cos(lon1-lon2))/sin(D);
 			t1 = Math.max(-1., Math.min(1., t1));
 			double t2 = (lon1 > lon2 ? 1 : -1)*(cos(d1)*cos(D) - cos(d2))/(sin(d1)*sin(D));
@@ -454,7 +454,7 @@ public class Misc {
 	public static final Projection SPIRAL = new Projection(
 			"Spiral", "Hannah Fry", "A heavily interrupted projection formed by slicing along a spiral, which tends to an Euler spiral when the number of turns is large",
 			null, false, true, true, true, Type.OTHER, Property.COMPROMISE, 2,
-			new String[] {"Number of turns"}, new double[][] {{2, 24, 6}}) {
+			new String[] {"Number of turns"}, new double[][] {{2, 12, 6}}) {
 
 		/** the total number of turns the spiral makes between the south and north poles */
 		private double nTurns;
@@ -562,22 +562,32 @@ public class Misc {
 		
 		public double[] inverse(double x, double y) {
 			int nScan = (int) ceil(4/PI*nTurns*nTurns);
-			double closestPoint = NaN;
+			double closest_φ0 = NaN;
 			double closestDistance = POSITIVE_INFINITY;
 			for (int i = 0; i <= nScan; i ++) {
-				double φ0 = asin(-1 + (double) i/nScan*2); // TODO: it might be more efficient if I have these concentrate in the polar region
-				double x0 = interp(φ0, -PI/2, PI/2, xRef, vxRef);
-				double y0 = interp(φ0, -PI/2, PI/2, yRef, vyRef);
-				double distance = hypot(x - x0, y - y0);
+				double φ0 = -PI/2 + (double) i/nScan*PI;
+				double[] spiralPoint = projectFrom(φ0, φ0);
+				double distance = hypot(x - spiralPoint[0], y - spiralPoint[1]);
 				if (distance < closestDistance) {
-					closestPoint = φ0;
+					closest_φ0 = φ0;
 					closestDistance = distance;
 				}
 			}
-			if (closestDistance < 1) { // TODO: make this limit more rigorus
-				// TODO: it should refine closestPoint by optimizing to minimize abs(inverseFrom()[1] - λ0)
-				double[] result = inverseFrom(closestPoint, x, y);
-				if (abs(result[0] - closestPoint) > PI/nTurns/2)
+			if (closestDistance < PI/nTurns) {
+				// try to find a point in this vicinity of the spiral whose meridian intersects this point
+				double longitudeMismatch = coerceAngle(inverseFrom(closest_φ0, x, y)[1] - closest_φ0*dλ_dφ);
+				closest_φ0 = closest_φ0 + longitudeMismatch/dλ_dφ;
+				try {
+					closest_φ0 = NumericalAnalysis.bisectionFind(
+							(double φ0) -> coerceAngle(inverseFrom(φ0, x, y)[1] - φ0*dλ_dφ),
+							closest_φ0 - 0.5/dλ_dφ, closest_φ0 + 0.5/dλ_dφ, 1e-3
+					);
+				} catch (NumericalAnalysis.AlgorithmFailedException e) {
+					// if that fails, it's probably out of bounds anyway
+					return null;
+				}
+				double[] result = inverseFrom(closest_φ0, x, y);
+				if (abs(result[0] - closest_φ0) > PI/nTurns/2)
 					result[1] += 2*PI; // mark it as out of bounds if the latitude discrepancy is too high
 				return result;
 			}

@@ -32,6 +32,7 @@ import utils.Shape;
 
 import java.util.Arrays;
 
+import static java.lang.Double.NaN;
 import static java.lang.Double.isNaN;
 import static java.lang.Math.PI;
 import static java.lang.Math.abs;
@@ -414,9 +415,14 @@ public class Lenticular {
 			else if (y == 0)
 				return new double[] {0, x};
 			
-			double lat = NumericalAnalysis.bisectionFind(
-					(ph)->(pow(x, 2) + pow(y - ph, 2) - 2*(y - ph)/tan(ph)),
-					0, PI/2, 1e-4);
+			double lat;
+			try {
+				lat = NumericalAnalysis.bisectionFind(
+						(ph)->(pow(x, 2) + pow(y - ph, 2) - 2*(y - ph)/tan(ph)),
+						0, PI/2, 1e-4);
+			} catch (NumericalAnalysis.AlgorithmFailedException e) {
+				lat = NaN;
+			}
 			if (isNaN(lat))
 				return null;
 			return new double[] { lat, atan2(x, -(y - lat - 1/tan(lat)))/sin(lat) };

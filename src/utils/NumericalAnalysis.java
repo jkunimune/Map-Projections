@@ -154,12 +154,13 @@ public class NumericalAnalysis {
 	 * @param tolerance The maximum error in x that this can return
 	 * @return The value of x that sets f to zero
 	 */
-	public static double bisectionFind(DoubleUnaryOperator f,
-	                                   double xMin, double xMax, double tolerance) {
+	public static double bisectionFind(
+			DoubleUnaryOperator f, double xMin, double xMax, double tolerance
+	) throws AlgorithmFailedException {
 		double yMin = f.applyAsDouble(xMin);
 		double yMax = f.applyAsDouble(xMax);
 		if ((yMin < 0) == (yMax < 0))
-			throw new IllegalArgumentException("Bisection failed; bounds "+xMin+" and "+xMax+" do not necessarily straddle a zero.");
+			throw new AlgorithmFailedException("Bisection failed; bounds "+xMin+" and "+xMax+" do not necessarily straddle a zero.");
 		while (abs(xMax - xMin) > tolerance) {
 			double x = (xMax + xMin)/2;
 			double y = f.applyAsDouble(x);
@@ -355,6 +356,12 @@ public class NumericalAnalysis {
 	@FunctionalInterface
 	public interface VectorFunction {
 		double evaluate(double x, double y, double[] constants);
+	}
+	
+	public static class AlgorithmFailedException extends Exception {
+		public AlgorithmFailedException(String message) {
+			super(message);
+		}
 	}
 
 }
