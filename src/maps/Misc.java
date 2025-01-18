@@ -561,11 +561,21 @@ public class Misc {
 		}
 		
 		public double[] inverse(double x, double y) {
-			int nScan = (int) ceil(4/PI*nTurns*nTurns);
+			// first, check if it can be consistently projected from a pole
+			for (int sign = -1; sign <= 1; sign += 2) {
+				double[] inverseFromPole = inverseFrom(sign*PI/2, x, y);
+				double φ = inverseFromPole[0];
+				double λ = inverseFromPole[1];
+				if (sign*(round(φ/PI*nTurns - λ/(2*PI))*2*PI + λ) > φMax*dλ_dφ) {
+					return inverseFromPole; // if so, we have our anser
+				}
+			}
+			// for everything else, you need to find the part of the spiral that most closely matches
+			int nScan = (int) ceil(2/φMax*nTurns*nTurns);
 			double closest_φ0 = NaN;
 			double closestDistance = POSITIVE_INFINITY;
 			for (int i = 0; i <= nScan; i ++) {
-				double φ0 = -PI/2 + (double) i/nScan*PI;
+				double φ0 = -φMax + (double) i/nScan*2*φMax;
 				double[] spiralPoint = projectFrom(φ0, φ0);
 				double distance = hypot(x - spiralPoint[0], y - spiralPoint[1]);
 				if (distance < closestDistance) {
@@ -582,13 +592,15 @@ public class Misc {
 							(double φ0) -> coerceAngle(inverseFrom(φ0, x, y)[1] - φ0*dλ_dφ),
 							closest_φ0 - 0.5/dλ_dφ, closest_φ0 + 0.5/dλ_dφ, 1e-3
 					);
-				} catch (NumericalAnalysis.AlgorithmFailedException e) {
-					// if that fails, it's probably out of bounds anyway
-					return null;
+				} catch (NumericalAnalysis.AlgorithmFailedException ignored) {
+					// if that fails, just use whatever φ0 you found before
 				}
 				double[] result = inverseFrom(closest_φ0, x, y);
-				if (abs(result[0] - closest_φ0) > PI/nTurns/2)
-					result[1] += 2*PI; // mark it as out of bounds if the latitude discrepancy is too high
+				// at this point, we should know pretty precisely what the right φ0 was
+				double final_φ0 = closest_φ0 + coerceAngle(result[1] - closest_φ0*dλ_dφ)/dλ_dφ;
+				// use that to mark it as out of bounds if the latitude discrepancy is too high
+				if (abs(result[0] - final_φ0) > PI/nTurns/2)
+					result[1] += 2*PI;
 				return result;
 			}
 			else {
