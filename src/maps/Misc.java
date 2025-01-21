@@ -453,7 +453,7 @@ public class Misc {
 	
 	public static final Projection SPIRAL = new Projection(
 			"Spiral", "Hannah Fry", "A heavily interrupted projection formed by slicing along a spiral, which tends to an Euler spiral when the number of turns is large",
-			null, false, true, true, true, Type.OTHER, Property.COMPROMISE, 2,
+			null, false, true, false, false, Type.OTHER, Property.COMPROMISE, 2,
 			new String[] {"Number of turns"}, new double[][] {{2, 12, 6}}) {
 
 		/** the total number of turns the spiral makes between the south and north poles */
