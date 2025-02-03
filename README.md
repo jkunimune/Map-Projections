@@ -7,6 +7,8 @@ A set of GUI applications to create custom maps of the Earth's surface. There ar
 <img src="output/AuthaGraph indicatrices.png" alt="AuthaGraph imitation with Tissot's indicatrices of distortion" width="300px"/>
 <img src="output/Better Guyou.jpg" alt="Guyou physical map" width="300px"/>
 
+For some examples, check out the `output` folder (all were created with this program but some also involved postprocessing in paint.net). For more information, see [jkunimune.github.io/Map-Projections](https://jkunimune.github.io/Map-Projections).
+
 ## Running the programs
 
 There are three main programs here:
@@ -103,10 +105,8 @@ For localized maps, it doesn't make much of a difference, but the larger the map
 Hundreds have been invented over the past two thousand years.
 Some distort areas, some distort angles, and some distort both.
 Some are widely used, some are hotly debated, and some are only known to a select few corners of the internet.
-The goal of this program is to gather and categorize them, not only for the sake of learning about them (the collection at [map-projections.net](https://map-projections.net/) is far more comprehensive than mine if that's your aim) but also for the sake of using to display arbitrary data.
+The goal of this program is to gather and categorize them, not only for the sake of learning about them (the collection at [map-projections.net](https://map-projections.net/) is far more comprehensive than mine if that's your aim) but also for the sake of using them to display arbitrary data.
 And in oblique aspects!
-
-For some examples, check out the `output` folder (all were created with this program but some also involved some postprocessing in paint.net). For more information, go to [jkunimune.github.io/Map-Projections](https://jkunimune.github.io/Map-Projections).
 
 ## Credits
 While I wrote all of the code in this repository myself, and I created several of the simpler images from scratch, other people did help. Here's a comprehensive list.
