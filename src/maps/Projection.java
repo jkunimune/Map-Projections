@@ -265,8 +265,8 @@ public abstract class Projection {
 		for (int y = 0; y < h; y ++) {
 			for (int x = 0; x < w; x ++)
 				output[y][x] = inverse(
-						((x+0.5)/w-1/2.)*shape.width,
-						(1/2.-(y+0.5)/h)*shape.height, pole, cropAtPi);
+						shape.xMin + (x+0.5)/w*shape.width,
+						shape.yMax - (y+0.5)/h*shape.height, pole, cropAtPi);
 			if (tracker != null)
 				tracker.accept((double)y / (int)h);
 		}
