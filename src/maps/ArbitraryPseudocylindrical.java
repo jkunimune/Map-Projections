@@ -23,16 +23,12 @@
  */
 package maps;
 
-import java.util.Arrays;
-
-import utils.NumericalAnalysis;
 import utils.Shape;
 
 import static java.lang.Math.PI;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
 import static java.lang.Math.toDegrees;
 import static java.lang.Math.toRadians;
+import static utils.NumericalAnalysis.polynomialInterpolate;
 
 /**
  * A class specifically for pseudocylindrical projections that use arbitrary tables of numbers.
@@ -41,7 +37,7 @@ import static java.lang.Math.toRadians;
  */
 public class ArbitraryPseudocylindrical {
 	
-	private static final int ORDER = 2; //half the order of the polynomials used
+	private static final int ORDER = 3; // the order of the polynomials used
 	
 	
 	public static final Projection ROBINSON = new ArbitraryProjection(
@@ -82,21 +78,14 @@ public class ArbitraryPseudocylindrical {
 
 		public double[] project(double lat, double lon) {
 			return new double[] {
-					lon/PI*smartInterpolate(toDegrees(lat), table[0], table[1]),
-					yScale*smartInterpolate(toDegrees(lat), table[0], table[2]) };
+					lon/PI*polynomialInterpolate(toDegrees(lat), table[0], table[1], ORDER),
+					yScale*polynomialInterpolate(toDegrees(lat), table[0], table[2], ORDER) };
 		}
 		
 		public double[] inverse(double x, double y) {
 			return new double[] {
-					toRadians(smartInterpolate(y/yScale, table[2], table[0])),
-					PI*x/smartInterpolate(y/yScale, table[2], table[1]) };
-		}
-		
-		private static double smartInterpolate(double x, double[] X, double[] f) {
-			int i = Arrays.binarySearch(X, x);
-			if (i < 0)	i = -i - 1; //if you couldn't find it, don't worry about it
-			return NumericalAnalysis.aitkenInterpolate(
-					x, X, f, max(i - ORDER, 0), min(i + ORDER, X.length)); //call aitken with the correct bounds
+					toRadians(polynomialInterpolate(y/yScale, table[2], table[0], ORDER)),
+					PI*x/polynomialInterpolate(y/yScale, table[2], table[1], ORDER) };
 		}
 		
 	}

@@ -157,8 +157,8 @@ public abstract class MapApplication extends Application {
 			  Gyorffy.B, Gyorffy.D, Pseudocylindrical.KAVRAYSKIY_VII, Pseudocylindrical.MOLLWEIDE,
 			  ArbitraryPseudocylindrical.ROBINSON, Pseudocylindrical.SINUSOIDAL,
 			  Tobler.TOBLER, Pseudocylindrical.WAGNER_II, Pseudocylindrical.WAGNER_V },
-			{ Lenticular.AITOFF, Lenticular.POLYCONIC, Lenticular.EISENLOHR, Gyorffy.E, Gyorffy.F,
-			  Lenticular.HAMMER, Lenticular.LAGRANGE, Lenticular.STREBE_95,
+			{ Lenticular.AITOFF, Lenticular.POLYCONIC, Lenticular.EISENLOHR, Lenticular.CHINA,
+			  Gyorffy.E, Gyorffy.F, Lenticular.HAMMER, Lenticular.LAGRANGE, Lenticular.STREBE_95,
 			  Lenticular.VAN_DER_GRINTEN, Lenticular.WAGNER_VIII, WinkelTripel.WINKEL_TRIPEL },
 			{ Elastic.ELASTIC_I, Elastic.ELASTIC_II, Elastic.ELASTIC_III,
 			  Sargent.LIQUID_EARTH, Sargent.SOLID_EARTH,
@@ -707,4 +707,3 @@ public abstract class MapApplication extends Application {
 		LOAD_INPUT, UPDATE_MAP, SAVE_MAP, SAVE_GRAPH
 	}
 }
-

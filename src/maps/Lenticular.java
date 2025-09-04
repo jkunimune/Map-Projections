@@ -53,6 +53,7 @@ import static java.lang.Math.sqrt;
 import static java.lang.Math.tan;
 import static java.lang.Math.toRadians;
 import static utils.Math2.atan;
+import static utils.NumericalAnalysis.polynomialInterpolate;
 
 /**
  * A class containing map projections with four-way symmetry and curved parallels.
@@ -397,6 +398,7 @@ public class Lenticular {
 	public static final Projection POLYCONIC = new Projection(
 			"American polyconic", "Ferdinand R. Hassler", "A map made for narrow strips of longitude that was really popular with the USGS for a while",
 			null, true, true, true, false, Type.OTHER, Property.EQUIDISTANT, 3) {
+		
 		public double[] project(double lat, double lon) {
 			if (lat == 0)
 				return new double[] {lon, 0};
@@ -405,30 +407,117 @@ public class Lenticular {
 		}
 		
 		public double[] inverse(double x, double y) {
-			if (y < 0) { // the math gets inconvenient in the Southern Hemisphere
-				double[] refl = inverse(x, -y);
-				if (refl == null)
-					return null;
-				else
-					return new double[] {-refl[0], refl[1]};
-			}
-			else if (y == 0)
+			if (y == 0)
 				return new double[] {0, x};
 			
 			double lat;
 			try {
 				lat = NumericalAnalysis.bisectionFind(
-						(ph)->(pow(x, 2) + pow(y - ph, 2) - 2*(y - ph)/tan(ph)),
-						0, PI/2, 1e-4);
+						(ph) -> {
+							if (ph == 0)
+								return y;
+							else
+								return 1/tan(ph) - signum(ph)*hypot(x, y - ph - 1/tan(ph));
+						},
+						-PI/2, PI/2, 1e-4);
 			} catch (NumericalAnalysis.AlgorithmFailedException e) {
 				lat = NaN;
 			}
 			if (isNaN(lat))
 				return null;
-			return new double[] { lat, atan2(x, -(y - lat - 1/tan(lat)))/sin(lat) };
+			return new double[] { lat, atan2(x, -signum(lat)*(y - lat - 1/tan(lat)))/abs(sin(lat)) };
 		}
 
 		public void initialize(double... params) throws IllegalArgumentException {
+			this.shape = Shape.meridianEnvelope(this);
+		}
+	};
+	
+	
+	public static final Projection CHINA = new Projection(
+			"Equal difference latitude polyconic", "Chinese Bureau of Surveying and Mapping",
+			"A compromise projection that's extremely common in China.  This implementation is the one published by Yè Yuǎnzhì in 测绘通报 (2012 Nov), p. 68.",
+			null, true, true, true, false, Type.OTHER, Property.COMPROMISE, 3) {
+		
+		private final double SCALE = 6371116;
+		private final double[] TABLE_LATITUDE = {10, 15, 20, 23.44, 30, 40, 45, 50, 60, 66.56, 70, 75, 80, 90};
+		private final double[] TABLE_RADIUS = {2399.943, 1643.348, 1201.174, 1024.159, 807.634, 618.060, 556.629, 507.561, 430.763, 388.633, 375.478, 372.030, 388.525, 508.062};
+		private final double[] TABLE_ARC = {3.9029, 5.6360, 7.5961, 8.7978, 10.8572, 13.4857, 14.5329, 15.4043, 16.6511, 17.2088, 17.0908, 16.1835, 14.4826, 9.3451};
+		private double[] referenceLatitude;
+		private double[] referenceCurvature;
+		private double[] referenceParallelLength;
+		
+		public double[] project(double lat, double lon) {
+			double y0 = (0.9953537*lat + 0.01476138*lat*lat*lat);
+			double ρ = 1/polynomialInterpolate(lat, referenceLatitude, referenceCurvature, 3);
+			if (Double.isFinite(ρ)) {
+				double δn = polynomialInterpolate(lat, referenceLatitude, referenceParallelLength, 3)/ρ;
+				double δ = δn*1.1*(1 - 1/11.*abs(lon/PI))*lon/PI;
+				return new double[] {ρ*sin(δ), y0 + ρ*(1 - cos(δ))};
+			}
+			else {
+				double xn = polynomialInterpolate(lat, referenceLatitude, referenceParallelLength, 3);
+				double x = xn*1.1*(1 - 1/11.*abs(lon/PI))*lon/PI;
+				return new double[] {x, y0};
+			}
+		}
+		
+		public double[] inverse(double x, double y) {
+			double lat;
+			try {
+				lat = NumericalAnalysis.bisectionFind(
+						(ph) -> {
+							if (ph == 0)
+								return y;
+							double y0 = (0.9953537*ph + 0.01476138*ph*ph*ph);
+							double ρ = 1/polynomialInterpolate(ph, referenceLatitude, referenceCurvature, 3);
+							return ρ - signum(ρ)*hypot(x, y - y0 - ρ);
+						},
+						-PI/2, PI/2, 1e-4);
+			} catch (NumericalAnalysis.AlgorithmFailedException e) {
+				lat = NaN;
+			}
+			if (isNaN(lat))
+				return null;
+			else if (lat == 0) {
+				double xn = polynomialInterpolate(0, referenceLatitude, referenceParallelLength, 3);
+				double lon = signum(x)*PI*(5.5 - sqrt(30.25 - 10*abs(x/xn)));
+				return new double[] {0, lon};
+			}
+
+			double y0 = (0.9953537*lat + 0.01476138*lat*lat*lat);
+			double ρ = 1/polynomialInterpolate(lat, referenceLatitude, referenceCurvature, 3);
+			double δn = polynomialInterpolate(lat, referenceLatitude, referenceParallelLength, 3)/ρ;
+			double δ = atan2(x, -signum(ρ)*(y - y0 - ρ));
+			double lon = signum(δ)*PI*(5.5 - sqrt(30.25 - 10*abs(δ/δn)));
+			return new double[] { lat, lon };
+		}
+		
+		public void initialize(double... params) throws IllegalArgumentException {
+			referenceLatitude = new double[2*TABLE_LATITUDE.length + 1];
+			referenceCurvature = new double[2*TABLE_LATITUDE.length + 1];
+			referenceParallelLength = new double[2*TABLE_LATITUDE.length + 1];
+			for (int i = 0; i < referenceLatitude.length; i ++) {
+				if (i != TABLE_LATITUDE.length) {
+					int j, sign;
+					if (i < TABLE_LATITUDE.length) {
+						j = TABLE_LATITUDE.length - 1 - i;
+						sign = -1;
+					}
+					else {
+						j = i - TABLE_LATITUDE.length - 1;
+						sign = 1;
+					}
+					referenceLatitude[i] = sign*toRadians(TABLE_LATITUDE[j]);
+					referenceCurvature[i] = sign/(TABLE_RADIUS[j]*1e5/SCALE);
+					referenceParallelLength[i] = TABLE_RADIUS[j]*1e5/SCALE*toRadians(TABLE_ARC[j]);
+				}
+				else {
+					referenceLatitude[i] = 0;
+					referenceCurvature[i] = 0;
+					referenceParallelLength[i] = 16500000/SCALE;
+				}
+			}
 			this.shape = Shape.meridianEnvelope(this);
 		}
 	};

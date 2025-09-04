@@ -35,8 +35,9 @@ import static java.lang.Double.POSITIVE_INFINITY;
 import static java.lang.Math.abs;
 import static java.lang.Math.ceil;
 import static java.lang.Math.hypot;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static utils.Math2.determ;
-import static utils.Math2.min;
 
 /**
  * A whole class just for numeric approximation methods
@@ -324,11 +325,15 @@ public class NumericalAnalysis {
 	 * @param x The input value
 	 * @param X The sorted array of inputs on which to interpolate
 	 * @param f The sorted array of outputs on which to interpolate
-	 * @param from The index of the arrays at which to start (inclusive)
-	 * @param to The index of the arrays at which to stop (exclusive)
+	 * @param order the maximum order of the polynomial, or one less than the number of points to use
 	 * @return f(x), approximately
 	 */
-	public static double aitkenInterpolate(double x, double[] X, double[] f, int from, int to) { //map from X to f using elements start to end
+	public static double polynomialInterpolate(double x, double[] X, double[] f, int order) { //map from X to f using elements start to end
+		int k = Arrays.binarySearch(X, x);
+		if (k < 0)	k = -k - 1; //if you couldn't find it, don't worry about it
+		int from = max(k - (order + 1)/2, 0);
+		int to = min(k + (order + 1)/2, X.length);
+		
 		final int N = to - from;
 		final double[][] fx = new double[N][]; // the table of successive approximations
 		
