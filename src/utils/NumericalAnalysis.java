@@ -23,6 +23,7 @@
  */
 package utils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
@@ -38,6 +39,7 @@ import static java.lang.Math.hypot;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static utils.Math2.determ;
+import static utils.Math2.linInterp;
 
 /**
  * A whole class just for numeric approximation methods
@@ -162,8 +164,9 @@ public class NumericalAnalysis {
 		double yMax = f.applyAsDouble(xMax);
 		if ((yMin < 0) == (yMax < 0))
 			throw new AlgorithmFailedException("Bisection failed; bounds "+xMin+" and "+xMax+" do not necessarily straddle a zero.");
+		int numIterations = 0;
 		while (abs(xMax - xMin) > tolerance) {
-			double x = (xMax + xMin)/2;
+			double x = max(.9*xMin + .1*xMax, min(.1*xMin + .9*xMax, linInterp(0, yMin, yMax, xMin, xMax)));
 			double y = f.applyAsDouble(x);
 			if ((y < 0) == (yMin < 0)) {
 				xMin = x;
@@ -171,7 +174,11 @@ public class NumericalAnalysis {
 			}
 			else {
 				xMax = x;
+				yMax = y;
 			}
+			numIterations ++;
+			if (numIterations > 100)
+				throw new AlgorithmFailedException("Bisection failed; we did "+numIterations+" iterations but got nowhere. are you sure f(x) is continuus?");
 		}
 		return (xMax + xMin)/2;
 	}
