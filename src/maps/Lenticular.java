@@ -436,7 +436,7 @@ public class Lenticular {
 	
 	public static final Projection CHINA = new Projection(
 			"Equal difference latitude polyconic", "Chinese Bureau of Surveying and Mapping",
-			"A compromise projection that's extremely common in China.  This implementation is the one published by Yè Yuǎnzhì in 测绘通报 (2012 Nov), p. 68.",
+			"Also known as the 等差分纬线多圆锥 projection – a compromise projection that's extremely common in China.  This implementation uses the equations published by Yè Yuǎnzhì in Cèhuì Tōngbào (2012 Nov), p. 68.",
 			null, true, true, true, false, Type.OTHER, Property.COMPROMISE, 3) {
 		
 		private final double SCALE = 6371116;
@@ -473,7 +473,7 @@ public class Lenticular {
 							double ρ = 1/polynomialInterpolate(ph, referenceLatitude, referenceCurvature, 3);
 							return ρ - signum(ρ)*hypot(x, y - y0 - ρ);
 						},
-						-PI/2, PI/2, 1e-4);
+						-PI/2, PI/2, shape.height*1e-4);
 			} catch (NumericalAnalysis.AlgorithmFailedException e) {
 				lat = NaN;
 			}

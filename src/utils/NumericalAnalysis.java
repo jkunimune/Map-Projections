@@ -23,7 +23,6 @@
  */
 package utils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
@@ -154,7 +153,7 @@ public class NumericalAnalysis {
 	 * @param f The function whose zero must be found
 	 * @param xMin The lower bound for the zero
 	 * @param xMax The upper bound for the zero
-	 * @param tolerance The maximum error in x that this can return
+	 * @param tolerance The maximum error in y that this can return
 	 * @return The value of x that sets f to zero
 	 */
 	public static double bisectionFind(
@@ -162,25 +161,26 @@ public class NumericalAnalysis {
 	) throws AlgorithmFailedException {
 		double yMin = f.applyAsDouble(xMin);
 		double yMax = f.applyAsDouble(xMax);
+		double xBest, yBest;
 		if ((yMin < 0) == (yMax < 0))
 			throw new AlgorithmFailedException("Bisection failed; bounds "+xMin+" and "+xMax+" do not necessarily straddle a zero.");
 		int numIterations = 0;
-		while (abs(xMax - xMin) > tolerance) {
-			double x = max(.9*xMin + .1*xMax, min(.1*xMin + .9*xMax, linInterp(0, yMin, yMax, xMin, xMax)));
-			double y = f.applyAsDouble(x);
-			if ((y < 0) == (yMin < 0)) {
-				xMin = x;
-				yMin = y;
+		do {
+			xBest = max(.9*xMin + .1*xMax, min(.1*xMin + .9*xMax, linInterp(0, yMin, yMax, xMin, xMax)));
+			yBest = f.applyAsDouble(xBest);
+			if ((yBest < 0) == (yMin < 0)) {
+				xMin = xBest;
+				yMin = yBest;
 			}
 			else {
-				xMax = x;
-				yMax = y;
+				xMax = xBest;
+				yMax = yBest;
 			}
 			numIterations ++;
 			if (numIterations > 100)
 				throw new AlgorithmFailedException("Bisection failed; we did "+numIterations+" iterations but got nowhere. are you sure f(x) is continuus?");
-		}
-		return (xMax + xMin)/2;
+		} while (abs(yBest) > tolerance);
+		return xBest;
 	}
 	
 	
