@@ -51,6 +51,7 @@ import static java.lang.Math.sin;
 import static java.lang.Math.sinh;
 import static java.lang.Math.sqrt;
 import static java.lang.Math.tan;
+import static java.lang.Math.toDegrees;
 import static java.lang.Math.toRadians;
 import static utils.Math2.atan;
 import static utils.NumericalAnalysis.polynomialInterpolate;
@@ -436,28 +437,30 @@ public class Lenticular {
 	
 	public static final Projection CHINA = new Projection(
 			"Equal difference latitude polyconic", "Chinese Bureau of Surveying and Mapping",
-			"Also known as the 等差分纬线多圆锥 projection – a compromise projection that's extremely common in China.  This implementation uses the equations published by Yè Yuǎnzhì in Cèhuì Tōngbào (2012 Nov), p. 68.",
+			"Also known as the 等差分纬线多圆锥 projection – a compromise projection that's extremely common in China.  This implementation uses the numbers published by Wú Zhōngxìng in Dìtú Tóuyǐng (1980 Mar), p. 129–138.",
 			null, true, true, true, false, Type.OTHER, Property.COMPROMISE, 3) {
 		
-		private final double SCALE = 6371116;
-		private final double[] TABLE_LATITUDE = {10, 15, 20, 23.44, 30, 40, 45, 50, 60, 66.56, 70, 75, 80, 90};
-		private final double[] TABLE_RADIUS = {2399.943, 1643.348, 1201.174, 1024.159, 807.634, 618.060, 556.629, 507.561, 430.763, 388.633, 375.478, 372.030, 388.525, 508.062};
-		private final double[] TABLE_ARC = {3.9029, 5.6360, 7.5961, 8.7978, 10.8572, 13.4857, 14.5329, 15.4043, 16.6511, 17.2088, 17.0908, 16.1835, 14.4826, 9.3451};
+		private final double EQUATOR_HALF_LENGTH = 165;
+		private final double[] TABLE_LATITUDE = {10, 15, 20, 23.5, 30, 40, 45, 50, 60, 66.5, 70, 75, 80, 90};
+		private final double[] TABLE_RADIUS = {2399.913, 1643.348, 1201.159, 1024.159, 807.634, 618.060, 556.629, 507.561, 430.763, 388.633, 376.078, 372.030, 388.525, 508.062};
+		private final double[] TABLE_ARC = {3.9029, 5.6360, 7.5964, 8.7978, 10.8572, 13.4857, 14.5329, 15.4043, 16.6511, 17.2088, 17.0626, 16.1835, 14.4827, 9.3451};
 		private double[] referenceLatitude;
 		private double[] referenceCurvature;
 		private double[] referenceParallelLength;
 		
 		public double[] project(double lat, double lon) {
-			double y0 = (0.9953537*lat + 0.01476138*lat*lat*lat);
+			lat = toDegrees(lat);
+			lon = toDegrees(lon);
+			double y0 = (1.1068*lat + 0.000005*lat*lat*lat);
 			double ρ = 1/polynomialInterpolate(lat, referenceLatitude, referenceCurvature, 3);
 			if (Double.isFinite(ρ)) {
-				double δn = polynomialInterpolate(lat, referenceLatitude, referenceParallelLength, 3)/ρ;
-				double δ = δn*1.1*(1 - 1/11.*abs(lon/PI))*lon/PI;
+				double δ180 = polynomialInterpolate(lat, referenceLatitude, referenceParallelLength, 3)/ρ;
+				double δ = δ180*1.10*(1 - abs(lon/180.)/11.)*lon/180.;
 				return new double[] {ρ*sin(δ), y0 + ρ*(1 - cos(δ))};
 			}
 			else {
-				double xn = polynomialInterpolate(lat, referenceLatitude, referenceParallelLength, 3);
-				double x = xn*1.1*(1 - 1/11.*abs(lon/PI))*lon/PI;
+				double x180 = polynomialInterpolate(lat, referenceLatitude, referenceParallelLength, 3);
+				double x = x180*1.10*(1 - abs(lon/180.)/11.)*lon/180.;
 				return new double[] {x, y0};
 			}
 		}
@@ -469,28 +472,28 @@ public class Lenticular {
 						(ph) -> {
 							if (ph == 0)
 								return y;
-							double y0 = (0.9953537*ph + 0.01476138*ph*ph*ph);
+							double y0 = (1.1068*ph + 0.000005*ph*ph*ph);
 							double ρ = 1/polynomialInterpolate(ph, referenceLatitude, referenceCurvature, 3);
 							return ρ - signum(ρ)*hypot(x, y - y0 - ρ);
 						},
-						-PI/2, PI/2, shape.height*1e-4);
+						-90, 90, shape.height*1e-4);
 			} catch (NumericalAnalysis.AlgorithmFailedException e) {
 				lat = NaN;
 			}
 			if (isNaN(lat))
 				return null;
 			else if (lat == 0) {
-				double xn = polynomialInterpolate(0, referenceLatitude, referenceParallelLength, 3);
-				double lon = signum(x)*PI*(5.5 - sqrt(30.25 - 10*abs(x/xn)));
-				return new double[] {0, lon};
+				double x180 = polynomialInterpolate(0, referenceLatitude, referenceParallelLength, 3);
+				double lon = signum(x)*180*(5.5 - sqrt(30.25 - 10*abs(x/x180)));
+				return new double[] {0, toRadians(lon)};
 			}
 
-			double y0 = (0.9953537*lat + 0.01476138*lat*lat*lat);
+			double y0 = (1.1068*lat + 0.000005*lat*lat*lat);
 			double ρ = 1/polynomialInterpolate(lat, referenceLatitude, referenceCurvature, 3);
-			double δn = polynomialInterpolate(lat, referenceLatitude, referenceParallelLength, 3)/ρ;
+			double δ180 = polynomialInterpolate(lat, referenceLatitude, referenceParallelLength, 3)/ρ;
 			double δ = atan2(x, -signum(ρ)*(y - y0 - ρ));
-			double lon = signum(δ)*PI*(5.5 - sqrt(30.25 - 10*abs(δ/δn)));
-			return new double[] { lat, lon };
+			double lon = signum(δ)*180*(5.5 - sqrt(30.25 - 10*abs(δ/δ180)));
+			return new double[] { toRadians(lat), toRadians(lon) };
 		}
 		
 		public void initialize(double... params) throws IllegalArgumentException {
@@ -508,14 +511,14 @@ public class Lenticular {
 						j = i - TABLE_LATITUDE.length - 1;
 						sign = 1;
 					}
-					referenceLatitude[i] = sign*toRadians(TABLE_LATITUDE[j]);
-					referenceCurvature[i] = sign/(TABLE_RADIUS[j]*1e5/SCALE);
-					referenceParallelLength[i] = TABLE_RADIUS[j]*1e5/SCALE*toRadians(TABLE_ARC[j]);
+					referenceLatitude[i] = sign*TABLE_LATITUDE[j];
+					referenceCurvature[i] = sign/TABLE_RADIUS[j];
+					referenceParallelLength[i] = TABLE_RADIUS[j]*toRadians(TABLE_ARC[j]);
 				}
 				else {
 					referenceLatitude[i] = 0;
 					referenceCurvature[i] = 0;
-					referenceParallelLength[i] = 16500000/SCALE;
+					referenceParallelLength[i] = EQUATOR_HALF_LENGTH;
 				}
 			}
 			this.shape = Shape.meridianEnvelope(this);
