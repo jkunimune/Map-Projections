@@ -35,21 +35,30 @@ If you are a fancy Windows user, I recommend the convenient [fancy Windows binar
 ### Running from the command line
 
 If you are not on Windows or are otherwise not fancy enough to deserve such binaries, there are also equivalent `.jar` files in the main directory.
-For that, you'll need to download and install [Java](https://jdk.java.net).
-You must use Java 11 or higher (be careful, because some websites will try to give you Java 8, which won't work).
+For that, you'll need to download and install Java and JavaFX.  There are two options.
+- You can download a Java environment with JavaFX bundled into it.  For this, you can use any version of Java.
+- You can download the Java environment and JavaFX separately.  For this, you must use Java 11 or higher, and must use an SDK version of JavaFX (_not_ a Jmods version).
 
-You'll also need to download [JavaFX](https://gluonhq.com/products/javafx/).
-Make sure you get the SDK JavaFX, not the Jmods JavaFX. The version number doesn't matter.
-For illustration, let's say you've unzipped JavaFX into the directory `/home/jkunimune/javafx-sdk-17`.
+Be careful, because some wobsites will try to give you Java 8 without JavaFX, which won't work.
+I recommend downloading the most recent version of [Azul's Zulu JRE FX](https://www.azul.com/downloads/?package=jre-fx#downloads-tabs) (make sure you change the "Java Package" dropdown to "JRE FX").
 
-Then you can download and unzip the Map-Projections source code, navigate to the resulting directory in a command line window, and run the programs with the following command:
+Once you've installed Java and JavaFX, you can download the source code, unzip it, and navigate to the resulting directory in a command line window.
+
+If you have a Java environment with JavaFX bundled, you can run the programs with the following command:
 ~~~bash
-java --module-path '/home/jkunimune/javafx-sdk-17/lib' --add-modules javafx.controls,javafx.swing -jar MapDesignerRaster.jar
+java -jar MapDesignerRaster.jar
 ~~~
 Change the filename at the end depending on whether you want to run MapDesignerRaster, MapDesignerVector, or MapAnalyzer.
 
+If you have JavaFX separate, then you need to point to it when you run the JAR file.
+For illustration, let's say you've unzipped JavaFX into the directory `/home/jkunimune/javafx-sdk-17`.
+Then you can run the programs with the following command:
+~~~bash
+java --module-path '/home/jkunimune/javafx-sdk-17/lib' --add-modules javafx.controls,javafx.swing -jar MapDesignerRaster.jar
+~~~
 I think this syntax might be somewhat platform dependent, but I can’t really remember.
 If you’re having problems, try backslashes instead of forward slashes or double quotes instead of single quotes.
+Change the filename at the end depending on whether you want to run MapDesignerRaster, MapDesignerVector, or MapAnalyzer.
 
 ## Building from source
 
@@ -61,12 +70,12 @@ In addition to three `.java` files corresponding to the three executables, there
 * `src/app/MapExplainer.java` &ndash; Generate an HTML blurb outlining and displaying every map projection.
 * `src/app/MapConverter.java` &ndash; Generate a bunch of maps in one projection from a bunch of input images.
 
-To run these, you’ll need to install some dependencies in addition to JavaFX as mentioned above; you can get them as `.jar` files:
+To run these, you'll need a JDK (not a JRE which can run but can't compile) as well as some dependencies in addition to JavaFX as mentioned above.  You can get the dependencies as `.jar` files:
 
 * [Apache Commons Mathematics Library](http://commons.apache.org/proper/commons-math/download_math.cgi) (you can just download and unzip the whole thing)
 * [Java Tools for Experimental Mathematics "ellipticFunctions" package](http://www3.math.tu-berlin.de/jtem/downloads.html) (you only need "ellipticFunctions.jar" and "mfc.jar")
 
-Once you have those and put them in, for example, `/home/jkunimune/apache` and `/home/jkunimune/jtem`, you can compile and run with
+Suppose you've downloaded these and put them in `/home/jkunimune/apache` and `/home/jkunimune/jtem`.  The command to compile and run in Java 11 or higher then looks like this:
 ~~~bash
 javac --module-path '/home/jkunimune/javafx-sdk-17/lib:/home/jkunimune/apache/commons-math3-3.6.1.jar:/home/jkunimune/jtem' --add-modules javafx.controls,javafx.swing,ellipticFunctions --source-path=src src/apps/MapPlotter.java
 java --class-path '/home/jkunimune/javafx-sdk-17/lib/javafx.controls.jar:/home/jkunimune/javafx-sdk-17/lib/javafx.swing.jar:/home/jkunimune/apache/commons-math3-3.6.1.jar:/home/jkunimune/jtem/ellipticFunctions.jar:src' apps.MapPlotter
@@ -75,9 +84,10 @@ As with running the .jar file, the syntax might be somewhat platform-dependent; 
 
 To build the JAR and EXE files, you use the Ant file `build.xml`.
 I don't know what commands are used for that; IntelliJ IDEA does it for me.
-The main trick here is you *must* use the Java 8 JDK because the tool I use, Javapackager, was dropped in Java 9.
+The main trick here is that for this part, you *must* use the Java 8 JDK because the tool I use, Javapackager, was dropped in Java 9.
 If you use Javapackager in conjunction with a newer JDK, it will seem to work at first, but the resulting EXEs won't run.
 You may have to put `javapackager.exe` in your path and install the WiX Toolset 4 and Inno Setup 5 (not Inno Setup 6!).
+
 Javapackager does often have problems but doesn't have useful error messages (every failure mode appears to be "builder did not produce a bundle"),
 so I apologize about that.
 Make sure you set the directories at the top of the file according to your file system, make sure the compiled Java is in the `bin/` directory, make sure none of the jar files have restricted read access or are being used by any other programs.
