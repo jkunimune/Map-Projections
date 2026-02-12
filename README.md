@@ -35,25 +35,21 @@ If you are a fancy Windows user, I recommend the convenient [fancy Windows binar
 ### Running from the command line
 
 If you are not on Windows or are otherwise not fancy enough to deserve such binaries, there are also equivalent `.jar` files in the main directory.
-For that, you'll need to download and install [Java](https://www.java.com/download/).
-You can use any version 8 or higher.
-Once you've installed it, you can download the source code, unzip it, and navigate to the resulting directory in a command line window.
-If the Java you installed is Java 8, you can run the programs with the following command:
-~~~bash
-java -jar MapDesignerRaster.jar
-~~~
-Change the filename at the end accordingly, of course.
+For that, you'll need to download and install [Java](https://jdk.java.net).
+You must use Java 11 or higher (be careful, because some websites will try to give you Java 8, which won't work).
 
-If you have Java 9 or higher, that's fine too, but you'll need to also install [JavaFX](https://gluonhq.com/products/javafx/).
+You'll also need to download [JavaFX](https://gluonhq.com/products/javafx/).
 Make sure you get the SDK JavaFX, not the Jmods JavaFX. The version number doesn't matter.
-Once you've unzipped JavaFX into some directory – let’s say, for example, `/home/jkunimune/javafx-sdk-17` – then you can run the programs with the following command:
+For illustration, let's say you've unzipped JavaFX into the directory `/home/jkunimune/javafx-sdk-17`.
 
+Then you can download and unzip the Map-Projections source code, navigate to the resulting directory in a command line window, and run the programs with the following command:
 ~~~bash
 java --module-path '/home/jkunimune/javafx-sdk-17/lib' --add-modules javafx.controls,javafx.swing -jar MapDesignerRaster.jar
 ~~~
+Change the filename at the end depending on whether you want to run MapDesignerRaster, MapDesignerVector, or MapAnalyzer.
 
 I think this syntax might be somewhat platform dependent, but I can’t really remember.
-If you’re having problems, try forward slashes instead of backslashes or double quotes instead of single quotes.
+If you’re having problems, try backslashes instead of forward slashes or double quotes instead of single quotes.
 
 ## Building from source
 
