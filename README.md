@@ -35,16 +35,16 @@ If you are a fancy Windows user, I recommend the convenient [fancy Windows binar
 ### Running from the command line
 
 If you are not on Windows or are otherwise not fancy enough to deserve such binaries, there are also equivalent `.jar` files in the main directory.
-For that, you'll need to download and install Java and JavaFX.  There are two options.
-- You can download a Java environment with JavaFX bundled into it.  For this, you can use any version of Java.
-- You can download the Java environment and JavaFX separately.  For this, you must use Java 11 or higher, and must use an SDK version of JavaFX (_not_ a Jmods version).
+To use this method, first download this repository, unzip it, and navigate to the resulting directory.
 
-Be careful, because some wobsites will try to give you Java 8 without JavaFX, which won't work.
+To run `.jar` files, you'll need to download and install Java and JavaFX.  There are two options.
+- You can download a Java environment with JavaFX bundled into it.  For this, you can use any version of Java.
+- You can download a Java environment and JavaFX separately.  For this, you must use Java 11 or higher, and must use an SDK version of JavaFX (_not_ a Jmods version).
+
+Be careful, because some websites will give you Java 8 without JavaFX, which won't work.
 I recommend downloading the most recent version of [Azul's Zulu JRE FX](https://www.azul.com/downloads/?package=jre-fx#downloads-tabs) (make sure you change the "Java Package" dropdown to "JRE FX").
 
-Once you've installed Java and JavaFX, you can download the source code, unzip it, and navigate to the resulting directory in a command line window.
-
-If you have a Java environment with JavaFX bundled, you can run the programs with the following command:
+If you have a Java environment with JavaFX bundled in, like Azul's Zulu JRE FX, you can run the programs with the following command:
 ~~~bash
 java -jar MapDesignerRaster.jar
 ~~~
