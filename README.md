@@ -43,6 +43,7 @@ To run `.jar` files, you'll need to download and install Java and JavaFX.  There
 
 Be careful, because some websites will give you Java 8 without JavaFX, which won't work.
 I recommend downloading the most recent version of [Azul's Zulu JRE FX](https://www.azul.com/downloads/?package=jre-fx#downloads-tabs) (make sure you change the "Java Package" dropdown to "JRE FX").
+Make sure the Java environment is on your path; if you use one of Azul's Windows installers this should happen automatically.
 
 If you have a Java environment with JavaFX bundled in, like Azul's Zulu JRE FX, you can run the programs with the following command:
 ~~~bash
