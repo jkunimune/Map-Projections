@@ -89,7 +89,7 @@ public class MapDesignerRaster extends MapApplication {
 			new FileChooser.ExtensionFilter("JPG", "*.jpg"),
 			new FileChooser.ExtensionFilter("GIF", "*.gif") };
 	
-	private static final double GRATICULE_PRECISION = 0.02;
+	private static final double GRATICULE_PRECISION = 0.0001;
 	
 	private Region aspectSelector;
 	private double[] aspect;
