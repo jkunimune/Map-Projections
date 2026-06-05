@@ -316,10 +316,10 @@ public class Elastic {
 							step_limiter /= backstep_relaxation_factor;
 							break;
 						}
-						if (num_step_sizes > max_num_step_sizes) {
-							// too many inner iterations have elapsed
-							return null;
-						}
+					}
+					if (num_step_sizes > max_num_step_sizes) {
+						// too many inner iterations have elapsed
+						return null;
 					}
 
 					if (step_limiter == 0)
